@@ -1,7 +1,7 @@
 alias origin='git checkout -f origin/main'
 alias gfetch='git fetch --tags'
 alias rebase='git rebase-update'
-alias gsync='gclient sync --with_branch_heads --with_tags -f -R -D'
+alias gsync='gclient sync --with_branch_heads --with_tags --force --reset --nohooks --delete_unversioned_trees'
 alias gnls='gn ls out/thorium'
 alias show='git show-ref'
 alias runhooks='gclient runhooks'
