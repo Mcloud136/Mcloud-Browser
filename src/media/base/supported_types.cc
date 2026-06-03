@@ -13,6 +13,7 @@
 #include "media/base/media.h"
 #include "media/base/media_client.h"
 #include "media/base/media_switches.h"
+#include "media/base/media_util.h"
 #include "media/media_buildflags.h"
 #include "media/mojo/buildflags.h"
 #include "ui/gfx/hdr_metadata.h"
@@ -25,7 +26,6 @@
 #endif
 
 #if BUILDFLAG(IS_ANDROID)
-#include "base/android/build_info.h"
 
 // TODO(dalecurtis): This include is not allowed by media/base since
 // media/base/android is technically a different component. We should move
@@ -230,7 +230,7 @@ bool IsAudioCodecProprietary(AudioCodec codec) {
 
 bool IsDecoderHevcProfileSupported(const VideoType& type) {
 #if BUILDFLAG(ENABLE_FFMPEG_VIDEO_DECODERS)
-   return true;
+  return true;
 #else
   return GetSupplementalDecoderVideoProfileCache()->IsProfileSupported(
       type.profile);
@@ -238,7 +238,10 @@ bool IsDecoderHevcProfileSupported(const VideoType& type) {
 }
 
 bool IsDecoderVp9ProfileSupported(const VideoType& type) {
-#if BUILDFLAG(ENABLE_LIBVPX)
+#if BUILDFLAG(IS_ANDROID)
+  // After Q, all VP9 profiles are required by Android
+  return IsDecoderColorSpaceSupported(type.color_space);
+#elif BUILDFLAG(ENABLE_LIBVPX)
   // High bit depth capabilities may be toggled via LibVPX config flags.
   static const bool vpx_supports_hbd = (vpx_codec_get_caps(vpx_codec_vp9_dx()) &
                                         VPX_CODEC_CAP_HIGHBITDEPTH) != 0;
@@ -253,18 +256,9 @@ bool IsDecoderVp9ProfileSupported(const VideoType& type) {
     case VP9PROFILE_PROFILE0:
     case VP9PROFILE_PROFILE1:
       return true;
-#if BUILDFLAG(IS_ANDROID)
-    case VP9PROFILE_PROFILE2:
-      return vpx_supports_hbd ||
-             MediaCodecUtil::IsVp9Profile2DecoderAvailable();
-    case VP9PROFILE_PROFILE3:
-      return vpx_supports_hbd ||
-             MediaCodecUtil::IsVp9Profile3DecoderAvailable();
-#else
     case VP9PROFILE_PROFILE2:
     case VP9PROFILE_PROFILE3:
       return vpx_supports_hbd;
-#endif  // BUILDFLAG(IS_ANDROID)
     default:
       NOTREACHED();
   }
@@ -278,8 +272,8 @@ bool IsDecoderAV1Supported(const VideoType& type) {
 #if BUILDFLAG(ENABLE_AV1_DECODER)
   return IsDecoderColorSpaceSupported(type.color_space);
 #elif BUILDFLAG(IS_ANDROID)
-  return base::android::BuildInfo::GetInstance()->sdk_int() >=
-             base::android::SDK_VERSION_Q &&
+  return base::android::android_info::sdk_int() >=
+             base::android::android_info::SDK_VERSION_Q &&
          IsDecoderColorSpaceSupported(type.color_space);
 #else
   return false;
@@ -335,7 +329,10 @@ bool IsDecoderDolbyAc4Supported(const AudioType& type) {
 }
 
 bool IsEncoderH264BuiltInVideoType(const VideoType& type) {
-#if BUILDFLAG(ENABLE_OPENH264) && BUILDFLAG(USE_PROPRIETARY_CODECS)
+  if (!IsOpenH264SoftwareEncoderEnabled()) {
+    return false;
+  }
+
   switch (type.profile) {
     case H264PROFILE_BASELINE:
     case H264PROFILE_MAIN:
@@ -355,9 +352,6 @@ bool IsEncoderH264BuiltInVideoType(const VideoType& type) {
     default:
       NOTREACHED();
   }
-#else
-  return false;
-#endif  // BUILDFLAG(ENABLE_OPENH264) && BUILDFLAG(USE_PROPRIETARY_CODECS)
 }
 
 bool IsEncoderVp8BuiltInVideoType(const VideoType& type) {
@@ -550,18 +544,17 @@ bool IsEncoderOptionalVideoType(const media::VideoType& type) {
     return false;
   }
   switch (type.codec) {
-    case media::VideoCodec::kH264:
-      // Android and iOS won't bundle OpenH264.
-      return BUILDFLAG(USE_PROPRIETARY_CODECS) && !BUILDFLAG(ENABLE_OPENH264);
-    case media::VideoCodec::kAV1:
-      // Android won't bundle libaom.
-      return !BUILDFLAG(ENABLE_LIBAOM);
     case media::VideoCodec::kHEVC:
       // HEVC only has platform encoder support.
       return BUILDFLAG(PLATFORM_HAS_OPTIONAL_HEVC_ENCODE_SUPPORT);
+    case media::VideoCodec::kH264:
+    case media::VideoCodec::kAV1:
     case media::VideoCodec::kVP8:
     case media::VideoCodec::kVP9:
-      return !BUILDFLAG(ENABLE_LIBVPX);
+      // Check the optional video type when the requested encoding profile does
+      // not match the built‑in type, or when the built‑in encoder is not
+      // available.
+      return true;
     case media::VideoCodec::kTheora:
     case media::VideoCodec::kDolbyVision:
     case media::VideoCodec::kUnknown:
@@ -594,7 +587,7 @@ bool IsDecoderBuiltInVideoCodec(VideoCodec codec) {
 bool MayHaveAndAllowSelectOSSoftwareEncoder(VideoCodec codec) {
   // Allow OS software encoding when we don't have an equivalent
   // software encoder.
-  constexpr bool kHasBundledH264Encoder = BUILDFLAG(ENABLE_OPENH264);
+  const bool kHasBundledH264Encoder = IsOpenH264SoftwareEncoderEnabled();
   constexpr bool kHasOSSoftwareH264Encoder =
       BUILDFLAG(IS_MAC) || BUILDFLAG(IS_ANDROID);
   constexpr bool kHasOSSoftwareHEVCEncoder =

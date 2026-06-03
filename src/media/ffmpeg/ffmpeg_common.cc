@@ -2,13 +2,10 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifdef UNSAFE_BUFFERS_BUILD
-// TODO(crbug.com/40285824): Remove this and convert code to safer constructs.
-#pragma allow_unsafe_buffers
-#endif
-
 #include "media/ffmpeg/ffmpeg_common.h"
 
+#include "base/containers/span.h"
+#include "base/feature_list.h"
 #include "base/hash/sha1.h"
 #include "base/logging.h"
 #include "base/no_destructor.h"
@@ -17,6 +14,7 @@
 #include "base/strings/string_util.h"
 #include "build/build_config.h"
 #include "media/base/audio_decoder_config.h"
+#include "media/base/audio_timestamp_helper.h"
 #include "media/base/decoder_buffer.h"
 #include "media/base/encryption_scheme.h"
 #include "media/base/media_util.h"
@@ -24,6 +22,7 @@
 #include "media/base/video_aspect_ratio.h"
 #include "media/base/video_color_space.h"
 #include "media/base/video_decoder_config.h"
+#include "media/base/video_frame.h"
 #include "media/base/video_util.h"
 #include "media/formats/mp4/box_definitions.h"
 #include "media/media_buildflags.h"
@@ -40,9 +39,7 @@ namespace media {
 namespace {
 
 // TODO(crbug.com/379418979): Remove after M133 is stable.
-BASE_FEATURE(kStrictFFmpegCodecs,
-             "StrictFFmpegCodecs",
-             base::FEATURE_ENABLED_BY_DEFAULT);
+BASE_FEATURE(kStrictFFmpegCodecs, base::FEATURE_ENABLED_BY_DEFAULT);
 
 EncryptionScheme GetEncryptionScheme(const AVStream* stream) {
   AVDictionaryEntry* key =
@@ -53,7 +50,7 @@ EncryptionScheme GetEncryptionScheme(const AVStream* stream) {
 VideoDecoderConfig::AlphaMode GetAlphaMode(const AVStream* stream) {
   AVDictionaryEntry* alpha_mode =
       av_dict_get(stream->metadata, "alpha_mode", nullptr, 0);
-  return alpha_mode && !strcmp(alpha_mode->value, "1")
+  return alpha_mode && std::string_view(alpha_mode->value) == "1"
              ? VideoDecoderConfig::AlphaMode::kHasAlpha
              : VideoDecoderConfig::AlphaMode::kIsOpaque;
 }
@@ -67,14 +64,10 @@ VideoColorSpace GetGuessedColorSpace(const VideoColorSpace& color_space) {
 const char* GetAllowedVideoDecoders() {
   // This should match the configured lists in //third_party/ffmpeg.
 #if BUILDFLAG(USE_PROPRIETARY_CODECS) && BUILDFLAG(ENABLE_FFMPEG_VIDEO_DECODERS)
-#if BUILDFLAG(ENABLE_PLATFORM_HEVC)
   return "h264,hevc";
 #else
-  return "h264";
-#endif // BUILDFLAG(ENABLE_PLATFORM_HEVC)
-#else
   return "";
-#endif // BUILDFLAG(USE_PROPRIETARY_CODECS) && BUILDFLAG(ENABLE_FFMPEG_VIDEO_DECODERS)
+#endif
 }
 
 void ApplyCodecContextSecuritySettings(AVCodecContext* codec_context) {
@@ -93,6 +86,51 @@ void ApplyCodecContextSecuritySettings(AVCodecContext* codec_context) {
   if (base::FeatureList::IsEnabled(kStrictFFmpegCodecs)) {
     codec_context->err_recognition |= AV_EF_EXPLODE;
   }
+}
+
+template <typename T>
+void CopyBufferFromConfig(const T& config, AVCodecContext* codec_context) {
+  if (config.extra_data().empty()) {
+    codec_context->extradata = nullptr;
+    codec_context->extradata_size = 0;
+    return;
+  }
+  codec_context->extradata_size = config.extra_data().size();
+  codec_context->extradata = reinterpret_cast<uint8_t*>(
+      av_malloc(config.extra_data().size() + AV_INPUT_BUFFER_PADDING_SIZE));
+  // SAFETY:
+  // https://ffmpeg.org/doxygen/6.0/structAVCodecContext.html#abe964316aaaa61967b012efdcced79c4
+  // ffmpeg documentation: The allocated memory should be
+  // `AV_INPUT_BUFFER_PADDING_SIZE` bytes larger than `extradata_size`. And the
+  // memory must be allocated using `av_malloc`.
+  //
+  // We allocated the appropriate memory according to this rule above and
+  // converted it to `base::span` here. So this is safe.
+  base::span allocated_extradata = UNSAFE_BUFFERS(
+      base::span(codec_context->extradata,
+                 static_cast<size_t>(config.extra_data().size() +
+                                     AV_INPUT_BUFFER_PADDING_SIZE)));
+  auto [extradata, padding] =
+      allocated_extradata.split_at(config.extra_data().size());
+  extradata.copy_from_nonoverlapping(config.extra_data());
+  std::ranges::fill(padding, '\0');
+}
+
+base::span<const uint32_t> GetSkipSamples(const AVPacket* packet) {
+  size_t skip_samples_size = 0;
+  const uint32_t* skip_samples_ptr =
+      reinterpret_cast<const uint32_t*>(av_packet_get_side_data(
+          packet, AV_PKT_DATA_SKIP_SAMPLES, &skip_samples_size));
+  // SAFETY:
+  // https://ffmpeg.org/doxygen/6.0/group__lavc__packet.html#ga68712351b8a025b464e5c854d4a9fe1f
+  // ffmpeg documentation: av_packet_get_side_data() returns a pointer to
+  // already allocated data with a valid size if present and sets `size`
+  // to its length, or nullptr if no data is available and sets `size` to zero.
+  //
+  // Since we are not allocating memory, and it is considered a valid use case
+  // to construct a base::span<> from nullptr with size zero, this is safe.
+  return UNSAFE_BUFFERS(
+      base::span<const uint32_t>(skip_samples_ptr, skip_samples_size));
 }
 
 }  // namespace
@@ -425,8 +463,9 @@ bool AVCodecContextToAudioDecoderConfig(const AVCodecContext* codec_context,
 
   std::vector<uint8_t> extra_data;
   if (codec_context->extradata_size > 0) {
-    extra_data.assign(codec_context->extradata,
-                      codec_context->extradata + codec_context->extradata_size);
+    extra_data.resize(codec_context->extradata_size);
+    base::span(extra_data)
+        .copy_from_nonoverlapping(AVCodecContextExtraDataToSpan(codec_context));
   }
 
   config->Initialize(codec, sample_format, channel_layout, codec_context->sample_rate,
@@ -506,18 +545,7 @@ void AudioDecoderConfigToAVCodecContext(const AudioDecoderConfig& config,
   codec_context->ch_layout.nb_channels = config.channels();
   codec_context->sample_rate = config.samples_per_second();
 
-  if (config.extra_data().empty()) {
-    codec_context->extradata = nullptr;
-    codec_context->extradata_size = 0;
-  } else {
-    codec_context->extradata_size = config.extra_data().size();
-    codec_context->extradata = reinterpret_cast<uint8_t*>(
-        av_malloc(config.extra_data().size() + AV_INPUT_BUFFER_PADDING_SIZE));
-    memcpy(codec_context->extradata, &config.extra_data()[0],
-           config.extra_data().size());
-    memset(codec_context->extradata + config.extra_data().size(), '\0',
-           AV_INPUT_BUFFER_PADDING_SIZE);
-  }
+  CopyBufferFromConfig(config, codec_context);
   ApplyCodecContextSecuritySettings(codec_context);
 }
 
@@ -584,8 +612,8 @@ bool AVStreamToVideoDecoderConfig(const AVStream* stream,
       if (profile == VIDEO_CODEC_PROFILE_UNKNOWN && codec_context->extradata &&
           codec_context->extradata_size) {
         mp4::AVCDecoderConfigurationRecord avc_config;
-        if (avc_config.Parse(codec_context->extradata,
-                             codec_context->extradata_size)) {
+        if (avc_config.Parse(
+                AVCodecContextExtraDataToSpan(codec_context.get()))) {
           profile = ProfileIDToVideoCodecProfile(avc_config.profile_indication);
         }
       }
@@ -602,8 +630,8 @@ bool AVStreamToVideoDecoderConfig(const AVStream* stream,
       // should always be FF_PROFILE_UNKNOWN (-99) here
       if (codec_context->extradata && codec_context->extradata_size) {
         mp4::HEVCDecoderConfigurationRecord hevc_config;
-        if (hevc_config.Parse(codec_context->extradata,
-                              codec_context->extradata_size)) {
+        if (hevc_config.Parse(
+                AVCodecContextExtraDataToSpan(codec_context.get()))) {
           hevc_profile = hevc_config.general_profile_idc;
 #if BUILDFLAG(ENABLE_HEVC_PARSER_AND_HW_DECODER)
           if (!color_space.IsSpecified()) {
@@ -760,13 +788,15 @@ bool AVStreamToVideoDecoderConfig(const AVStream* stream,
 
   std::vector<uint8_t> extra_data;
   if (codec_context->extradata_size > 0) {
-    extra_data.assign(codec_context->extradata,
-                      codec_context->extradata + codec_context->extradata_size);
+    extra_data.resize(codec_context->extradata_size);
+    base::span(extra_data)
+        .copy_from_nonoverlapping(
+            AVCodecContextExtraDataToSpan(codec_context.get()));
   }
 
   VideoTransformation video_transformation = VideoTransformation();
-  for (int i = 0; i < stream->codecpar->nb_coded_side_data; ++i) {
-    const auto& side_data = stream->codecpar->coded_side_data[i];
+  for (const auto& side_data :
+       AVCodecParametersCodedSideToSpan(stream->codecpar)) {
     switch (side_data.type) {
       case AV_PKT_DATA_DISPLAYMATRIX: {
         CHECK_EQ(side_data.size, sizeof(int32_t) * 3 * 3);
@@ -878,18 +908,7 @@ void VideoDecoderConfigToAVCodecContext(
   if (config.color_space_info().range == gfx::ColorSpace::RangeID::FULL)
     codec_context->color_range = AVCOL_RANGE_JPEG;
 
-  if (config.extra_data().empty()) {
-    codec_context->extradata = nullptr;
-    codec_context->extradata_size = 0;
-  } else {
-    codec_context->extradata_size = config.extra_data().size();
-    codec_context->extradata = reinterpret_cast<uint8_t*>(
-        av_malloc(config.extra_data().size() + AV_INPUT_BUFFER_PADDING_SIZE));
-    memcpy(codec_context->extradata, &config.extra_data()[0],
-           config.extra_data().size());
-    memset(codec_context->extradata + config.extra_data().size(), '\0',
-           AV_INPUT_BUFFER_PADDING_SIZE);
-  }
+  CopyBufferFromConfig(config, codec_context);
   ApplyCodecContextSecuritySettings(codec_context);
 }
 
@@ -1024,24 +1043,79 @@ std::string AVErrorToString(int errnum) {
 int32_t HashCodecName(const char* codec_name) {
   // Use the first 32-bits from the SHA1 hash as the identifier.
   int32_t hash;
-  memcpy(&hash, base::SHA1HashString(codec_name).substr(0, 4).c_str(), 4);
+  base::byte_span_from_ref(hash).copy_from_nonoverlapping(
+      base::as_byte_span(base::SHA1HashString(codec_name)).first<4>());
   return hash;
 }
 
 const char* GetAllowedAudioDecoders() {
-  static const base::NoDestructor<std::string> kAllowedAudioCodecs([]() {
-    // This should match the configured lists in //third_party/ffmpeg.
-    std::string allowed_decoders(
-        "vorbis,libopus,flac,pcm_u8,pcm_s16le,pcm_s24le,pcm_s32le,pcm_f32le,"
-        "mp3,pcm_s16be,pcm_s24be,pcm_mulaw,pcm_alaw");
 #if BUILDFLAG(USE_PROPRIETARY_CODECS)
-    allowed_decoders += ",aac";
-    allowed_decoders += ",ac3";
-    allowed_decoders += ",eac3";
+#define EXTRA_CODECS ",aac,ac3,eac3"
+#else
+#define EXTRA_CODECS
 #endif
-    return allowed_decoders;
-  }());
-  return kAllowedAudioCodecs->c_str();
+
+  // This should match the configured lists in //third_party/ffmpeg.
+  static constexpr std::string_view kAllowedAudioCodecs =
+      "vorbis,libopus,flac,pcm_u8,pcm_s16le,pcm_s24le,pcm_s32le,pcm_f32le,"
+      "mp3,pcm_s16be,pcm_s24be,pcm_mulaw,pcm_alaw" EXTRA_CODECS;
+#undef EXTRA_CODECS
+
+  return kAllowedAudioCodecs.data();
+}
+
+base::TimeDelta ConvertStreamTimestamp(const AVRational& time_base,
+                                       int64_t timestamp) {
+  if (timestamp == kNoFFmpegTimestamp) {
+    return kNoTimestamp;
+  }
+
+  return ConvertFromTimeBase(time_base, timestamp);
+}
+
+std::optional<DecoderBufferSideData::DiscardPadding>
+GetDiscardPaddingFromAVPacket(const AVPacket* packet, int samples_per_second) {
+  // Skip samples are only valid for audio packets.
+  constexpr int kSkipSamplesValidSize = 10;
+  constexpr int kSkipEndSamplesOffset = 1;
+  base::span<const uint32_t> skip_samples = GetSkipSamples(packet);
+  if (skip_samples.size() >= kSkipSamplesValidSize) {
+    // Because FFmpeg rolls codec delay and skip samples into one we can only
+    // allow front discard padding on the first packet.  Otherwise the discard
+    // helper can't figure out which data to discard.  See AudioDiscardHelper.
+    //
+    // NOTE: Large values may end up as negative here, but negatives are
+    // discarded below.
+    auto discard_front_samples = static_cast<int>(skip_samples[0]);
+    if (discard_front_samples < 0) {
+      // See https://crbug.com/1189939 and https://trac.ffmpeg.org/ticket/9622
+      DLOG(ERROR) << "Negative skip samples are not allowed.";
+      discard_front_samples = 0;
+    }
+
+    // NOTE: Large values may end up as negative here, which could lead to
+    // a negative timestamp. It's not clear if this is intentional.
+    const auto discard_end_samples =
+        static_cast<int>(skip_samples[kSkipEndSamplesOffset]);
+
+    if (discard_front_samples || discard_end_samples) {
+      const auto front_discard = AudioTimestampHelper::FramesToTime(
+          discard_front_samples, samples_per_second);
+      return std::make_pair(front_discard,
+                            AudioTimestampHelper::FramesToTime(
+                                discard_end_samples, samples_per_second));
+    }
+  }
+
+  // If the packet is marked for complete discard and it doesn't already have
+  // any discard padding set, mark the side data for complete discard. We don't
+  // want to overwrite any existing discard padding since the discard padding
+  // may refer to frames beyond this packet.
+  if (packet->flags & AV_PKT_FLAG_DISCARD) {
+    return std::make_pair(kInfiniteDuration, base::TimeDelta());
+  }
+
+  return std::nullopt;
 }
 
 }  // namespace media
