@@ -17,6 +17,7 @@
 #include <vector>
 
 #include "base/base64url.h"
+#include "base/byte_count.h"
 #include "base/containers/circular_deque.h"
 #include "base/containers/span.h"
 #include "base/functional/bind.h"
@@ -30,7 +31,9 @@
 #include "base/metrics/histogram_functions.h"
 #include "base/metrics/histogram_macros.h"
 #include "base/numerics/byte_conversions.h"
+#include "base/numerics/safe_conversions.h"
 #include "base/rand_util.h"
+#include "base/strings/string_util.h"
 #include "base/strings/stringprintf.h"
 #include "base/task/sequenced_task_runner.h"
 #include "base/task/single_thread_task_runner.h"
@@ -60,6 +63,7 @@
 #include "net/dns/dns_util.h"
 #include "net/dns/host_cache.h"
 #include "net/dns/host_resolver_internal_result.h"
+#include "net/dns/opt_record_rdata.h"
 #include "net/dns/public/dns_over_https_config.h"
 #include "net/dns/public/dns_over_https_server_config.h"
 #include "net/dns/public/dns_protocol.h"
@@ -118,7 +122,8 @@ const char kDnsOverHttpResponseContentType[] = "application/dns-message";
 
 // The maximum size of the DNS message for DoH, per
 // https://datatracker.ietf.org/doc/html/rfc8484#section-6
-const int64_t kDnsOverHttpResponseMaximumSize = 65535;
+constexpr base::ByteCount kDnsOverHttpResponseMaximumSize =
+    base::ByteCount(65535);
 
 // Count labels in the fully-qualified name in DNS format.
 int CountLabels(base::span<const uint8_t> name) {
@@ -485,7 +490,7 @@ class DnsHTTPAttempt : public DnsAttempt, public URLRequest::Delegate {
     request_->SetSecureDnsPolicy(SecureDnsPolicy::kBootstrap);
     request_->SetLoadFlags(request_->load_flags() | LOAD_DISABLE_CACHE |
                            LOAD_MINIMAL_HEADERS | LOAD_BYPASS_PROXY);
-    request_->set_allow_credentials(false);
+    request_->set_allow_credentials();
     request_->set_isolation_info(isolation_info);
   }
 
@@ -541,18 +546,18 @@ class DnsHTTPAttempt : public DnsAttempt, public URLRequest::Delegate {
 
     buffer_ = base::MakeRefCounted<GrowableIOBuffer>();
 
-    if (request->response_headers()->HasHeader(
-            HttpRequestHeaders::kContentLength)) {
-      if (request_->response_headers()->GetContentLength() >
-          kDnsOverHttpResponseMaximumSize) {
+    std::optional<base::ByteCount> content_length =
+        request_->response_headers()->GetContentLength();
+    if (content_length.has_value()) {
+      if (content_length.value() > kDnsOverHttpResponseMaximumSize) {
         ResponseCompleted(ERR_DNS_MALFORMED_RESPONSE);
         return;
       }
-
-      buffer_->SetCapacity(request_->response_headers()->GetContentLength() +
-                           1);
+      buffer_->SetCapacity(
+          base::checked_cast<int>(content_length->InBytes() + 1));
     } else {
-      buffer_->SetCapacity(kDnsOverHttpResponseMaximumSize + 1);
+      buffer_->SetCapacity(base::checked_cast<int>(
+          kDnsOverHttpResponseMaximumSize.InBytes() + 1));
     }
 
     DCHECK(buffer_->data());
@@ -587,7 +592,8 @@ class DnsHTTPAttempt : public DnsAttempt, public URLRequest::Delegate {
     DCHECK_GE(bytes_read, 0);
 
     if (bytes_read > 0) {
-      if (buffer_->offset() + bytes_read > kDnsOverHttpResponseMaximumSize) {
+      if (buffer_->offset() + bytes_read >
+          kDnsOverHttpResponseMaximumSize.InBytes()) {
         ResponseCompleted(ERR_DNS_MALFORMED_RESPONSE);
         return;
       }
@@ -1829,6 +1835,8 @@ class DnsTransactionFactoryImpl : public DnsTransactionFactory {
   SecureDnsMode GetSecureDnsModeForTest() override {
     return session_->config().secure_dns_mode;
   }
+
+  OptRecordRdata* GetOptRdataForTest() override { return opt_rdata_.get(); }
 
  private:
   scoped_refptr<DnsSession> session_;
