@@ -140,8 +140,8 @@ def parse_args(argv):
 
 def check_lsb_release():
   if not shutil.which("lsb_release"):
-    print("ERROR: lsb_release not found in $PATH", file=sys.stderr)
-    print("try: sudo apt-get install lsb-release", file=sys.stderr)
+    logger.error("lsb_release not found in $PATH")
+    logger.error("try: sudo apt-get install lsb-release")
     sys.exit(1)
 
 
