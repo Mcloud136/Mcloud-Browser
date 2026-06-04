@@ -258,6 +258,18 @@
       <message name="IDS_QUICK_ANSWERS_USER_CONSENT_TITLE_UNIT_CONVERSION_INTENT" desc="Title text of the dialog that opens up to seek user-consent for the Quick Answers feature when the supported intent is generated from the query.">
         Convert "<ph name="query">$1<ex>1kg</ex></ph>"
       </message>
+      <message name="IDS_QUICK_ANSWERS_MAGIC_BOOST_USER_NOTICE_VIEW_A11Y_INFO_DESC_TEXT" desc="A11y description text for the Quick Answers Magic Boost user notice view.">
+        Right-click or press and hold to get definitions, translations, or unit conversions. Use Left or Right arrow keys to manage this feature.
+      </message>
+      <message name="IDS_QUICK_ANSWERS_MAGIC_BOOST_USER_CONSENT_DEFINITION_INTENT_LABEL_BUTTON" desc="Button label for Dictionary intent in the magic boost user consent view which leads to the magic boost disclaimer UI when clicked upon.">
+        Define "<ph name="query">$1<ex>unfathomable</ex></ph>"
+      </message>
+      <message name="IDS_QUICK_ANSWERS_MAGIC_BOOST_USER_CONSENT_TRANSLATION_INTENT_LABEL_BUTTON" desc="Button label for Translation intent in the magic boost user consent view which leads to the magic boost disclaimer UI when clicked upon.">
+        Translate "<ph name="query">$1<ex>信息</ex></ph>"
+      </message>
+      <message name="IDS_QUICK_ANSWERS_MAGIC_BOOST_USER_CONSENT_UNIT_CONVERSION_INTENT_LABEL_BUTTON" desc="Button label for Unit Conversion intent in the magic boost user consent view which leads to the magic boost disclaimer UI when clicked upon.">
+        Convert "<ph name="query">$1<ex>1kg</ex></ph>"
+      </message>
       <message name="IDS_QUICK_ANSWERS_USER_CONSENT_VIEW_TITLE_TEXT_WITH_INTENT" desc="Title text of the dialog that opens up to seek user-consent for the Quick Answers feature when supported intent is generated.">
         Get the <ph name="intent">$1<ex>definition</ex></ph> for "<ph name="query">$2<ex>unfathomable</ex></ph>" and more
       </message>
@@ -595,7 +607,7 @@
       <message name="IDS_ARC_SDK_VERSION_UNKNOWN" desc="Message displayed when the Android SDK Version can not be found">
         Unknown
       </message>
-      <if expr="chromeos_ash">
+      <if expr="is_chromeos">
         <part file="recorder_strings.grdp" />
 
         <!-- The following strings are located here for accessibility from both //ash and //chrome -->
@@ -3785,7 +3797,7 @@
           anime path overlooking the ocean with falling cherry blossom leaves
         </message>
         <message name="IDS_SEA_PEN_FREEFORM_SAMPLE_PAPAVER_RHEA_STEMS" desc="An example prompt that can be used to generate an image">
-          minimal still life of a few Papaver rhea stems in a glass vase on a black background
+          minimal still life of a few Papaver rhea flowers in a glass vase on a black background
         </message>
         <message name="IDS_SEA_PEN_FREEFORM_SAMPLE_METEOR_SHOWER" desc="An example prompt that can be used to generate an image">
           photo of a night sky with a meteor shower and a few trees in the foreground, with purple and pink hues
@@ -6243,16 +6255,10 @@
         <message name="IDS_FEEDBACK_TOOL_LINK_CROSS_DEVICE_DOGFOOD_FEEDBACK_MESSAGE" translateable="false" desc="Message shown after user clicks on the Cross Device Feedback hyperlink">
           For cross-device issues related to features such as Phone Hub, Smart Lock, Instant Tethering, you may be prompted to file another feedback report from your phone.&#10;&#10;Access to this feedback report is restricted to the team working on this issue.
         </message>
-        <message name="IDS_FEEDBACK_TOOL_ASSISTANT_LOGS_CHECKBOX" translateable="false" desc="Checkbox for Google internal account to attach assistant logs from the current session.">
-        Include recent Google Assistant history and information. <ph name="BEGIN_LINK1">&lt;a id="assistantLogsLink"&gt;</ph>View more details<ph name="END_LINK1">&lt;/a&gt;</ph>.
-        </message>
         <message name="IDS_FEEDBACK_TOOL_AUTOFILL_LOGS_CHECKBOX" translateable="false" desc="Checkbox for Google internal account to attach autofill logs from the current page.">
         Send <ph name="BEGIN_LINK1">&lt;a href="#" id="autofillMetadataUrl"&gt;</ph>autofill metadata<ph name="END_LINK1">&lt;/a&gt;</ph>
         <ph name="LINE_BREAK">&lt;br&gt;</ph>
         (your autofill data won't be shared)
-        </message>
-        <message name="IDS_FEEDBACK_TOOL_ASSISTANT_LOGS_MESSAGE" translateable="false" desc="Message shown after user clicks on the assistant logs hyperlink">
-          Google Assistance captures recent history and information such as your identity and location to help us better understand your issue.&#10;&#10;The information is stored for up to 90 days and access is restricted to the team working on this issue.
         </message>
         <message name="IDS_FEEDBACK_TOOL_PRIVACY_NOTE" desc="Text for the privacy note included in the feedback app">
           Some account and system information may be sent to Google. We use this information to help address technical issues and improve our services, subject to our <ph name="BEGIN_LINK2">&lt;a id="privacyPolicyUrl"&gt;</ph>Privacy Policy<ph name="END_LINK2">&lt;/a&gt;</ph> and <ph name="BEGIN_LINK3">&lt;a id="termsOfServiceUrl"&gt;</ph>Terms of Service<ph name="END_LINK3">&lt;/a&gt;</ph>. To request content changes, go to <ph name="BEGIN_LINK1">&lt;a id="legalHelpPageUrl"&gt;</ph>Legal Help<ph name="END_LINK1">&lt;/a&gt;</ph>.
@@ -7243,6 +7249,9 @@
       <message name="IDS_BOCA_NOTIFICATION_TITLE" desc="Title of the class tools notification">
         Class Tools
       </message>
+       <message name="IDS_BOCA_SHARE_SCREEN_NOTIFICATION_MESSAGE" desc="Message of a notification that tells the user that the Class Tools app is sharing their screen to a display">
+        Class Tools is sharing your screen to <ph name="RECEIVER_NAME">$1<ex>Classroom 101</ex></ph>
+      </message>
 
       <!-- Strings for Spotlight notifications -->
       <message name="IDS_BOCA_SPOTLIGHT_NOTIFICATION_MESSAGE" desc="Message signaling the countdown before the start of a Spotlight session in the Boca app.">
@@ -7258,6 +7267,11 @@
       </message>
       <message name="IDS_BOCA_CAPTIONS_STOP_TRANSLATING_BUTTON_TEXT" desc="Text for the button to stop captions translation.">
         Stop translating
+      </message>
+
+      <!-- Strings for Class Tools remote receiver -->
+      <message name="IDS_BOCA_RECEIVER_TITLE" desc="Title of an app which runs in kiosk mode and receives incoming screen share presentations. Screen share presentations are initiated from the Class Tools app on another ThoriumOS device.">
+        Class Tools display
       </message>
     </messages>
   </release>
