@@ -9,6 +9,14 @@
  - For ChromeOS only: If you plan on adding a new accelerator and want it
  displayed in the Shortcuts app, please follow the instructions at: `ash/webui/shortcut_customization_ui/backend/accelerator_layout_table.h`.
 
+&#45; Review the macOS 26 app icon pipeline.
+
+ - Check Chromium's new `AppIcon.icon` / `Assets.car` flow from 46f3b93b5c074e0535d2dc13cadaa8c38e96f1de / https://chromium-review.googlesource.com/c/chromium/src/+/6792589 before replacing the existing `app.icns`.
+
+&#45; Restore download shelf
+
+&#45; Rebase src/chrome/browser/ui, src/chrome/browser, src/chrome/chrome_proxy, src/chrome/common, src/chrome/install_static, src/chrome/installer, src/chrome/BUILD.gn
+
 ### Notes to self
 
 ## .grd text replacements (search with grep), because there are a few places we want to tweak some strings.

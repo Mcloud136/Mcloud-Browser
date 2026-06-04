@@ -13,6 +13,7 @@
 #include "base/metrics/field_trial_params.h"
 #include "base/metrics/histogram_functions.h"
 #include "base/strings/string_split.h"
+#include "base/strings/string_util.h"
 #include "base/strings/stringprintf.h"
 #include "base/strings/utf_string_conversions.h"
 #include "build/build_config.h"
@@ -270,7 +271,7 @@ struct InsecureDownloadData {
     bool insecure_nonunique = false;
     if (initiator_.has_value() &&
         !network::IsUrlPotentiallyTrustworthy(initiator_->GetURL()) &&
-        net::IsHostnameNonUnique(initiator_->GetURL().host())) {
+        net::IsHostnameNonUnique(initiator_->GetURL().GetHost())) {
       insecure_nonunique = true;
     }
 
@@ -290,8 +291,9 @@ struct InsecureDownloadData {
     // used for Chrome stuff. Background fetch should probably be HTTPS-only.
     auto download_source = item->GetDownloadSource();
     auto transition_type = item->GetTransitionType();
-    static const bool allow_insecure_downloads_ =
-      base::CommandLine::ForCurrentProcess()->HasSwitch("allow-insecure-downloads");
+    static const bool allow_insecure_downloads =
+        base::CommandLine::ForCurrentProcess()->HasSwitch(
+            "allow-insecure-downloads");
     if (download_source == DownloadSource::RETRY ||
         (transition_type & ui::PAGE_TRANSITION_RELOAD) ||
         (transition_type & ui::PAGE_TRANSITION_TYPED) ||
@@ -304,7 +306,7 @@ struct InsecureDownloadData {
         download_source == DownloadSource::INTERNAL_API ||
         download_source == DownloadSource::EXTENSION_API ||
         download_source == DownloadSource::EXTENSION_INSTALLER ||
-        allow_insecure_downloads_) {
+        allow_insecure_downloads) {
       base::UmaHistogramEnumeration(
           kInsecureDownloadHistogramName,
           InsecureDownloadSecurityStatus::kDownloadIgnored);
@@ -345,7 +347,7 @@ struct InsecureDownloadData {
         download_source == DownloadSource::INTERNAL_API ||
         download_source == DownloadSource::EXTENSION_API ||
         download_source == DownloadSource::EXTENSION_INSTALLER ||
-        allow_insecure_downloads_) {
+        allow_insecure_downloads) {
       is_insecure_download_ = false;
     } else {  // Not ignorable download.
       // TODO(crbug.com/40857867): Add blocking metrics.
@@ -359,9 +361,8 @@ struct InsecureDownloadData {
           !net::IsLocalhost(dl_url);
     }
 
-    is_user_initiated_on_webui_ =
-        item->GetTabUrl().SchemeIs(content::kChromeUIScheme) &&
-        download_source == DownloadSource::CONTEXT_MENU;
+    is_initiated_from_trusted_webui_ =
+        item->GetTabUrl().SchemeIs(content::kChromeUIScheme);
   }
 
   std::optional<url::Origin> initiator_;
@@ -374,8 +375,9 @@ struct InsecureDownloadData {
   bool is_mixed_content_;
   // Was the download initiated by an insecure origin or delivered insecurely?
   bool is_insecure_download_;
-  // Was the download initiated by a user on a chrome:// WebUI?
-  bool is_user_initiated_on_webui_;
+  // Was the download initiated from a trusted WebUI page (chrome://...)?
+  // This can happen, e.g., if user saves a HTTP link from chrome://history.
+  bool is_initiated_from_trusted_webui_;
 };
 
 // Check if |extension| is contained in the comma separated |extension_list|.
@@ -417,11 +419,11 @@ void PrintConsoleMessage(const InsecureDownloadData& data) {
     return;
   }
 
-  // The user can right-click and save a HTTP link from a chrome:// WebUI
+  // The user saved a HTTP resource from a chrome:// WebUI page
   // (e.g. NTP or history). This is arguably a valid use case unless we
   // completely ban users from visiting HTTP sites, so don't warn. Otherwise,
   // an error will be generated and uploaded to the crash server.
-  if (data.is_user_initiated_on_webui_) {
+  if (data.is_initiated_from_trusted_webui_) {
     return;
   }
 
@@ -478,10 +480,11 @@ InsecureDownloadStatus GetInsecureDownloadStatusForDownload(
     const download::DownloadItem* item) {
   InsecureDownloadData data(path, item);
 
-  static const bool allow_insecure_downloads_ =
-    base::CommandLine::ForCurrentProcess()->HasSwitch("allow-insecure-downloads");
+  static const bool allow_insecure_downloads =
+      base::CommandLine::ForCurrentProcess()->HasSwitch(
+          "allow-insecure-downloads");
   // If the download is fully secure, early abort. Don't nag.
-  if (!data.is_insecure_download_ || allow_insecure_downloads_) {
+  if (!data.is_insecure_download_ || allow_insecure_downloads) {
     return InsecureDownloadStatus::SAFE;
   }
 

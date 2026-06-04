@@ -8,7 +8,6 @@
 #include "chrome/browser/themes/custom_theme_supplier.h"
 #include "chrome/browser/themes/theme_properties.h"
 #include "chrome/browser/win/mica_titlebar.h"
-#include "chrome/browser/win/titlebar_config.h"
 #include "chrome/grit/theme_resources.h"
 
 int ThemeHelperWin::GetDefaultDisplayProperty(int id) const {
