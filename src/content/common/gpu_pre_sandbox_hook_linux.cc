@@ -263,10 +263,11 @@ void AddAmdGpuPermissions(std::vector<BrokerFilePermission>* permissions) {
       "/usr/lib64/dri/r600_dri.so",
       "/usr/lib64/dri/radeonsi_dri.so",
       // GPU Log Warnings Workaround
+      "/usr/lib/libvulkan_radeon.so",
       "/usr/share/vulkan/icd.d",
-      "/usr/share/vulkan/icd.d/radeon_icd.x86_64.json"
+      "/usr/share/vulkan/icd.d/radeon_icd.x86_64.json",
       "/etc/vulkan/icd.d",
-      "/etc/vulkan/icd.d/radeon_icd.x86_64.json"
+      "/etc/vulkan/icd.d/radeon_icd.x86_64.json",
       // Allow libglvnd files and libs.
       "/usr/share/glvnd/egl_vendor.d",
       "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
@@ -494,57 +495,6 @@ void AddStandardGpuPermissions(std::vector<BrokerFilePermission>* permissions) {
   }
 }
 
-std::vector<BrokerFilePermission> FilePermissionsForGpu(
-    const sandbox::policy::SandboxSeccompBPF::Options& options) {
-  // All GPU process policies need this file brokered out.
-  static const char kDriRcPath[] = "/etc/drirc";
-  std::vector<BrokerFilePermission> permissions = {
-      BrokerFilePermission::ReadOnly(kDriRcPath)};
-
-  AddVulkanICDPermissions(&permissions);
-
-  if (IsChromeOS()) {
-    // Permissions are additive, there can be multiple GPUs in the system.
-    AddStandardChromeOsPermissions(&permissions);
-    if (UseV4L2Codec(options))
-      AddV4L2GpuPermissions(&permissions, options);
-    if (IsArchitectureArm()) {
-      AddImgPvrGpuPermissions(&permissions);
-      AddArmGpuPermissions(&permissions);
-      // Add standard DRM permissions for snapdragon:
-      AddDrmGpuPermissions(&permissions);
-      // Following discrete GPUs can be plugged in via USB4 on ARM systems.
-    }
-    if (options.use_amd_specific_policies) {
-      AddAmdGpuPermissions(&permissions);
-    }
-    if (options.use_intel_specific_policies) {
-      AddIntelGpuPermissions(&permissions);
-    }
-    if (options.use_nvidia_specific_policies) {
-      AddStandardGpuPermissions(&permissions);
-      AddNvidiaGpuPermissions(&permissions);
-    }
-    if (options.use_virtio_specific_policies) {
-      AddVirtIOGpuPermissions(&permissions);
-    }
-    return permissions;
-  }
-
-  if (UseChromecastSandboxAllowlist()) {
-    if (UseV4L2Codec(options))
-      AddV4L2GpuPermissions(&permissions, options);
-
-    if (IsArchitectureArm()) {
-      AddChromecastArmGpuPermissions(&permissions);
-      return permissions;
-    }
-  }
-
-  AddStandardGpuPermissions(&permissions);
-  return permissions;
-}
-
 void LoadArmGpuLibraries() {
 #if BUILDFLAG(IS_CHROMEOS) && defined(ARCH_CPU_ARM_FAMILY)
   // This environmental variable needs to be set before we load libMali if we
@@ -657,6 +607,77 @@ void LoadChromecastV4L2Libraries() {
   }
 }
 
+}  // namespace
+
+sandbox::syscall_broker::BrokerCommandSet CommandSetForGPU(
+    const sandbox::policy::SandboxLinux::Options& options) {
+  sandbox::syscall_broker::BrokerCommandSet command_set;
+  command_set.set(sandbox::syscall_broker::COMMAND_ACCESS);
+  command_set.set(sandbox::syscall_broker::COMMAND_OPEN);
+  command_set.set(sandbox::syscall_broker::COMMAND_STAT);
+  if (IsChromeOS() &&
+      (options.use_amd_specific_policies ||
+       options.use_intel_specific_policies ||
+       options.use_nvidia_specific_policies ||
+       options.use_virtio_specific_policies || IsArchitectureArm())) {
+    command_set.set(sandbox::syscall_broker::COMMAND_READLINK);
+  }
+  return command_set;
+}
+
+std::vector<BrokerFilePermission> FilePermissionsForGpu(
+    const sandbox::policy::SandboxSeccompBPF::Options& options) {
+  // All GPU process policies need this file brokered out.
+  static const char kDriRcPath[] = "/etc/drirc";
+  std::vector<BrokerFilePermission> permissions = {
+      BrokerFilePermission::ReadOnly(kDriRcPath)};
+
+  AddVulkanICDPermissions(&permissions);
+
+  if (IsChromeOS()) {
+    // Permissions are additive, there can be multiple GPUs in the system.
+    AddStandardChromeOsPermissions(&permissions);
+    if (UseV4L2Codec(options)) {
+      AddV4L2GpuPermissions(&permissions, options);
+    }
+    if (IsArchitectureArm()) {
+      AddImgPvrGpuPermissions(&permissions);
+      AddArmGpuPermissions(&permissions);
+      // Add standard DRM permissions for snapdragon:
+      AddDrmGpuPermissions(&permissions);
+      // Following discrete GPUs can be plugged in via USB4 on ARM systems.
+    }
+    if (options.use_amd_specific_policies) {
+      AddAmdGpuPermissions(&permissions);
+    }
+    if (options.use_intel_specific_policies) {
+      AddIntelGpuPermissions(&permissions);
+    }
+    if (options.use_nvidia_specific_policies) {
+      AddStandardGpuPermissions(&permissions);
+      AddNvidiaGpuPermissions(&permissions);
+    }
+    if (options.use_virtio_specific_policies) {
+      AddVirtIOGpuPermissions(&permissions);
+    }
+    return permissions;
+  }
+
+  if (UseChromecastSandboxAllowlist()) {
+    if (UseV4L2Codec(options)) {
+      AddV4L2GpuPermissions(&permissions, options);
+    }
+
+    if (IsArchitectureArm()) {
+      AddChromecastArmGpuPermissions(&permissions);
+      return permissions;
+    }
+  }
+
+  AddStandardGpuPermissions(&permissions);
+  return permissions;
+}
+
 bool LoadLibrariesForGpu(
     const sandbox::policy::SandboxSeccompBPF::Options& options) {
   LoadVulkanLibraries();
@@ -679,24 +700,6 @@ bool LoadLibrariesForGpu(
     return LoadNvidiaLibraries();
   return true;
 }
-
-sandbox::syscall_broker::BrokerCommandSet CommandSetForGPU(
-    const sandbox::policy::SandboxLinux::Options& options) {
-  sandbox::syscall_broker::BrokerCommandSet command_set;
-  command_set.set(sandbox::syscall_broker::COMMAND_ACCESS);
-  command_set.set(sandbox::syscall_broker::COMMAND_OPEN);
-  command_set.set(sandbox::syscall_broker::COMMAND_STAT);
-  if (IsChromeOS() &&
-      (options.use_amd_specific_policies ||
-       options.use_intel_specific_policies ||
-       options.use_nvidia_specific_policies ||
-       options.use_virtio_specific_policies || IsArchitectureArm())) {
-    command_set.set(sandbox::syscall_broker::COMMAND_READLINK);
-  }
-  return command_set;
-}
-
-}  // namespace
 
 bool GpuPreSandboxHook(sandbox::policy::SandboxLinux::Options options) {
   sandbox::policy::SandboxLinux::GetInstance()->StartBrokerProcess(
