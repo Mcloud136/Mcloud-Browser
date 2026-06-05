@@ -12,18 +12,7 @@
 
 namespace chrome {
 
-#if BUILDFLAG(GOOGLE_CHROME_BRANDING)
-#define PRODUCT_FULLNAME_STRING "Google Chrome"
-#elif BUILDFLAG(GOOGLE_CHROME_FOR_TESTING_BRANDING)
-#define PRODUCT_FULLNAME_STRING "Google Chrome for Testing"
-#elif BUILDFLAG(CHROMIUM_BRANDING)
-#define PRODUCT_FULLNAME_STRING "Thorium"
-#else
-#error Unknown branding
-#endif
-
 const char kChromeVersion[] = CHROME_VERSION_STRING;
-const char kBrandName[] = PRODUCT_FULLNAME_STRING;
 
 // The following should not be used for UI strings; they are meant
 // for system strings only. UI changes should be made in the GRD.
@@ -81,7 +70,8 @@ const base::FilePath::CharType kGoogleChromeBrowserProcessExecutablePath[] =
 const base::FilePath::CharType kChromiumBrowserProcessExecutablePath[] =
     FPL("Thorium.app/Contents/MacOS/Thorium");
 const base::FilePath::CharType kHelperProcessExecutablePath[] =
-    FPL(PRODUCT_FULLNAME_STRING " Helper.app/Contents/MacOS/" PRODUCT_FULLNAME_STRING " Helper");
+    FPL(PRODUCT_FULLNAME_STRING
+        " Helper.app/Contents/MacOS/" PRODUCT_FULLNAME_STRING " Helper");
 #elif BUILDFLAG(IS_ANDROID)
 const base::FilePath::CharType kBrowserProcessExecutablePath[] = FPL("thorium");
 const base::FilePath::CharType kHelperProcessExecutablePath[] = FPL("thorium");

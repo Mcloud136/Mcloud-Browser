@@ -4,12 +4,7 @@
 
 #include "chrome/browser/ui/startup/google_api_keys_infobar_delegate.h"
 
-#include <memory>
-
-#include "chrome/browser/infobars/confirm_infobar_creator.h"
 #include "chrome/grit/branded_strings.h"
-#include "components/infobars/content/content_infobar_manager.h"
-#include "components/infobars/core/infobar.h"
 #include "components/strings/grit/components_strings.h"
 #include "google_apis/google_api_keys.h"
 #include "ui/base/l10n/l10n_util.h"

@@ -26,11 +26,13 @@
 #include "chrome/browser/ui/browser_commands.h"
 #include "chrome/browser/ui/browser_navigator.h"
 #include "chrome/browser/ui/color/chrome_color_id.h"
+#include "chrome/browser/ui/layout_constants.h"
 #include "chrome/browser/ui/tabs/features.h"
 #include "chrome/browser/ui/tabs/tab_strip_model.h"
 #include "chrome/browser/ui/tabs/tab_strip_user_gesture_details.h"
 #include "chrome/browser/ui/ui_features.h"
-#include "chrome/browser/ui/views/frame/browser_frame.h"
+#include "chrome/browser/ui/views/frame/browser_view.h"
+#include "chrome/browser/ui/views/frame/browser_widget.h"
 #include "chrome/browser/ui/views/frame/tab_strip_region_view.h"
 #include "chrome/browser/ui/views/tabs/tab_strip.h"
 #include "chrome/browser/ui/views/toolbar/toolbar_view.h"
@@ -39,10 +41,10 @@
 #include "components/omnibox/browser/autocomplete_match.h"
 #include "content/public/browser/browser_thread.h"
 #include "content/public/browser/render_process_host.h"
+#include "content/public/common/buildflags.h"
 #include "content/public/common/webplugininfo.h"
 #include "net/base/filename_util.h"
 #include "net/base/mime_util.h"
-#include "ppapi/buildflags/buildflags.h"
 #include "third_party/blink/public/common/mime_util/mime_util.h"
 #include "third_party/metrics_proto/omnibox_event.pb.h"
 #include "ui/base/clipboard/clipboard_constants.h"
@@ -130,16 +132,10 @@ void FilterURLsForDropability(
 
     // Check whether the mime types, if given, are known to be supported or
     // whether there is a plugin that supports the mime type (e.g. PDF).
-    // TODO(bauerb): This possibly uses stale information, but it's guaranteed
-    // not to do disk access.
     bool supported = mime_type.empty() || blink::IsSupportedMimeType(mime_type);
 #if BUILDFLAG(ENABLE_PLUGINS)
-    content::WebPluginInfo plugin;
-    supported =
-        supported ||
-        content::PluginService::GetInstance()->GetPluginInfo(
-            browser_context, url, mime_type, /*allow_wildcard=*/false,
-            /*is_stale=*/nullptr, &plugin, /*actual_mime_type=*/nullptr);
+    supported = supported || content::PluginService::GetInstance()->HasPlugin(
+                                 browser_context, url, mime_type);
 #endif
 
     if (supported) {
@@ -153,15 +149,19 @@ void FilterURLsForDropability(
 // Returns the URLs that are currently being dragged by the user and which
 // should be considered for the drop.
 std::vector<GURL> GetURLsForDrop(const ui::DropTargetEvent& event) {
-  std::optional<std::vector<GURL>> urls =
+  std::vector<ui::ClipboardUrlInfo> url_infos =
       event.data().GetURLs(ui::FilenameToURLPolicy::CONVERT_FILENAMES);
-  if (!urls.has_value()) {
+  if (url_infos.empty()) {
     return {};
   }
 
-  std::erase_if(urls.value(), [](const GURL& url) { return !url.is_valid(); });
+  std::vector<GURL> urls;
+  urls.reserve(url_infos.size());
+  for (const auto& url_info : url_infos) {
+    urls.push_back(url_info.url);
+  }
 
-  return urls.value();
+  return urls;
 }
 
 // Converts from `ui::DragDropTypes` to `::ui::mojom::DragOperation`.
@@ -178,7 +178,8 @@ DragOperation GetDropEffect(const ui::DropTargetEvent& event) {
 
 bool ShouldScrollChangesTab() {
   const std::string flag_value =
-    base::CommandLine::ForCurrentProcess()->GetSwitchValueASCII("scroll-tabs");
+      base::CommandLine::ForCurrentProcess()->GetSwitchValueASCII(
+          "scroll-tabs");
 
   if (flag_value == "always") {
     return true;
@@ -201,7 +202,7 @@ BrowserRootView::DropInfo::~DropInfo() {
 BrowserRootView::BrowserRootView(BrowserView* browser_view,
                                  views::Widget* widget)
     : views::internal::RootView(widget), browser_view_(browser_view) {
-      scroll_event_changes_tab_ = ShouldScrollChangesTab();
+  scroll_event_changes_tab_ = ShouldScrollChangesTab();
 }
 
 BrowserRootView::~BrowserRootView() {
@@ -340,10 +341,9 @@ bool BrowserRootView::OnMouseWheel(const ui::MouseWheelEvent& event) {
   // TODO(dfried): See if it's possible to move this logic deeper into the view
   // hierarchy - ideally to TabStripRegionView.
 
-  // Scroll-event-changes-tab is incompatible with scrolling tabstrip, so
-  // disable it if the latter feature is enabled.
-  if (scroll_event_changes_tab_ &&
-      !base::FeatureList::IsEnabled(tabs::kScrollableTabStrip)) {
+  // Allow Thorium's `--scroll-tabs` switch to override the default
+  // scroll-event-changes-tab behavior.
+  if (scroll_event_changes_tab_) {
     // Switch to the left/right tab if the wheel-scroll happens over the
     // tabstrip, or the empty space beside the tabstrip.
     views::View* hit_view = GetEventHandlerForPoint(event.location());
@@ -425,13 +425,15 @@ void BrowserRootView::PaintChildren(const views::PaintInfo& paint_info) {
 
   // ToolbarView can't paint its own top stroke because the stroke is drawn just
   // above its bounds, where the active tab can overwrite it to visually join
-  // with the toolbar.  This painting can't be done in the NonClientFrameView
+  // with the toolbar.  This painting can't be done in the FrameView
   // because parts of the BrowserView (such as tabs) would get rendered on top
   // of the stroke.  It can't be done in BrowserView either because that view is
   // offset from the widget by a few DIPs, which is troublesome for computing a
   // subpixel offset when using fractional scale factors.  So we're forced to
   // put this drawing in the BrowserRootView.
-  if (tabstrip()->ShouldDrawStrokes() && browser_view_->IsToolbarVisible()) {
+  if (tabstrip()->ShouldDrawStrokes() && browser_view_->IsToolbarVisible() &&
+      browser_view_->ShouldDrawTabStrip() &&
+      !browser_view_->IsFullscreen()) {
     ui::PaintRecorder recorder(paint_info.context(),
                                paint_info.paint_recording_size(),
                                paint_info.paint_recording_scale_x(),
@@ -440,11 +442,15 @@ void BrowserRootView::PaintChildren(const views::PaintInfo& paint_info) {
 
     const float scale = canvas->image_scale();
 
-    gfx::RectF toolbar_bounds(browser_view_->toolbar()->bounds());
-    ConvertRectToTarget(browser_view_, this, &toolbar_bounds);
-    const int bottom = std::round(toolbar_bounds.y() * scale);
-    const int x = std::round(toolbar_bounds.x() * scale);
-    const int width = std::round(toolbar_bounds.width() * scale);
+    gfx::RectF tabstrip_bounds(browser_view_->tabstrip()->GetLocalBounds());
+    ConvertRectToTarget(browser_view_->tabstrip(), this, &tabstrip_bounds);
+    gfx::RectF browser_bounds(browser_view_->GetLocalBounds());
+    ConvertRectToTarget(browser_view_, this, &browser_bounds);
+    const float unscaled_bottom =
+        tabstrip_bounds.bottom() - GetLayoutConstant(TABSTRIP_TOOLBAR_OVERLAP);
+    const int bottom = std::round(unscaled_bottom * scale);
+    const int x = std::round(browser_bounds.x() * scale);
+    const int width = std::round(browser_bounds.width() * scale);
 
     gfx::ScopedCanvas scoped_canvas(canvas);
     const std::optional<int> active_tab_index = tabstrip()->GetActiveIndex();
@@ -459,6 +465,9 @@ void BrowserRootView::PaintChildren(const views::PaintInfo& paint_info) {
           // view.
           ConvertRectToTarget(tabstrip(),
                               tabstrip()->GetWidget()->GetRootView(), &bounds);
+          // Extend the bounds to cover the curve at the end of the toolbar.
+          bounds.set_height(bounds.height() +
+                            GetLayoutConstant(TOOLBAR_CORNER_RADIUS));
           canvas->ClipRect(bounds, SkClipOp::kDifference);
         };
 
@@ -555,6 +564,14 @@ void BrowserRootView::SetOnFilteringCompleteClosureForTesting(
   on_filtering_complete_closure_ = std::move(closure);
 }
 
+TabStrip* BrowserRootView::tabstrip() {
+  return browser_view_->tabstrip();
+}
+
+ToolbarView* BrowserRootView::toolbar() {
+  return browser_view_->toolbar();
+}
+
 std::optional<GURL> BrowserRootView::GetPasteAndGoURL(
     const ui::OSExchangeData& data) {
   std::optional<std::u16string> text_result = data.GetString();
@@ -635,7 +652,7 @@ void BrowserRootView::NavigateToDroppedUrls(
     params.disposition = WindowOpenDisposition::CURRENT_TAB;
     params.initiator_origin = event.data().GetRendererTaintedOrigin();
     params.source_contents = model->GetWebContentsAt(insertion_index);
-    params.window_action = NavigateParams::SHOW_WINDOW;
+    params.window_action = NavigateParams::WindowAction::kShowWindow;
     Navigate(&params);
 
     urls = urls.subspan<1>();
@@ -654,7 +671,7 @@ void BrowserRootView::NavigateToDroppedUrls(
       params.group = model->GetTabGroupForTab(insertion_index);
     }
     params.initiator_origin = event.data().GetRendererTaintedOrigin();
-    params.window_action = NavigateParams::SHOW_WINDOW;
+    params.window_action = NavigateParams::WindowAction::kShowWindow;
     Navigate(&params);
   }
 

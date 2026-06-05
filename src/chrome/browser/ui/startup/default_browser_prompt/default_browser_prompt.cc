@@ -4,41 +4,17 @@
 
 #include "chrome/browser/ui/startup/default_browser_prompt/default_browser_prompt.h"
 
-#include <limits>
 #include <string>
 
 #include "base/check_is_test.h"
-#include "base/functional/bind.h"
-#include "base/location.h"
-#include "base/memory/weak_ptr.h"
-#include "base/strings/string_number_conversions.h"
-#include "base/task/single_thread_task_runner.h"
 #include "base/time/time.h"
-#include "base/version.h"
-#include "build/build_config.h"
 #include "chrome/browser/browser_process.h"
 #include "chrome/browser/profiles/profile.h"
-#include "chrome/browser/profiles/profile_manager.h"
-#include "chrome/browser/ui/browser.h"
-#include "chrome/browser/ui/browser_finder.h"
-#include "chrome/browser/ui/browser_list.h"
-#include "chrome/browser/ui/startup/default_browser_prompt/default_browser_infobar_delegate.h"
-#include "chrome/browser/ui/startup/default_browser_prompt/default_browser_prompt_manager.h"
-#include "chrome/browser/ui/startup/default_browser_prompt/default_browser_prompt_prefs.h"
-#include "chrome/browser/ui/tabs/tab_strip_model.h"
 #include "chrome/common/pref_names.h"
-#include "components/infobars/content/content_infobar_manager.h"
 #include "components/prefs/pref_registry_simple.h"
 #include "components/prefs/pref_service.h"
-#include "components/version_info/version_info.h"
-#include "content/public/browser/visibility.h"
-#include "content/public/browser/web_contents.h"
 
 namespace {
-
-void ShowPrompt() {
-  return;
-}
 
 // Do not show the prompt if "suppress_default_browser_prompt_for_version" in
 // the initial preferences is set to the current version.
@@ -107,8 +83,4 @@ void ShowDefaultBrowserPrompt(Profile* profile,
     return;
   }
   return;
-}
-
-void ShowPromptForTesting() {
-  ShowPrompt();
 }

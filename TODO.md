@@ -15,7 +15,7 @@
 
 &#45; Restore download shelf
 
-&#45; Rebase src/chrome/browser/ui, src/chrome/chrome_proxy, src/chrome/common, src/chrome/install_static, src/chrome/installer, src/chrome/BUILD.gn
+&#45; Rebase src/components
 
 ### Notes to self
 

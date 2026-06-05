@@ -57,6 +57,7 @@
 #include "ui/views/view_class_properties.h"
 
 #if BUILDFLAG(IS_CHROMEOS)
+#include "chrome/browser/ui/user_education/browser_user_education_interface.h"
 #include "ui/base/ime/input_method.h"
 #include "ui/base/ime/virtual_keyboard_controller.h"
 #endif  // BUILDFLAG(IS_CHROMEOS)
@@ -152,17 +153,19 @@ void BrowserAppMenuButton::UpdateThemeBasedState() {
 
 void BrowserAppMenuButton::UpdateIcon() {
   static const bool disable_thorium_icons =
-      base::CommandLine::ForCurrentProcess()->HasSwitch("disable-thorium-icons");
+      base::CommandLine::ForCurrentProcess()->HasSwitch(
+          "disable-thorium-icons");
   const gfx::VectorIcon& icon = ui::TouchUiController::Get()->touch_ui()
                                     ? kBrowserToolsTouchIcon
                                     : disable_thorium_icons
                                           ? kBrowserToolsChromeRefreshIcon
                                           : kBrowserToolsChromeRefreshThoriumIcon;
-  // Fix Thorium hamburger menu size
+  // Fix Thorium hamburger menu size.
   constexpr int icon_size = 22;
   for (auto state : kButtonStates) {
     SkColor icon_color = GetForegroundColor(state);
-    SetImageModel(state, ui::ImageModel::FromVectorIcon(icon, icon_color, icon_size));
+    SetImageModel(
+        state, ui::ImageModel::FromVectorIcon(icon, icon_color, icon_size));
   }
 }
 
@@ -198,10 +201,10 @@ SkColor BrowserAppMenuButton::GetForegroundColor(ButtonState state) const {
 void BrowserAppMenuButton::UpdateTextAndHighlightColor() {
   int tooltip_message_id;
   std::u16string text;
-  if (type_and_severity_.severity == AppMenuIconController::Severity::NONE) {
+  if (type_and_severity_.severity == AppMenuIconController::Severity::kNone) {
     tooltip_message_id = IDS_APPMENU_TOOLTIP;
   } else if (type_and_severity_.type ==
-             AppMenuIconController::IconType::UPGRADE_NOTIFICATION) {
+             AppMenuIconController::IconType::kUpgradeNotification) {
     tooltip_message_id = IDS_APPMENU_TOOLTIP_UPDATE_AVAILABLE;
 #if BUILDFLAG(GOOGLE_CHROME_BRANDING) && \
     (BUILDFLAG(IS_WIN) || BUILDFLAG(IS_MAC) || BUILDFLAG(IS_LINUX))
@@ -220,17 +223,13 @@ void BrowserAppMenuButton::UpdateTextAndHighlightColor() {
 #else
     text = l10n_util::GetStringUTF16(IDS_APP_MENU_BUTTON_UPDATE);
 #endif
-  } else if (type_and_severity_.type ==
-             AppMenuIconController::IconType::DEFAULT_BROWSER_PROMPT) {
-#if !BUILDFLAG(IS_ANDROID) && !BUILDFLAG(IS_CHROMEOS)
-    tooltip_message_id = IDS_APP_MENU_TOOLTIP_DEFAULT_PROMPT;
-    text = l10n_util::GetStringUTF16(IDS_APP_MENU_BUTTON_DEFAULT_PROMPT);
-#else
-    tooltip_message_id = IDS_APPMENU_TOOLTIP;
-#endif
   } else {
     tooltip_message_id = IDS_APPMENU_TOOLTIP_ALERT;
-    text = l10n_util::GetStringUTF16(IDS_APP_MENU_BUTTON_ERROR);
+    const int text_id =
+        type_and_severity_.severity == AppMenuIconController::Severity::kLow
+            ? IDS_APP_MENU_BUTTON_ACTION_REQUIRED
+            : IDS_APP_MENU_BUTTON_ERROR;
+    text = l10n_util::GetStringUTF16(text_id);
   }
 
   SetTooltipText(l10n_util::GetStringUTF16(tooltip_message_id));
@@ -262,7 +261,7 @@ std::optional<SkColor> BrowserAppMenuButton::GetHighlightTextColor() const {
 
 std::optional<SkColor> BrowserAppMenuButton::GetHighlightColor() const {
   const auto* const color_provider = GetColorProvider();
-  if (type_and_severity_.severity == AppMenuIconController::Severity::NONE) {
+  if (type_and_severity_.severity == AppMenuIconController::Severity::kNone) {
     return std::nullopt;
   } else {
     return color_provider->GetColor(type_and_severity_.use_primary_colors
@@ -278,9 +277,11 @@ void BrowserAppMenuButton::OnTouchUiChanged() {
 
 void BrowserAppMenuButton::ButtonPressed(const ui::Event& event) {
 #if BUILDFLAG(IS_CHROMEOS)
-  if (toolbar_view_->browser()->window()->IsFeaturePromoActive(
+  auto* const user_education =
+      BrowserUserEducationInterface::From(toolbar_view_->browser());
+  if (user_education->IsFeaturePromoActive(
           feature_engagement::kIPHPasswordsSavePrimingPromoFeature)) {
-    toolbar_view_->browser()->window()->NotifyFeaturePromoFeatureUsed(
+    user_education->NotifyFeaturePromoFeatureUsed(
         feature_engagement::kIPHPasswordsSavePrimingPromoFeature,
         FeaturePromoFeatureUsedAction::kClosePromoIfPresent);
   }

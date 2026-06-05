@@ -7,7 +7,6 @@ import("//build/config/chromeos/args.gni")
 import("//build/config/chromeos/ui_mode.gni")
 import("//build/config/compiler/compiler.gni")
 import("//build/config/compiler/pgo/pgo.gni")
-import("//build/config/features.gni")
 import("//build/config/locales.gni")
 import("//build/config/ozone.gni")
 import("//build/config/python.gni")
@@ -21,11 +20,10 @@ import("//chrome/browser/buildflags.gni")
 import("//chrome/chrome_paks.gni")
 import("//chrome/common/features.gni")
 import("//chrome/process_version_rc_template.gni")
-import("//components/nacl/features.gni")
 import("//components/optimization_guide/features.gni")
 import("//extensions/buildflags/buildflags.gni")
 import("//media/media_options.gni")
-import("//ppapi/buildflags/buildflags.gni")
+import("//services/shape_detection/features.gni")
 import("//third_party/angle/gni/angle.gni")
 import("//third_party/blink/public/public_features.gni")
 import("//third_party/widevine/cdm/widevine.gni")
@@ -176,11 +174,12 @@ if (!is_android && !is_mac) {
     data = [ "$root_out_dir/resources.pak" ]
     data_deps = []
 
+    if (is_win || is_linux || is_chromeos) {
+      deps += [ "//components/webapps/isolated_web_apps:scheme" ]
+    }
+
     if (is_chromeos) {
-      data_deps += [
-        "//components/variations/cros_evaluate_seed:evaluate_seed",
-        "//sandbox/linux:chrome_sandbox",
-      ]
+      data_deps += [ "//sandbox/linux:chrome_sandbox" ]
       if (build_mojo_proxy) {
         data_deps += [ "//mojo/proxy:mojo_proxy" ]
       }
@@ -429,12 +428,12 @@ if (is_win) {
       "//components/crash/core/app",
       "//components/memory_system",
       "//components/policy:generated",
+      "//components/webapps/isolated_web_apps:scheme",
       "//content/public/app",
       "//crypto",
       "//headless:headless_non_renderer",
       "//headless:headless_shell_browser_lib",
       "//net:net_resources",
-      "//ppapi/buildflags",
       "//sandbox/win:sandbox",
       "//third_party/cld_3/src/src:cld_3",
       "//third_party/wtl",
@@ -445,10 +444,6 @@ if (is_win) {
 
     if (use_aura) {
       deps += [ "//ui/compositor" ]
-    }
-
-    if (is_chromeos) {
-      deps += [ "//chrome/browser/ash/schedqos" ]
     }
   }
 
@@ -636,16 +631,21 @@ if (is_win) {
     outputs = [ "{{bundle_resources_dir}}/{{source_file_part}}" ]
   }
 
+  bundle_data("chrome_asset_catalog") {
+    sources = [ "app/theme/$branding_path_component/mac/Assets.car" ]
+    outputs = [ "{{bundle_resources_dir}}/{{source_file_part}}" ]
+  }
+
   bundle_data("chrome_resources") {
     sources = [
       "$root_out_dir/$chrome_mac_bundle_id.manifest",
-      "app/theme/$branding_path_component/mac/document.icns",
       "browser/ui/cocoa/applescript/scripting.sdef",
     ]
     outputs = [ "{{bundle_resources_dir}}/{{source_file_part}}" ]
     public_deps = [
       ":chrome_app_icon",
       ":chrome_app_strings",
+      ":chrome_asset_catalog",
       "//components/policy:chrome_manifest_bundle",
     ]
   }
@@ -860,6 +860,7 @@ if (is_win) {
     info_plist_target = ":chrome_helper_app_alerts_plist"
     deps = [
       ":chrome_app_icon",
+      ":chrome_asset_catalog",
       ":chrome_helper_app_alerts_resources",
     ]
   }
@@ -971,27 +972,6 @@ if (is_win) {
       if (!use_v8_context_snapshot || include_both_v8_snapshots) {
         sources += [ "$root_out_dir/snapshot_blob.bin" ]
       }
-    }
-  }
-
-  if (enable_nacl) {
-    bundle_data("chrome_framework_plugins") {
-      sources = []
-      outputs =
-          [ "{{bundle_contents_dir}}/Internet Plug-Ins/{{source_file_part}}" ]
-      public_deps = []
-
-      if (enable_nacl) {
-        if (current_cpu == "x86") {
-          sources += [ "$root_out_dir/nacl_irt_x86_32.nexe" ]
-        } else if (current_cpu == "x64") {
-          sources += [ "$root_out_dir/nacl_irt_x86_64.nexe" ]
-        }
-        public_deps += [ "//ppapi/native_client:irt" ]
-      }
-    }
-  } else {
-    group("chrome_framework_plugins") {
     }
   }
 
@@ -1148,6 +1128,7 @@ if (is_win) {
       "//components/crash/core/app",
       "//components/memory_system",
       "//components/policy:generated",
+      "//components/webapps/isolated_web_apps:scheme",
       "//content/public/app",
       "//headless:headless_shell_lib",
       "//third_party/cld_3/src/src:cld_3",
@@ -1186,10 +1167,6 @@ if (is_win) {
       framework_contents += [ "Default Apps" ]
     }
 
-    if (enable_nacl) {
-      framework_contents += [ "Internet Plug-Ins" ]
-    }
-
     configs += [ "//build/config/compiler:wexit_time_destructors" ]
     configs -= [ "//build/config/compiler:thinlto_optimize_default" ]
     configs += [ "//build/config/compiler:thinlto_optimize_max" ]
@@ -1204,7 +1181,6 @@ if (is_win) {
 
     bundle_deps = [
       ":chrome_framework_helpers",
-      ":chrome_framework_plugins",
       ":chrome_framework_resources",
       ":optimization_guide_library",
       ":swiftshader_binaries",
@@ -1446,7 +1422,7 @@ group("dependencies") {
     "//components/memory_system",
     "//components/startup_metric_utils",
     "//components/sync",
-    "//components/upload_list:upload_list",
+    "//components/upload_list",
     "//components/webui/about",
     "//content/public/child",
     "//pdf",
@@ -1456,19 +1432,8 @@ group("dependencies") {
     "//v8:v8_headers",
   ]
 
-  if (enable_ppapi) {
-    public_deps += [ "//ppapi/host" ]
-  }
-
   if (enable_printing) {
     public_deps += [ "//printing" ]
-  }
-
-  if (enable_nacl) {
-    public_deps += [
-      "//components/nacl/browser",
-      "//components/nacl/renderer/plugin:nacl_trusted_plugin",
-    ]
   }
 
   if (is_chromeos) {
@@ -1540,8 +1505,9 @@ group("resources") {
 group("extra_resources") {
   # Deps should be same as those in chrome_extra_paks() within chrome_paks.gni.
   public_deps = [
-    "//chrome/browser/resources:resources",
+    "//chrome/browser/resources",
     "//components/autofill/core/browser:autofill_address_rewriter_resources",
+    "//components/autofill/core/browser:autofill_alternative_state_name_map_resources",
   ]
 }
 
@@ -1725,6 +1691,9 @@ if (is_linux || is_chromeos) {
       if (build_with_internal_optimization_guide) {
         deps += [ ":optimization_guide_symbols" ]
       }
+      if (build_with_internal_shape_detection) {
+        deps += [ ":shape_detection_symbols" ]
+      }
       if (!use_static_angle) {
         deps += [
           ":angle_egl_symbols",
@@ -1825,6 +1794,21 @@ if (is_linux || is_chromeos) {
         }
 
         deps = [ "//components/optimization_guide/internal:optimization_guide_internal" ]
+      }
+    }
+    if (build_with_internal_shape_detection) {
+      extract_symbols("shape_detection_symbols") {
+        binary = "$root_out_dir/libshape_detection_internal.so"
+        if (current_cpu == "x86") {
+          # GYP used "ia32" so keep that naming for back-compat.
+          symbol_file = "$root_out_dir/shape_detection_internal.breakpad.ia32"
+        } else {
+          symbol_file =
+              "$root_out_dir/shape_detection_internal.breakpad.$current_cpu"
+        }
+
+        deps =
+            [ "//services/shape_detection/internal:shape_detection_internal" ]
       }
     }
   }

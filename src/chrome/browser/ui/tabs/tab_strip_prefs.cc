@@ -23,9 +23,10 @@ namespace tabs {
 bool GetDefaultTabSearchRightAligned() {
   // These platforms are all left aligned, the others should be right.
 #if BUILDFLAG(IS_CHROMEOS) || BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_WIN)
-  // Revert Google's stupid UI design decision
+  // Revert Google's stupid UI design decision.
   static const bool left_aligned_tab_search_button =
-      base::CommandLine::ForCurrentProcess()->HasSwitch("left-aligned-tab-search-button");
+      base::CommandLine::ForCurrentProcess()->HasSwitch(
+          "left-aligned-tab-search-button");
   if (left_aligned_tab_search_button) {
     return false;
   } else {
@@ -39,10 +40,13 @@ bool GetDefaultTabSearchRightAligned() {
 void RegisterProfilePrefs(user_prefs::PrefRegistrySyncable* registry) {
   registry->RegisterBooleanPref(prefs::kTabSearchRightAligned,
                                 GetDefaultTabSearchRightAligned());
+  registry->RegisterBooleanPref(
+      prefs::kVerticalTabsEnabled, false,
+      user_prefs::PrefRegistrySyncable::SYNCABLE_PREF);
 }
 
 bool GetTabSearchTrailingTabstrip(const Profile* profile) {
-  if (features::IsTabSearchMoving()) {
+  if (features::HasTabSearchToolbarButton()) {
     return true;
   }
 
