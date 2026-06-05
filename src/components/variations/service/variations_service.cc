@@ -15,13 +15,14 @@
 
 #include "base/base64.h"
 #include "base/command_line.h"
+#include "base/debug/crash_logging.h"
 #include "base/feature_list.h"
 #include "base/functional/bind.h"
 #include "base/functional/callback.h"
+#include "base/functional/callback_helpers.h"
 #include "base/memory/ptr_util.h"
 #include "base/memory/raw_ptr.h"
 #include "base/metrics/histogram_functions.h"
-#include "base/metrics/histogram_macros.h"
 #include "base/observer_list.h"
 #include "base/strings/string_util.h"
 #include "base/trace_event/trace_event.h"
@@ -41,8 +42,7 @@
 #include "components/variations/pref_names.h"
 #include "components/variations/proto/variations_seed.pb.h"
 #include "components/variations/seed_response.h"
-#include "components/variations/service/limited_entropy_synthetic_trial.h"
-#include "components/variations/synthetic_trial_registry.h"
+#include "components/variations/sticky_activation_manager.h"
 #include "components/variations/variations_safe_seed_store_local_state.h"
 #include "components/variations/variations_seed_simulator.h"
 #include "components/variations/variations_switches.h"
@@ -127,21 +127,20 @@ std::string GetRestrictParameterValue(const std::string& restrict_mode_override,
 }
 
 // Reported to UMA, keep in sync with enums.xml and don't renumber entries.
-enum ResourceRequestsAllowedState {
-  RESOURCE_REQUESTS_ALLOWED,
-  RESOURCE_REQUESTS_NOT_ALLOWED,
-  RESOURCE_REQUESTS_ALLOWED_NOTIFIED,
-  RESOURCE_REQUESTS_NOT_ALLOWED_EULA_NOT_ACCEPTED,
-  RESOURCE_REQUESTS_NOT_ALLOWED_NETWORK_DOWN,
-  RESOURCE_REQUESTS_NOT_ALLOWED_COMMAND_LINE_DISABLED,
-  RESOURCE_REQUESTS_NOT_ALLOWED_NETWORK_STATE_NOT_INITIALIZED,
-  RESOURCE_REQUESTS_ALLOWED_ENUM_SIZE,
+enum class ResourceRequestsAllowedState {
+  kAllowed,
+  kNotAllowed,
+  kAllowedNotified,
+  kNotAllowedEulaNotAccepted,
+  kNotAllowedNetworkDown,
+  kNotAllowedCommandLineDisabled,
+  kNotAllowedNetworkStateNotInitialized,
+  kMaxValue = kNotAllowedNetworkStateNotInitialized,
 };
 
 // Records UMA histogram with the current resource requests allowed state.
 void RecordRequestsAllowedHistogram(ResourceRequestsAllowedState state) {
-  UMA_HISTOGRAM_ENUMERATION("Variations.ResourceRequestsAllowed", state,
-                            RESOURCE_REQUESTS_ALLOWED_ENUM_SIZE);
+  base::UmaHistogramEnumeration("Variations.ResourceRequestsAllowed", state);
 }
 
 // Converts ResourceRequestAllowedNotifier::State to the corresponding
@@ -151,16 +150,17 @@ ResourceRequestsAllowedState ResourceRequestStateToHistogramValue(
   using web_resource::ResourceRequestAllowedNotifier;
   switch (state) {
     case ResourceRequestAllowedNotifier::DISALLOWED_EULA_NOT_ACCEPTED:
-      return RESOURCE_REQUESTS_NOT_ALLOWED_EULA_NOT_ACCEPTED;
+      return ResourceRequestsAllowedState::kNotAllowedEulaNotAccepted;
     case ResourceRequestAllowedNotifier::DISALLOWED_NETWORK_DOWN:
-      return RESOURCE_REQUESTS_NOT_ALLOWED_NETWORK_DOWN;
+      return ResourceRequestsAllowedState::kNotAllowedNetworkDown;
     case ResourceRequestAllowedNotifier::DISALLOWED_COMMAND_LINE_DISABLED:
-      return RESOURCE_REQUESTS_NOT_ALLOWED_COMMAND_LINE_DISABLED;
+      return ResourceRequestsAllowedState::kNotAllowedCommandLineDisabled;
     case ResourceRequestAllowedNotifier::
         DISALLOWED_NETWORK_STATE_NOT_INITIALIZED:
-      return RESOURCE_REQUESTS_NOT_ALLOWED_NETWORK_STATE_NOT_INITIALIZED;
+      return ResourceRequestsAllowedState::
+          kNotAllowedNetworkStateNotInitialized;
     case ResourceRequestAllowedNotifier::ALLOWED:
-      return RESOURCE_REQUESTS_ALLOWED;
+      return ResourceRequestsAllowedState::kAllowed;
   }
   NOTREACHED();
 }
@@ -329,23 +329,17 @@ VariationsService::VariationsService(
     std::unique_ptr<web_resource::ResourceRequestAllowedNotifier> notifier,
     PrefService* local_state,
     metrics::MetricsStateManager* state_manager,
-    const UIStringOverrider& ui_string_overrider,
-    SyntheticTrialRegistry* synthetic_trial_registry)
+    const UIStringOverrider& ui_string_overrider)
     : client_(std::move(client)),
       local_state_(local_state),
-      synthetic_trial_registry_(synthetic_trial_registry),
       state_manager_(state_manager),
-      limited_entropy_synthetic_trial_(
-          local_state,
-          client_.get()->GetChannelForVariations()),
       policy_pref_service_(local_state),
       resource_request_allowed_notifier_(std::move(notifier)),
       safe_seed_manager_(local_state),
+      // TODO(crbug.com/421912603): Verify whether all callers should pass
+      // `true` here.
       entropy_providers_(state_manager_->CreateEntropyProviders(
-          VariationsFieldTrialCreatorBase::
-              IsLimitedEntropyRandomizationSourceEnabled(
-                  client_->GetChannelForVariations(),
-                  &limited_entropy_synthetic_trial_))),
+          /*enable_limited_entropy_mode=*/true)),
       field_trial_creator_(
           client_.get(),
           std::make_unique<VariationsSeedStore>(
@@ -360,8 +354,7 @@ VariationsService::VariationsService(
               client_.get()->GetChannelForVariations(),
               client_.get()->GetVariationsSeedFileDir(),
               entropy_providers_.get()),
-          ui_string_overrider,
-          &limited_entropy_synthetic_trial_) {
+          ui_string_overrider) {
   DCHECK(client_);
   DCHECK(resource_request_allowed_notifier_);
 
@@ -502,6 +495,14 @@ GURL VariationsService::GetVariationsServerURL(HttpOptions http_options) {
         net::AppendOrReplaceQueryParameter(server_url, "milestone", milestone);
   }
 
+  const std::string corpus =
+      base::CommandLine::ForCurrentProcess()->GetSwitchValueASCII(
+          switches::kVariationsSeedCorpus);
+  if (!corpus.empty()) {
+    server_url =
+        net::AppendOrReplaceQueryParameter(server_url, "corpus", corpus);
+  }
+
   DCHECK(server_url.is_valid());
   return server_url;
 }
@@ -546,8 +547,8 @@ std::string VariationsService::GetDefaultVariationsServerURLForTesting() {
 void VariationsService::RegisterPrefs(PrefRegistrySimple* registry) {
   SafeSeedManager::RegisterPrefs(registry);
   VariationsSeedStore::RegisterPrefs(registry);
-  LimitedEntropySyntheticTrial::RegisterPrefs(registry);
   RegisterFieldTrialInternalsPrefs(*registry);
+  StickyActivationManager::RegisterPrefs(*registry);
 
   registry->RegisterIntegerPref(
       prefs::kDeviceVariationsRestrictionsByPolicy,
@@ -555,9 +556,6 @@ void VariationsService::RegisterPrefs(PrefRegistrySimple* registry) {
   registry->RegisterDictionaryPref(
       prefs::kVariationsGoogleGroups,
       static_cast<int>(RestrictionPolicy::NO_RESTRICTIONS));
-  // This preference keeps track of the country code used to filter
-  // permanent-consistency studies.
-  registry->RegisterListPref(prefs::kVariationsPermanentConsistencyCountry);
   // This preference is used to override the variations country code which is
   // consistent across different chrome version.
   registry->RegisterStringPref(prefs::kVariationsPermanentOverriddenCountry,
@@ -590,15 +588,13 @@ std::unique_ptr<VariationsService> VariationsService::Create(
     const char* disable_network_switch,
     const UIStringOverrider& ui_string_overrider,
     web_resource::ResourceRequestAllowedNotifier::NetworkConnectionTrackerGetter
-        network_connection_tracker_getter,
-    SyntheticTrialRegistry* synthetic_trial_registry) {
+        network_connection_tracker_getter) {
   return base::WrapUnique(new VariationsService(
       std::move(client),
       std::make_unique<web_resource::ResourceRequestAllowedNotifier>(
           local_state, disable_network_switch,
           std::move(network_connection_tracker_getter)),
-      local_state, state_manager, ui_string_overrider,
-      synthetic_trial_registry));
+      local_state, state_manager, ui_string_overrider));
 }
 
 // static
@@ -688,9 +684,9 @@ bool VariationsService::DoFetchFromURL(const GURL& url, bool is_http_retry) {
   if (!last_request_started_time_.is_null()) {
     time_since_last_fetch = now - last_request_started_time_;
   }
-  UMA_HISTOGRAM_CUSTOM_COUNTS("Variations.TimeSinceLastFetchAttempt",
-                              time_since_last_fetch.InMinutes(), 1,
-                              base::Days(7).InMinutes(), 50);
+  base::UmaHistogramCustomCounts("Variations.TimeSinceLastFetchAttempt",
+                                 time_since_last_fetch.InMinutes(), 1,
+                                 base::Days(7).InMinutes(), 50);
   ++request_count_;
   last_request_started_time_ = now;
   delta_error_since_last_success_ = false;
@@ -709,9 +705,10 @@ void VariationsService::StoreSeed(std::string seed_data,
       base::BindOnce(&VariationsService::OnSeedStoreResult,
                      weak_ptr_factory_.GetWeakPtr(), is_delta_compressed);
   field_trial_creator_.seed_store()->StoreSeedData(
-      std::move(seed_data), std::move(seed_signature), std::move(country_code),
-      date_fetched, is_delta_compressed, is_gzip_compressed,
-      std::move(done_callback));
+      std::move(done_callback), std::move(seed_data), std::move(seed_signature),
+      std::move(country_code), date_fetched, is_delta_compressed,
+      is_gzip_compressed,
+      /*require_synchronous=*/false);
 }
 
 void VariationsService::OnSeedStoreResult(bool is_delta_compressed,
@@ -728,7 +725,9 @@ void VariationsService::OnSeedStoreResult(bool is_delta_compressed,
   }
 
   if (store_success) {
-    RecordSuccessfulFetch();
+    // When the new seed is stored, the active seed will be stored as the safe
+    // seed.
+    RecordSuccessfulFetchNewSeed();
 
     // Now, do simulation to determine if there are any kill-switches that were
     // activated by this seed.
@@ -790,7 +789,7 @@ void VariationsService::NotifyObservers(const SeedSimulationResult& result) {
 }
 
 void VariationsService::OnSimpleLoaderComplete(
-    std::unique_ptr<std::string> response_body) {
+    std::optional<std::string> response_body) {
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
   TRACE_EVENT0("browser", "VariationsService::OnSimpleLoaderComplete");
 
@@ -868,15 +867,8 @@ void VariationsService::OnSimpleLoaderComplete(
   }
 
   if (response_code == net::HTTP_NOT_MODIFIED) {
-    RecordSuccessfulFetch();
-
-    // Update the seed date value in local state (used for expiry check on
-    // next start up), since 304 is a successful response. Note that the
-    // serial number included in the request is always that of the latest
-    // seed, even when running in safe mode, so it's appropriate to always
-    // modify the latest seed's date.
-    field_trial_creator_.seed_store()->UpdateSeedDateAndLogDayChange(
-        response_date.value_or(base::Time()));
+    // TODO(crbug.com/420652919): Reject responses without a date.
+    RecordSuccessfulFetchSeedNotModified(response_date.value_or(base::Time()));
     return;
   }
 
@@ -922,7 +914,8 @@ void VariationsService::OnResourceRequestsAllowed() {
   // attempt was made earlier that fails (which implies that the period had
   // elapsed). After a successful attempt is made, the notifier will know not
   // to call this method again until another failed attempt occurs.
-  RecordRequestsAllowedHistogram(RESOURCE_REQUESTS_ALLOWED_NOTIFIED);
+  RecordRequestsAllowedHistogram(
+      ResourceRequestsAllowedState::kAllowedNotified);
   DVLOG(1) << "Retrying fetch.";
   DoActualFetch();
 
@@ -951,13 +944,38 @@ bool VariationsService::CallMaybeRetryOverHTTPForTesting() {
   return MaybeRetryOverHTTP();
 }
 
-void VariationsService::RecordSuccessfulFetch() {
+void VariationsService::RecordSuccessfulFetchNewSeed() {
+  safe_seed_manager_.RecordSuccessfulFetch(field_trial_creator_.seed_store());
+}
+
+void VariationsService::RecordSuccessfulFetchSeedNotModified(
+    base::Time response_date) {
+  // Update the client-side fetch time to the current time.
   field_trial_creator_.seed_store()->RecordLastFetchTime(base::Time::Now());
   safe_seed_manager_.RecordSuccessfulFetch(field_trial_creator_.seed_store());
+
+  // Update the seed date value in local state (used for expiry check on
+  // next start up), since 304 is a successful response. Note that the
+  // serial number included in the request is always that of the latest
+  // seed, even when running in safe mode, so it's appropriate to always
+  // modify the latest seed's date.
+  field_trial_creator_.seed_store()->UpdateSeedDateAndLogDayChange(
+      response_date);
 }
 
 VariationsSeedStore* VariationsService::GetSeedStoreForTesting() {
   return field_trial_creator_.seed_store();
+}
+
+base::Time VariationsService::GetLatestSeedFetchTime() {
+  return field_trial_creator_.seed_store()->GetLatestSeedFetchTime();
+}
+
+void VariationsService::GetStoredSeedInfoForDebugging(
+    base::OnceCallback<void(StoredSeedInfo)> done_callback,
+    VariationsSeedStore::SeedType seed_type) {
+  field_trial_creator_.seed_store()->GetStoredSeedInfoForDebugging(
+      std::move(done_callback), seed_type);
 }
 
 std::unique_ptr<ClientFilterableState>
@@ -982,28 +1000,17 @@ bool VariationsService::SetUpFieldTrials(
 
   return field_trial_creator_.SetUpFieldTrials(
       variation_ids, command_line_variation_ids, extra_overrides,
-      std::move(feature_list), state_manager_, synthetic_trial_registry_,
-      platform_field_trials, &safe_seed_manager_,
+      std::move(feature_list), state_manager_, platform_field_trials,
+      &safe_seed_manager_,
       /*add_entropy_source_to_variations_ids=*/true, *entropy_providers_);
 }
 
-std::vector<StudyGroupNames> VariationsService::GetStudiesAvailableToForce() {
-  VariationsSeed seed;
-  std::string seed_data;
-  std::string base64_seed_signature;
-  if (!field_trial_creator_.seed_store()->LoadSeed(&seed, &seed_data,
-                                                   &base64_seed_signature)) {
-    return {};
-  }
-
-  // TODO(crbug.com/41492213): chrome://field-trial-internals will not support
-  // studies that are constrained to a layer with LIMITED entropy mode before
-  // limited entropy randomization fully lands.
-  auto entropy_providers = state_manager_->CreateEntropyProviders(
-      /*enable_limited_entropy_mode=*/false);
-  return variations::GetStudiesAvailableToForce(
-      std::move(seed), *entropy_providers,
-      *GetClientFilterableStateForVersion());
+void VariationsService::GetStudiesAvailableToForce(
+    base::OnceCallback<void(std::vector<StudyGroupNames>)> done_callback) {
+  field_trial_creator_.seed_store()->LoadSeed(
+      base::IgnoreArgs<std::string, std::string>(base::BindOnce(
+          &VariationsService::GetStudiesAvailableToForceFromSeed,
+          weak_ptr_factory_.GetWeakPtr(), std::move(done_callback))));
 }
 
 SeedType VariationsService::GetSeedType() const {
@@ -1054,6 +1061,24 @@ bool VariationsService::OverrideStoredPermanentCountry(
   field_trial_creator_.StoreVariationsOverriddenCountry(
       country_override_lowercase);
   return true;
+}
+
+void VariationsService::GetStudiesAvailableToForceFromSeed(
+    base::OnceCallback<void(std::vector<StudyGroupNames>)> done_callback,
+    bool success,
+    VariationsSeed seed) {
+  if (!success) {
+    std::move(done_callback).Run({});
+    return;
+  }
+  // TODO(crbug.com/41492213): chrome://field-trial-internals will not support
+  // studies that are constrained to a layer with LIMITED entropy mode before
+  // limited entropy randomization fully lands.
+  auto entropy_providers = state_manager_->CreateEntropyProviders(
+      /*enable_limited_entropy_mode=*/false);
+  auto studies = variations::GetStudiesAvailableToForce(
+      seed, *entropy_providers, *GetClientFilterableStateForVersion());
+  std::move(done_callback).Run(std::move(studies));
 }
 
 }  // namespace variations

@@ -34,15 +34,12 @@
   <message name="IDS_ERRORPAGES_SUGGESTION_RELOAD_REPOST_SUMMARY" desc="When a page fails to load, sometimes we suggest reloading a page.  In the case that reloading the page requires resubmitting data to a website, this is displayed in a list.">
     Press the reload button to resubmit the data needed to load the page.
   </message>
-  <message name="IDS_ERRORPAGES_SUGGESTION_RELOAD_PRIVATE_NETWORK_ACCESS" desc="When a page fails to load because of private network access checks, we suggest reloading a page to allow the request.">
-    Press the reload button to allow the connection to devices or servers on your private network.
-  </message>
   <message name="IDS_ERRORPAGES_SUGGESTION_CHECK_CONNECTION_HEADER" desc="When a page fails to load, sometimes we suggest checking the network connections.  This is a header above some details.">
     Check your Internet connection
   </message>
   <message name="IDS_ERRORPAGES_SUGGESTION_CHECK_CONNECTION_BODY" desc="When a page fails to load, sometimes we suggest checking the network connections.  This contains details below the suggestion.">
     Check any cables and reboot any routers, modems, or other network
-    devices you may be using. Also check that any proxy server currently in use is reachable and configured correctly.
+    devices you may be using.
   </message>
   <if expr="not is_ios">
     <message name="IDS_ERRORPAGES_SUGGESTION_SECURE_DNS_CONFIG_HEADER" desc="When a page fails to load, sometimes we suggest checking the secure DNS configuration.  This is a header above above some details.">
@@ -270,8 +267,8 @@
     This content is blocked. Contact the site owner to fix the issue.
   </message>
 
-  <message name="IDS_ERRORPAGES_SUMMARY_BLOCKED_BY_PRIVATE_NETWORK_ACCESS_CHECKS" desc="Summary in the error page when the request has been blocked by private network access checks.">
-    The connection is blocked because it was initiated by a public page to connect to devices or servers on your private network. Reload this page to allow the connection.
+  <message name="IDS_ERRORPAGES_SUMMARY_BLOCKED_BY_LOCAL_NETWORK_ACCESS_CHECKS" desc="Summary in the error page when the request has been blocked by local network access checks.">
+    The connection is blocked because it was initiated by a public page to connect to devices or servers on your local network.
   </message>
 
   <message name="IDS_ERRORPAGES_HTTP_POST_WARNING" desc="The error message displayed when the user navigates back or forward to a page which would resubmit post data. They can hit reload to send POST data again and load the page.">
@@ -284,6 +281,7 @@
   <message name="IDS_ERRORPAGES_SUMMARY_LINKPREVIEW_NON_HTTPS_FORBIDDEN" desc="Summary in the error page when a user tries to preview non-HTTPS URL.">
     Previewing non-HTTPS URL is not allowed.
   </message>
+
 
   <!-- Suggestions summary list messages. -->
   <message name="IDS_ERRORPAGES_SUGGESTION_LIST_HEADER" desc="Message that prefixes a list of suggestions to try when encountering a network error.">

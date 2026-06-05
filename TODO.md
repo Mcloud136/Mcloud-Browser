@@ -15,7 +15,7 @@
 
 &#45; Restore download shelf
 
-&#45; Rebase src/components
+&#45; Roll patches, correct translate strings
 
 ### Notes to self
 

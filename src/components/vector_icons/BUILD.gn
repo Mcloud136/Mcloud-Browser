@@ -101,8 +101,10 @@ if (current_toolchain == default_toolchain) {
       "file_download.icon",
       "file_download_chrome_refresh.icon",
       "file_download_off_chrome_refresh.icon",
+      "filter.icon",
       "fingerprint.icon",
       "fingerprint_off.icon",
+      "flight.icon",
       "folder.icon",
       "folder_chrome_refresh.icon",
       "folder_managed.icon",
@@ -169,6 +171,7 @@ if (current_toolchain == default_toolchain) {
       "midi.icon",
       "midi_chrome_refresh.icon",
       "midi_off_chrome_refresh.icon",
+      "no_encryption.icon",
       "not_secure_warning.icon",
       "not_secure_warning_chrome_refresh.icon",
       "not_secure_warning_off_chrome_refresh.icon",
@@ -183,6 +186,8 @@ if (current_toolchain == default_toolchain) {
       "password_manager_off.icon",
       "pause.icon",
       "pause_chrome_refresh.icon",
+      "person_check.icon",
+      "person_text.icon",
       "photo.icon",
       "photo_chrome_refresh.icon",
       "photo_off_chrome_refresh.icon",
@@ -198,6 +203,7 @@ if (current_toolchain == default_toolchain) {
       "protocol_handler.icon",
       "protocol_handler_chrome_refresh.icon",
       "protocol_handler_off_chrome_refresh.icon",
+      "qwac_status.icon",
       "radio_button_checked.icon",
       "receipt_long.icon",
       "reload.icon",
@@ -209,6 +215,7 @@ if (current_toolchain == default_toolchain) {
       "router_off.icon",
       "save_cloud.icon",
       "science.icon",
+      "screen_record.icon",
       "screen_share.icon",
       "screen_share_old.icon",
       "search.icon",
@@ -247,6 +254,8 @@ if (current_toolchain == default_toolchain) {
       "sync_chrome_refresh.icon",
       "sync_off_chrome_refresh.icon",
       "sync_problem_chrome_refresh.icon",
+      "sync_saved_locally.icon",
+      "sync_saved_locally_off.icon",
       "tab_search.icon",
       "tenancy.icon",
       "thumb_down.icon",
@@ -256,6 +265,7 @@ if (current_toolchain == default_toolchain) {
       "touchpad_mouse.icon",
       "touchpad_mouse_off.icon",
       "translate.icon",
+      "trip.icon",
       "undo.icon",
       "usb.icon",
       "usb_chrome_refresh.icon",
@@ -280,16 +290,17 @@ if (current_toolchain == default_toolchain) {
       "vr_headset_off_chrome_refresh.icon",
       "warning.icon",
       "warning_outline.icon",
+      "web_asset_off.icon",
       "work.icon",
     ]
 
-  if (is_thorium_build) {
-    sources += [
-      "thorium/reload_thorium.icon",
-      "thorium/reload_chrome_refresh_thorium.icon",
-      "thorium/restore_tab.icon"
-    ]
-  }
+    if (is_thorium_build) {
+      sources += [
+        "thorium/reload_thorium.icon",
+        "thorium/reload_chrome_refresh_thorium.icon",
+        "thorium/restore_tab.icon",
+      ]
+    }
 
     if (is_chromeos) {
       sources += [
@@ -301,6 +312,7 @@ if (current_toolchain == default_toolchain) {
     if (is_chrome_branded) {
       sources += [
         "google_chrome/google_agentspace_monochrome_logo.icon",
+        "google_chrome/google_agentspace_monochrome_logo_25.icon",
         "google_chrome/google_calendar.icon",
         "google_chrome/google_chrome_webstore.icon",
         "google_chrome/google_docs.icon",

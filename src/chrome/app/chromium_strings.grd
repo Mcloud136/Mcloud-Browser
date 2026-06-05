@@ -900,13 +900,13 @@ Thorium is unable to recover your settings.
       <message name="IDS_EXTENSIONS_SAFETY_CHECK_PRIMARY_LABEL" desc="Alerts the user that the extension should be reviewed.">
         Thorium recommends you review this extension
       </message>
-      <message name="IDS_EXTENSIONS_SAFETY_CHECK_OFFSTORE" desc="Alerts the user that the extension is not from the Thorium web store.">
+      <message name="IDS_EXTENSIONS_SAFETY_CHECK_OFFSTORE" desc="Alerts the user that the extension is not from the Chrome web store.">
         Thorium can't verify where this extension comes from, and it might be unsafe. Remove it from Thorium so it can no longer see and change your data on sites you visit, including personal info.
       </message>
-      <message name="IDS_EXTENSIONS_SAFETY_CHECK_OFFSTORE_ON" desc="Alerts the user that the extension is not from the Thorium web store.">
+      <message name="IDS_EXTENSIONS_SAFETY_CHECK_OFFSTORE_ON" desc="Alerts the user that the extension is not from the Chrome web store.">
         On • Thorium can't verify where this extension comes from
       </message>
-      <message name="IDS_EXTENSIONS_SAFETY_CHECK_OFFSTORE_OFF" desc="Alerts the user that the extension is not from the Thorium web store.">
+      <message name="IDS_EXTENSIONS_SAFETY_CHECK_OFFSTORE_OFF" desc="Alerts the user that the extension is not from the Chrome web store.">
         Off • Thorium can't verify where this extension comes from
       </message>
       <message name="IDS_EXTENSIONS_SAFETY_CHECK_NO_PRIVACY_PRACTICES" desc="Alerts the user that the extension has not disclosed its privacy practices.">

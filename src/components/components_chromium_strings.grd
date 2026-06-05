@@ -226,9 +226,9 @@
           the Thorium menu &gt;
           <ph name="SETTINGS_TITLE">&lt;span&gt;$1&lt;/span&gt;<ex>Settings</ex></ph>
           &gt;
-          <ph name="ADVANCED_TITLE">&lt;span&gt;$2&lt;/span&gt;<ex>Under the Hood</ex></ph>
+          <ph name="SYSTEM_TITLE">&lt;span&gt;$2&lt;/span&gt;<ex>System</ex></ph>
           &gt;
-          <ph name="PROXIES_TITLE">&lt;span&gt;$3&lt;/span&gt;<ex>Change proxy settings...</ex></ph>
+          <ph name="PROXIES_TITLE">&lt;span&gt;$3&lt;/span&gt;<ex>Open your computer's proxy settings</ex></ph>
           and make sure your configuration is set to &quot;no proxy&quot; or &quot;direct.&quot;
         </message>
       </if>
@@ -238,12 +238,12 @@
           the Thorium menu &gt;
           <ph name="SETTINGS_TITLE">&lt;span&gt;$1&lt;/span&gt;<ex>Settings</ex></ph>
           &gt;
-          <ph name="ADVANCED_TITLE">&lt;span&gt;$2&lt;/span&gt;<ex>Under the Hood</ex></ph>
+          <ph name="SYSTEM_TITLE">&lt;span&gt;$2&lt;/span&gt;<ex>System</ex></ph>
           &gt;
-          <ph name="PROXIES_TITLE">&lt;span&gt;$3&lt;/span&gt;<ex>Change proxy settings...</ex></ph>
+          <ph name="PROXIES_TITLE">&lt;span&gt;$3&lt;/span&gt;<ex>Open your computer's proxy settings</ex></ph>
           &gt;
-          LAN Settings
-          and deselect the &quot;Use a proxy server for your LAN&quot; checkbox.
+          Network &amp; internet &gt; Proxy
+          and deselect &quot;Automatically detect settings&quot;.
         </message>
         <message name="IDS_PAYMENTS_AUTOFILL_MANDATORY_REAUTH_PROMPT" desc="Message to be displayed to the user in the device authentication prompt when they click on the mandatory auth toggle on the Payments settings page, irrespective to enable or disable it. When mandatory auth toggle is enabled, we would authenticate the user before autofilling in the payment details.">
           Thorium is trying to modify settings for filling payment methods.
@@ -254,12 +254,12 @@
       </if>
 
       <!-- About Flags UI -->
-      <if expr="not chromeos_ash">
+      <if expr="not is_chromeos">
         <message name="IDS_FLAGS_UI_RELAUNCH_NOTICE" desc="Notifies the user that they need to relaunch Thorium. Shown next to a button that says 'Relaunch Now'.">
           Your changes will take effect the next time you relaunch Thorium.
         </message>
       </if>
-      <if expr="chromeos_ash">
+      <if expr="is_chromeos">
         <message name="IDS_FLAGS_UI_RELAUNCH_NOTICE" desc="Notifies the user that they need to restart ThoriumOS. Shown next to a button that says 'Restart Now'.">
           Your changes will take effect the next time you restart your device.
         </message>
@@ -276,10 +276,10 @@
       </message>
 
       <message name="IDS_VERSION_UI_LICENSE" desc="The label below the copyright message, containing the URLs.">
-        Thorium is made possible by the <ph name="BEGIN_LINK_CHROMIUM">&lt;a target="_blank" href="$1"&gt;</ph>Chromium<ph name="END_LINK_CHROMIUM">&lt;/a&gt;</ph> open source project and other <ph name="BEGIN_LINK_OSS">&lt;a target="_blank" href="$2"&gt;</ph>open source software<ph name="END_LINK_OSS">&lt;/a&gt;</ph>.
+        Thorium is made possible by the <ph name="BEGIN_LINK_CHROMIUM">&lt;a target="_blank" href="$1" aria-description="$3"&gt;</ph>Thorium<ph name="END_LINK_CHROMIUM">&lt;/a&gt;</ph> open source project and other <ph name="BEGIN_LINK_OSS">&lt;a target="_blank" href="$2" aria-description="$3"&gt;</ph>open source software<ph name="END_LINK_OSS">&lt;/a&gt;</ph>.
       </message>
 
-      <if expr="chromeos_ash">
+      <if expr="is_chromeos">
         <message name="IDS_VERSION_UI_LICENSE_CHROMIUM" desc="The label below the copyright message, containing the link to the Thorium project.">
           Thorium is made possible by the <ph name="BEGIN_LINK_CHROMIUM">&lt;a target="_blank" href="$1"&gt;</ph>Chromium<ph name="END_LINK_CHROMIUM">&lt;/a&gt;</ph> open source project.
         </message>
