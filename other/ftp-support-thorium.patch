@@ -1,8 +1,8 @@
 diff --git a/android_webview/browser/aw_browser_context.cc b/android_webview/browser/aw_browser_context.cc
-index 2d4952cf4f7df..c94d13d5b0f77 100644
+index cdeb0e8e96343..4e439cf8ad803 100644
 --- a/android_webview/browser/aw_browser_context.cc
 +++ b/android_webview/browser/aw_browser_context.cc
-@@ -586,6 +586,9 @@ void AwBrowserContext::ConfigureNetworkContextParams(
+@@ -585,6 +585,9 @@ void AwBrowserContext::ConfigureNetworkContextParams(
    // policy. (http://crbug.com/921750).
    context_params->enforce_chrome_ct_policy = false;
  
@@ -13,10 +13,10 @@ index 2d4952cf4f7df..c94d13d5b0f77 100644
    context_params->enable_zstd = true;
    context_params->stale_dns_enabled = enable_stale_dns_;
 diff --git a/chrome/app/app-Info.plist b/chrome/app/app-Info.plist
-index 9190c5ef6c092..93fdf52fdc8c3 100644
+index 8142cf1c27c7c..18b784fdb683c 100644
 --- a/chrome/app/app-Info.plist
 +++ b/chrome/app/app-Info.plist
-@@ -233,6 +233,14 @@
+@@ -175,6 +175,14 @@
  				<string>https</string>
  			</array>
  		</dict>
@@ -32,10 +32,10 @@ index 9190c5ef6c092..93fdf52fdc8c3 100644
  			<key>CFBundleURLName</key>
  			<string>Local file URL</string>
 diff --git a/chrome/app/generated_resources.grd b/chrome/app/generated_resources.grd
-index 5c3bf0094808b..5f55a471394d0 100644
+index 568e1a05160ff..21146974a2884 100644
 --- a/chrome/app/generated_resources.grd
 +++ b/chrome/app/generated_resources.grd
-@@ -14361,6 +14361,9 @@ This can include information about installed software, files, your browser, the
+@@ -15000,6 +15000,9 @@ This can include information about installed software, files, your browser, the
        <message name="IDS_DIRECTORY_LISTING_DATE_MODIFIED" desc="When viewing a local directory, this is the text for the column above the last modified dates.">
          Date Modified
        </message>
@@ -46,10 +46,10 @@ index 5c3bf0094808b..5f55a471394d0 100644
        <!-- Saving Page-->
        <message name="IDS_SAVE_PAGE_DESC_HTML_ONLY" desc="In the Save Page dialog, the description of saving only the HTML of a webpage.">
 diff --git a/chrome/browser/about_flags.cc b/chrome/browser/about_flags.cc
-index b5c863ae84566..c5f1b2580b918 100644
+index 28f7378145794..78412ef0ff7b2 100644
 --- a/chrome/browser/about_flags.cc
 +++ b/chrome/browser/about_flags.cc
-@@ -8694,6 +8694,12 @@ const FeatureEntry kFeatureEntries[] = {
+@@ -9168,6 +9168,12 @@ const FeatureEntry kFeatureEntries[] = {
       FEATURE_VALUE_TYPE(
           heavy_ad_intervention::features::kHeavyAdPrivacyMitigations)},
  
@@ -62,43 +62,29 @@ index b5c863ae84566..c5f1b2580b918 100644
  #if BUILDFLAG(IS_CHROMEOS)
      {"crostini-container-install",
       flag_descriptions::kCrostiniContainerInstallName,
-diff --git a/chrome/browser/flag_descriptions.cc b/chrome/browser/flag_descriptions.cc
-index dfa269d4b3f6d..fb4a89a182b69 100644
---- a/chrome/browser/flag_descriptions.cc
-+++ b/chrome/browser/flag_descriptions.cc
-@@ -567,6 +567,13 @@ const char kEnableDrDcDescription[] =
+diff --git a/chrome/browser/flag_descriptions.h b/chrome/browser/flag_descriptions.h
+index abaf675761011..de0d2367cdd1b 100644
+--- a/chrome/browser/flag_descriptions.h
++++ b/chrome/browser/flag_descriptions.h
+@@ -673,6 +673,13 @@ inline constexpr char kEnableDrDcDescription[] =
      "(raster, webgl, video) "
      " continues using the gpu main thread.";
  
-+const char kEnableFtpName[] = "Enable support for FTP URLs. Enabled by default. Thorium Flag.";
-+const char kEnableFtpDescription[] =
++inline constexpr char kEnableFtpName[] = "Enable support for FTP URLs. Enabled by default. Thorium Flag.";
++inline constexpr char kEnableFtpDescription[] =
 +    "When enabled, the browser will handle navigations to ftp:// URLs by "
 +    "either showing a directory listing or downloading the resource over FTP. "
 +    "When disabled, the browser has no special handling for ftp:// URLs and "
 +    "by default defers handling of the URL to the underlying platform.";
 +
- const char kEnableSnackbarInSettingsName[] = "Snackbar for settings ";
- const char kEnableSnackbarInSettingsDescription[] =
-     "Enables a snack bar that is shown to users after they save the "
-diff --git a/chrome/browser/flag_descriptions.h b/chrome/browser/flag_descriptions.h
-index f2f5fe4789cd6..163ff1ede8878 100644
---- a/chrome/browser/flag_descriptions.h
-+++ b/chrome/browser/flag_descriptions.h
-@@ -277,6 +277,9 @@ extern const char kDbdRevampDesktopDescription[];
- extern const char kDisableFacilitatedPaymentsMerchantAllowlistName[];
- extern const char kDisableFacilitatedPaymentsMerchantAllowlistDescription[];
- 
-+extern const char kEnableFtpName[];
-+extern const char kEnableFtpDescription[];
-+
- extern const char kHdrAgtmName[];
- extern const char kHdrAgtmDescription[];
- 
+ inline constexpr char kEnableFullscreenToAnyScreenAndroidName[] =
+     "Enables use of the screen parameter for requestFullscreen.";
+ inline constexpr char kEnableFullscreenToAnyScreenAndroidDescription[] =
 diff --git a/chrome/browser/net/profile_network_context_service.cc b/chrome/browser/net/profile_network_context_service.cc
-index 9ae20dbb0ed2a..99529aac4eff7 100644
+index 55674378f67a7..9cbe0df1e88e4 100644
 --- a/chrome/browser/net/profile_network_context_service.cc
 +++ b/chrome/browser/net/profile_network_context_service.cc
-@@ -1409,6 +1409,15 @@ void ProfileNetworkContextService::ConfigureNetworkContextParamsInternal(
+@@ -1446,6 +1446,15 @@ void ProfileNetworkContextService::ConfigureNetworkContextParamsInternal(
      network_context_params->hsts_policy_bypass_list.push_back(*string_value);
    }
  
@@ -111,14 +97,14 @@ index 9ae20dbb0ed2a..99529aac4eff7 100644
 +      base::FeatureList::IsEnabled(network::features::kFtpProtocol);
 +#endif  // !BUILDFLAG(DISABLE_FTP_SUPPORT)
 +
-   proxy_config_monitor_.AddToNetworkContextParams(network_context_params);
+   proxy_config_monitor_->AddToNetworkContextParams(network_context_params);
  
    network_context_params->enable_certificate_reporting = true;
 diff --git a/chrome/browser/net/system_network_context_manager.cc b/chrome/browser/net/system_network_context_manager.cc
-index ed7bd98745d49..a498bba5d49da 100644
+index 63c1941becda2..b35b7242be620 100644
 --- a/chrome/browser/net/system_network_context_manager.cc
 +++ b/chrome/browser/net/system_network_context_manager.cc
-@@ -1048,6 +1048,12 @@ SystemNetworkContextManager::CreateNetworkContextParams() {
+@@ -1125,6 +1125,12 @@ SystemNetworkContextManager::CreateNetworkContextParams() {
  
    network_context_params->http_cache_enabled = false;
  
@@ -132,7 +118,7 @@ index ed7bd98745d49..a498bba5d49da 100644
  
    return network_context_params;
 diff --git a/chrome/browser/profiles/profile_io_data.cc b/chrome/browser/profiles/profile_io_data.cc
-index 06d4f9d61b2a3..d3251c757fdac 100644
+index 080e9b0e43c70..df7293bb51dfb 100644
 --- a/chrome/browser/profiles/profile_io_data.cc
 +++ b/chrome/browser/profiles/profile_io_data.cc
 @@ -14,6 +14,7 @@
@@ -142,11 +128,11 @@ index 06d4f9d61b2a3..d3251c757fdac 100644
 +#include "services/network/public/cpp/features.h"
  #include "url/gurl.h"
  
- #if BUILDFLAG(ENABLE_EXTENSIONS_CORE)
-@@ -53,6 +54,9 @@ bool ProfileIOData::IsHandledProtocol(const std::string& scheme) {
- #if !BUILDFLAG(IS_ANDROID)
-       chrome::kIsolatedAppScheme,
- #endif  // !BUILDFLAG(IS_ANDROID)
+ #if BUILDFLAG(IS_WIN) || BUILDFLAG(IS_MAC) || BUILDFLAG(IS_LINUX) || \
+@@ -61,6 +62,9 @@ bool ProfileIOData::IsHandledProtocol(std::string_view scheme) {
+       webapps::kIsolatedAppScheme,
+ #endif  // BUILDFLAG(IS_WIN) || BUILDFLAG(IS_MAC) || BUILDFLAG(IS_LINUX) ||
+         // BUILDFLAG(IS_CHROMEOS)
 +#if !BUILDFLAG(DISABLE_FTP_SUPPORT)
 +      url::kFtpScheme,
 +#endif  // !BUILDFLAG(DISABLE_FTP_SUPPORT)
@@ -154,10 +140,10 @@ index 06d4f9d61b2a3..d3251c757fdac 100644
  
    return kProtocolList.contains(scheme);
 diff --git a/chrome/browser/ui/login/login_tab_helper.cc b/chrome/browser/ui/login/login_tab_helper.cc
-index 83a9cb4aefa65..c0d45feb527f2 100644
+index a76c158d4a616..15dcbd304ac2d 100644
 --- a/chrome/browser/ui/login/login_tab_helper.cc
 +++ b/chrome/browser/ui/login/login_tab_helper.cc
-@@ -75,13 +75,16 @@ void LoginTabHelper::DidFinishNavigation(
+@@ -77,13 +77,16 @@ void LoginTabHelper::DidFinishNavigation(
      return;
    }
  
@@ -195,7 +181,7 @@ index 88d43505881b5..92a452fc5f9e9 100644
      std::string str = webui::GetI18nTemplateHtml(
          ui::ResourceBundle::GetSharedInstance().LoadDataResourceString(
 diff --git a/chrome/installer/util/shell_util.cc b/chrome/installer/util/shell_util.cc
-index b5b269da941db..1ee7046ac4a06 100644
+index 7da4a13cc3286..918961eee9829 100644
 --- a/chrome/installer/util/shell_util.cc
 +++ b/chrome/installer/util/shell_util.cc
 @@ -1,4 +1,4 @@
@@ -204,7 +190,7 @@ index b5b269da941db..1ee7046ac4a06 100644
  // Use of this source code is governed by a BSD-style license that can be
  // found in the LICENSE file.
  //
-@@ -1549,10 +1549,10 @@ const wchar_t* ShellUtil::kDefaultFileAssociations[] = {
+@@ -1581,10 +1581,10 @@ const wchar_t* ShellUtil::kDefaultFileAssociations[] = {
  const wchar_t* ShellUtil::kPotentialFileAssociations[] = {
      L".htm", L".html", L".mhtml", L".pdf",  L".shtml",
      L".svg", L".xht",  L".xhtml", L".webp", nullptr};
@@ -229,10 +215,10 @@ index 0000000000000..ce0c4c91818cd
 +</head>
 +</html>
 diff --git a/components/safe_browsing/content/browser/safe_browsing_network_context.cc b/components/safe_browsing/content/browser/safe_browsing_network_context.cc
-index c9c03f0d3e7e8..f7de38952a397 100644
+index 2c71195692a74..18dc154e7e26f 100644
 --- a/components/safe_browsing/content/browser/safe_browsing_network_context.cc
 +++ b/components/safe_browsing/content/browser/safe_browsing_network_context.cc
-@@ -129,6 +129,10 @@ class SafeBrowsingNetworkContext::SharedURLLoaderFactory
+@@ -128,6 +128,10 @@ class SafeBrowsingNetworkContext::SharedURLLoaderFactory
      network_context_params->file_paths->trigger_migration = trigger_migration_;
      network_context_params->file_paths->cookie_database_name = base::FilePath(
          base::FilePath::StringType(kSafeBrowsingBaseFilename) + kCookiesFile);
@@ -256,10 +242,10 @@ index 765c759db3e21..5bec9aeb07a5f 100644
        url::kFileScheme,
        url::kFileSystemScheme,
 diff --git a/content/public/common/content_switches.cc b/content/public/common/content_switches.cc
-index 322ef8bce8132..d9d9da4fa4541 100644
+index 19727300135e6..d2c9054259182 100644
 --- a/content/public/common/content_switches.cc
 +++ b/content/public/common/content_switches.cc
-@@ -324,6 +324,9 @@ const char kEnableExperimentalWebPlatformFeatures[] =
+@@ -326,6 +326,9 @@ const char kEnableExperimentalWebPlatformFeatures[] =
  // status:"experimental", which are enabled when running web tests.
  const char kEnableBlinkTestFeatures[] = "enable-blink-test-features";
  
@@ -270,7 +256,7 @@ index 322ef8bce8132..d9d9da4fa4541 100644
  const char kDisableOriginTrialControlledBlinkFeatures[] =
      "disable-origin-trial-controlled-blink-features";
 diff --git a/content/public/common/content_switches.h b/content/public/common/content_switches.h
-index b5cfa09e62127..aaadbb7c09a8f 100644
+index 072c7c1eb57db..4ae2f9d64d9b9 100644
 --- a/content/public/common/content_switches.h
 +++ b/content/public/common/content_switches.h
 @@ -104,6 +104,7 @@ CONTENT_EXPORT extern const char kEnableExperimentalCookieFeatures[];
@@ -282,10 +268,10 @@ index b5cfa09e62127..aaadbb7c09a8f 100644
  CONTENT_EXPORT extern const char kEnableIsolatedWebAppsInRenderer[];
  CONTENT_EXPORT extern const char kEnableLCDText[];
 diff --git a/content/public/renderer/render_frame.h b/content/public/renderer/render_frame.h
-index 1884ed8ca2f65..bfb8c1942a465 100644
+index e45cb7d734b4f..05f3361deb9a4 100644
 --- a/content/public/renderer/render_frame.h
 +++ b/content/public/renderer/render_frame.h
-@@ -179,6 +179,9 @@ class CONTENT_EXPORT RenderFrame :
+@@ -159,6 +159,9 @@ class CONTENT_EXPORT RenderFrame :
    virtual blink::AssociatedInterfaceProvider*
    GetRemoteAssociatedInterfaces() = 0;
  
@@ -296,10 +282,10 @@ index 1884ed8ca2f65..bfb8c1942a465 100644
    virtual void SetSelectedText(const std::u16string& selection_text,
                                 size_t offset,
 diff --git a/content/renderer/render_frame_impl.cc b/content/renderer/render_frame_impl.cc
-index d83b79b725d28..313112269f71d 100644
+index e22a59db4480b..ab2d57920fe65 100644
 --- a/content/renderer/render_frame_impl.cc
 +++ b/content/renderer/render_frame_impl.cc
-@@ -2508,6 +2508,10 @@ RenderFrameImpl::GetRemoteAssociatedInterfaces() {
+@@ -2366,6 +2366,10 @@ RenderFrameImpl::GetRemoteAssociatedInterfaces() {
    return remote_associated_interfaces_.get();
  }
  
@@ -311,10 +297,10 @@ index d83b79b725d28..313112269f71d 100644
                                        size_t offset,
                                        const gfx::Range& range) {
 diff --git a/content/renderer/render_frame_impl.h b/content/renderer/render_frame_impl.h
-index 6a9e696762cc0..18cf6bd82a00c 100644
+index 81702780dbd91..72436e0f30030 100644
 --- a/content/renderer/render_frame_impl.h
 +++ b/content/renderer/render_frame_impl.h
-@@ -408,6 +408,7 @@ class CONTENT_EXPORT RenderFrameImpl
+@@ -356,6 +356,7 @@ class CONTENT_EXPORT RenderFrameImpl
        mojo::ScopedMessagePipeHandle interface_pipe) override;
    blink::AssociatedInterfaceRegistry* GetAssociatedInterfaceRegistry() override;
    blink::AssociatedInterfaceProvider* GetRemoteAssociatedInterfaces() override;
@@ -335,7 +321,7 @@ index d4ae4f54554c0..c69d9d8b069b6 100644
  #import "net/http/http_network_session.h"
  #import "net/http/http_server_properties.h"
 diff --git a/net/BUILD.gn b/net/BUILD.gn
-index 3b66c31a7003f..e2570a9972e28 100644
+index 0a78202f61958..263ddc7960118 100644
 --- a/net/BUILD.gn
 +++ b/net/BUILD.gn
 @@ -95,6 +95,7 @@ buildflag_header("buildflags") {
@@ -346,7 +332,7 @@ index 3b66c31a7003f..e2570a9972e28 100644
      "ENABLE_MDNS=$enable_mdns",
      "ENABLE_REPORTING=$enable_reporting",
      "ENABLE_WEBSOCKETS=$enable_websockets",
-@@ -1656,6 +1657,41 @@ component("net") {
+@@ -1700,6 +1701,41 @@ component("net") {
      ]
    }
  
@@ -388,7 +374,7 @@ index 3b66c31a7003f..e2570a9972e28 100644
    if (enable_websockets) {
      sources += [
        "server/http_connection.cc",
-@@ -3330,6 +3366,21 @@ target(_test_target_type, "net_unittests") {
+@@ -3386,6 +3422,21 @@ target(_test_target_type, "net_unittests") {
      ]
    }
  
@@ -410,7 +396,7 @@ index 3b66c31a7003f..e2570a9972e28 100644
    if (enable_built_in_dns) {
      sources += [ "url_request/http_with_dns_over_https_unittest.cc" ]
    }
-@@ -3898,6 +3949,46 @@ fuzzer_test("net_spdy_headers_to_http_response_headers_fuzzer") {
+@@ -3974,6 +4025,46 @@ fuzzer_test("net_spdy_headers_to_http_response_headers_fuzzer") {
    libfuzzer_options = [ "max_len = 512" ]
  }
  
@@ -458,10 +444,10 @@ index 3b66c31a7003f..e2570a9972e28 100644
    sources = [ "base/unescape_url_component_fuzzer.cc" ]
    deps = [
 diff --git a/net/DEPS b/net/DEPS
-index 789a7fc31a388..01352d4aa059e 100644
+index a0fac629f923d..043495ad49988 100644
 --- a/net/DEPS
 +++ b/net/DEPS
-@@ -46,6 +46,14 @@ specific_include_rules = {
+@@ -47,6 +47,14 @@ specific_include_rules = {
      "+base/i18n",
    ],
  
@@ -533,7 +519,7 @@ index a2421e94b4465..10539e9ee4a0a 100644
  
  <div id="parentDirLinkBox" style="display:none">
 diff --git a/net/base/net_error_list.h b/net/base/net_error_list.h
-index 495e1df4441a6..e0efd4a5b87e4 100644
+index 1a3e871240bbc..0d6bf9d1658b8 100644
 --- a/net/base/net_error_list.h
 +++ b/net/base/net_error_list.h
 @@ -18,7 +18,7 @@
@@ -545,9 +531,9 @@ index 495e1df4441a6..e0efd4a5b87e4 100644
  //   700-799 Certificate manager errors
  //   800-899 DNS resolver errors
  //   900-999 Blob errors
-@@ -922,14 +922,36 @@ NET_ERROR(TRUST_TOKEN_OPERATION_FAILED, -506)
- // to a local provider (for "platform-provided" issuance).
- NET_ERROR(TRUST_TOKEN_OPERATION_SUCCESS_WITHOUT_SENDING_REQUEST, -507)
+@@ -965,14 +965,36 @@ NET_ERROR(HTTPENGINE_PROVIDER_IN_USE, -508)
+ // )
+ // LINT.IfChange
  
 -// *** Code -600 is reserved (was FTP_PASV_COMMAND_FAILED). ***
 -// *** Code -601 is reserved (was FTP_FAILED). ***
@@ -591,12 +577,12 @@ index 495e1df4441a6..e0efd4a5b87e4 100644
  // PKCS #12 import failed due to incorrect password.
  NET_ERROR(PKCS12_IMPORT_BAD_PASSWORD, -701)
 diff --git a/net/base/port_util.cc b/net/base/port_util.cc
-index 02197cea24527..459da7f1cb28a 100644
+index 49d0f744cc890..0dd86be37b172 100644
 --- a/net/base/port_util.cc
 +++ b/net/base/port_util.cc
-@@ -172,6 +172,11 @@ bool IsPortAllowedForScheme(int port, std::string_view url_scheme) {
-   if (g_explicitly_allowed_ports.Get().count(port) > 0)
+@@ -174,6 +174,11 @@ bool IsPortAllowedForScheme(int port, std::string_view url_scheme) {
      return true;
+   }
  
 +  // FTP requests are permitted to use port 21.
 +  if ((base::ToLowerASCII(url_scheme) == url::kFtpScheme) && port == 21) {
@@ -750,7 +736,7 @@ index 0000000000000..40375902c4c8a
 +0
 diff --git a/net/data/ftp/dir-listing-ls-10 b/net/data/ftp/dir-listing-ls-10
 new file mode 100644
-index 0000000000000..deff68fc29264
+index 0000000000000..ff3a002dcaf8c
 --- /dev/null
 +++ b/net/data/ftp/dir-listing-ls-10
 @@ -0,0 +1,10 @@
@@ -760,7 +746,7 @@ index 0000000000000..deff68fc29264
 +d--x--x--x 1  2 2            512 Apr 23  2002 dev
 +d--x--x--x 1  2 2            512 Apr  1  2004 etc
 +drwx------ 1  7 root        1536 Aug 14 13:49 lost+found
-+drwxr-xr-x 1  3 1            512 Mär 10  2003 private
++drwxr-xr-x 1  3 1            512 MÃ¤r 10  2003 private
 +drwxrwsr-x 1 25 1260        1024 Aug 10  2006 pub
 +-rw------- 1  1 1        2211496 Okt 23  2007 restoresymtable
 +d--x--x--x 1  6 2            512 Apr 23  2002 usr
@@ -1150,17 +1136,17 @@ index 0000000000000..c521d00914429
 +56
 diff --git a/net/data/ftp/dir-listing-ls-16 b/net/data/ftp/dir-listing-ls-16
 new file mode 100644
-index 0000000000000..4c2f783c05435
+index 0000000000000..5694091d5b658
 --- /dev/null
 +++ b/net/data/ftp/dir-listing-ls-16
 @@ -0,0 +1,7 @@
 +dr-xr-xr-x   1 owner    group               0 Nov 28  2008 documentales
 +dr-xr-xr-x   1 owner    group               0 Nov 28  2008 dosier
 +dr-xr-xr-x   1 owner    group               0 Dec  1  2008 promos
-+dr-xr-xr-x   1 owner    group               0 Nov 28  2008 Sueños_futbol
++dr-xr-xr-x   1 owner    group               0 Nov 28  2008 SueÃ±os_futbol
 +dr-xr-xr-x   1 owner    group               0 Nov  2 15:53 test
 +dr-xr-xr-x   1 owner    group               0 Nov 25 10:04 tmp
-+-r-xr-xr-x   1 owner    group             125 Oct 11  2007 Gastronomía.txt
++-r-xr-xr-x   1 owner    group             125 Oct 11  2007 GastronomÃ­a.txt
 diff --git a/net/data/ftp/dir-listing-ls-16.expected b/net/data/ftp/dir-listing-ls-16.expected
 new file mode 100644
 index 0000000000000..90e39e653a78c
@@ -1385,7 +1371,7 @@ index 0000000000000..315f0a55fe2b1
 +0
 diff --git a/net/data/ftp/dir-listing-ls-20 b/net/data/ftp/dir-listing-ls-20
 new file mode 100644
-index 0000000000000..b8cb80b29c728
+index 0000000000000..211b12712c9a8
 --- /dev/null
 +++ b/net/data/ftp/dir-listing-ls-20
 @@ -0,0 +1,18 @@
@@ -1393,20 +1379,20 @@ index 0000000000000..b8cb80b29c728
 +drwxr-xr-x    7 ftp      ftp          4096 Apr 03  2010 ..
 +drwxrwxrwx    5 ftp      ftp          4096 May 26 15:51 2012_-_2012-(2009)-[1080p]_[BD]
 +-rw-rw-rw-    1 ftp      ftp          4931 Jun 08 15:24 _READ_ME.txt
-+drwxrwxrwx    5 ftp      ftp          4096 Nov 01 16:27 Áåç_ëèöà_-_Face_Off-(1997)-[1080p]_[BD]
-+drwxrwxrwx    4 ftp      ftp          4096 Jan 22  2010 Ââåðõ_-_Up-(2009)-[1080p]_[BD]
-+drwxrwxrwx    5 ftp      ftp          4096 May 27 18:12 Âñïîìíèòü_âñå_-_Total_Recall-(1990)-[1080p]_[BD]
-+drwxrwxrwx    3 ftp      ftp          4096 May 21 14:28 Çàêîíîïîñëóøíûé_ãðàæäàíèí_[Ðàñøèðåííàÿ_âåðñèÿ]_-_Law_Abiding_Citizen_[Unrated_Edition]-(2009)-[1080p]_[BD_Remux]
-+drwxrwxrwx    5 ftp      ftp          4096 Jan 21  2010 Ìîíñòðî_-_Cloverfield-(2008)-[1080p]_[BD]
-+drwxrwxrwx    4 ftp      ftp          4096 May 26 13:43 Ïàíäîðóì_-_Pandorum-(2009)-[1080p]_[BD]
-+drwxrwxrwx    4 ftp      ftp          4096 May 27 14:18 Ïîñëåäíèé_ñàìóðàé_-_The_Last_Samurai-(2003)-[1080p]_[BD]
-+drwxrwxrwx    6 ftp      ftp          4096 Jan 27  2010 Ðàéîí_9_-_District_9-(2009)-[1080p]_[BD]
-+drwxrwxrwx    7 ftp      ftp          4096 Jan 01  2010 Ðîêêè_Àíòîëîãèÿ_-_Rocky_The_Undisputed_Collection-(1976_1979_1982_1985_1990)-[1080p]_[BD]
-+drwxrwxrwx    4 ftp      ftp          4096 May 31 12:57 Ñóððîãàòû_-_Surrogates-(2009)-[1080p]_[BD]
-+drwxrwxrwx    4 ftp      ftp          4096 Jan 28  2010 Òðîéíîé_Ôîðñàæ-Òîêèéñêèé_Äðèôò_-_The_Fast_and_the_Furious-Tokyo_Drift-(2006)-[1080p]_[BD]
-+drwxrwxrwx    4 ftp      ftp          4096 Jan 08  2010 Ôîðñàæ_-_The_Fast_and_the_Furious-(2001)-[1080p]_[BD]
-+drwxrwxrwx    4 ftp      ftp          4096 Jan 06  2010 Ôîðñàæ_2_-_2_Fast_2_Furious-(2003)-[1080p]_[BD]
-+drwxrwxrwx    4 ftp      ftp          4096 Jun 08 15:26 Ôîðñàæ_4_-_Fast_&_Furious-(2009)-[1080p]_[BD]
++drwxrwxrwx    5 ftp      ftp          4096 Nov 01 16:27 ÃÃ¥Ã§_Ã«Ã¨Ã¶Ã _-_Face_Off-(1997)-[1080p]_[BD]
++drwxrwxrwx    4 ftp      ftp          4096 Jan 22  2010 Ã‚Ã¢Ã¥Ã°Ãµ_-_Up-(2009)-[1080p]_[BD]
++drwxrwxrwx    5 ftp      ftp          4096 May 27 18:12 Ã‚Ã±Ã¯Ã®Ã¬Ã­Ã¨Ã²Ã¼_Ã¢Ã±Ã¥_-_Total_Recall-(1990)-[1080p]_[BD]
++drwxrwxrwx    3 ftp      ftp          4096 May 21 14:28 Ã‡Ã ÃªÃ®Ã­Ã®Ã¯Ã®Ã±Ã«Ã³Ã¸Ã­Ã»Ã©_Ã£Ã°Ã Ã¦Ã¤Ã Ã­Ã¨Ã­_[ÃÃ Ã±Ã¸Ã¨Ã°Ã¥Ã­Ã­Ã Ã¿_Ã¢Ã¥Ã°Ã±Ã¨Ã¿]_-_Law_Abiding_Citizen_[Unrated_Edition]-(2009)-[1080p]_[BD_Remux]
++drwxrwxrwx    5 ftp      ftp          4096 Jan 21  2010 ÃŒÃ®Ã­Ã±Ã²Ã°Ã®_-_Cloverfield-(2008)-[1080p]_[BD]
++drwxrwxrwx    4 ftp      ftp          4096 May 26 13:43 ÃÃ Ã­Ã¤Ã®Ã°Ã³Ã¬_-_Pandorum-(2009)-[1080p]_[BD]
++drwxrwxrwx    4 ftp      ftp          4096 May 27 14:18 ÃÃ®Ã±Ã«Ã¥Ã¤Ã­Ã¨Ã©_Ã±Ã Ã¬Ã³Ã°Ã Ã©_-_The_Last_Samurai-(2003)-[1080p]_[BD]
++drwxrwxrwx    6 ftp      ftp          4096 Jan 27  2010 ÃÃ Ã©Ã®Ã­_9_-_District_9-(2009)-[1080p]_[BD]
++drwxrwxrwx    7 ftp      ftp          4096 Jan 01  2010 ÃÃ®ÃªÃªÃ¨_Ã€Ã­Ã²Ã®Ã«Ã®Ã£Ã¨Ã¿_-_Rocky_The_Undisputed_Collection-(1976_1979_1982_1985_1990)-[1080p]_[BD]
++drwxrwxrwx    4 ftp      ftp          4096 May 31 12:57 Ã‘Ã³Ã°Ã°Ã®Ã£Ã Ã²Ã»_-_Surrogates-(2009)-[1080p]_[BD]
++drwxrwxrwx    4 ftp      ftp          4096 Jan 28  2010 Ã’Ã°Ã®Ã©Ã­Ã®Ã©_Ã”Ã®Ã°Ã±Ã Ã¦-Ã’Ã®ÃªÃ¨Ã©Ã±ÃªÃ¨Ã©_Ã„Ã°Ã¨Ã´Ã²_-_The_Fast_and_the_Furious-Tokyo_Drift-(2006)-[1080p]_[BD]
++drwxrwxrwx    4 ftp      ftp          4096 Jan 08  2010 Ã”Ã®Ã°Ã±Ã Ã¦_-_The_Fast_and_the_Furious-(2001)-[1080p]_[BD]
++drwxrwxrwx    4 ftp      ftp          4096 Jan 06  2010 Ã”Ã®Ã°Ã±Ã Ã¦_2_-_2_Fast_2_Furious-(2003)-[1080p]_[BD]
++drwxrwxrwx    4 ftp      ftp          4096 Jun 08 15:26 Ã”Ã®Ã°Ã±Ã Ã¦_4_-_Fast_&_Furious-(2009)-[1080p]_[BD]
 diff --git a/net/data/ftp/dir-listing-ls-20.expected b/net/data/ftp/dir-listing-ls-20.expected
 new file mode 100644
 index 0000000000000..2b51bd72abe55
@@ -1576,37 +1562,37 @@ index 0000000000000..2b51bd72abe55
 +26
 diff --git a/net/data/ftp/dir-listing-ls-21 b/net/data/ftp/dir-listing-ls-21
 new file mode 100644
-index 0000000000000..197177df70ace
+index 0000000000000..dafef34f0dc22
 --- /dev/null
 +++ b/net/data/ftp/dir-listing-ls-21
 @@ -0,0 +1,27 @@
 +drwxrwxr-x   26 ftp      ftp          4096 Jul 15  2009 .
 +drwxr-xr-x    7 ftp      ftp          4096 Apr 03  2010 ..
 +-rw-rw-rw-    1 ftp      ftp          4931 Jun 08 15:24 _READ_ME.txt
-+drwxr-xr-x    5 ftp      ftp          4096 Apr 27  2009 Àâàëîí_-_Avalon-(2001)-[1080p]_[BD_Remux]
-+drwxrwxrwx    5 ftp      ftp          4096 Jun 15  2009 Áðþñ_âñåìîãóùèé_-_Bruce_Almighty-(2003)-[1080p]_[BD]
-+drwxr-xr-x    4 ftp      ftp          4096 Apr 15  2009 ÂÀËË-È_-_WALL-E-(2008)-[1080p]_[BD]
-+drwxr-xr-x    4 ftp      ftp          4096 Apr 28  2009 Äæåéìñ_Áîíä_007-Êâàíò_ìèëîñåðäèÿ_-_James_Bond_007-Quantum_of_Solace-(2008)-[1080p]_[BD]
-+drwxr-xr-x    4 ftp      ftp          4096 Apr 15  2009 Êîñìîñ-Òåððèòîðèÿ_cìåðòè_-_Dead_Space-Downfall-(2008)-[1080p]_[BD]
-+drwxrwxrwx    5 ftp      ftp          4096 Jul 03  2009 Ìàäàãàñêàð_1_-_Madagascar_1-(2005)-[1080p]_[BD]
-+drwxrwxrwx    5 ftp      ftp          4096 Jul 03  2009 Ìàäàãàñêàð_2_-_Madagascar-Escape_2_Africa-(2008)-[1080p]_[BD]
-+drwxrwxrwx    4 ftp      ftp          4096 Jun 13  2009 Ìàòðèöà-Ïåðåçàãðóçêà_-_The_Matrix-Reloaded-(2003)-[1080p]_[BD]
-+drwxrwxrwx    4 ftp      ftp          4096 Jun 14  2009 Ìàòðèöà-Ðåâîëþöèÿ_-_The_Matrix-Revolutions-(2003)-[1080p]_[BD]
-+drwxrwxrwx    4 ftp      ftp          4096 Jun 12  2009 Ìàòðèöà_-_The_Matrix-(1999)-[1080p]_[BD]
-+drwxrwxrwx    4 ftp      ftp          4096 Jul 02  2009 Îáèòåëü_çëà_3_-_Resident_Evil-Extinction-(2007)-[1080p]_[BD]
-+drwxr-xr-x    3 ftp      ftp          4096 May 01  2009 Îñòðîâ_-_The_Island-(2005)-[1080p]_[BD]
-+drwxrwxrwx    5 ftp      ftp          4096 Jul 03  2009 Ïåðåâîç÷èê_3_-_Transporter_3-(2008)-[1080p]_[BD]
-+drwxrwxr-x    5 ftp      ftp          4096 May 02  2009 Ïèðàòû_Êàðèáñêîãî_ìîðÿ-Íà_êðàþ_Ñâåòà_-_Pirates_of_the_Caribbean-At_World's_End-(2007)-[1080p]_[BD]
-+drwxrwxr-x    5 ftp      ftp          4096 May 03  2009 Ïèðàòû_Êàðèáñêîãî_ìîðÿ-Ïðîêëÿòèå_×åðíîé_Æåì÷óæèíû_-_Pirates_of_the_Caribbean-The_Curse_of_the_Black_Pearl-(2003)-[1080p]_[BD]
-+drwxrwxr-x    5 ftp      ftp          4096 May 02  2009 Ïèðàòû_Êàðèáñêîãî_ìîðÿ-Ñóíäóê_ìåðòâåöà_-_Pirates_of_the_Caribbean-Dead_Man's_Chest-(2006)-[1080p]_[BD]
-+drwxrwxr-x    3 ftp      ftp          4096 May 01  2009 Ïðèçðà÷íûé_ãîíùèê_-_Ghost_Rider-(2007)-[1080p]_[BD]
-+drwxr-xr-x    5 ftp      ftp          4096 Apr 29  2009 Ïðèíöåññà-íåâåñòà_-_The_Princess_Bride-(1987)-[1080p]_[BD]
-+drwxrwxrwx    5 ftp      ftp          4096 Jun 08  2009 Ñåêñ_è_101_ñìåðòü_-_Sex_and_Death_101-(2007)-[1080p]_[BD]
-+drwxr-xr-x    4 ftp      ftp          4096 May 01  2009 Òðàíñôîðìåðû-Áîíóñ_äèñê_-_Transformers-Bonus_Disk-(2007)-[1080p]_[BD]
-+drwxr-xr-x    4 ftp      ftp          4096 Apr 30  2009 Òðàíñôîðìåðû_-_Transformers-(2007)-[1080p]_[BD]
-+drwxrwxrwx    6 ftp      ftp          4096 Jun 07  2009 Òðèíàäöàòûé_ýòàæ_-_The_Thirteenth_Floor-(1999)-[1080p]_[BD]
-+drwxrwxr-x    3 ftp      ftp          4096 May 04  2009 Óëè÷íûé_áîåö_-_Street_Fighter-(1994)-[1080p]_[BD_Remux]
-+drwxr-xr-x    5 ftp      ftp          4096 Mar 15  2009 ×åãî_õîòÿò_æåíùèíû_-_What_Woman_Want-(2000)-[1080p]_[BD]
++drwxr-xr-x    5 ftp      ftp          4096 Apr 27  2009 Ã€Ã¢Ã Ã«Ã®Ã­_-_Avalon-(2001)-[1080p]_[BD_Remux]
++drwxrwxrwx    5 ftp      ftp          4096 Jun 15  2009 ÃÃ°Ã¾Ã±_Ã¢Ã±Ã¥Ã¬Ã®Ã£Ã³Ã¹Ã¨Ã©_-_Bruce_Almighty-(2003)-[1080p]_[BD]
++drwxr-xr-x    4 ftp      ftp          4096 Apr 15  2009 Ã‚Ã€Ã‹Ã‹-Ãˆ_-_WALL-E-(2008)-[1080p]_[BD]
++drwxr-xr-x    4 ftp      ftp          4096 Apr 28  2009 Ã„Ã¦Ã¥Ã©Ã¬Ã±_ÃÃ®Ã­Ã¤_007-ÃŠÃ¢Ã Ã­Ã²_Ã¬Ã¨Ã«Ã®Ã±Ã¥Ã°Ã¤Ã¨Ã¿_-_James_Bond_007-Quantum_of_Solace-(2008)-[1080p]_[BD]
++drwxr-xr-x    4 ftp      ftp          4096 Apr 15  2009 ÃŠÃ®Ã±Ã¬Ã®Ã±-Ã’Ã¥Ã°Ã°Ã¨Ã²Ã®Ã°Ã¨Ã¿_cÃ¬Ã¥Ã°Ã²Ã¨_-_Dead_Space-Downfall-(2008)-[1080p]_[BD]
++drwxrwxrwx    5 ftp      ftp          4096 Jul 03  2009 ÃŒÃ Ã¤Ã Ã£Ã Ã±ÃªÃ Ã°_1_-_Madagascar_1-(2005)-[1080p]_[BD]
++drwxrwxrwx    5 ftp      ftp          4096 Jul 03  2009 ÃŒÃ Ã¤Ã Ã£Ã Ã±ÃªÃ Ã°_2_-_Madagascar-Escape_2_Africa-(2008)-[1080p]_[BD]
++drwxrwxrwx    4 ftp      ftp          4096 Jun 13  2009 ÃŒÃ Ã²Ã°Ã¨Ã¶Ã -ÃÃ¥Ã°Ã¥Ã§Ã Ã£Ã°Ã³Ã§ÃªÃ _-_The_Matrix-Reloaded-(2003)-[1080p]_[BD]
++drwxrwxrwx    4 ftp      ftp          4096 Jun 14  2009 ÃŒÃ Ã²Ã°Ã¨Ã¶Ã -ÃÃ¥Ã¢Ã®Ã«Ã¾Ã¶Ã¨Ã¿_-_The_Matrix-Revolutions-(2003)-[1080p]_[BD]
++drwxrwxrwx    4 ftp      ftp          4096 Jun 12  2009 ÃŒÃ Ã²Ã°Ã¨Ã¶Ã _-_The_Matrix-(1999)-[1080p]_[BD]
++drwxrwxrwx    4 ftp      ftp          4096 Jul 02  2009 ÃŽÃ¡Ã¨Ã²Ã¥Ã«Ã¼_Ã§Ã«Ã _3_-_Resident_Evil-Extinction-(2007)-[1080p]_[BD]
++drwxr-xr-x    3 ftp      ftp          4096 May 01  2009 ÃŽÃ±Ã²Ã°Ã®Ã¢_-_The_Island-(2005)-[1080p]_[BD]
++drwxrwxrwx    5 ftp      ftp          4096 Jul 03  2009 ÃÃ¥Ã°Ã¥Ã¢Ã®Ã§Ã·Ã¨Ãª_3_-_Transporter_3-(2008)-[1080p]_[BD]
++drwxrwxr-x    5 ftp      ftp          4096 May 02  2009 ÃÃ¨Ã°Ã Ã²Ã»_ÃŠÃ Ã°Ã¨Ã¡Ã±ÃªÃ®Ã£Ã®_Ã¬Ã®Ã°Ã¿-ÃÃ _ÃªÃ°Ã Ã¾_Ã‘Ã¢Ã¥Ã²Ã _-_Pirates_of_the_Caribbean-At_World's_End-(2007)-[1080p]_[BD]
++drwxrwxr-x    5 ftp      ftp          4096 May 03  2009 ÃÃ¨Ã°Ã Ã²Ã»_ÃŠÃ Ã°Ã¨Ã¡Ã±ÃªÃ®Ã£Ã®_Ã¬Ã®Ã°Ã¿-ÃÃ°Ã®ÃªÃ«Ã¿Ã²Ã¨Ã¥_Ã—Ã¥Ã°Ã­Ã®Ã©_Ã†Ã¥Ã¬Ã·Ã³Ã¦Ã¨Ã­Ã»_-_Pirates_of_the_Caribbean-The_Curse_of_the_Black_Pearl-(2003)-[1080p]_[BD]
++drwxrwxr-x    5 ftp      ftp          4096 May 02  2009 ÃÃ¨Ã°Ã Ã²Ã»_ÃŠÃ Ã°Ã¨Ã¡Ã±ÃªÃ®Ã£Ã®_Ã¬Ã®Ã°Ã¿-Ã‘Ã³Ã­Ã¤Ã³Ãª_Ã¬Ã¥Ã°Ã²Ã¢Ã¥Ã¶Ã _-_Pirates_of_the_Caribbean-Dead_Man's_Chest-(2006)-[1080p]_[BD]
++drwxrwxr-x    3 ftp      ftp          4096 May 01  2009 ÃÃ°Ã¨Ã§Ã°Ã Ã·Ã­Ã»Ã©_Ã£Ã®Ã­Ã¹Ã¨Ãª_-_Ghost_Rider-(2007)-[1080p]_[BD]
++drwxr-xr-x    5 ftp      ftp          4096 Apr 29  2009 ÃÃ°Ã¨Ã­Ã¶Ã¥Ã±Ã±Ã -Ã­Ã¥Ã¢Ã¥Ã±Ã²Ã _-_The_Princess_Bride-(1987)-[1080p]_[BD]
++drwxrwxrwx    5 ftp      ftp          4096 Jun 08  2009 Ã‘Ã¥ÃªÃ±_Ã¨_101_Ã±Ã¬Ã¥Ã°Ã²Ã¼_-_Sex_and_Death_101-(2007)-[1080p]_[BD]
++drwxr-xr-x    4 ftp      ftp          4096 May 01  2009 Ã’Ã°Ã Ã­Ã±Ã´Ã®Ã°Ã¬Ã¥Ã°Ã»-ÃÃ®Ã­Ã³Ã±_Ã¤Ã¨Ã±Ãª_-_Transformers-Bonus_Disk-(2007)-[1080p]_[BD]
++drwxr-xr-x    4 ftp      ftp          4096 Apr 30  2009 Ã’Ã°Ã Ã­Ã±Ã´Ã®Ã°Ã¬Ã¥Ã°Ã»_-_Transformers-(2007)-[1080p]_[BD]
++drwxrwxrwx    6 ftp      ftp          4096 Jun 07  2009 Ã’Ã°Ã¨Ã­Ã Ã¤Ã¶Ã Ã²Ã»Ã©_Ã½Ã²Ã Ã¦_-_The_Thirteenth_Floor-(1999)-[1080p]_[BD]
++drwxrwxr-x    3 ftp      ftp          4096 May 04  2009 Ã“Ã«Ã¨Ã·Ã­Ã»Ã©_Ã¡Ã®Ã¥Ã¶_-_Street_Fighter-(1994)-[1080p]_[BD_Remux]
++drwxr-xr-x    5 ftp      ftp          4096 Mar 15  2009 Ã—Ã¥Ã£Ã®_ÃµÃ®Ã²Ã¿Ã²_Ã¦Ã¥Ã­Ã¹Ã¨Ã­Ã»_-_What_Woman_Want-(2000)-[1080p]_[BD]
 diff --git a/net/data/ftp/dir-listing-ls-21.expected b/net/data/ftp/dir-listing-ls-21.expected
 new file mode 100644
 index 0000000000000..d86a006012fa4
@@ -1857,42 +1843,42 @@ index 0000000000000..d86a006012fa4
 +0
 diff --git a/net/data/ftp/dir-listing-ls-22 b/net/data/ftp/dir-listing-ls-22
 new file mode 100644
-index 0000000000000..d8a01fb6b5a8e
+index 0000000000000..492861fc4b82b
 --- /dev/null
 +++ b/net/data/ftp/dir-listing-ls-22
 @@ -0,0 +1,32 @@
 +drwxrwxr-x    5 ftp      ftp         12288 Oct 20 17:04 .
 +drwxr-xr-x    7 ftp      ftp          4096 Apr 03  2010 ..
 +-rw-rw-rw-    1 ftp      ftp          4931 Jun 08 15:23 _READ_ME.txt
-+drwxrwxrwx    4 ftp      ftp          4096 May 31 16:26 Àâàòàð_-_Avatar-(2009)-[1080p]_[BD]
-+-rwxrwxr-x    1 ftp      ftp      17577705968 Mar 08  2009 Àìåðèêàíñêèé_ïèðîã_1_[Ðàñøèðåííàÿ_âåðñèÿ]_-_American_Pie_1_[Unrated_Edition]-(1999)-[1080p]_[BD_remux].ts
-+-rwxrwxr-x    1 ftp      ftp      15512934868 Mar 16  2009 Áîëüøîé_êóø_-_Snatch-(2000)-[1080i]_[HDTV].ts
-+drwxrwxrwx    2 ftp      ftp          4096 Jun 03 19:07 Áîëüøîé_êóø_-_Snatch-(2000)-[1080p]_[BD_Remux]
-+-rwxrwxr-x    1 ftp      ftp      8900589105 Mar 24  2009 Âîéíà_ìèðîâ_-_War_of_the_Worlds-(2005)-[720p]_[HDTV].mkv
-+-rwxrwxr-x    1 ftp      ftp      27728321654 Mar 09  2009 Ãàíãñòåð_-_American_Gangster-(2007)-[1080p]_[BD_remux].mkv
-+-rwxrwxr-x    1 ftp      ftp      31731782861 Mar 09  2009 Ãàíãñòåð_[Ðàñøèðåííàÿ_âåðñèÿ]_-_American_Gangster_[Unrated_Edition]-(2007)-[1080p]_[BD_remux].mkv
-+-rwxrwxr-x    1 ftp      ftp      5009104014 Mar 24  2009 Äîðîæíîå_ïðèêëþ÷åíèå_-_Road_Trip-(2000)-[720p]_[HDTV_Rip].mkv
-+-rwxrwxr-x    1 ftp      ftp      21410583980 Mar 11  2009 Çâ¸çäíûå_âîéíû-Ýïèçîä_2-Àòàêà_êëîíîâ_-_Star_Wars-Episode_2-Attack_of_the_Clones-(2002)-[1080i]_[HDTV].ts
-+-rwxrwxr-x    1 ftp      ftp      19858181688 Mar 11  2009 Çâ¸çäíûå_âîéíû-Ýïèçîä_3-Ìåñòü_Ñèòõîâ_-_Star_Wars-Episode_3-Revenge_of_the_Sith-(2005)-[1080i]_[HDTV].ts
-+-rwxrwxr-x    1 ftp      ftp      29026065728 Mar 16  2009 Çâ¸çäíûé_äåñàíò_-_Starship_Troopers-(1997)-[1080p]_[BD_remux].mkv
-+-rwxrwxr-x    1 ftp      ftp      22169179449 Mar 16  2009 Çåðêàëà_[Ðàñøèðåííàÿ_âåðñèÿ]_-_Mirrors_[Unrated_Edition]-(2008)-[1080p]_[BD_remux].mkv
-+drwxrwxrwx    4 ftp      ftp          4096 Jun 15 14:56 Íèíäçÿ-óáèéöà_-_Ninja_Assassin-(2009)-[1080p]_[BD]
-+-rwxrwxr-x    1 ftp      ftp      19717173247 Mar 11  2009 Îáèòåëü_çëà_3_-_Resident_Evil-Extinction-(2007)-[1080p]_[BD_remux].mkv
-+-rwxrwxr-x    1 ftp      ftp      18660904388 Mar 11  2009 Ïàòîëîãèÿ_-_Pathology-(2008)-[1080p]_[BD_remux].mkv
-+-rwxrwxr-x    1 ftp      ftp      16476154520 Mar 05  2009 Ïèëà_1_[Ðåæèññ¸ðñêàÿ_âåðñèÿ]_-_Saw_I_[Director's_Cut]-(2004)-[1080p]_[HDDVD_remux].mkv
-+-rwxrwxr-x    1 ftp      ftp      19917510515 Mar 05  2009 Ïèëà_2_[Ðåæèññ¸ðñêàÿ_âåðñèÿ]_-_Saw_II_[Director's_Cut]-(2005)-[1080p]_[BD_remux].mkv
-+-rwxrwxr-x    1 ftp      ftp      18085592265 Mar 05  2009 Ïèëà_3_[Ðåæèññ¸ðñêàÿ_âåðñèÿ]_-_Saw_III_[Director's_Cut]-(2006)-[1080p]_[BD_remux].mkv
-+-rwxrwxr-x    1 ftp      ftp      3473582701 Mar 05  2009 Ïèëà_4_[Ðåæèññ¸ðñêàÿ_âåðñèÿ]_-_Saw_IV_[Director's_Cut]-(2007)-[1080p]_[BD_remux].flac
-+-rwxrwxr-x    1 ftp      ftp      15263958421 Mar 05  2009 Ïèëà_4_[Ðåæèññ¸ðñêàÿ_âåðñèÿ]_-_Saw_IV_[Director's_Cut]-(2007)-[1080p]_[BD_remux].mkv
-+-rwxrwxr-x    1 ftp      ftp      19944605507 Mar 16  2009 Ïèëà_5_[Ðåæèññ¸ðñêàÿ_âåðñèÿ]_-_Saw_V_[Director's_Cut]-(2008)-[1080p]_[BD_remux].mkv
-+-rwxrwxr-x    1 ftp      ftp      3024333064 Mar 24  2009 Ïèíãâèíû_èç_Ìàäàãàñêàðà-Îïåðàöèÿ_Ñ_Íîâûì_Ãîäîì!_-_The_Madagascar_Penguins_in_A_Christmas_Caper-(2005)-[1080p]_[BD_remux].ts
-+-rwxrwxr-x    1 ftp      ftp        125961 Mar 05  2009 Ïëîõîé_Ñàíòà_[Ðàñøèðåííàÿ_âåðñèÿ]_-_Bad_Santa_[Unrated_Edition]-(2003)-[1080p]_[BD_remux].srt
-+-rwxrwxr-x    1 ftp      ftp      19908695408 Mar 05  2009 Ïëîõîé_Ñàíòà_[Ðàñøèðåííàÿ_âåðñèÿ]_-_Bad_Santa_[Unrated_Edition]-(2003)-[1080p]_[BD_remux].ts
-+-rwxrwxr-x    1 ftp      ftp      23185439267 Mar 11  2009 Ïîáåã_èç_Øîóøåíêà_-_The_Shawshank_Redemption-(1994)-[1080p]_[BD_remux].mkv
-+-rwxrwxr-x    1 ftp      ftp      19567287274 Mar 16  2009 Òóïîé_è_åùå_òóïåå_[Ðàñøèðåííàÿ_âåðñèÿ]_-_Dumb_and_Dumber_[Unrated_Edition]-(1994)-[1080p]_[BD_remux].mkv
-+-rwxrwxr-x    1 ftp      ftp      14773061093 Mar 16  2009 Óðàãàí_-_The_Hurricane-(1999)-[1080p]_[HDDVD_Rip].mkv
-+-rwxrwxr-x    1 ftp      ftp      22411268500 Mar 11  2009 Õîñòåë_2_[Ðåæèññ¸ðñêàÿ_âåðñèÿ]_-_Hostel_2_[Director's_Cut]-(2007)-[1080p]_[BD_remux].ts
-+-rwxrwxr-x    1 ftp      ftp      23712519861 Mar 11  2009 ×óæîé_ïðîòèâ_Õèùíèêà_[Ðàñøèðåííàÿ_âåðñèÿ]_-_Alien_vs_Predator_[Unrated_Edition]-(2004)-[1080p]_[BD_remux].mkv
++drwxrwxrwx    4 ftp      ftp          4096 May 31 16:26 Ã€Ã¢Ã Ã²Ã Ã°_-_Avatar-(2009)-[1080p]_[BD]
++-rwxrwxr-x    1 ftp      ftp      17577705968 Mar 08  2009 Ã€Ã¬Ã¥Ã°Ã¨ÃªÃ Ã­Ã±ÃªÃ¨Ã©_Ã¯Ã¨Ã°Ã®Ã£_1_[ÃÃ Ã±Ã¸Ã¨Ã°Ã¥Ã­Ã­Ã Ã¿_Ã¢Ã¥Ã°Ã±Ã¨Ã¿]_-_American_Pie_1_[Unrated_Edition]-(1999)-[1080p]_[BD_remux].ts
++-rwxrwxr-x    1 ftp      ftp      15512934868 Mar 16  2009 ÃÃ®Ã«Ã¼Ã¸Ã®Ã©_ÃªÃ³Ã¸_-_Snatch-(2000)-[1080i]_[HDTV].ts
++drwxrwxrwx    2 ftp      ftp          4096 Jun 03 19:07 ÃÃ®Ã«Ã¼Ã¸Ã®Ã©_ÃªÃ³Ã¸_-_Snatch-(2000)-[1080p]_[BD_Remux]
++-rwxrwxr-x    1 ftp      ftp      8900589105 Mar 24  2009 Ã‚Ã®Ã©Ã­Ã _Ã¬Ã¨Ã°Ã®Ã¢_-_War_of_the_Worlds-(2005)-[720p]_[HDTV].mkv
++-rwxrwxr-x    1 ftp      ftp      27728321654 Mar 09  2009 ÃƒÃ Ã­Ã£Ã±Ã²Ã¥Ã°_-_American_Gangster-(2007)-[1080p]_[BD_remux].mkv
++-rwxrwxr-x    1 ftp      ftp      31731782861 Mar 09  2009 ÃƒÃ Ã­Ã£Ã±Ã²Ã¥Ã°_[ÃÃ Ã±Ã¸Ã¨Ã°Ã¥Ã­Ã­Ã Ã¿_Ã¢Ã¥Ã°Ã±Ã¨Ã¿]_-_American_Gangster_[Unrated_Edition]-(2007)-[1080p]_[BD_remux].mkv
++-rwxrwxr-x    1 ftp      ftp      5009104014 Mar 24  2009 Ã„Ã®Ã°Ã®Ã¦Ã­Ã®Ã¥_Ã¯Ã°Ã¨ÃªÃ«Ã¾Ã·Ã¥Ã­Ã¨Ã¥_-_Road_Trip-(2000)-[720p]_[HDTV_Rip].mkv
++-rwxrwxr-x    1 ftp      ftp      21410583980 Mar 11  2009 Ã‡Ã¢Â¸Ã§Ã¤Ã­Ã»Ã¥_Ã¢Ã®Ã©Ã­Ã»-ÃÃ¯Ã¨Ã§Ã®Ã¤_2-Ã€Ã²Ã ÃªÃ _ÃªÃ«Ã®Ã­Ã®Ã¢_-_Star_Wars-Episode_2-Attack_of_the_Clones-(2002)-[1080i]_[HDTV].ts
++-rwxrwxr-x    1 ftp      ftp      19858181688 Mar 11  2009 Ã‡Ã¢Â¸Ã§Ã¤Ã­Ã»Ã¥_Ã¢Ã®Ã©Ã­Ã»-ÃÃ¯Ã¨Ã§Ã®Ã¤_3-ÃŒÃ¥Ã±Ã²Ã¼_Ã‘Ã¨Ã²ÃµÃ®Ã¢_-_Star_Wars-Episode_3-Revenge_of_the_Sith-(2005)-[1080i]_[HDTV].ts
++-rwxrwxr-x    1 ftp      ftp      29026065728 Mar 16  2009 Ã‡Ã¢Â¸Ã§Ã¤Ã­Ã»Ã©_Ã¤Ã¥Ã±Ã Ã­Ã²_-_Starship_Troopers-(1997)-[1080p]_[BD_remux].mkv
++-rwxrwxr-x    1 ftp      ftp      22169179449 Mar 16  2009 Ã‡Ã¥Ã°ÃªÃ Ã«Ã _[ÃÃ Ã±Ã¸Ã¨Ã°Ã¥Ã­Ã­Ã Ã¿_Ã¢Ã¥Ã°Ã±Ã¨Ã¿]_-_Mirrors_[Unrated_Edition]-(2008)-[1080p]_[BD_remux].mkv
++drwxrwxrwx    4 ftp      ftp          4096 Jun 15 14:56 ÃÃ¨Ã­Ã¤Ã§Ã¿-Ã³Ã¡Ã¨Ã©Ã¶Ã _-_Ninja_Assassin-(2009)-[1080p]_[BD]
++-rwxrwxr-x    1 ftp      ftp      19717173247 Mar 11  2009 ÃŽÃ¡Ã¨Ã²Ã¥Ã«Ã¼_Ã§Ã«Ã _3_-_Resident_Evil-Extinction-(2007)-[1080p]_[BD_remux].mkv
++-rwxrwxr-x    1 ftp      ftp      18660904388 Mar 11  2009 ÃÃ Ã²Ã®Ã«Ã®Ã£Ã¨Ã¿_-_Pathology-(2008)-[1080p]_[BD_remux].mkv
++-rwxrwxr-x    1 ftp      ftp      16476154520 Mar 05  2009 ÃÃ¨Ã«Ã _1_[ÃÃ¥Ã¦Ã¨Ã±Ã±Â¸Ã°Ã±ÃªÃ Ã¿_Ã¢Ã¥Ã°Ã±Ã¨Ã¿]_-_Saw_I_[Director's_Cut]-(2004)-[1080p]_[HDDVD_remux].mkv
++-rwxrwxr-x    1 ftp      ftp      19917510515 Mar 05  2009 ÃÃ¨Ã«Ã _2_[ÃÃ¥Ã¦Ã¨Ã±Ã±Â¸Ã°Ã±ÃªÃ Ã¿_Ã¢Ã¥Ã°Ã±Ã¨Ã¿]_-_Saw_II_[Director's_Cut]-(2005)-[1080p]_[BD_remux].mkv
++-rwxrwxr-x    1 ftp      ftp      18085592265 Mar 05  2009 ÃÃ¨Ã«Ã _3_[ÃÃ¥Ã¦Ã¨Ã±Ã±Â¸Ã°Ã±ÃªÃ Ã¿_Ã¢Ã¥Ã°Ã±Ã¨Ã¿]_-_Saw_III_[Director's_Cut]-(2006)-[1080p]_[BD_remux].mkv
++-rwxrwxr-x    1 ftp      ftp      3473582701 Mar 05  2009 ÃÃ¨Ã«Ã _4_[ÃÃ¥Ã¦Ã¨Ã±Ã±Â¸Ã°Ã±ÃªÃ Ã¿_Ã¢Ã¥Ã°Ã±Ã¨Ã¿]_-_Saw_IV_[Director's_Cut]-(2007)-[1080p]_[BD_remux].flac
++-rwxrwxr-x    1 ftp      ftp      15263958421 Mar 05  2009 ÃÃ¨Ã«Ã _4_[ÃÃ¥Ã¦Ã¨Ã±Ã±Â¸Ã°Ã±ÃªÃ Ã¿_Ã¢Ã¥Ã°Ã±Ã¨Ã¿]_-_Saw_IV_[Director's_Cut]-(2007)-[1080p]_[BD_remux].mkv
++-rwxrwxr-x    1 ftp      ftp      19944605507 Mar 16  2009 ÃÃ¨Ã«Ã _5_[ÃÃ¥Ã¦Ã¨Ã±Ã±Â¸Ã°Ã±ÃªÃ Ã¿_Ã¢Ã¥Ã°Ã±Ã¨Ã¿]_-_Saw_V_[Director's_Cut]-(2008)-[1080p]_[BD_remux].mkv
++-rwxrwxr-x    1 ftp      ftp      3024333064 Mar 24  2009 ÃÃ¨Ã­Ã£Ã¢Ã¨Ã­Ã»_Ã¨Ã§_ÃŒÃ Ã¤Ã Ã£Ã Ã±ÃªÃ Ã°Ã -ÃŽÃ¯Ã¥Ã°Ã Ã¶Ã¨Ã¿_Ã‘_ÃÃ®Ã¢Ã»Ã¬_ÃƒÃ®Ã¤Ã®Ã¬!_-_The_Madagascar_Penguins_in_A_Christmas_Caper-(2005)-[1080p]_[BD_remux].ts
++-rwxrwxr-x    1 ftp      ftp        125961 Mar 05  2009 ÃÃ«Ã®ÃµÃ®Ã©_Ã‘Ã Ã­Ã²Ã _[ÃÃ Ã±Ã¸Ã¨Ã°Ã¥Ã­Ã­Ã Ã¿_Ã¢Ã¥Ã°Ã±Ã¨Ã¿]_-_Bad_Santa_[Unrated_Edition]-(2003)-[1080p]_[BD_remux].srt
++-rwxrwxr-x    1 ftp      ftp      19908695408 Mar 05  2009 ÃÃ«Ã®ÃµÃ®Ã©_Ã‘Ã Ã­Ã²Ã _[ÃÃ Ã±Ã¸Ã¨Ã°Ã¥Ã­Ã­Ã Ã¿_Ã¢Ã¥Ã°Ã±Ã¨Ã¿]_-_Bad_Santa_[Unrated_Edition]-(2003)-[1080p]_[BD_remux].ts
++-rwxrwxr-x    1 ftp      ftp      23185439267 Mar 11  2009 ÃÃ®Ã¡Ã¥Ã£_Ã¨Ã§_Ã˜Ã®Ã³Ã¸Ã¥Ã­ÃªÃ _-_The_Shawshank_Redemption-(1994)-[1080p]_[BD_remux].mkv
++-rwxrwxr-x    1 ftp      ftp      19567287274 Mar 16  2009 Ã’Ã³Ã¯Ã®Ã©_Ã¨_Ã¥Ã¹Ã¥_Ã²Ã³Ã¯Ã¥Ã¥_[ÃÃ Ã±Ã¸Ã¨Ã°Ã¥Ã­Ã­Ã Ã¿_Ã¢Ã¥Ã°Ã±Ã¨Ã¿]_-_Dumb_and_Dumber_[Unrated_Edition]-(1994)-[1080p]_[BD_remux].mkv
++-rwxrwxr-x    1 ftp      ftp      14773061093 Mar 16  2009 Ã“Ã°Ã Ã£Ã Ã­_-_The_Hurricane-(1999)-[1080p]_[HDDVD_Rip].mkv
++-rwxrwxr-x    1 ftp      ftp      22411268500 Mar 11  2009 Ã•Ã®Ã±Ã²Ã¥Ã«_2_[ÃÃ¥Ã¦Ã¨Ã±Ã±Â¸Ã°Ã±ÃªÃ Ã¿_Ã¢Ã¥Ã°Ã±Ã¨Ã¿]_-_Hostel_2_[Director's_Cut]-(2007)-[1080p]_[BD_remux].ts
++-rwxrwxr-x    1 ftp      ftp      23712519861 Mar 11  2009 Ã—Ã³Ã¦Ã®Ã©_Ã¯Ã°Ã®Ã²Ã¨Ã¢_Ã•Ã¨Ã¹Ã­Ã¨ÃªÃ _[ÃÃ Ã±Ã¸Ã¨Ã°Ã¥Ã­Ã­Ã Ã¿_Ã¢Ã¥Ã°Ã±Ã¨Ã¿]_-_Alien_vs_Predator_[Unrated_Edition]-(2004)-[1080p]_[BD_remux].mkv
 diff --git a/net/data/ftp/dir-listing-ls-22.expected b/net/data/ftp/dir-listing-ls-22.expected
 new file mode 100644
 index 0000000000000..2bf724fb94b6b
@@ -2291,16 +2277,16 @@ index 0000000000000..3405f86d27901
 +0
 diff --git a/net/data/ftp/dir-listing-ls-26 b/net/data/ftp/dir-listing-ls-26
 new file mode 100644
-index 0000000000000..45d7e8a8d22af
+index 0000000000000..04c0777b577bf
 --- /dev/null
 +++ b/net/data/ftp/dir-listing-ls-26
 @@ -0,0 +1,6 @@
-+drwxr-xr-x    3 ftp      ftp          4096 15 ÁÐÒ 18:11 .
-+drwxr-xr-x    3 ftp      ftp          4096 15 ÉÀÌ 18:11 ..
-+-rw-r--r--    1 ftp      ftp           528 01 ÍÁÊ 2007 .message
-+-rw-r--r--    1 ftp      ftp           528 01 ÎÏÑ 2007 README
-+-rw-r--r--    1 ftp      ftp           560 28 ÓÅÎ 2007 index.html
-+drwxr-xr-x   33 ftp      ftp          4096 12 ÆÅ× 2008 pub
++drwxr-xr-x    3 ftp      ftp          4096 15 ÃÃÃ’ 18:11 .
++drwxr-xr-x    3 ftp      ftp          4096 15 Ã‰Ã€ÃŒ 18:11 ..
++-rw-r--r--    1 ftp      ftp           528 01 ÃÃÃŠ 2007 .message
++-rw-r--r--    1 ftp      ftp           528 01 ÃŽÃÃ‘ 2007 README
++-rw-r--r--    1 ftp      ftp           560 28 Ã“Ã…ÃŽ 2007 index.html
++drwxr-xr-x   33 ftp      ftp          4096 12 Ã†Ã…Ã— 2008 pub
 diff --git a/net/data/ftp/dir-listing-ls-26.expected b/net/data/ftp/dir-listing-ls-26.expected
 new file mode 100644
 index 0000000000000..3405f86d27901
@@ -2362,16 +2348,16 @@ index 0000000000000..3405f86d27901
 +0
 diff --git a/net/data/ftp/dir-listing-ls-27 b/net/data/ftp/dir-listing-ls-27
 new file mode 100644
-index 0000000000000..3c0a3040e17a7
+index 0000000000000..cbc6dbf4613da
 --- /dev/null
 +++ b/net/data/ftp/dir-listing-ls-27
 @@ -0,0 +1,6 @@
-+drwxr-xr-x    3 ftp      ftp          4096 15 àïð 18:11 .
-+drwxr-xr-x    3 ftp      ftp          4096 15 èþë 18:11 ..
-+-rw-r--r--    1 ftp      ftp           528 01 ìàé 2007 .message
-+-rw-r--r--    1 ftp      ftp           528 01 íîÿ 2007 README
-+-rw-r--r--    1 ftp      ftp           560 28 ñåí 2007 index.html
-+drwxr-xr-x   33 ftp      ftp          4096 12 ôåâ 2008 pub
++drwxr-xr-x    3 ftp      ftp          4096 15 Ã Ã¯Ã° 18:11 .
++drwxr-xr-x    3 ftp      ftp          4096 15 Ã¨Ã¾Ã« 18:11 ..
++-rw-r--r--    1 ftp      ftp           528 01 Ã¬Ã Ã© 2007 .message
++-rw-r--r--    1 ftp      ftp           528 01 Ã­Ã®Ã¿ 2007 README
++-rw-r--r--    1 ftp      ftp           560 28 Ã±Ã¥Ã­ 2007 index.html
++drwxr-xr-x   33 ftp      ftp          4096 12 Ã´Ã¥Ã¢ 2008 pub
 diff --git a/net/data/ftp/dir-listing-ls-27.expected b/net/data/ftp/dir-listing-ls-27.expected
 new file mode 100644
 index 0000000000000..3405f86d27901
@@ -2981,12 +2967,12 @@ index 0000000000000..42ae5f932ec6d
 +11
 diff --git a/net/data/ftp/dir-listing-ls-34 b/net/data/ftp/dir-listing-ls-34
 new file mode 100644
-index 0000000000000..6286ed186f4d5
+index 0000000000000..1cd77dd9f8c31
 --- /dev/null
 +++ b/net/data/ftp/dir-listing-ls-34
 @@ -0,0 +1,2 @@
-+-rw-rw-r--   1 ftpuser  ftpusers    1761280 Dec 20  2002 controle_embarqu‚_avec_labview_real_time_et_compactfieldpoint.ppt
-+-rw-rw-r--   1 ftpuser  ftpusers     329216 Dec 20  2002 optimisez_l'acquisition_de_donn‚es_sous_labview.ppt
++-rw-rw-r--   1 ftpuser  ftpusers    1761280 Dec 20  2002 controle_embarquÂ‚_avec_labview_real_time_et_compactfieldpoint.ppt
++-rw-rw-r--   1 ftpuser  ftpusers     329216 Dec 20  2002 optimisez_l'acquisition_de_donnÂ‚es_sous_labview.ppt
 diff --git a/net/data/ftp/dir-listing-ls-34.expected b/net/data/ftp/dir-listing-ls-34.expected
 new file mode 100644
 index 0000000000000..d197cb362c805
@@ -3207,13 +3193,13 @@ index 0000000000000..80b61dd391fe3
 +0
 diff --git a/net/data/ftp/dir-listing-ls-7 b/net/data/ftp/dir-listing-ls-7
 new file mode 100644
-index 0000000000000..93dd8045ca341
+index 0000000000000..8b2e2f06b2587
 --- /dev/null
 +++ b/net/data/ftp/dir-listing-ls-7
 @@ -0,0 +1,6 @@
 +-rw-r--r--    1 0        100          3108 Mar 07  2001 00readme.html
 +drwxr-xr-x    3 1164     100          4096 Oct 19 13:45 OCU
-+lrwxrwxrwx    1 203      1              10 Jun 15  2006 año2000 -> ./urte2000
++lrwxrwxrwx    1 203      1              10 Jun 15  2006 aÃ±o2000 -> ./urte2000
 +drwxr-xr-x    2 0        0            4096 Mar 07  2001 bin
 +drwxr-xr-x    2 0        100          4096 Mar 07  2001 dev
 +drwxr-xr-x    3 0        100          4096 Apr 20  2005 doc
@@ -4971,7 +4957,7 @@ index 0000000000000..1096cccad0e18
 +"550 Not a directory\x0D\x0A\\ "
 +"599 I'm sorry, Dave, I'm afraid I can't do that.\x0D\x0A\\ "
 diff --git a/net/docs/proxy.md b/net/docs/proxy.md
-index 645895e95a1ac..4442b4a4e6dc6 100644
+index 0395e82155a2b..b5c4b68753487 100644
 --- a/net/docs/proxy.md
 +++ b/net/docs/proxy.md
 @@ -109,6 +109,7 @@ about an HTTP proxy.
@@ -4983,12 +4969,12 @@ index 645895e95a1ac..4442b4a4e6dc6 100644
  Communication to HTTP proxy servers is insecure, meaning proxied `http://`
  requests are sent in the clear. When proxying `https://` requests through an
 diff --git a/net/features.gni b/net/features.gni
-index a47cee2de3ee7..6ad1136308245 100644
+index 58807c2250c45..f190eef9b7a7c 100644
 --- a/net/features.gni
 +++ b/net/features.gni
-@@ -14,6 +14,9 @@ declare_args() {
-   # and are optional in cronet.
-   enable_websockets = use_blink
+@@ -16,6 +16,9 @@ declare_args() {
+   # used; or, Cronet is being built.
+   enable_websockets = use_blink && !is_cronet_build
  
 +  # Disable FTP support.
 +  disable_ftp_support = is_ios
@@ -12170,10 +12156,10 @@ index 0000000000000..c3cb4d8600b9c
 +
 +#endif  // NET_URL_REQUEST_FTP_PROTOCOL_HANDLER_H_
 diff --git a/net/url_request/url_request.h b/net/url_request/url_request.h
-index 90e90f42a18d5..1394763384250 100644
+index df2f1c06ab7bb..bade26ad09304 100644
 --- a/net/url_request/url_request.h
 +++ b/net/url_request/url_request.h
-@@ -776,7 +776,8 @@ class NET_EXPORT URLRequest : public base::SupportsUserData {
+@@ -791,7 +791,8 @@ class NET_EXPORT URLRequest : public base::SupportsUserData {
    }
  
    // The number of bytes in the raw response body (before any decompression,
@@ -12184,10 +12170,10 @@ index 90e90f42a18d5..1394763384250 100644
      return received_response_content_length_;
    }
 diff --git a/net/url_request/url_request_context.h b/net/url_request/url_request_context.h
-index 82547afe3d8d4..5b4373a7b177f 100644
+index 80fbd33dedc05..43fcf8d361037 100644
 --- a/net/url_request/url_request_context.h
 +++ b/net/url_request/url_request_context.h
-@@ -54,6 +54,10 @@ class URLRequest;
+@@ -57,6 +57,10 @@ class URLRequest;
  class URLRequestJobFactory;
  class URLRequestContextBuilder;
  
@@ -12198,7 +12184,7 @@ index 82547afe3d8d4..5b4373a7b177f 100644
  #if BUILDFLAG(ENABLE_REPORTING)
  class NetworkErrorLoggingService;
  class PersistentReportingAndNelStore;
-@@ -240,6 +244,13 @@ class NET_EXPORT URLRequestContext final {
+@@ -252,6 +256,13 @@ class NET_EXPORT URLRequestContext final {
    // context has been bound to.
    handles::NetworkHandle bound_network() const { return bound_network_; }
  
@@ -12212,7 +12198,7 @@ index 82547afe3d8d4..5b4373a7b177f 100644
    void AssertCalledOnValidThread() {
      DCHECK_CALLED_ON_VALID_THREAD(thread_checker_);
    }
-@@ -371,6 +382,10 @@ class NET_EXPORT URLRequestContext final {
+@@ -378,6 +389,10 @@ class NET_EXPORT URLRequestContext final {
  
    std::unique_ptr<TransportSecurityPersister> transport_security_persister_;
  
@@ -12224,10 +12210,10 @@ index 82547afe3d8d4..5b4373a7b177f 100644
        url_requests_;
  
 diff --git a/net/url_request/url_request_context_builder.cc b/net/url_request/url_request_context_builder.cc
-index 4ac56ba26747c..ec7ca6bb2cdf0 100644
+index 20d49fd76dea4..da61bb36373d8 100644
 --- a/net/url_request/url_request_context_builder.cc
 +++ b/net/url_request/url_request_context_builder.cc
-@@ -57,6 +57,12 @@
+@@ -59,6 +59,12 @@
  #include "net/url_request/url_request_job_factory.h"
  #include "url/url_constants.h"
  
@@ -12240,7 +12226,7 @@ index 4ac56ba26747c..ec7ca6bb2cdf0 100644
  #if BUILDFLAG(ENABLE_REPORTING)
  #include "net/network_error_logging/network_error_logging_service.h"
  #include "net/network_error_logging/persistent_reporting_and_nel_store.h"
-@@ -606,12 +612,23 @@ std::unique_ptr<URLRequestContext> URLRequestContextBuilder::Build() {
+@@ -620,11 +626,23 @@ std::unique_ptr<URLRequestContext> URLRequestContextBuilder::Build() {
  
    std::unique_ptr<URLRequestJobFactory> job_factory =
        std::make_unique<URLRequestJobFactory>();
@@ -12251,7 +12237,7 @@ index 4ac56ba26747c..ec7ca6bb2cdf0 100644
                                      std::move(scheme_handler.second));
    }
    protocol_handlers_.clear();
- 
++
 +#if !BUILDFLAG(DISABLE_FTP_SUPPORT)
 +  if (ftp_enabled_) {
 +    context->set_ftp_auth_cache(new FtpAuthCache());
@@ -12262,13 +12248,13 @@ index 4ac56ba26747c..ec7ca6bb2cdf0 100644
 +#endif  // !BUILDFLAG(DISABLE_FTP_SUPPORT)
 +
    context->set_job_factory(std::move(job_factory));
- 
-   if (cookie_deprecation_label_.has_value()) {
+   return context;
+ }
 diff --git a/net/url_request/url_request_context_builder.h b/net/url_request/url_request_context_builder.h
-index 7a9022b3d789c..172f448b6587c 100644
+index 7fd56c1d67898..e515320451201 100644
 --- a/net/url_request/url_request_context_builder.h
 +++ b/net/url_request/url_request_context_builder.h
-@@ -227,6 +227,11 @@ class NET_EXPORT URLRequestContextBuilder {
+@@ -237,6 +237,11 @@ class NET_EXPORT URLRequestContextBuilder {
    void set_http_user_agent_settings(
        std::unique_ptr<HttpUserAgentSettings> http_user_agent_settings);
  
@@ -12280,9 +12266,9 @@ index 7a9022b3d789c..172f448b6587c 100644
    // Sets a valid ProtocolHandler for a scheme.
    // A ProtocolHandler already exists for |scheme| will be overwritten.
    void SetProtocolHandler(
-@@ -475,6 +480,11 @@ class NET_EXPORT URLRequestContextBuilder {
- 
-   std::optional<std::string> cookie_deprecation_label_;
+@@ -490,6 +495,11 @@ class NET_EXPORT URLRequestContextBuilder {
+   std::string user_agent_;
+   std::unique_ptr<HttpUserAgentSettings> http_user_agent_settings_;
  
 +#if !BUILDFLAG(DISABLE_FTP_SUPPORT)
 +  // Include support for ftp:// requests.
@@ -13080,7 +13066,7 @@ index 0000000000000..f6c7a4a4f5719
 +}  // namespace
 +}  // namespace net
 diff --git a/net/url_request/url_request_job_factory.cc b/net/url_request/url_request_job_factory.cc
-index 68b4dae4b2e71..32c72a06c53bf 100644
+index d47fa04c472d0..4daa8ca1c0285 100644
 --- a/net/url_request/url_request_job_factory.cc
 +++ b/net/url_request/url_request_job_factory.cc
 @@ -20,9 +20,9 @@ namespace {
@@ -13097,10 +13083,10 @@ index 68b4dae4b2e71..32c72a06c53bf 100644
   public:
    // URLRequest::is_for_websockets() must match `is_for_websockets`, or requests
 diff --git a/net/url_request/url_request_test_util.h b/net/url_request/url_request_test_util.h
-index 7d880380e0b6d..da8cb3d1423cc 100644
+index 543a5db1b7d75..f5d9b202d933a 100644
 --- a/net/url_request/url_request_test_util.h
 +++ b/net/url_request/url_request_test_util.h
-@@ -35,6 +35,7 @@
+@@ -34,6 +34,7 @@
  #include "net/cookies/cookie_util.h"
  #include "net/disk_cache/disk_cache.h"
  #include "net/first_party_sets/first_party_set_metadata.h"
@@ -13109,7 +13095,7 @@ index 7d880380e0b6d..da8cb3d1423cc 100644
  #include "net/http/http_cache.h"
  #include "net/http/http_network_layer.h"
 diff --git a/net/url_request/url_request_unittest.cc b/net/url_request/url_request_unittest.cc
-index 00a50573133f2..969e8ee340597 100644
+index abb0473f52819..e77d329b3e19a 100644
 --- a/net/url_request/url_request_unittest.cc
 +++ b/net/url_request/url_request_unittest.cc
 @@ -171,10 +171,15 @@
@@ -13129,7 +13115,7 @@ index 00a50573133f2..969e8ee340597 100644
  #if BUILDFLAG(IS_APPLE)
  #include "base/mac/mac_util.h"
  #endif
-@@ -216,6 +221,12 @@ const std::u16string kUser(u"user");
+@@ -218,6 +223,12 @@ const std::u16string kUser(u"user");
  const base::FilePath::CharType kTestFilePath[] =
      FILE_PATH_LITERAL("net/data/url_request_unittest");
  
@@ -13142,7 +13128,7 @@ index 00a50573133f2..969e8ee340597 100644
  // Tests load timing information in the case a fresh connection was used, with
  // no proxy.
  void TestLoadTimingNotReused(const LoadTimingInfo& load_timing_info,
-@@ -317,6 +328,29 @@ void TestLoadTimingCacheHitNoNetwork(const LoadTimingInfo& load_timing_info) {
+@@ -319,6 +330,29 @@ void TestLoadTimingCacheHitNoNetwork(const LoadTimingInfo& load_timing_info) {
    EXPECT_TRUE(load_timing_info.proxy_resolve_end.is_null());
  }
  
@@ -13172,7 +13158,7 @@ index 00a50573133f2..969e8ee340597 100644
  // Job that allows monitoring of its priority.
  class PriorityMonitoringURLRequestJob : public URLRequestTestJob {
   public:
-@@ -11728,6 +11762,404 @@ TEST_F(HTTPSLocalCRLSetTest, InterceptionBlockedAllowOverrideOnHSTS) {
+@@ -11787,6 +11821,404 @@ TEST_F(HTTPSLocalCRLSetTest, InterceptionBlockedAllowOverrideOnHSTS) {
  }
  #endif  // !BUILDFLAG(IS_IOS)
  
@@ -13578,10 +13564,10 @@ index 00a50573133f2..969e8ee340597 100644
    auto context_builder = CreateTestURLRequestContextBuilder();
    auto host_resolver = std::make_unique<MockHostResolver>();
 diff --git a/services/network/network_context.cc b/services/network/network_context.cc
-index e9d152aa78f7c..f2c1b42a285a5 100644
+index 48d5d5c0eb741..ecd04d747a866 100644
 --- a/services/network/network_context.cc
 +++ b/services/network/network_context.cc
-@@ -172,6 +172,10 @@
+@@ -178,6 +178,10 @@
  #include "services/network/sct_auditing/sct_auditing_handler.h"
  #endif  // BUILDFLAG(IS_CT_SUPPORTED)
  
@@ -13592,7 +13578,7 @@ index e9d152aa78f7c..f2c1b42a285a5 100644
  #if BUILDFLAG(ENABLE_WEBSOCKETS)
  #include "services/network/websocket_factory.h"
  #endif  // BUILDFLAG(ENABLE_WEBSOCKETS)
-@@ -2432,6 +2436,14 @@ void NetworkContext::AddAuthCacheEntry(
+@@ -2519,6 +2523,14 @@ void NetworkContext::AddAuthCacheEntry(
      const net::NetworkAnonymizationKey& network_anonymization_key,
      const net::AuthCredentials& credentials,
      AddAuthCacheEntryCallback callback) {
@@ -13607,7 +13593,7 @@ index e9d152aa78f7c..f2c1b42a285a5 100644
    net::HttpAuthCache* http_auth_cache =
        url_request_context_->http_transaction_factory()
            ->GetSession()
-@@ -2443,6 +2455,7 @@ void NetworkContext::AddAuthCacheEntry(
+@@ -2530,6 +2542,7 @@ void NetworkContext::AddAuthCacheEntry(
                         net::HttpAuth::StringToScheme(challenge.scheme),
                         network_anonymization_key, challenge.challenge,
                         credentials, challenge.path);
@@ -13615,7 +13601,7 @@ index e9d152aa78f7c..f2c1b42a285a5 100644
    std::move(callback).Run();
  }
  
-@@ -2849,6 +2862,12 @@ URLRequestContextOwner NetworkContext::MakeURLRequestContext(
+@@ -2919,6 +2932,12 @@ URLRequestContextOwner NetworkContext::MakeURLRequestContext(
    }
    builder.set_hsts_policy_bypass_list(params_->hsts_policy_bypass_list);
  
@@ -13629,10 +13615,10 @@ index e9d152aa78f7c..f2c1b42a285a5 100644
    bool reporting_enabled = base::FeatureList::IsEnabled(features::kReporting);
    if (reporting_enabled) {
 diff --git a/services/network/network_context_unittest.cc b/services/network/network_context_unittest.cc
-index 39c361635101d..39deb735c87b6 100644
+index d15fa421d98c2..f3928efbdb026 100644
 --- a/services/network/network_context_unittest.cc
 +++ b/services/network/network_context_unittest.cc
-@@ -186,6 +186,10 @@
+@@ -188,6 +188,10 @@
  #include "url/scheme_host_port.h"
  #include "url/url_constants.h"
  
@@ -13643,7 +13629,7 @@ index 39c361635101d..39deb735c87b6 100644
  #if BUILDFLAG(ENABLE_REPORTING)
  #include "net/network_error_logging/network_error_logging_service.h"
  #include "net/reporting/reporting_cache.h"
-@@ -970,7 +974,8 @@ TEST_F(NetworkContextTest, UnhandedProtocols) {
+@@ -979,7 +983,8 @@ TEST_F(NetworkContextTest, UnhandedProtocols) {
        GURL("file:///not/a/path/that/leads/anywhere/but/it/should/not/matter/"
             "anyways"),
  
@@ -13653,7 +13639,7 @@ index 39c361635101d..39deb735c87b6 100644
        GURL("ftp://foo.test/"),
    };
  
-@@ -7803,6 +7808,37 @@ TEST_F(NetworkContextTest, BlockAllCookies) {
+@@ -7833,6 +7838,37 @@ TEST_F(NetworkContextTest, BlockAllCookies) {
    EXPECT_EQ("None", response_body);
  }
  
@@ -13692,29 +13678,29 @@ index 39c361635101d..39deb735c87b6 100644
    std::unique_ptr<NetworkContext> network_context =
        CreateContextWithParams(CreateNetworkContextParamsForTesting());
 diff --git a/services/network/public/cpp/features.cc b/services/network/public/cpp/features.cc
-index 33c260ed8f093..98d2f482a8b4c 100644
+index e2926929519ce..4accc1c6c9eea 100644
 --- a/services/network/public/cpp/features.cc
 +++ b/services/network/public/cpp/features.cc
-@@ -167,6 +167,12 @@ BASE_FEATURE(kOpaqueResponseBlockingErrorsForAllFetches,
- // https://tools.ietf.org/html/draft-davidben-http-client-hint-reliability-02#section-4.3
- BASE_FEATURE(kAcceptCHFrame, "AcceptCHFrame", base::FEATURE_ENABLED_BY_DEFAULT);
+@@ -172,6 +172,12 @@ BASE_FEATURE_PARAM(bool,
+                    "AcceptCHOffloadForSubframe",
+                    false);
  
 +// Enables support for FTP URLs. When disabled FTP URLs will behave the same as
 +// any other URL scheme that's unknown to the UA. See https://crbug.com/333943
 +BASE_FEATURE(kFtpProtocol,
-+                "FtpProtocol",
++             "FtpProtocol",
 +             base::FEATURE_ENABLED_BY_DEFAULT);
 +
  // https://fetch.spec.whatwg.org/#cors-non-wildcard-request-header-name
  BASE_FEATURE(kCorsNonWildcardRequestHeadersSupport,
-              "CorsNonWildcardRequestHeadersSupport",
+              base::FEATURE_DISABLED_BY_DEFAULT);
 diff --git a/services/network/public/cpp/features.h b/services/network/public/cpp/features.h
-index 1a9ec565a0ad2..5316cb09cbb5a 100644
+index a58884d4b65db..df787346a5d35 100644
 --- a/services/network/public/cpp/features.h
 +++ b/services/network/public/cpp/features.h
-@@ -190,6 +190,9 @@ BASE_DECLARE_FEATURE_PARAM(std::string, kDeprecateUnloadAllowlist);
+@@ -195,6 +195,9 @@ BASE_DECLARE_FEATURE(kFrameTopHeader);
  COMPONENT_EXPORT(NETWORK_CPP_FLAGS_AND_SWITCHES)
- BASE_DECLARE_FEATURE(kFrameAncestorHeaders);
+ BASE_DECLARE_FEATURE(kFrameAncestorsHeader);
  
 +COMPONENT_EXPORT(NETWORK_CPP_FLAGS_AND_SWITCHES)
 +BASE_DECLARE_FEATURE(kFtpProtocol);
@@ -13723,10 +13709,10 @@ index 1a9ec565a0ad2..5316cb09cbb5a 100644
  // redirects, following 4.4. HTTP-redirect fetch:
  // https://fetch.spec.whatwg.org/#http-redirect-fetch
 diff --git a/services/network/public/cpp/simple_url_loader.cc b/services/network/public/cpp/simple_url_loader.cc
-index 2871452c082ef..bf42ff880a78e 100644
+index bfb83e26e2d83..21d4617dcb4aa 100644
 --- a/services/network/public/cpp/simple_url_loader.cc
 +++ b/services/network/public/cpp/simple_url_loader.cc
-@@ -1881,7 +1881,7 @@ void SimpleURLLoaderImpl::OnReceiveResponse(
+@@ -1882,7 +1882,7 @@ void SimpleURLLoaderImpl::OnReceiveResponse(
  
    // Assume a 200 response unless headers were received indicating otherwise.
    // No headers indicates this was not a real HTTP response (Could be a file
@@ -13767,7 +13753,7 @@ index bb80e3ebd42f8..dbf99f662b65d 100644
  
  }  // namespace network
 diff --git a/services/network/public/mojom/network_context.mojom b/services/network/public/mojom/network_context.mojom
-index 444379292d06d..e80dfb5230b98 100644
+index 709aae5568b73..e41012648f6a7 100644
 --- a/services/network/public/mojom/network_context.mojom
 +++ b/services/network/public/mojom/network_context.mojom
 @@ -377,6 +377,10 @@ struct NetworkContextParams {
@@ -13781,7 +13767,7 @@ index 444379292d06d..e80dfb5230b98 100644
    // Whether or not to check the Android platform's cleartext policy for
    // requests. Under some conditions, Android may advise us to block cleartext
    // traffic.
-@@ -1620,12 +1624,14 @@ interface NetworkContext {
+@@ -1650,12 +1654,14 @@ interface NetworkContext {
    LoadHttpAuthCacheProxyEntries(mojo_base.mojom.UnguessableToken cache_key)
        => ();
  
@@ -13817,10 +13803,10 @@ index 33e23680b927d..52e2617a18c6b 100644
    virtual void SetCodeCacheHost(
        CrossVariantMojoRemote<mojom::CodeCacheHostInterfaceBase> code_cache_host,
 diff --git a/third_party/blink/renderer/core/loader/document_loader.cc b/third_party/blink/renderer/core/loader/document_loader.cc
-index b021464bc5cec..253bd14caddf7 100644
+index 53725f4aa7b3f..37ceeb3c468f7 100644
 --- a/third_party/blink/renderer/core/loader/document_loader.cc
 +++ b/third_party/blink/renderer/core/loader/document_loader.cc
-@@ -161,6 +161,7 @@
+@@ -164,6 +164,7 @@
  #include "third_party/blink/renderer/platform/loader/fetch/resource_timing_utils.h"
  #include "third_party/blink/renderer/platform/loader/fetch/unique_identifier.h"
  #include "third_party/blink/renderer/platform/loader/fetch/url_loader/navigation_body_loader.h"
@@ -13828,7 +13814,7 @@ index b021464bc5cec..253bd14caddf7 100644
  #include "third_party/blink/renderer/platform/loader/static_data_navigation_body_loader.h"
  #include "third_party/blink/renderer/platform/mhtml/archive_resource.h"
  #include "third_party/blink/renderer/platform/mhtml/mhtml_archive.h"
-@@ -402,6 +403,7 @@ struct SameSizeAsDocumentLoader
+@@ -405,6 +406,7 @@ struct SameSizeAsDocumentLoader
    bool is_prerendering;
    bool has_text_fragment_token;
    bool was_discarded;
@@ -13836,7 +13822,7 @@ index b021464bc5cec..253bd14caddf7 100644
    bool loading_main_document_from_mhtml_archive;
    bool loading_srcdoc;
    KURL fallback_base_url;
-@@ -1344,7 +1346,7 @@ void DocumentLoader::BodyDataReceivedImpl(BodyData& data) {
+@@ -1347,7 +1349,7 @@ void DocumentLoader::BodyDataReceivedImpl(BodyData& data) {
    DCHECK(!frame_->GetPage()->Paused());
    time_of_last_data_received_ = clock_->NowTicks();
  
@@ -13845,7 +13831,7 @@ index b021464bc5cec..253bd14caddf7 100644
      // 1) Ftp directory listings accumulate data buffer and transform it later
      //    to the actual document content.
      // 2) Mhtml archives accumulate data buffer and parse it as mhtml later
-@@ -1467,6 +1469,12 @@ void DocumentLoader::FinishedLoading(base::TimeTicks finish_time) {
+@@ -1470,6 +1472,12 @@ void DocumentLoader::FinishedLoading(base::TimeTicks finish_time) {
           MainThreadDebugger::Instance(frame_->DomWindow()->GetIsolate())
               ->IsPaused());
  
@@ -13858,7 +13844,7 @@ index b021464bc5cec..253bd14caddf7 100644
    if (loading_main_document_from_mhtml_archive_ && state_ < kCommitted) {
      // The browser process should block any navigation to an MHTML archive
      // inside iframes. See NavigationRequest::OnResponseStarted().
-@@ -1607,6 +1615,17 @@ DocumentPolicy::ParsedDocumentPolicy DocumentLoader::CreateDocumentPolicy() {
+@@ -1610,6 +1618,17 @@ DocumentPolicy::ParsedDocumentPolicy DocumentLoader::CreateDocumentPolicy() {
  void DocumentLoader::HandleResponse() {
    DCHECK(frame_);
  
@@ -13877,10 +13863,10 @@ index b021464bc5cec..253bd14caddf7 100644
        !network::IsSuccessfulStatus(response_.HttpStatusCode())) {
      DCHECK(!IsA<HTMLObjectElement>(frame_->Owner()));
 diff --git a/third_party/blink/renderer/core/loader/document_loader.h b/third_party/blink/renderer/core/loader/document_loader.h
-index bcf51f743caa1..d283bd4ffe949 100644
+index d09ec0ea7cfb4..0a86f6eb23cb1 100644
 --- a/third_party/blink/renderer/core/loader/document_loader.h
 +++ b/third_party/blink/renderer/core/loader/document_loader.h
-@@ -364,6 +364,8 @@ class CORE_EXPORT DocumentLoader : public GarbageCollected<DocumentLoader>,
+@@ -360,6 +360,8 @@ class CORE_EXPORT DocumentLoader : public GarbageCollected<DocumentLoader>,
      return devtools_navigation_token_;
    }
  
@@ -13889,7 +13875,7 @@ index bcf51f743caa1..d283bd4ffe949 100644
    UseCounterImpl& GetUseCounter() { return use_counter_; }
  
    PrefetchedSignedExchangeManager* GetPrefetchedSignedExchangeManager() const;
-@@ -770,6 +772,8 @@ class CORE_EXPORT DocumentLoader : public GarbageCollected<DocumentLoader>,
+@@ -763,6 +765,8 @@ class CORE_EXPORT DocumentLoader : public GarbageCollected<DocumentLoader>,
    // See WebNavigationParams for definition.
    const bool was_discarded_ = false;
  
@@ -13899,10 +13885,10 @@ index bcf51f743caa1..d283bd4ffe949 100644
    // |archive_| to be created. Nested documents will also inherit from the same
    // |archive_|, but won't have |loading_main_document_from_mhtml_archive_| set.
 diff --git a/third_party/blink/renderer/platform/loader/BUILD.gn b/third_party/blink/renderer/platform/loader/BUILD.gn
-index 0f566bbe8e4b6..902bc419e13fa 100644
+index c24a3f46ff715..1d1ffddbe01f7 100644
 --- a/third_party/blink/renderer/platform/loader/BUILD.gn
 +++ b/third_party/blink/renderer/platform/loader/BUILD.gn
-@@ -170,6 +170,8 @@ blink_platform_sources("loader") {
+@@ -171,6 +171,8 @@ blink_platform_sources("loader") {
      "fetch/worker_resource_timing_notifier.h",
      "integrity_report.cc",
      "integrity_report.h",
