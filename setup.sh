@@ -103,7 +103,8 @@ patchThor () {
 	cp -v other/disable-privacy-sandbox.patch ${CR_SRC_DIR}/ &&
 	cp -v other/win_updater.patch ${CR_SRC_DIR}/ &&
 	cp -v other/keyboard_shortcuts.patch ${CR_SRC_DIR}/ &&
-	cp -v other/multi-language-translate.patch ${CR_SRC_DIR}/ &&
+	# gz83: Temporarily skip i18n patch.
+	# cp -v other/multi-language-translate.patch ${CR_SRC_DIR}/ &&
 	# Starting with M144, the following patches can be removed
 	# cp -v other/partalloc.patch ${CR_SRC_DIR}/ &&
 	# cp -v other/fix_profile_selector_crash.patch ${CR_SRC_DIR}/ &&
@@ -153,9 +154,10 @@ patchThor () {
 	cd ${CR_SRC_DIR} &&
 	git apply --reject ./mini_installer.patch &&
 
-    printf "${YEL}Patching Multi language translate...${c0}\n" &&
-	cd ${CR_SRC_DIR} &&
-    git apply --reject ./multi-language-translate.patch &&
+    # gz83: Temporarily skip i18n patch.
+    # printf "${YEL}Patching Multi language translate...${c0}\n" &&
+	# cd ${CR_SRC_DIR} &&
+    # git apply --reject ./multi-language-translate.patch &&
 
 	printf "\n" &&
 	printf "${YEL}Applying other Misc. patches...${c0}\n" &&
