@@ -213,6 +213,12 @@ os.chdir(cr_src_dir)
 try_run(f"git apply --reject thorium-2024-ui.patch")
 
 
+print("\nDownload Shelf patch...\n")
+# Change directory to cr_src_dir and run commands
+os.chdir(cr_src_dir)
+try_run(f"git apply --reject restore_download_shelf.patch")
+
+
 print("\nPatching for mini_installer\n")
 # Change directory to cr_src_dir and run commands
 os.chdir(cr_src_dir)
@@ -225,20 +231,14 @@ try_run(f"git apply --reject mini_installer.patch")
 # try_run(f"git apply --reject multi-language-translate.patch")
 
 
-print("\nDownload Shelf patch...\n")
-# Change directory to cr_src_dir and run commands
-os.chdir(cr_src_dir)
-try_run(f"git apply --reject restore_download_shelf.patch")
-
-
 print("\nApplying other Misc. patches...\n")
 # Change directory to cr_src_dir and run commands
 os.chdir(cr_src_dir)
 try_run(f"git apply --reject open_in_same_tab.patch")
 try_run(f"git apply --reject thorium_webui.patch")
 try_run(f"git apply --reject win_updater.patch")
-try_run(f"git apply --reject disable-privacy-sandbox.patch")
 try_run(f"git apply --reject keyboard_shortcuts.patch")
+try_run(f"git apply --reject disable-privacy-sandbox.patch")
 # try_run(f"git apply --reject fix_touch_emulator_double_tap_zoom.patch")
 
 
