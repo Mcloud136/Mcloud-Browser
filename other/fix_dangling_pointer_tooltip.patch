@@ -1,26 +1,5 @@
-From 75384c7f9e55413450742f4c926534da7721e6cd Mon Sep 17 00:00:00 2001
-From: Ho Cheung <hocheung@chromium.org>
-Date: Thu, 8 Jan 2026 07:17:36 -0800
-Subject: [PATCH] [corewm] Fix dangling pointer in TooltipStateManager
-
-Make TooltipStateManager observe tooltip_parent_window_ lifecycle
-to prevent UAF. Pointers are now cleared immediately in
-OnWindowDestroying() before the window is destroyed.
-
-Bug: 40285438
-Change-Id: I5018bf2c80df7c38021af988ae27c68b5b6c62e8
-Reviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/7396650
-Reviewed-by: Dana Fried <dfried@chromium.org>
-Commit-Queue: Aaron Teo <hocheung@chromium.org>
-Cr-Commit-Position: refs/heads/main@{#1566277}
----
- ui/views/corewm/tooltip_controller.cc    |  4 +++-
- ui/views/corewm/tooltip_state_manager.cc | 28 +++++++++++++++++++----
- ui/views/corewm/tooltip_state_manager.h  | 29 +++++++++++++++++-------
- 3 files changed, 48 insertions(+), 13 deletions(-)
-
 diff --git a/ui/views/corewm/tooltip_controller.cc b/ui/views/corewm/tooltip_controller.cc
-index 1b614c56609a6..996e094a9e201 100644
+index cde91b2e719ad..6f6ca8d7c1a4b 100644
 --- a/ui/views/corewm/tooltip_controller.cc
 +++ b/ui/views/corewm/tooltip_controller.cc
 @@ -5,6 +5,7 @@
@@ -196,6 +175,3 @@ index 7d8e0564a39af..172731cad670b 100644
    // WeakPtrFactory to use for callbacks.
    base::WeakPtrFactory<TooltipStateManager> weak_factory_{this};
  };
--- 
-2.51.0
-
