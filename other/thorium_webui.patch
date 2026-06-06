@@ -1,8 +1,8 @@
 diff --git a/chrome/browser/ui/webui/BUILD.gn b/chrome/browser/ui/webui/BUILD.gn
-index b0cea16b095a6..05a4796c5a159 100644
+index d122aff893703..1f4bd53890cac 100644
 --- a/chrome/browser/ui/webui/BUILD.gn
 +++ b/chrome/browser/ui/webui/BUILD.gn
-@@ -23,6 +23,7 @@ source_set("configs") {
+@@ -32,6 +32,7 @@ source_set("configs") {
      "chrome_untrusted_web_ui_configs.h",
      "chrome_web_ui_configs.cc",
      "chrome_web_ui_configs.h",
@@ -11,10 +11,10 @@ index b0cea16b095a6..05a4796c5a159 100644
  
    configs += [ "//build/config/compiler:wexit_time_destructors" ]
 diff --git a/chrome/browser/ui/webui/chrome_web_ui_configs.cc b/chrome/browser/ui/webui/chrome_web_ui_configs.cc
-index f740a1880ae9f..4c66dc0bb2331 100644
+index d185bfdfbb3c7..deeadde6134c9 100644
 --- a/chrome/browser/ui/webui/chrome_web_ui_configs.cc
 +++ b/chrome/browser/ui/webui/chrome_web_ui_configs.cc
-@@ -45,6 +45,7 @@
+@@ -47,6 +47,7 @@
  #include "chrome/browser/ui/webui/segmentation_internals/segmentation_internals_ui.h"
  #include "chrome/browser/ui/webui/signin_internals_ui.h"
  #include "chrome/browser/ui/webui/sync_internals/sync_internals_ui.h"
@@ -22,7 +22,7 @@ index f740a1880ae9f..4c66dc0bb2331 100644
  #include "chrome/browser/ui/webui/translate_internals/translate_internals_ui.h"
  #include "chrome/browser/ui/webui/usb_internals/usb_internals_ui.h"
  #include "chrome/browser/ui/webui/user_actions/user_actions_ui.h"
-@@ -261,6 +262,7 @@ void RegisterChromeWebUIConfigs() {
+@@ -273,6 +274,7 @@ void RegisterChromeWebUIConfigs() {
    map.AddWebUIConfig(std::make_unique<SignInInternalsUIConfig>());
    map.AddWebUIConfig(std::make_unique<SiteEngagementUIConfig>());
    map.AddWebUIConfig(std::make_unique<SyncInternalsUIConfig>());
@@ -30,9 +30,8 @@ index f740a1880ae9f..4c66dc0bb2331 100644
    map.AddWebUIConfig(std::make_unique<TranslateInternalsUIConfig>());
    map.AddWebUIConfig(std::make_unique<UsbInternalsUIConfig>());
    map.AddWebUIConfig(std::make_unique<UserActionsUIConfig>());
-
 diff --git a/chrome/browser/ui/webui/chrome_web_ui_controller_factory.cc b/chrome/browser/ui/webui/chrome_web_ui_controller_factory.cc
-index b7052cda697c5..1867f25e816c9 100644
+index 96f13925113dc..d774e76d1d485 100644
 --- a/chrome/browser/ui/webui/chrome_web_ui_controller_factory.cc
 +++ b/chrome/browser/ui/webui/chrome_web_ui_controller_factory.cc
 @@ -359,7 +359,8 @@ bool ChromeWebUIControllerFactory::IsWebUIAllowedToMakeNetworkRequests(
@@ -138,22 +137,22 @@ index 0000000000000..52f4b2506773c
 +
 +#endif  // THORIUM_EASTER_EGGS_H_
 diff --git a/chrome/common/webui_url_constants.cc b/chrome/common/webui_url_constants.cc
-index e5e724a22d015..afd5da10dd987 100644
+index f96fccfbc248a..10e848bcf5941 100644
 --- a/chrome/common/webui_url_constants.cc
 +++ b/chrome/common/webui_url_constants.cc
-@@ -72,6 +72,7 @@ bool IsSystemWebUIHost(std::string_view host) {
+@@ -74,6 +74,7 @@ bool IsSystemWebUIHost(std::string_view host) {
  // These hosts will also be suggested by BuiltinProvider.
  base::span<const base::cstring_view> ChromeURLHosts() {
    static constexpr auto kChromeURLHosts = std::to_array<base::cstring_view>({
 +      kChromeUIEggsHost,
        kChromeUIAboutHost,
        kChromeUIAccessibilityHost,
- #if !BUILDFLAG(IS_ANDROID)
+       kChromeUIActorInternalsHost,
 diff --git a/chrome/common/webui_url_constants.h b/chrome/common/webui_url_constants.h
-index c35d5252a52ee..259a6a949dad0 100644
+index a134c1e4b0242..726ff89173898 100644
 --- a/chrome/common/webui_url_constants.h
 +++ b/chrome/common/webui_url_constants.h
-@@ -31,6 +31,8 @@ namespace chrome {
+@@ -32,6 +32,8 @@ namespace chrome {
  // Not all components have corresponding URLs and vice versa. Only add as
  // needed.
  // Please keep in alphabetical order, with OS/feature specific sections below.
@@ -174,12 +173,12 @@ index 5096175e285c1..6d4a41ab2815f 100644
 +    <a href="{{thorium_link}}">here</a>. Chromium source code is available <a href="{{opensource_link}}">here</a>.
  </div>
 diff --git a/tools/licenses/licenses.py b/tools/licenses/licenses.py
-index b0807ee3d8ebc..0630fc87cdee8 100755
+index 7f22f02d2bc80..9981813b17c28 100755
 --- a/tools/licenses/licenses.py
 +++ b/tools/licenses/licenses.py
-@@ -1059,6 +1059,8 @@ def GenerateCredits(file_template_file,
-   reciprocal_template = codecs.open(reciprocal_template_file,
-                                     encoding='utf-8').read()
+@@ -1083,6 +1083,8 @@ def GenerateCredits(args, metadatas):
+   entries_contents = '\n'.join([entry['content'] for entry in entries])
+ 
    reciprocal_contents = EvaluateTemplate(reciprocal_template, {
 +      'thorium_project': 'Thorium',
 +      'thorium_link': 'https://github.com/Alex313031/thorium',
@@ -187,7 +186,7 @@ index b0807ee3d8ebc..0630fc87cdee8 100755
        'opensource_link': 'https://source.chromium.org/chromium'
    },
 diff --git a/ui/webui/resources/BUILD.gn b/ui/webui/resources/BUILD.gn
-index 0a77a8c846880..725bc4ea35952 100644
+index f03086a610eb0..fd50413de9f66 100644
 --- a/ui/webui/resources/BUILD.gn
 +++ b/ui/webui/resources/BUILD.gn
 @@ -38,6 +38,7 @@ generate_grd("build_grd") {
@@ -208,7 +207,7 @@ index 0a77a8c846880..725bc4ea35952 100644
    if ((!is_android && !is_ios) || is_desktop_android) {
 diff --git a/ui/webui/resources/text/BUILD.gn b/ui/webui/resources/text/BUILD.gn
 new file mode 100644
-index 0000000000000..70fa603fabbdb
+index 0000000000000..21045cee4be90
 --- /dev/null
 +++ b/ui/webui/resources/text/BUILD.gn
 @@ -0,0 +1,18 @@
