@@ -1223,7 +1223,7 @@ index 38c6ae61b4a30..950678e00819a 100644
    // Saving can be disabled e.g. for the DevTools window.
    bool CanSaveContents(content::WebContents* web_contents) const;
 diff --git a/chrome/browser/ui/browser_window.h b/chrome/browser/ui/browser_window.h
-index 3ddb52cf3b31c..254bb802f1f51 100644
+index 3ddb52cf3b31c..d23c8da064326 100644
 --- a/chrome/browser/ui/browser_window.h
 +++ b/chrome/browser/ui/browser_window.h
 @@ -42,6 +42,7 @@
@@ -1234,7 +1234,18 @@ index 3ddb52cf3b31c..254bb802f1f51 100644
  class ExclusiveAccessContext;
  class ExtensionsContainer;
  class FindBar;
-@@ -488,6 +489,19 @@ class BrowserWindow : public ui::BaseWindow {
+@@ -88,6 +89,10 @@ class NativeTheme;
+ class ThemeProvider;
+ }  // namespace ui
+ 
++namespace views {
++class View;
++}  // namespace views
++
+ namespace web_modal {
+ class WebContentsModalDialogHost;
+ }
+@@ -488,6 +493,19 @@ class BrowserWindow : public ui::BaseWindow {
        const std::u16string& email,
        base::OnceCallback<void(bool)> confirmed_callback) = 0;
  
@@ -1255,19 +1266,18 @@ index 3ddb52cf3b31c..254bb802f1f51 100644
    // UI is not enabled, or if the download toolbar button does not exist.
    virtual DownloadBubbleUIController* GetDownloadBubbleUIController() = 0;
 diff --git a/chrome/browser/ui/chrome_pages.cc b/chrome/browser/ui/chrome_pages.cc
-index 6b1f7bc1be5f1..f37e3e03567ca 100644
+index 6b1f7bc1be5f1..eed75be10c2a5 100644
 --- a/chrome/browser/ui/chrome_pages.cc
 +++ b/chrome/browser/ui/chrome_pages.cc
-@@ -25,7 +25,7 @@
- #include "chrome/browser/apps/app_service/app_service_proxy.h"
+@@ -26,6 +26,7 @@
  #include "chrome/browser/apps/app_service/app_service_proxy_factory.h"
  #include "chrome/browser/bookmarks/bookmark_model_factory.h"
--#include "chrome/browser/download/bubble/download_bubble_ui_controller.h"
+ #include "chrome/browser/download/bubble/download_bubble_ui_controller.h"
 +#include "chrome/browser/download/download_shelf.h"
  #include "chrome/browser/file_system_access/file_system_access_features.h"
  #include "chrome/browser/policy/profile_policy_connector.h"
  #include "chrome/browser/profiles/profile.h"
-@@ -384,6 +384,9 @@ void ShowDownloads(Browser* browser) {
+@@ -384,6 +385,9 @@ void ShowDownloads(Browser* browser) {
          ->GetDownloadDisplayController()
          ->HideBubble();
    }
@@ -1613,10 +1623,10 @@ index 566d4863a8825..b59fcd81008c9 100644
      "//base",
 diff --git a/chrome/browser/ui/views/download/download_item_view.cc b/chrome/browser/ui/views/download/download_item_view.cc
 new file mode 100644
-index 0000000000000..292869cf1fe04
+index 0000000000000..25d6421c12f4b
 --- /dev/null
 +++ b/chrome/browser/ui/views/download/download_item_view.cc
-@@ -0,0 +1,1383 @@
+@@ -0,0 +1,1384 @@
 +// Copyright 2026 The Chromium Authors and Alex313031
 +// Use of this source code is governed by a BSD-style license that can be
 +// found in the LICENSE file.
@@ -1867,8 +1877,8 @@ index 0000000000000..292869cf1fe04
 +}
 +
 +float GetDPIScaleForView(views::View* view) {
-+  DCHECK(display::Screen::GetScreen());
-+  return display::Screen::GetScreen()
++  DCHECK(display::Screen::HasScreen());
++  return display::Screen::Get()
 +      ->GetPreferredScaleFactorForView(view->GetWidget()->GetNativeView())
 +      .value_or(1.0f);
 +}
@@ -2395,7 +2405,7 @@ index 0000000000000..292869cf1fe04
 +  }
 +
 +  shelf_->InvalidateLayout();
-+  OnPropertyChanged(&mode_, views::kPropertyEffectsNone);
++  OnPropertyChanged(&mode_, views::PropertyEffects::kNone);
 +}
 +
 +download::DownloadItemMode DownloadItemView::GetMode() const {
@@ -2686,6 +2696,7 @@ index 0000000000000..292869cf1fe04
 +    case download::DOWNLOAD_DANGER_TYPE_DANGEROUS_FILE:
 +    case download::DOWNLOAD_DANGER_TYPE_BLOCKED_TOO_LARGE:
 +    case download::DOWNLOAD_DANGER_TYPE_BLOCKED_PASSWORD_PROTECTED:
++    case download::DOWNLOAD_DANGER_TYPE_FORCE_SAVE_TO_GDRIVE:
 +    case download::DOWNLOAD_DANGER_TYPE_SENSITIVE_CONTENT_BLOCK:
 +    case download::DOWNLOAD_DANGER_TYPE_DANGEROUS_ACCOUNT_COMPROMISE:
 +    case download::DOWNLOAD_DANGER_TYPE_DEEP_SCANNED_OPENED_DANGEROUS:
@@ -2822,7 +2833,7 @@ index 0000000000000..292869cf1fe04
 +  dropdown_pressed_ = pressed;
 +  dropdown_button_->SetHighlighted(dropdown_pressed_);
 +  UpdateDropdownButtonImage();
-+  OnPropertyChanged(&dropdown_pressed_, views::kPropertyEffectsNone);
++  OnPropertyChanged(&dropdown_pressed_, views::PropertyEffects::kNone);
 +}
 +
 +bool DownloadItemView::GetDropdownPressed() const {
@@ -4956,8 +4967,50 @@ index 5168c9112656d..1dfe683078ff7 100644
    // If the bubble has already been expanded, and encounters a new URL,
    // change size immediately, with no hover.
    bool is_expanded_ = false;
+diff --git a/chrome/browser/ui/webui_browser/webui_browser_window.cc b/chrome/browser/ui/webui_browser/webui_browser_window.cc
+index 1b6e873041b80..b756c371a70ea 100644
+--- a/chrome/browser/ui/webui_browser/webui_browser_window.cc
++++ b/chrome/browser/ui/webui_browser/webui_browser_window.cc
+@@ -896,6 +896,22 @@ void WebUIBrowserWindow::ShowOneClickSigninConfirmation(
+   NOTIMPLEMENTED();
+ }
+ 
++bool WebUIBrowserWindow::IsDownloadShelfVisible() const {
++  return false;
++}
++
++DownloadShelf* WebUIBrowserWindow::GetDownloadShelf() {
++  return nullptr;
++}
++
++views::View* WebUIBrowserWindow::GetTopContainer() {
++  return nullptr;
++}
++
++views::View* WebUIBrowserWindow::GetLensOverlayView() {
++  return nullptr;
++}
++
+ DownloadBubbleUIController*
+ WebUIBrowserWindow::GetDownloadBubbleUIController() {
+   NOTIMPLEMENTED();
+diff --git a/chrome/browser/ui/webui_browser/webui_browser_window.h b/chrome/browser/ui/webui_browser/webui_browser_window.h
+index 77f72feee08ed..51a4deea5bf5c 100644
+--- a/chrome/browser/ui/webui_browser/webui_browser_window.h
++++ b/chrome/browser/ui/webui_browser/webui_browser_window.h
+@@ -164,6 +164,10 @@ class WebUIBrowserWindow : public BrowserWindow,
+   void ShowOneClickSigninConfirmation(
+       const std::u16string& email,
+       base::OnceCallback<void(bool)> confirmed_callback) override;
++  bool IsDownloadShelfVisible() const override;
++  DownloadShelf* GetDownloadShelf() override;
++  views::View* GetTopContainer() override;
++  views::View* GetLensOverlayView() override;
+   DownloadBubbleUIController* GetDownloadBubbleUIController() override;
+   void ConfirmBrowserCloseWithPendingDownloads(
+       int download_count,
 diff --git a/chrome/test/BUILD.gn b/chrome/test/BUILD.gn
-index 546735291c35d..360138bd078e9 100644
+index 546735291c35d..f4af7008be472 100644
 --- a/chrome/test/BUILD.gn
 +++ b/chrome/test/BUILD.gn
 @@ -3309,6 +3309,7 @@ if (!is_android) {
@@ -4968,16 +5021,15 @@ index 546735291c35d..360138bd078e9 100644
        "../browser/download/save_page_browsertest.cc",
        "../browser/engagement/site_engagement_helper_browsertest.cc",
        "../browser/enterprise/browser_management/management_service_browsertest.cc",
-@@ -3704,6 +3705,8 @@ if (!is_android) {
+@@ -3704,6 +3705,7 @@ if (!is_android) {
        "../browser/ui/views/device_chooser_browsertest.cc",
        "../browser/ui/views/digital_credentials/digital_identity_integration_test.cc",
        "../browser/ui/views/digital_credentials/digital_identity_multi_step_dialog_browsertest.cc",
-+      "../browser/ui/views/download/bubble/download_toolbar_ui_controller_browsertest.cc",
 +      "../browser/ui/views/download/download_item_view_browsertest.cc",
        "../browser/ui/views/exclusive_access_bubble_views_browsertest.cc",
        "../browser/ui/views/extensions/extension_install_dialog_view_supervised_browsertest.cc",
        "../browser/ui/views/eye_dropper/eye_dropper_browsertest.cc",
-@@ -5205,6 +5208,7 @@ if (!is_android) {
+@@ -5205,6 +5207,7 @@ if (!is_android) {
          "../browser/ui/views/permissions/permission_request_chip_browsertest.cc",
          "../browser/ui/views/profiles/profile_menu_view_browsertest.cc",
          "../browser/ui/views/safe_browsing/password_reuse_modal_warning_dialog_browsertest.cc",
@@ -4985,7 +5037,7 @@ index 546735291c35d..360138bd078e9 100644
          "../browser/ui/views/safe_browsing/tailored_security_desktop_dialog_manager_browsertest.cc",
          "../browser/ui/views/search_engines/dse_reset_dialog_view_browsertest.cc",
          "../browser/ui/views/send_tab_to_self/send_tab_to_self_bubble_browsertest.cc",
-@@ -8111,6 +8115,8 @@ test("unit_tests") {
+@@ -8111,6 +8114,8 @@ test("unit_tests") {
        "../browser/diagnostics/diagnostics_model_unittest.cc",
        "../browser/download/download_commands_unittest.cc",
        "../browser/download/download_dir_policy_handler_unittest.cc",
@@ -4994,6 +5046,14 @@ index 546735291c35d..360138bd078e9 100644
        "../browser/download/download_ui_enterprise_util_unittest.cc",
        "../browser/download/download_warning_desktop_hats_utils_unittest.cc",
        "../browser/enterprise/reporting/extension_info_unittest.cc",
+@@ -8802,7 +8807,6 @@ test("unit_tests") {
+       "../browser/download/bubble/download_bubble_update_service_unittest.cc",
+       "../browser/download/bubble/download_bubble_utils_unittest.cc",
+       "../browser/download/bubble/download_display_controller_unittest.cc",
+-      "../browser/download/download_ui_context_menu_unittest.cc",
+       "../browser/hid/hid_status_icon_unittest.cc",
+     ]
+ 
 diff --git a/chrome/test/base/test_browser_window.cc b/chrome/test/base/test_browser_window.cc
 index d489ebff46e6f..bd57f7575309d 100644
 --- a/chrome/test/base/test_browser_window.cc
