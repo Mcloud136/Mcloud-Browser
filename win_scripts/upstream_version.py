@@ -41,7 +41,7 @@ cr_src_dir = os.getenv("CR_DIR", r"C:/src/chromium/src")
 
 
 # Set cr_ver
-cr_ver = "144.0.7559.252"
+cr_ver = "144.0.7559.254"
 
 
 print(f"\nCurrent Chromium version is: {cr_ver}\n")
