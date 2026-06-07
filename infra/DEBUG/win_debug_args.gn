@@ -21,7 +21,7 @@ disable_fieldtrial_testing_config = true
 enable_reporting = false
 enable_resource_allowlist_generation = false
 enable_profiling = false
-is_component_build = true
+is_component_build = false
 symbol_level = 2
 # enable_nacl = false
 optimize_webui = false
@@ -49,7 +49,7 @@ ffmpeg_branding = "Chrome"
 # Set to false for Polly build
 clang_use_chrome_plugins = false
 enable_ffmpeg_video_decoders = true
-is_component_ffmpeg = true
+is_component_ffmpeg = false
 use_webaudio_pffft = true
 enable_library_cdms = true
 enable_widevine = true

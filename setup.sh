@@ -121,7 +121,9 @@ patchThor () {
 	# The following patch could not be fixed upstream because it
 	# is related to our custom flags
 	cp -v other/fix_disable_aero_crash.patch ${CR_SRC_DIR}/ &&
+	
 	cp -v other/allow_manifest_v2_extensions.patch ${CR_SRC_DIR}/ &&
+	# Starting with M149, the following patch can be removed
 	cp -v other/fix_deb_dependency_generation.patch ${CR_SRC_DIR}/ &&
 
 	printf "\n" &&
