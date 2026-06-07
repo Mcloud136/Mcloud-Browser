@@ -2368,7 +2368,7 @@ Thorium is unable to recover your settings.
 
 
       <!-- Thorium parent extension/app install blocking dialog. -->
-      if expr="enable_extensions_core">
+      <if expr="enable_extensions_core">
         <message name="IDS_EXTENSION_PERMISSIONS_BLOCKED_BY_PARENT_PROMPT_MESSAGE" desc="Text for the dialog indicating that a parent has blocked extensions and apps.">
          Your parent has turned off "Permissions for sites, apps and extensions" for Thorium
         </message>
@@ -2542,7 +2542,7 @@ Thorium is unable to recover your settings.
         Speeds up sites with Thorium's V8 engine but makes Thorium slightly less resistant to attacks
       </message>
       <message name="IDS_SETTINGS_SITE_SETTINGS_JAVASCRIPT_OPTIMIZER_ALLOWED_SUB_LABEL" desc="Sub-label for the enabled option of the JavaScript optimizer content setting.">
-        Thorium runs faster and features that use JavaScript should work as designed 
+        Thorium runs faster and features that use JavaScript should work as designed
       </message>
       <message name="IDS_SETTINGS_SITE_SETTINGS_JAVASCRIPT_OPTIMIZER_BLOCKED_SUB_LABEL" desc="Sub-label for the disabled option of the JavaScript optimizer content setting.">
         Reduces performance but makes Thorium more resistant to attacks

@@ -625,7 +625,7 @@ void InitLogging(const std::string& process_type) {
   // Log the Chrome version for information. Do so at WARNING level as that's
   // the min level on ChromeOS.
   if (process_type.empty()) {
-    LOG(WARNING) << "This is " << chrome::kBrandName << " version: "
+    LOG(WARNING) << "This is " << version_info::GetProductName() << " version: "
                  << chrome::kChromeVersion << " (not a warning)";
     LOG(WARNING) << "In Loving Memory of Linda Louise Frick: Grandma, Mother, and Sister.";
   }
