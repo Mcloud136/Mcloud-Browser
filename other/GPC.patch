@@ -186,10 +186,26 @@ index 1baf936d38f7f..13cf077e978aa 100644
        settings_api::PrefType::kBoolean;
    (*s_allowlist)[::prefs::kFingerprintingProtectionEnabled] =
 diff --git a/chrome/browser/renderer_preferences_util.cc b/chrome/browser/renderer_preferences_util.cc
-index 6c664c1ed0a18..30c5ba6e95a1b 100644
+index 6c664c1ed0a18..381c7899450a5 100644
 --- a/chrome/browser/renderer_preferences_util.cc
 +++ b/chrome/browser/renderer_preferences_util.cc
-@@ -151,6 +151,9 @@ void UpdateFromSystemSettings(blink::RendererPreferences* prefs,
+@@ -15,6 +15,7 @@
+ #include "build/build_config.h"
+ #include "chrome/browser/browser_process.h"
+ #include "chrome/browser/net/convert_explicitly_allowed_network_ports_pref.h"
++#include "chrome/browser/privacy_sandbox/tracking_protection_settings_factory.h"
+ #include "content/public/browser/reduce_accept_language_utils.h"
+ #if BUILDFLAG(IS_CHROMEOS)
+ #include "chrome/browser/ash/login/demo_mode/demo_session.h"
+@@ -25,6 +26,7 @@
+ #include "components/language/core/browser/language_prefs.h"
+ #include "components/language/core/browser/pref_names.h"
+ #include "components/prefs/pref_service.h"
++#include "components/privacy_sandbox/tracking_protection_settings.h"
+ #include "content/public/browser/renderer_preferences_util.h"
+ #include "media/media_buildflags.h"
+ #include "third_party/blink/public/common/peerconnection/webrtc_ip_handling_policy.h"
+@@ -151,6 +153,9 @@ void UpdateFromSystemSettings(blink::RendererPreferences* prefs,
    prefs->enable_referrers = pref_service->GetBoolean(prefs::kEnableReferrers);
    prefs->enable_do_not_track =
        pref_service->GetBoolean(prefs::kEnableDoNotTrack);
@@ -423,29 +439,46 @@ index 47938ce0c7f08..f4bb3deaef474 100644
        <message name="IDS_CAN_MAKE_PAYMENT_TITLE" desc="Title for preference to allow websites to know whether you have payment methods available through PaymentRequest.CanMakePayment interface">
          Access payment methods
 diff --git a/chrome/browser/ui/prefs/pref_watcher.cc b/chrome/browser/ui/prefs/pref_watcher.cc
-index f1436cb64748b..c4ff2664bd441 100644
+index f1436cb64748b..022252125f39e 100644
 --- a/chrome/browser/ui/prefs/pref_watcher.cc
 +++ b/chrome/browser/ui/prefs/pref_watcher.cc
-@@ -197,6 +197,10 @@ void PrefWatcher::OnNativeThemeUpdated(ui::NativeTheme* observed_theme) {
+@@ -23,6 +23,7 @@
+ #include "components/language/core/browser/pref_names.h"
+ #include "components/live_caption/pref_names.h"
+ #include "components/prefs/pref_change_registrar.h"
++#include "components/privacy_sandbox/tracking_protection_prefs.h"
+ #include "content/public/browser/browser_context.h"
+ #include "mojo/public/cpp/bindings/pending_remote.h"
+ #include "third_party/blink/public/common/renderer_preferences/renderer_preferences.h"
+@@ -148,6 +149,8 @@ PrefWatcher::PrefWatcher(Profile* profile) : profile_(profile) {
+                                      renderer_callback);
+   profile_pref_change_registrar_.Add(prefs::kEnableDoNotTrack,
+                                      renderer_callback);
++  profile_pref_change_registrar_.Add(prefs::kEnableGPC,
++                                     renderer_callback);
+ 
+ #if !BUILDFLAG(IS_MAC)
+   profile_pref_change_registrar_.Add(prefs::kFullscreenAllowed,
+@@ -197,6 +200,10 @@ void PrefWatcher::OnNativeThemeUpdated(ui::NativeTheme* observed_theme) {
    UpdateRendererPreferences();
  }
  
-+void PrefWatcher::OnGPCEnabledChanged() {
-+  UpdateRendererPreferences();
-+}
++// void PrefWatcher::OnGPCEnabledChanged() {
++//   UpdateRendererPreferences();
++// }
 +
  void PrefWatcher::UpdateRendererPreferences() {
    for (PrefsTabHelper* helper : tab_helpers_) {
      helper->UpdateRendererPreferences();
 diff --git a/chrome/browser/ui/prefs/pref_watcher.h b/chrome/browser/ui/prefs/pref_watcher.h
-index 94ec9cf945974..74686e863dd73 100644
+index 94ec9cf945974..6b79e5f5746bb 100644
 --- a/chrome/browser/ui/prefs/pref_watcher.h
 +++ b/chrome/browser/ui/prefs/pref_watcher.h
 @@ -41,6 +41,8 @@ class PrefWatcher : public KeyedService,
    // ui::NativeThemeObserver:
    void OnNativeThemeUpdated(ui::NativeTheme* observed_theme) override;
  
-+  void OnGPCEnabledChanged() override;
++  // void OnGPCEnabledChanged() override;
 +
    void UpdateRendererPreferences();
    void OnWebPrefChanged(const std::string& pref_name);
