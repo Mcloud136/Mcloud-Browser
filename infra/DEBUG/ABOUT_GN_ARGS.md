@@ -35,7 +35,7 @@ exclude_unwind_tables &#35;&#35; Set whether to enable unwinding tables, regardl
 
 enable_debugallocation &#35;&#35; DEPRECATED &#35;&#35; Set whether to allocate extra header space in binaries for debug constructs.
 
-enable_iterator_debugging &#35;&#35; Set whether C++ iterator debugging is enabled. Only applicable if is_debug is true.
+enable_iterator_debugging &#35;&#35; Set whether C++ iterator debugging is enabled.
 
 disable_fieldtrial_testing_config &#35;&#35; Set whether to disable fieldtrials. Disabled for stability, privacy, and reproducibility in Thorium. Decreases the number of variations at chrome://version See > https://chromium.googlesource.com/chromium/src/+/master/testing/variations/README.md
 

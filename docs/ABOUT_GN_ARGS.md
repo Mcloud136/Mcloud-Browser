@@ -48,7 +48,7 @@ __dcheck_always_on__ &#35; Set whether to enable DCHECK, regardless of is_debug 
 
 exclude_unwind_tables &#35; Set whether to enable unwinding tables, regardless of is_debug or is_official_build. Enabled in Thorium for performance/size except for Debug builds.
 
-__enable_iterator_debugging__ &#35; Set whether C++ iterator debugging is enabled. Only applicable if is_debug is true.
+__enable_iterator_debugging__ &#35; Set whether C++ iterator debugging is enabled.
 
 __disable_fieldtrial_testing_config__ &#35; Set whether to disable fieldtrials. Disabled for stability, privacy, and reproducibility in Thorium. Decreases the number of variations at chrome://version See > https://chromium.googlesource.com/chromium/src/+/master/testing/variations/README.md
 

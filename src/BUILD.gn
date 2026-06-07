@@ -168,9 +168,9 @@ group("thorium_all") {
   }
 
   if (is_debug || is_mac) {
-    if (is_mac || is_win) {
+    if (is_mac) {
       deps += [ "//third_party/breakpad:minidump_stackwalk" ]
-    } else {
+    } else if (!is_win || host_os != "win") {
       deps += [ "//third_party/breakpad:minidump_stackwalk($host_system_allocator_toolchain)" ]
     }
   }
