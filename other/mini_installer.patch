@@ -298,7 +298,7 @@ index e2b6155fe43fc..08b937f7793e6 100644
    bool should_delete_extracted_files_;
  
 diff --git a/chrome/installer/mini_installer/mini_installer.cc b/chrome/installer/mini_installer/mini_installer.cc
-index 44f29f2fafda8..7e0c98f4b6263 100644
+index 44f29f2fafda8..e774edf86da7b 100644
 --- a/chrome/installer/mini_installer/mini_installer.cc
 +++ b/chrome/installer/mini_installer/mini_installer.cc
 @@ -1,4 +1,4 @@
@@ -579,7 +579,7 @@ index 44f29f2fafda8..7e0c98f4b6263 100644
    // Parse configuration from the command line and resources.
 -  Configuration configuration;
 -  if (!configuration.Initialize()) {
-+  if (!conf.Initialize(hModule)) {
++  if (!conf.Initialize()) {
      return ProcessExitResult(GENERIC_INITIALIZATION_FAILURE, ::GetLastError());
    }
  
