@@ -158,6 +158,7 @@ patches = [
     # "other/fix_drag_and_drop_on_wayland.patch",
     # "other/fix_touch_emulator_double_tap_zoom.patch",
     # "other/fix_setting_popover_invoker_crash.patch",
+    "other/allow_manifest_v2_extensions.patch",
 ]
 for patch in patches:
     relative_path = patch.replace("other/", "", 1)
@@ -235,6 +236,7 @@ print("\nApplying other Misc. patches...\n")
 # Change directory to cr_src_dir and run commands
 os.chdir(cr_src_dir)
 try_run(f"git apply --reject open_in_same_tab.patch")
+try_run(f"git apply --reject allow_manifest_v2_extensions.patch")
 try_run(f"git apply --reject thorium_webui.patch")
 try_run(f"git apply --reject win_updater.patch")
 try_run(f"git apply --reject keyboard_shortcuts.patch")

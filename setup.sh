@@ -120,12 +120,13 @@ patchThor () {
 	# The following patch could not be fixed upstream because it
 	# is related to our custom flags
 	cp -v other/fix_disable_aero_crash.patch ${CR_SRC_DIR}/ &&
+	cp -v other/allow_manifest_v2_extensions.patch ${CR_SRC_DIR}/ &&
 
 	printf "\n" &&
 	printf "${YEL}Patching FFMPEG for HEVC...${c0}\n" &&
 	cd ${CR_SRC_DIR}/third_party/ffmpeg &&
 	git apply --reject ./add-hevc-ffmpeg-decoder-parser.patch &&
-  printf "${YEL}libavcodec header patch for HEVC...${c0}\n" &&
+    printf "${YEL}libavcodec header patch for HEVC...${c0}\n" &&
 	git apply --reject ./change-libavcodec-header.patch &&
 
 	printf "\n" &&
@@ -164,6 +165,8 @@ patchThor () {
 	cd ${CR_SRC_DIR} &&
 	printf "${YEL}Open in same tab patch...${c0}\n" &&
 	git apply --reject ./open_in_same_tab.patch &&
+	printf "${YEL}Allow Manifest V2 extensions...${c0}\n" &&
+	git apply --reject ./allow_manifest_v2_extensions.patch &&
 	printf "${YEL}Thorium WebUI patch...${c0}\n" &&
 	git apply --reject ./thorium_webui.patch &&
 	printf "${YEL}Thorium Updater patch...${c0}\n" &&
