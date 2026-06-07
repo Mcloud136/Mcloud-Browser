@@ -945,7 +945,7 @@ index c64bf4442f7a4..020a57b60f09f 100644
    // Reading list is moved lower when Split View is enabled.
    if (tab_strip->delegate()->SupportsReadLater() &&
 diff --git a/chrome/browser/ui/tabs/tab_strip_model.cc b/chrome/browser/ui/tabs/tab_strip_model.cc
-index 02afdf4b9400e..6dfce55350d61 100644
+index 02afdf4b9400e..bdfd8fabcf17b 100644
 --- a/chrome/browser/ui/tabs/tab_strip_model.cc
 +++ b/chrome/browser/ui/tabs/tab_strip_model.cc
 @@ -2403,6 +2403,7 @@ bool TabStripModel::IsContextMenuCommandEnabled(
@@ -962,8 +962,8 @@ index 02afdf4b9400e..6dfce55350d61 100644
    switch (command_id) {
 +    case CommandNewTabToLeft: {
 +      base::RecordAction(UserMetricsAction("TabContextMenu_NewTab"));
-+      UMA_HISTOGRAM_ENUMERATION("Tab.NewTab", NewTabTypes::NEW_TAB_CONTEXT_MENU,
-+                                NewTabTypes::NEW_TAB_ENUM_COUNT);
++      UMA_HISTOGRAM_ENUMERATION("Tab.NewTab", NewTabTypes::kNewTabContextMenu,
++                                NewTabTypes::kNewTabEnumCount);
 +      delegate()->AddTabAt(GURL(), context_index, true,
 +                           GetTabGroupForTab(context_index));
 +      break;
@@ -1239,10 +1239,18 @@ index 8b8e698b44b5c..cfabfe1c1babb 100644
    return *lab_info_;
  }
 diff --git a/chrome/browser/ui/ui_features.cc b/chrome/browser/ui/ui_features.cc
-index de7e697679654..d50b8847967e7 100644
+index de7e697679654..11734286a2b9d 100644
 --- a/chrome/browser/ui/ui_features.cc
 +++ b/chrome/browser/ui/ui_features.cc
-@@ -731,6 +731,10 @@ static std::string GetCountryCode() {
+@@ -4,6 +4,7 @@
+ 
+ #include "chrome/browser/ui/ui_features.h"
+ 
++#include "base/command_line.h"
+ #include "base/feature_list.h"
+ #include "base/metrics/field_trial_params.h"
+ #include "base/time/time.h"
+@@ -731,6 +732,10 @@ static std::string GetCountryCode() {
  }
  
  bool HasTabSearchToolbarButton() {
@@ -1618,7 +1626,7 @@ index 799e936e155d2..84550fdbf212f 100644
 +  return (!features::IsThorium2024() && delegate_->IsTabStripVisible()) ? 0 : kExtraTopBorder;
  }
 diff --git a/chrome/browser/ui/views/frame/browser_frame_view_win.cc b/chrome/browser/ui/views/frame/browser_frame_view_win.cc
-index 5aab1198c30ea..f56e82474be10 100644
+index 5aab1198c30ea..f4349d1b2faa0 100644
 --- a/chrome/browser/ui/views/frame/browser_frame_view_win.cc
 +++ b/chrome/browser/ui/views/frame/browser_frame_view_win.cc
 @@ -353,6 +353,10 @@ BrowserFrameViewWin::GetCaptionButtonBounds() const {
@@ -1653,7 +1661,7 @@ index 5aab1198c30ea..f56e82474be10 100644
      }
  
      // There is no top border in tablet mode when the window is "restored"
-@@ -665,8 +672,25 @@ int BrowserFrameViewWin::TopAreaHeight(bool restored) const {
+@@ -665,8 +672,27 @@ int BrowserFrameViewWin::TopAreaHeight(bool restored) const {
      return top;
    }
  
@@ -1669,19 +1677,21 @@ index 5aab1198c30ea..f56e82474be10 100644
 +    return top;
 +  }
 +
-+  // Besides the frame border, there's empty space atop the window in restored
-+  // mode, to use to drag the window around.
++  // // Besides the frame border, there's empty space atop the window in restored
++  // // mode, to use to drag the window around.
++  // constexpr int kNonClientRestoredExtraThickness = 8;
++  // int thickness = kNonClientRestoredExtraThickness;
++  // if (EverHasVisibleBackgroundTabShapes() && features::IsThorium2024()) {
++  //   thickness =
++  //       std::max(thickness, BrowserNonClientFrameView::kMinimumDragHeight);
++  // }
++  // return top + thickness;
 +  constexpr int kNonClientRestoredExtraThickness = 8;
-+  int thickness = kNonClientRestoredExtraThickness;
-+  if (EverHasVisibleBackgroundTabShapes() && features::IsThorium2024()) {
-+    thickness =
-+        std::max(thickness, BrowserNonClientFrameView::kMinimumDragHeight);
-+  }
-+  return top + thickness;
++  return top + kNonClientRestoredExtraThickness;
  }
  
  int BrowserFrameViewWin::TitlebarMaximizedVisualHeight() const {
-@@ -925,16 +949,30 @@ void BrowserFrameViewWin::LayoutCaptionButtons() {
+@@ -925,16 +951,30 @@ void BrowserFrameViewWin::LayoutCaptionButtons() {
  
    const gfx::Size preferred_size =
        caption_button_container_->GetPreferredSize();
@@ -1775,7 +1785,7 @@ index cc260e01903f2..af15f0840f694 100644
  
  void OpaqueBrowserFrameView::UpdateThrobber(bool running) {
 diff --git a/chrome/browser/ui/views/frame/opaque_browser_frame_view_layout.cc b/chrome/browser/ui/views/frame/opaque_browser_frame_view_layout.cc
-index 58e5783a8f208..ddb44cd39b490 100644
+index 58e5783a8f208..0f00c13c9cf2d 100644
 --- a/chrome/browser/ui/views/frame/opaque_browser_frame_view_layout.cc
 +++ b/chrome/browser/ui/views/frame/opaque_browser_frame_view_layout.cc
 @@ -93,7 +93,7 @@ gfx::Rect OpaqueBrowserFrameViewLayout::GetBoundsForTabStripRegion(
@@ -1817,7 +1827,7 @@ index 58e5783a8f208..ddb44cd39b490 100644
  }
  
  int OpaqueBrowserFrameViewLayout::CaptionButtonY(views::FrameButton button_id,
-@@ -240,6 +254,22 @@ int OpaqueBrowserFrameViewLayout::GetWindowCaptionSpacing(
+@@ -240,6 +254,24 @@ int OpaqueBrowserFrameViewLayout::GetWindowCaptionSpacing(
    return 0;
  }
  
@@ -1826,15 +1836,17 @@ index 58e5783a8f208..ddb44cd39b490 100644
 +  if (!features::IsThorium2024()) {
 +    return 0;
 +  }
-+  // Besides the frame border, there's empty space atop the window in restored
-+  // mode, to use to drag the window around.
++  // // Besides the frame border, there's empty space atop the window in restored
++  // // mode, to use to drag the window around.
++  // constexpr int kNonClientRestoredExtraThickness = 8;
++  // int thickness = kNonClientRestoredExtraThickness;
++  // if (delegate_->EverHasVisibleBackgroundTabShapes()) {
++  //   thickness =
++  //       std::max(thickness, BrowserNonClientFrameView::kMinimumDragHeight);
++  // }
++  // return thickness;
 +  constexpr int kNonClientRestoredExtraThickness = 8;
-+  int thickness = kNonClientRestoredExtraThickness;
-+  if (delegate_->EverHasVisibleBackgroundTabShapes()) {
-+    thickness =
-+        std::max(thickness, BrowserNonClientFrameView::kMinimumDragHeight);
-+  }
-+  return thickness;
++  return kNonClientRestoredExtraThickness;
 +}
 +
  void OpaqueBrowserFrameViewLayout::SetWindowControlsOverlayEnabled(
@@ -2147,7 +2159,7 @@ index b654e14eba5b0..2a529ea11b73e 100644
        NOTREACHED();
    }
 diff --git a/chrome/browser/ui/views/location_bar/location_bar_view.cc b/chrome/browser/ui/views/location_bar/location_bar_view.cc
-index 951608e4b3bdd..c888ed06f89e1 100644
+index 951608e4b3bdd..1996230c26edb 100644
 --- a/chrome/browser/ui/views/location_bar/location_bar_view.cc
 +++ b/chrome/browser/ui/views/location_bar/location_bar_view.cc
 @@ -207,9 +207,11 @@ int IncrementalMinimumWidth(const views::View* view) {
@@ -2186,8 +2198,8 @@ index 951608e4b3bdd..c888ed06f89e1 100644
 +            CHECK(v);
 +            // Show focus ring when the Omnibox is visibly focused and the popup
 +            // is closed.
-+            return v->omnibox_view_->model()->is_caret_visible() &&
-+                   !v->GetOmniboxPopupView()->IsOpen();
++            return v->GetOmniboxController()->edit_model()->is_caret_visible() &&
++                   !v->GetOmniboxController()->IsPopupOpen();
 +          }));
 +      views::FocusRing::Get(this)->SetOutsetFocusRingDisabled(true);
 +    }
@@ -2362,7 +2374,7 @@ index 951608e4b3bdd..c888ed06f89e1 100644
    const double opacity = hover_animation_.GetCurrentValue();
    const bool is_caret_visible =
        GetOmniboxController()->edit_model()->is_caret_visible();
-+  const bool is_open = GetOmniboxPopupView()->IsOpen();
++  const bool is_open = GetOmniboxController()->IsPopupOpen();
    const bool input_in_progress =
        GetOmniboxController()->edit_model()->user_input_in_progress();
    const bool high_contrast = GetNativeTheme()->preferred_contrast() ==
@@ -2740,7 +2752,7 @@ index 080d056b46f7c..a2a585c9a67b8 100644
          GetColorProvider()->GetColor(kColorSidePanelHoverResizeAreaHandle);
      SetBackground(CreateRoundedRectBackground(resize_handle_color, 2));
 diff --git a/chrome/browser/ui/views/tab_search_bubble_host.h b/chrome/browser/ui/views/tab_search_bubble_host.h
-index 0e9197fbe516c..f14f789ea60ba 100644
+index 0e9197fbe516c..b3c15a42e6d4a 100644
 --- a/chrome/browser/ui/views/tab_search_bubble_host.h
 +++ b/chrome/browser/ui/views/tab_search_bubble_host.h
 @@ -36,6 +36,8 @@ class TabSearchBubbleHost : public views::WidgetObserver,
@@ -2748,7 +2760,7 @@ index 0e9197fbe516c..f14f789ea60ba 100644
    TabSearchBubbleHost(views::Button* button,
                        BrowserWindowInterface* browser_window_interface);
 +  // Legacy codepath for Th24 caption button
-++ //TabSearchBubbleHost(views::Button* button, Profile* profile);
++  //TabSearchBubbleHost(views::Button* button, Profile* profile);
    TabSearchBubbleHost(const TabSearchBubbleHost&) = delete;
    TabSearchBubbleHost& operator=(const TabSearchBubbleHost&) = delete;
    ~TabSearchBubbleHost() override;
@@ -3797,7 +3809,7 @@ index 9307de3ae9ccd..72a6e787360b5 100644
        return SystemTheme::kDefault;
    }
 diff --git a/ui/views/controls/button/toggle_button.cc b/ui/views/controls/button/toggle_button.cc
-index 0354600a1dd83..aa97c9d706c08 100644
+index 0354600a1dd83..f0b44ed187645 100644
 --- a/ui/views/controls/button/toggle_button.cc
 +++ b/ui/views/controls/button/toggle_button.cc
 @@ -18,6 +18,7 @@
@@ -3995,16 +4007,14 @@ index 0354600a1dd83..aa97c9d706c08 100644
      UpdateThumb();
    }
  }
-@@ -458,12 +490,44 @@ void ToggleButton::UpdateAccessibleCheckedState() {
+@@ -458,12 +490,42 @@ void ToggleButton::UpdateAccessibleCheckedState() {
  }
  
  SkPath ToggleButton::GetFocusRingPath() const {
 +  if (features::IsThorium2024()) {
 +    const gfx::Point center = GetThumbBounds().CenterPoint();
 +    constexpr int kFocusRingRadius = 16;
-+    SkPath path;
-+    path.addCircle(center.x(), center.y(), kFocusRingRadius);
-+    return path;
++    return SkPath::Circle(center.x(), center.y(), kFocusRingRadius);
 +  }
 +
    gfx::RectF bounds(GetTrackBounds());
@@ -4040,7 +4050,7 @@ index 0354600a1dd83..aa97c9d706c08 100644
  void ToggleButton::PaintButtonContents(gfx::Canvas* canvas) {
    // Paint the toggle track. To look sharp even at fractional scale factors,
    // round up to pixel boundaries.
-@@ -480,7 +544,7 @@ void ToggleButton::PaintButtonContents(gfx::Canvas* canvas) {
+@@ -480,7 +542,7 @@ void ToggleButton::PaintButtonContents(gfx::Canvas* canvas) {
    track_flags.setColor(color_utils::AlphaBlend(
        GetTrackColor(true), GetTrackColor(false), color_ratio));
    canvas->DrawRoundRect(track_rect, radius, track_flags);
@@ -4049,7 +4059,7 @@ index 0354600a1dd83..aa97c9d706c08 100644
      track_rect.Inset(kBorderStrokeWidth * dsf / 2.0f);
      track_flags.setColor(
          GetColorProvider()->GetColor(ui::kColorToggleButtonShadow));
-@@ -492,7 +556,8 @@ void ToggleButton::PaintButtonContents(gfx::Canvas* canvas) {
+@@ -492,7 +554,8 @@ void ToggleButton::PaintButtonContents(gfx::Canvas* canvas) {
  }
  
  void ToggleButton::AnimationEnded(const gfx::Animation* animation) {
@@ -4549,7 +4559,7 @@ index 5f6f425d199b8..fecdcf06f18cc 100644
    std::vector<ui::ImageModel> icons_;
  
 diff --git a/ui/views/layout/layout_provider.cc b/ui/views/layout/layout_provider.cc
-index d424bec1e9773..7545d71c465aa 100644
+index d424bec1e9773..b6bcc20e0e5d3 100644
 --- a/ui/views/layout/layout_provider.cc
 +++ b/ui/views/layout/layout_provider.cc
 @@ -8,6 +8,7 @@
@@ -4622,7 +4632,7 @@ index d424bec1e9773..7545d71c465aa 100644
 +        return 4.0f; // 2.0f normally, should be 4.0f in Th24
 +      case ShapeContextTokens::kSidePanelContentRadius:
 +        return 16; // 8
-+      case ShapeContextTokens::kSidePanelPageContentRadius:
++      case ShapeContextTokens::kContentSeparatorRadius:
 +        return 8;
 +      default:
 +        return 0;
