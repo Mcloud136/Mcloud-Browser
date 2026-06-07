@@ -35,7 +35,7 @@ index 1c2656814106a..5c317a30a7bee 100644
              Open Link in New &amp;Window
            </message>
 diff --git a/chrome/browser/renderer_context_menu/render_view_context_menu.cc b/chrome/browser/renderer_context_menu/render_view_context_menu.cc
-index 2ae51b7a08eeb..22c7cce6157f3 100644
+index 2ae51b7a08eeb..cef3dae946682 100644
 --- a/chrome/browser/renderer_context_menu/render_view_context_menu.cc
 +++ b/chrome/browser/renderer_context_menu/render_view_context_menu.cc
 @@ -560,13 +560,14 @@ const std::map<int, int>& GetIdcToUmaMap(UmaEnumIdLookupType type) {
@@ -106,7 +106,7 @@ index 2ae51b7a08eeb..22c7cce6157f3 100644
 +    case IDC_CONTENT_CONTEXT_OPENLINKSAMETAB: {
 +      WindowOpenDisposition new_tab_disposition =
 +          WindowOpenDisposition::CURRENT_TAB;
-+      Browser* browser = nullptr;
++      BrowserWindowInterface* browser = nullptr;
 +      if (IsInProgressiveWebApp()) {
 +        browser = FindNormalBrowser(GetProfile());
 +        new_tab_disposition = browser
