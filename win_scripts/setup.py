@@ -118,6 +118,7 @@ for source in thorium_sources:
         os.path.normpath(os.path.join(cr_src_dir, relative_path)),
     )
 
+# gz83: Perhaps it could be integrated into BUILD.gn?
 copy_directory(
     os.path.normpath(os.path.join(thor_src_dir, "thorium_shell")),
     os.path.normpath(os.path.join(cr_src_dir, "out", "thorium")),
@@ -159,6 +160,7 @@ patches = [
     # "other/fix_touch_emulator_double_tap_zoom.patch",
     # "other/fix_setting_popover_invoker_crash.patch",
     "other/allow_manifest_v2_extensions.patch",
+    "other/fix_deb_dependency_generation.patch",
 ]
 for patch in patches:
     relative_path = patch.replace("other/", "", 1)
@@ -244,7 +246,7 @@ try_run(f"git apply --reject disable-privacy-sandbox.patch")
 # try_run(f"git apply --reject fix_touch_emulator_double_tap_zoom.patch")
 
 
-print("\nApplying performance and crash fixes patches...\n")
+print("\nApplying deb dependency generation and crash fixes patches...\n")
 # Change directory to cr_src_dir and run commands
 os.chdir(cr_src_dir)
 # try_run(f"git apply --reject fix_absl_undefined_symbol.patch")
@@ -254,6 +256,7 @@ os.chdir(cr_src_dir)
 # try_run(f"git apply --reject fix_getupdatesprocessor_crash.patch")
 try_run(f"git apply --reject fix_dangling_pointer_tooltip.patch")
 try_run(f"git apply --reject fix_disable_aero_crash.patch")
+try_run(f"git apply --reject fix_deb_dependency_generation.patch")
 # try_run(f"git apply --reject fix_file_dialog_crash.patch")
 # try_run(f"git apply --reject fix_wayland_scale_crash.patch")
 # try_run(f"git apply --reject fix_setting_popover_invoker_crash.patch")

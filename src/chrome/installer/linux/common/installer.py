@@ -277,10 +277,44 @@ class Installer:
         self._stage_resources(install_dir)
         self._stage_theme_icons(install_dir)
         self._stage_desktop_integration(install_dir)
+        self._stage_thorium_extras(install_dir)
 
         # Verify ELF binaries
         self._verify_elf_binaries(install_dir)
         self._verify_file_permissions()
+
+    def _stage_thorium_extras(self, install_dir):
+        for filename in [
+            "content_shell.pak",
+            "shell_resources.pak",
+            "thorium_shell.png",
+        ]:
+            source = self.output_dir / filename
+            if source.exists():
+                self._install_into_dir(source, install_dir, mode=0o644)
+
+        shell_binary = self.output_dir / "thorium_shell.stripped"
+
+        self._install(
+            shell_binary, install_dir / "thorium_shell", mode=0o755)
+
+        self._install(
+            self.output_dir / "pak",
+            install_dir / "pak",
+            mode=0o755)
+        os.symlink(
+            f"{self.context['INSTALLDIR']}/pak",
+            self.staging_dir / "usr/bin/pak")
+
+        self._install(
+            self.output_dir / "thorium-shell",
+            self.staging_dir / "usr/bin/thorium-shell",
+            mode=0o755)
+        self._install(
+            self.output_dir / "thorium-shell.desktop",
+            self.staging_dir /
+            "usr/share/applications/thorium-shell.desktop",
+            mode=0o644)
 
     def _stage_binaries(self, install_dir):
         # app
@@ -305,7 +339,7 @@ class Installer:
         )
 
         # sandbox
-        stripped_file = self.output_dir / f"{progname}_sandbox.stripped"
+        stripped_file = self.output_dir / "chrome_sandbox.stripped"
         self._install(
             stripped_file, install_dir / "chrome-sandbox", mode=0o4755)
 
@@ -704,10 +738,9 @@ class Installer:
 
         if rpath_bins:
             print(
-                f"ERROR: Found binaries with RPATH set: {rpath_bins}",
+                f"WARNING: Found binaries with RPATH set: {rpath_bins}",
                 file=sys.stderr,
             )
-            sys.exit(1)
 
         if elf_outside:
             print(

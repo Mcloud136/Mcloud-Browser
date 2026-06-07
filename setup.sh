@@ -85,6 +85,7 @@ cp -r -v src/tools ${CR_SRC_DIR}/ &&
 cp -r -v src/ui ${CR_SRC_DIR}/ &&
 cp -r -v src/v8 ${CR_SRC_DIR}/ &&
 
+# gz83: Perhaps it could be integrated into BUILD.gn?
 cp -r -v thorium_shell/. ${CR_SRC_DIR}/out/thorium/ &&
 cp -r -v pak_src/binaries/pak ${CR_SRC_DIR}/out/thorium/ &&
 cp -r -v pak_src/binaries/pak-win/. ${CR_SRC_DIR}/out/thorium/ &&
@@ -121,6 +122,7 @@ patchThor () {
 	# is related to our custom flags
 	cp -v other/fix_disable_aero_crash.patch ${CR_SRC_DIR}/ &&
 	cp -v other/allow_manifest_v2_extensions.patch ${CR_SRC_DIR}/ &&
+	cp -v other/fix_deb_dependency_generation.patch ${CR_SRC_DIR}/ &&
 
 	printf "\n" &&
 	printf "${YEL}Patching FFMPEG for HEVC...${c0}\n" &&
@@ -183,7 +185,9 @@ patchThor () {
 	# git apply --reject ./fix_profile_selector_crash.patch &&
 	# git apply --reject ./fix_getupdatesprocessor_crash.patch &&
 	git apply --reject ./fix_dangling_pointer_tooltip.patch &&
-	git apply --reject ./fix_disable_aero_crash.patch
+	git apply --reject ./fix_disable_aero_crash.patch &&
+	printf "${YEL}Fix deb dependency generation...${c0}\n" &&
+	git apply --reject ./fix_deb_dependency_generation.patch
 	# git apply --reject ./fix_file_dialog_crash.patch &&
 	# git apply --reject ./fix_wayland_scale_crash.patch &&
 	# git apply --reject ./fix_setting_popover_invoker_crash.patch &&
@@ -257,6 +261,7 @@ copyRaspi () {
 	cp -r -v arm/raspi/* ${CR_SRC_DIR}/ &&
 	cp -v arm/thorium_version.txt ${CR_SRC_DIR}/ui/webui/resources/text/ &&
 	cp -v other/thor_ver_linux/wrapper-raspi ${CR_SRC_DIR}/chrome/installer/linux/common/wrapper &&
+	# gz83: Perhaps it could be integrated into BUILD.gn?
 	cp -v pak_src/binaries/pak_arm64 ${CR_SRC_DIR}/out/thorium/pak &&
 	#./infra/fix_libaom.sh &&
 	printf "\n" &&
