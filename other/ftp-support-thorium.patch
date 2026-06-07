@@ -63,7 +63,7 @@ index 28f7378145794..78412ef0ff7b2 100644
      {"crostini-container-install",
       flag_descriptions::kCrostiniContainerInstallName,
 diff --git a/chrome/browser/flag_descriptions.h b/chrome/browser/flag_descriptions.h
-index abaf675761011..de0d2367cdd1b 100644
+index acccfc7de32cf..cde6d97fe5f7e 100644
 --- a/chrome/browser/flag_descriptions.h
 +++ b/chrome/browser/flag_descriptions.h
 @@ -673,6 +673,13 @@ inline constexpr char kEnableDrDcDescription[] =
@@ -519,7 +519,7 @@ index a2421e94b4465..10539e9ee4a0a 100644
  
  <div id="parentDirLinkBox" style="display:none">
 diff --git a/net/base/net_error_list.h b/net/base/net_error_list.h
-index 1a3e871240bbc..0d6bf9d1658b8 100644
+index 1a3e871240bbc..0c237584c4aa5 100644
 --- a/net/base/net_error_list.h
 +++ b/net/base/net_error_list.h
 @@ -18,7 +18,7 @@
@@ -531,6 +531,17 @@ index 1a3e871240bbc..0d6bf9d1658b8 100644
  //   700-799 Certificate manager errors
  //   800-899 DNS resolver errors
  //   900-999 Blob errors
+@@ -665,8 +665,8 @@ NET_ERROR(NETWORK_IO_SUSPENDED, -331)
+ // NET_ERROR(SYN_REPLY_NOT_RECEIVED, -332)
+ 
+ // Obsolete. These were both used for FTP, which is no longer supported.
+-// NET_ERROR(ENCODING_CONVERSION_FAILED, -333)
+-// NET_ERROR(UNRECOGNIZED_FTP_DIRECTORY_LISTING_FORMAT, -334)
++NET_ERROR(ENCODING_CONVERSION_FAILED, -333)
++NET_ERROR(UNRECOGNIZED_FTP_DIRECTORY_LISTING_FORMAT, -334)
+ 
+ // Obsolete. Was only logged in NetLog when an HTTP/2 pushed stream expired.
+ // NET_ERROR(INVALID_SPDY_STREAM, -335)
 @@ -965,14 +965,36 @@ NET_ERROR(HTTPENGINE_PROVIDER_IN_USE, -508)
  // )
  // LINT.IfChange
@@ -5313,7 +5324,7 @@ index 0000000000000..46c9d172d6784
 +}  // namespace net
 diff --git a/net/ftp/ftp_ctrl_response_buffer.cc b/net/ftp/ftp_ctrl_response_buffer.cc
 new file mode 100644
-index 0000000000000..cffead11a1493
+index 0000000000000..fee68f1b19ce2
 --- /dev/null
 +++ b/net/ftp/ftp_ctrl_response_buffer.cc
 @@ -0,0 +1,159 @@
@@ -5440,7 +5451,7 @@ index 0000000000000..cffead11a1493
 +  ParsedLine result;
 +
 +  if (line.length() >= 3) {
-+    if (ParseInt32(base::MakeStringPiece(line.begin(), line.begin() + 3),
++    if (ParseInt32(std::string_view(line).substr(0, 3),
 +                   ParseIntFormat::NON_NEGATIVE, &result.status_code)) {
 +      result.has_status_code =
 +          (100 <= result.status_code && result.status_code <= 599);
@@ -7727,10 +7738,10 @@ index 0000000000000..d33c149e876ae
 +#endif  // NET_FTP_FTP_NETWORK_SESSION_H_
 diff --git a/net/ftp/ftp_network_transaction.cc b/net/ftp/ftp_network_transaction.cc
 new file mode 100644
-index 0000000000000..68d01e8af5e38
+index 0000000000000..6dc9fd6086515
 --- /dev/null
 +++ b/net/ftp/ftp_network_transaction.cc
-@@ -0,0 +1,1298 @@
+@@ -0,0 +1,1300 @@
 +// Copyright (c) 2012 The Chromium Authors
 +// Use of this source code is governed by a BSD-style license that can be
 +// found in the LICENSE file.
@@ -8415,10 +8426,12 @@ index 0000000000000..68d01e8af5e38
 +  // TODO(https://crbug.com/1123197): Pass a non-null NetworkQualityEstimator.
 +  NetworkQualityEstimator* network_quality_estimator = nullptr;
 +
-+  DCHECK(resolve_request_ && resolve_request_->GetAddressResults());
++  DCHECK(resolve_request_);
++  DCHECK(!resolve_request_->GetAddressResults().empty());
++
 +  ctrl_socket_ = socket_factory_->CreateTransportClientSocket(
-+      AddressList(*resolve_request_->GetAddressResults()), nullptr,
-+      network_quality_estimator, net_log_.net_log(), net_log_.source());
++    resolve_request_->GetAddressResults(), nullptr,
++    network_quality_estimator, net_log_.net_log(), net_log_.source());
 +  net_log_.AddEventReferencingSource(NetLogEventType::FTP_CONTROL_CONNECTION,
 +                                     ctrl_socket_->NetLog().source());
 +  return ctrl_socket_->Connect(io_callback_);
@@ -11292,10 +11305,10 @@ index 0000000000000..9c482681e62dd
 +#endif  // NET_FTP_FTP_TRANSACTION_FACTORY_H_
 diff --git a/net/ftp/ftp_util.cc b/net/ftp/ftp_util.cc
 new file mode 100644
-index 0000000000000..1574047372ff7
+index 0000000000000..e6deba973b010
 --- /dev/null
 +++ b/net/ftp/ftp_util.cc
-@@ -0,0 +1,378 @@
+@@ -0,0 +1,377 @@
 +// Copyright (c) 2011 The Chromium Authors
 +// Use of this source code is governed by a BSD-style license that can be
 +// found in the LICENSE file.
@@ -11562,14 +11575,13 @@ index 0000000000000..1574047372ff7
 +    if (colon_pos > 2)
 +      return false;
 +
-+    if (!base::StringToInt(
-+            base::MakeStringPiece16(rest.begin(), rest.begin() + colon_pos),
-+            &time_exploded.hour)) {
++    std::u16string_view rest_view(rest);
++    if (!base::StringToInt(rest_view.substr(0, colon_pos),
++                           &time_exploded.hour)) {
 +      return false;
 +    }
-+    if (!base::StringToInt(
-+            base::MakeStringPiece16(rest.begin() + colon_pos + 1, rest.end()),
-+            &time_exploded.minute)) {
++    if (!base::StringToInt(rest_view.substr(colon_pos + 1),
++                           &time_exploded.minute)) {
 +      return false;
 +    }
 +
@@ -12028,7 +12040,7 @@ index 09dbb7e675656..902f87448a7e1 100644
    // Disallow any other URL scheme.
 diff --git a/net/url_request/ftp_protocol_handler.cc b/net/url_request/ftp_protocol_handler.cc
 new file mode 100644
-index 0000000000000..e2496a795c8a8
+index 0000000000000..c6e6c58851774
 --- /dev/null
 +++ b/net/url_request/ftp_protocol_handler.cc
 @@ -0,0 +1,58 @@
@@ -12073,7 +12085,7 @@ index 0000000000000..e2496a795c8a8
 +  DCHECK_EQ("ftp", request->url().scheme());
 +
 +  if (!IsPortAllowedForScheme(request->url().EffectiveIntPort(),
-+                              request->url().scheme_piece())) {
++                              request->url().scheme())) {
 +    return std::make_unique<URLRequestErrorJob>(request, ERR_UNSAFE_PORT);
 +  }
 +
@@ -12378,7 +12390,7 @@ index 0000000000000..40c57b35aa3f6
 +}
 diff --git a/net/url_request/url_request_ftp_job.cc b/net/url_request/url_request_ftp_job.cc
 new file mode 100644
-index 0000000000000..5d0f6991a1249
+index 0000000000000..ba989bd3ae344
 --- /dev/null
 +++ b/net/url_request/url_request_ftp_job.cc
 @@ -0,0 +1,324 @@
@@ -12487,7 +12499,7 @@ index 0000000000000..5d0f6991a1249
 +        request_->url(), "GET", NetworkAnonymizationKey(), &proxy_info_,
 +        base::BindOnce(&URLRequestFtpJob::OnResolveProxyComplete,
 +                       base::Unretained(this)),
-+        &proxy_resolve_request_, request_->net_log());
++        &proxy_resolve_request_, request_->net_log(), request_->priority());
 +
 +    if (rv == ERR_IO_PENDING)
 +      return;
@@ -13907,7 +13919,7 @@ index c24a3f46ff715..1d1ffddbe01f7 100644
      "subresource_integrity_test.cc",
 diff --git a/third_party/blink/renderer/platform/loader/ftp_directory_listing.cc b/third_party/blink/renderer/platform/loader/ftp_directory_listing.cc
 new file mode 100644
-index 0000000000000..91a37a204817c
+index 0000000000000..73d3eddbd8c0d
 --- /dev/null
 +++ b/third_party/blink/renderer/platform/loader/ftp_directory_listing.cc
 @@ -0,0 +1,111 @@
@@ -14010,8 +14022,8 @@ index 0000000000000..91a37a204817c
 +
 +    bool is_directory =
 +        (entry.type == net::FtpDirectoryListingEntry::DIRECTORY);
-+    int64_t size =
-+        entry.type == net::FtpDirectoryListingEntry::FILE ? entry.size : 0;
++    base::ByteCount size(
++        entry.type == net::FtpDirectoryListingEntry::FILE ? entry.size : 0);
 +    std::string entry_string = net::GetDirectoryListingEntry(
 +        entry.name, entry.raw_name, is_directory, size, entry.last_modified);
 +    output->Append(
