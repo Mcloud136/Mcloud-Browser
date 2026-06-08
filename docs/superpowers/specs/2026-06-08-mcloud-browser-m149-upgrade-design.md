@@ -4,13 +4,16 @@
 > 目标：将 Thorium 从 Chromium 144.0.7559.254 升级到 Chromium 149.0.7827.53
 > 平台：Windows x64
 > 仓库：Mcloud-Browser (GitHub)
-> SIMD：AVX2
+> SIMD 策略：SSE3 基准 + AVX2 运行时分发（所有 SSE3+ CPU 均可运行，AVX2 CPU 自动获得额外性能）
 
 ---
 
 ## 1. 项目概述
 
-MCloud Browser 基于 Thorium 项目（Chromium fork），使用 AVX2 指令集优化性能。
+MCloud Browser 基于 Thorium 项目（Chromium fork），通过运行时 SIMD 分发机制赋予浏览器使用 AVX2 指令集的能力来优化性能。
+
+**核心设计理念**：不是将整个浏览器编译为只在 AVX2 CPU 上运行的二进制文件，而是在关键代码路径上实现运行时 CPU 特性检测，当检测到 AVX2 支持时自动切换到 AVX2 优化的代码路径。这样保证了最大兼容性（SSE3+ CPU 均可运行），同时让 AVX2 CPU 获得显著的性能提升。
+
 当前版本基于 Chromium M144 LTS，需要升级到最新 Stable（M149）以获得：
 - 最新的安全补丁和 Web 标准支持
 - 更新的 V8/JavaScript 引擎（Maglev、TurboFan 优化）
@@ -64,14 +67,18 @@ gclient runhooks
 ### 3.3 关键 GN 参数（M149 适配后）
 
 ```gn
-# SIMD 优化
+# SIMD 编译基准：SSE3（保证兼容性，不编译为纯 AVX2 二进制）
 use_sse3 = true
 use_sse41 = true
 use_sse42 = true
-use_avx = true
-use_avx2 = true          # 从 false 改为 true
+use_avx = false          # 编译基准保持 SSE3
+use_avx2 = false         # 不全局编译为 AVX2，而是运行时分发
 use_avx512 = false
 use_fma = false
+
+# 运行时 AVX2 分发：通过以下参数启用各模块的 AVX2 代码路径
+v8_enable_wasm_simd256_revec = true   # V8 WASM SIMD256（运行时检测）
+rtc_enable_avx2 = true               # WebRTC AVX2（运行时检测）
 
 # 构建类型
 target_os = "win"
@@ -136,35 +143,104 @@ enable_rlz = true
 chrome_pgo_phase = 2
 ```
 
-## 4. 阶段二：AVX2/SIMD 编译器优化
+## 4. 阶段二：AVX2 运行时 SIMD 分发优化
 
-### 4.1 编译器标志
+### 4.1 设计理念
 
-基于 Chromium 源码中的 Opus AVX2 配置模式，Windows 上使用 MSVC/Clang 的 AVX2 标志：
+**编译基准**：SSE3（保证 2005+ CPU 兼容性）
+**运行时优化**：AVX2 代码路径通过 CPUID 检测自动启用
 
-- Clang: `-mavx2 -mfma -mavx`
-- MSVC: `/arch:AVX2`
+这意味着浏览器的二进制文件同时包含 SSE3 和 AVX2 两套代码路径，运行时根据 CPU 能力动态选择。
 
-Thorium 的优化方式是通过修改 `build/config/compiler/BUILD.gn` 注入额外的 CFLAGS/LDFLAGS：
+### 4.2 关键优化模块
 
+| 模块 | 优化方式 | 运行时检测机制 |
+|------|---------|---------------|
+| **V8 JavaScript 引擎** | TurboFan/Maglev JIT 编译器中启用 AVX2 指令生成 | V8 内置 `cpu_features` 模块 |
+| **FFmpeg 视频解码** | 多套解码内核（SSE3/AVX2），运行时选择 | Chromium 的 `CPUDetect` + FFmpeg 的 `cpuflags` |
+| **Skia 渲染引擎** | 图形光栅化、图像缩放、模糊等操作的 AVX2 加速路径 | Skia 的 `CPUDetect` |
+| **Opus 音频解码** | CELT/Silk 的 AVX2 优化路径（已有上游支持） | CMake `OPUS_X86_MAY_HAVE_AVX2` |
+| **libjpeg-turbo** | JPEG 解码/缩放的 AVX2 加速 | `cpu_disp.c` 运行时分发 |
+| **libpng** | PNG 解码的 AVX2 优化 | Intel IPP 或自定义 SIMD 路径 |
+| **WebAssembly SIMD** | `v8_enable_wasm_simd256_revec = true` 启用 WASM SIMD256 | V8 运行时检测 |
+| **Blink 布局引擎** | CSS 布局计算、选择器匹配的 SIMD 优化 | Chromium `base/cpu.h` |
+
+### 4.3 实现策略
+
+#### V8 引擎层
 ```gn
-# 在 build/config/compiler/BUILD.gn 中添加
-cflags += [ "/arch:AVX2" ]  # Windows MSVC
-# 或
-cflags += [ "-mavx2", "-mfma", "-mavx" ]  # Clang
+# 启用 V8 的运行时 SIMD 分发
+v8_enable_wasm_simd256_revec = true   # WASM SIMD256 向量化
+v8_enable_maglev = true               # Maglev JIT（内部使用 SIMD）
+v8_enable_turbofan = true             # TurboFan JIT（内部使用 SIMD）
+v8_enable_builtins_optimization = true # 内建函数优化
 ```
 
-### 4.2 LTO/PGO 配置
+V8 内部通过 `src/base/cpu.h` 检测 CPU 特性，在 JIT 编译时选择最优指令集。
 
-- ThinLTO：M149 默认支持，验证 `thin_lto_enable_optimizations` 仍有效
-- PGO：更新 `pgo_data_path` 指向 M149 的 profile 文件
-- ICF（Identical Code Folding）：`use_icf = true`
+#### FFmpeg 层
+FFmpeg trunk 版本已内置多套解码器内核：
+- `libavcodec/x86/h264dsp_init.c` — H.264 去块滤波的 AVX2 路径
+- `libavcodec/x86/hevc*` — HEVC 解码的 AVX2 路径
+- `libavcodec/x86/vp9*` — VP9 解码的 AVX2 路径
+- `libavcodec/x86/av1*` — AV1 解码的 AVX2 路径
 
-### 4.3 V8 SIMD 优化
+FFmpeg 在初始化时通过 `av_get_cpu_flags()` 检测 CPU 能力，自动选择最快的代码路径。
 
-- `v8_enable_wasm_simd256_revec = true`：启用 WebAssembly SIMD256 向量化
-- `v8_enable_maglev = true`：Maglev 中间层 JIT 编译器
-- `v8_enable_builtins_optimization = true`：V8 内建函数优化
+#### Skia 渲染层
+Skia 通过 `src/core/SkCpu.cpp` 检测 CPU 特性，在以下操作中使用 AVX2：
+- 图像缩放（`SkSampler`）
+- 模糊效果（`SkGaussianBlur`）
+- 颜色空间转换
+- 矩阵运算
+
+#### Opus 音频层
+Chromium 的 Opus 库已有完整的 AVX2 支持（来自 Context7 文档）：
+- `OPUS_X86_MAY_HAVE_AVX2`：编译 AVX2 代码路径
+- `OPUS_X86_PRESUME_AVX2`：如果目标平台确定支持 AVX2
+- 运行时通过 `OPUS_X86_CPUID` 检测，选择最优路径
+
+### 4.4 编译配置
+
+```gn
+# 基准编译目标：SSE3（兼容性）
+# 不设置 /arch:AVX2，保证基线兼容
+
+# 启用各模块的 AVX2 运行时代码路径编译
+v8_enable_wasm_simd256_revec = true
+rtc_enable_avx2 = true               # WebRTC AVX2 优化
+
+# LTO + PGO 用于全局优化（不改变 SIMD 兼容性）
+use_thin_lto = true
+thin_lto_enable_optimizations = true
+use_text_section_splitting =true
+```
+
+### 4.5 CPU 特性检测链路
+
+```
+浏览器启动
+  └─ Chromium base::CPU::Detect()
+       ├─ CPUID 指令检测
+       ├─ 检查 AVX2 位 (EBX bit 5)
+       ├─ 检查 OSXSAVE + XSAVE 支持
+       └─ 设置 internal::g_cpu_features
+            ├─ V8::InitializeOncePerProcess() → 选择 JIT 策略
+            ├─ av_get_cpu_flags() → FFmpeg 选择解码器内核
+            ├─ SkCpu::Detect() → Skia 选择渲染路径
+            └─ opus_select_arch() → Opus 选择音频处理路径
+```
+
+### 4.6 性能预期
+
+| 场景 | SSE3 基准 | AVX2 加速 | 提升幅度 |
+|------|----------|----------|---------|
+| JavaScript 执行 | 基准 | +15-25% | V8 JIT 优化 |
+| 视频解码（4K HEVC） | 基准 | +30-50% | FFmpeg AVX2 内核 |
+| 图形渲染 | 基准 | +10-20% | Skia SIMD 路径 |
+| 音频处理 | 基准 | +10-15% | Opus AVX2 路径 |
+| 图片解码 | 基准 | +15-25% | libjpeg-turbo AVX2 |
+| WASM 应用 | 基准 | +20-40% | SIMD256 向量化 |
 
 ## 5. 阶段三：媒体编解码器
 
@@ -292,10 +368,11 @@ Bilibili 使用的技术栈：
 
 优化方案：
 1. **MSE 缓冲策略**：针对 Bilibili 的 DASH 流优化 buffer 大小和预加载时机
-2. **弹幕渲染性能**：优化 Canvas 2D 和 WebGL 的合成路径，确保弹幕不掉帧
-3. **HEVC 硬解优先**：对 Bilibili 的 HEVC 流优先走 D3D11VA 硬解路径
+2. **弹幕渲染性能**：优化 Canvas 2D 和 WebGL 的合成路径，利用 Skia AVX2 路径加速弹幕渲染，确保高密度弹幕不掉帧
+3. **HEVC 硬解优先**：对 Bilibili 的 HEVC 流优先走 D3D11VA 硬解路径，软解时自动使用 FFmpeg AVX2 解码内核
 4. **内存管理**：Bilibili 长视频场景下的内存占用优化
 5. **页面加载**：优化 Bilibili 首页和视频页的资源加载优先级
+6. **弹幕解码**：利用 AVX2 加速弹幕 JSON/XML 解析和文本渲染
 
 通过 Chromium command line flags 实现：
 ```cpp
@@ -316,21 +393,22 @@ Bilibili 使用的技术栈：
 
 ### 9.1 工作流设计
 
+由于采用 SSE3 基准 + AVX2 运行时分发的策略，只需要一个构建配置（而非多个 SIMD 矩阵）。
+AVX2 优化代码路径在编译时就已包含在二进制文件中，运行时自动选择。
+
 ```yaml
 name: MCloud Browser Build
 
 on:
   push:
     branches: [main, M149]
+    tags: ['v*']
   pull_request:
     branches: [main]
 
 jobs:
   build:
     runs-on: windows-latest
-    strategy:
-      matrix:
-        simd: [sse3, avx, avx2]
     steps:
       - uses: actions/checkout@v6
 
@@ -338,48 +416,46 @@ jobs:
         uses: actions/cache@v4
         with:
           path: depot_tools
-          key: depot-tools-${{ runner.os }}
+          key: depot-tools-${{ runner.os }}-${{ hashFiles('**/version.sh') }}
+          restore-keys: depot-tools-${{ runner.os }}-
 
       - name: Setup depot_tools
         run: |
           git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git
           echo "$PWD/depot_tools" >> $GITHUB_PATH
 
-      - name: Fetch Chromium
+      - name: Fetch Chromium M149
         run: |
           fetch --nohooks chromium
           cd src && git checkout tags/149.0.7827.53
-          gclient sync --with_branch_heads --with_tags --force --reset
+          gclient sync --with_branch_heads --with_tags --force --reset --nohooks
+          gclient runhooks
 
-      - name: Apply Thorium patches
-        run: python win_scripts/setup.py --${{ matrix.simd }}
+      - name: Apply MCloud Browser patches
+        run: python win_scripts/setup.py
 
-      - name: Build
+      - name: Build (SSE3 baseline + AVX2 runtime dispatch)
         run: |
-          gn gen out/thorium --args="$(cat win_args_${{ matrix.simd }}.gn)"
-          autoninja -C out/thorium chrome
+          gn gen out/mcloud --args="$(cat win_args.gn)"
+          autoninja -C out/mcloud chrome
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: mcloud-browser-${{ matrix.simd }}
-          path: out/thorium/mini_installer.exe
+          name: mcloud-browser-win64
+          path: out/mcloud/mini_installer.exe
 ```
 
-### 9.2 构建矩阵
+### 9.2 构建产物
 
-| SIMD | 文件名后缀 | 目标 CPU |
-|------|-----------|---------|
-| SSE3 | `-sse3` | 2005+ CPU |
-| AVX | `-avx` | 2011+ CPU |
-| AVX2 | `-avx2` | 2016+ CPU |
+由于采用运行时 SIMD 分发，只需要一个构建配置：
 
-### 9.3 发布流程
+| 产物 | 说明 |
+|------|------|
+| `MCloud-Browser-win64-installer.exe` | 标准安装包（SSE3 基准，AVX2 运行时加速） |
+| `MCloud-Browser-win64-portable.zip` | 便携版 |
 
-当 tag 推送时自动触发 Release：
-- 构建三个 SIMD 版本
-- 生成 installer 和 portable 版本
-- 创建 GitHub Release 并上传产物
+AVX2 CPU 用户无需下载特殊版本，标准版本已内置 AVX2 优化路径。
 
 ## 10. 风险与缓解
 
@@ -392,15 +468,24 @@ jobs:
 | PGO profile 过期 | 更新到 M149 的最新 profile |
 | GitHub Actions 超时 | 使用 self-hosted runner 或优化缓存策略 |
 
-## 11. 成功标准
+### 9.3 发布流程
 
-1. M149 Windows x64 AVX2 构建成功
-2. 所有现有 Thorium 功能正常工作
-3. HEVC/AC3/Dolby Vision 编解码器正常
-4. Widevine DRM 正常
-5. FTP 协议支持正常
-6. 经典 UI/下载栏正常
-7. 隐私增强功能正常
-8. Bilibili 视频播放流畅，弹幕不掉帧
-9. GitHub Actions CI 自动构建成功
-10. 构建产物可在 Windows 10/11 上正常安装运行
+当 tag 推送（如 `v149.0.0`）时自动触发 Release：
+- 构建 installer 和 portable 版本
+- 自动创建 GitHub Release 并上传产物
+- Release notes 自动生成（包含版本号、变更日志、下载链接）
+
+## 10. 成功标准
+
+1. M149 Windows x64 构建成功（SSE3 基准）
+2. AVX2 运行时分发正常工作（在 AVX2 CPU 上自动启用优化路径）
+3. 所有现有 Thorium 功能正常工作
+4. HEVC/AC3/Dolby Vision 编解码器正常
+5. Widevine DRM 正常
+6. FTP 协议支持正常
+7. 经典 UI/下载栏正常
+8. 隐私增强功能正常
+9. Bilibili 视频播放流畅，弹幕不掉帧
+10. GitHub Actions CI 自动构建成功
+11. 构建产物可在 SSE3+ 的 Windows 10/11 上正常安装运行
+12. 在 AVX2 CPU 上可观察到明显的性能提升
