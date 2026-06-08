@@ -1,7 +1,7 @@
-# Explainer for Thorium releases
+# Explainer for Mcloud Browser releases
 
 This document was created to explain __SSE__ and __AVX__, and to guide users on which 
-version of Thorium is appropriate to download for their machine.
+version of Mcloud Browser is appropriate to download for their machine.
 
 Many users have been confused and posted issues across my repos on what option they should choose when downloading a release. 
 AVX what? SSE huh? What's the difference? Why does one work on my machine but the other doesn't?
@@ -12,7 +12,7 @@ AVX what? SSE huh? What's the difference? Why does one work on my machine but th
 Many of these increase performance because they are Single Instruction, Multiple Data ([SIMD](https://en.wikipedia.org/wiki/Single_instruction,_multiple_data)) instructions. 
 The first was called MMX (Multi-Media EXtensions). Then came SSE, SSE2, SSE3, SSE4.1, SSE4.2, AVX, AVX2, and AVX-512, in that order.
 
-More info on SIMD and how the optimizations work in Thorium can be found on the site > https://thorium.rocks/optimizations
+More info on SIMD and how the optimizations work in Mcloud Browser can be found on the site > https://mcloud.rocks/optimizations
 
 However, they have to be built in (compiled in) to a program, and they are backwards, but not forwards compatible. Furthermore, your CPU *must* support a given SIMD 
 level or else the browser will crash.
@@ -53,6 +53,6 @@ If you want to find out for sure what your CPU supports, you can use:
 
 Windows > [CPU-Z](https://www.cpuid.com/softwares/cpu-z.html)
 
-Linux > Use [my script](https://github.com/Alex313031/thorium/blob/main/check_simd.sh) from the repo.
+Linux > Use [my script](https://github.com/Alex313031/mcloud/blob/main/check_simd.sh) from the repo.
 
 MacOS > Not necessary, all current x64 Macs support AVX2, and all current ARM Macs (M series), support the `armv8.1+crypto optimizations I use. Unless you're running a hackintosh, in which case your CPU needs to be Haswell or later.

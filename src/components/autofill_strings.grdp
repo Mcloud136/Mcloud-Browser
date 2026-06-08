@@ -18,40 +18,40 @@
   </message>
   <if expr="_google_chrome">
     <message name="IDS_AUTOFILL_DELETE_AUTOCOMPLETE_SUGGESTION_CONFIRMATION_BODY" desc="Text in a dialog to confirm that the user wants to delete an autocomplete form history suggestion.">
-      Remove form suggestion from Thorium?
+      Remove form suggestion from Mcloud Browser?
     </message>
     <message name="IDS_AUTOFILL_DELETE_CREDIT_CARD_SUGGESTION_CONFIRMATION_BODY" desc="Text in a dialog to confirm that the user wants to delete a credit card from Autofill.">
-      Remove credit card from Thorium?
+      Remove credit card from Mcloud Browser?
     </message>
     <message name="IDS_AUTOFILL_DELETE_PROFILE_SUGGESTION_CONFIRMATION_BODY" desc="Text in a dialog to confirm that the user wants to delete an address from Autofill.">
-      Remove address from Thorium?
+      Remove address from Mcloud Browser?
     </message>
   </if>
   <if expr="not _google_chrome">
     <message name="IDS_AUTOFILL_DELETE_AUTOCOMPLETE_SUGGESTION_CONFIRMATION_BODY" desc="Text in a dialog to confirm that the user wants to delete an autocomplete form history suggestion.">
-      Remove form suggestion from Thorium?
+      Remove form suggestion from Mcloud Browser?
     </message>
     <message name="IDS_AUTOFILL_DELETE_CREDIT_CARD_SUGGESTION_CONFIRMATION_BODY" desc="Text in a dialog to confirm that the user wants to delete a credit card from Autofill.">
-      Remove credit card from Thorium?
+      Remove credit card from Mcloud Browser?
     </message>
     <message name="IDS_AUTOFILL_DELETE_PROFILE_SUGGESTION_CONFIRMATION_BODY" desc="Text in a dialog to confirm that the user wants to delete an address from Autofill.">
-      Remove address from Thorium?
+      Remove address from Mcloud Browser?
     </message>
   </if>
   <message name="IDS_AUTOFILL_REMOVE_HOME_PROFILE_SUGGESTION_CONFIRMATION_TITLE" desc="Title in a dialog to confirm that the user wants to delete their Home address from Autofill." formatter_data="android_java">
-    Remove home address from Thorium autofill?
+    Remove home address from Mcloud Browser autofill?
   </message>
   <message name="IDS_AUTOFILL_REMOVE_HOME_PROFILE_SUGGESTION_CONFIRMATION_BODY" desc="Text in a dialog to confirm that the user wants to delete their Home address from Autofill." formatter_data="android_java">
     Your home address can help you get things done across Google services, like more relevant Search results and directions in Google Maps. You can edit or delete your address <ph name="BEGIN_LINK">&lt;link&gt;</ph>in your Google Account <ph name="ACCOUNT">$1<ex>alexpark@gmail.com</ex></ph><ph name="END_LINK">&lt;/link&gt;</ph>.
   </message>
   <message name="IDS_AUTOFILL_REMOVE_WORK_PROFILE_SUGGESTION_CONFIRMATION_TITLE" desc="Title in a dialog to confirm that the user wants to delete their Work address from Autofill." formatter_data="android_java">
-    Remove work address from Thorium autofill?
+    Remove work address from Mcloud Browser autofill?
   </message>
   <message name="IDS_AUTOFILL_REMOVE_WORK_PROFILE_SUGGESTION_CONFIRMATION_BODY" desc="Title in a dialog to confirm that the user wants to delete their Work address from Autofill." formatter_data="android_java">
     Your work address can help you get things done across Google services, like more relevant Search results and directions in Google Maps. You can edit or delete your address <ph name="BEGIN_LINK">&lt;link&gt;</ph>in your Google Account <ph name="ACCOUNT">$1<ex>alexpark@gmail.com</ex></ph><ph name="END_LINK">&lt;/link&gt;</ph>.
   </message>
   <message name="IDS_AUTOFILL_REMOVE_ACCOUNT_NAME_AND_EMAIL_PROFILE_SUGGESTION_CONFIRMATION_TITLE" desc="Title in a dialog to confirm that the user wants to delete their account name and email from Autofill." formatter_data="android_java">
-    Remove this info from Thorium autofill?
+    Remove this info from Mcloud Browser autofill?
   </message>
   <message name="IDS_AUTOFILL_REMOVE_ACCOUNT_NAME_AND_EMAIL_PROFILE_SUGGESTION_CONFIRMATION_BODY" desc="Title in a dialog to confirm that the user wants to delete their account name and email address from Autofill." formatter_data="android_java">
     You can edit your name in your <ph name="BEGIN_LINK">&lt;link&gt;</ph>Google Account<ph name="END_LINK">&lt;/link&gt;</ph> <ph name="ACCOUNT">$1<ex>example@gmail.com</ex></ph>
@@ -237,36 +237,36 @@
   </message>
 
   <if expr="not use_titlecase">
-    <message name="IDS_AUTOFILL_MANAGE_ADDRESSES" desc="The text displayed at the bottom of the Autofill popup to allow the user to manage their Autofill preferences for addresses. Imperative. When the user clicks on it, opens the Autofill settings page." meaning="Manage addresses in the user profile that can be used by Thorium Autofill.">
+    <message name="IDS_AUTOFILL_MANAGE_ADDRESSES" desc="The text displayed at the bottom of the Autofill popup to allow the user to manage their Autofill preferences for addresses. Imperative. When the user clicks on it, opens the Autofill settings page." meaning="Manage addresses in the user profile that can be used by Mcloud Browser Autofill.">
       Manage addresses...
     </message>
 
-    <message name="IDS_AUTOFILL_MANAGE_PAYMENT_METHODS" desc="The text displayed at the bottom of the Autofill popup to allow the user to manage their Autofill preferences for payment methods like credit cards/debit cards. Imperative. When the user clicks on it, opens the Autofill settings page." meaning="Manage the payment methods in the user profile that can be used by Thorium Autofill.">
+    <message name="IDS_AUTOFILL_MANAGE_PAYMENT_METHODS" desc="The text displayed at the bottom of the Autofill popup to allow the user to manage their Autofill preferences for payment methods like credit cards/debit cards. Imperative. When the user clicks on it, opens the Autofill settings page." meaning="Manage the payment methods in the user profile that can be used by Mcloud Browser Autofill.">
       Manage payment methods...
     </message>
 
-    <message name="IDS_AUTOFILL_MANAGE_PASSWORDS" desc="The text displayed at the bottom of the Autofill popup to allow the user to manage passwords that can be used by Thorium Autofill. Imperative. When the user clicks on it, opens the Passwords section of the Settings page." meaning="Manage passwords in the user profile that can be used by Thorium Autofill.">
+    <message name="IDS_AUTOFILL_MANAGE_PASSWORDS" desc="The text displayed at the bottom of the Autofill popup to allow the user to manage passwords that can be used by Mcloud Browser Autofill. Imperative. When the user clicks on it, opens the Passwords section of the Settings page." meaning="Manage passwords in the user profile that can be used by Mcloud Browser Autofill.">
       Manage passwords...
     </message>
 
-    <message name="IDS_AUTOFILL_MANAGE_LOYALTY_CARDS" desc="The text displayed at the bottom of the Autofill popup to allow the user to manage loyalty cards that can be used by Thorium Autofill. Imperative. When the user clicks on it, opens the Wallet page." meaning="Manage loyalty cards in the user wallet that can be used by Thorium Autofill.">
+    <message name="IDS_AUTOFILL_MANAGE_LOYALTY_CARDS" desc="The text displayed at the bottom of the Autofill popup to allow the user to manage loyalty cards that can be used by Mcloud Browser Autofill. Imperative. When the user clicks on it, opens the Wallet page." meaning="Manage loyalty cards in the user wallet that can be used by Mcloud Browser Autofill.">
       Manage loyalty cards...
     </message>
   </if>
   <if expr="use_titlecase">
-    <message name="IDS_AUTOFILL_MANAGE_ADDRESSES" desc="In Title Case: The text displayed at the bottom of the Autofill popup to allow the user to manage their Autofill preferences for addresses. Imperative. When the user clicks on it, opens the Autofill settings page." meaning="Manage addresses in the user profile that can be used by Thorium Autofill.">
+    <message name="IDS_AUTOFILL_MANAGE_ADDRESSES" desc="In Title Case: The text displayed at the bottom of the Autofill popup to allow the user to manage their Autofill preferences for addresses. Imperative. When the user clicks on it, opens the Autofill settings page." meaning="Manage addresses in the user profile that can be used by Mcloud Browser Autofill.">
       Manage Addresses...
     </message>
 
-    <message name="IDS_AUTOFILL_MANAGE_PAYMENT_METHODS" desc="In Title Case: The text displayed at the bottom of the Autofill popup to allow the user to manage their Autofill preferences for payment methods like credit cards/debit cards. Imperative. When the user clicks on it, opens the Autofill settings page." meaning="Manage the payment methods in the user profile that can be used by Thorium Autofill.">
+    <message name="IDS_AUTOFILL_MANAGE_PAYMENT_METHODS" desc="In Title Case: The text displayed at the bottom of the Autofill popup to allow the user to manage their Autofill preferences for payment methods like credit cards/debit cards. Imperative. When the user clicks on it, opens the Autofill settings page." meaning="Manage the payment methods in the user profile that can be used by Mcloud Browser Autofill.">
       Manage Payment Methods...
     </message>
 
-    <message name="IDS_AUTOFILL_MANAGE_PASSWORDS" desc="In Title Case: The text displayed at the bottom of the Autofill popup to allow the user to manage passwords that can be used by Thorium Autofill. Imperative. When the user clicks on it, opens the Passwords section of the Settings page." meaning="Manage passwords in the user profile that can be used by Thorium Autofill.">
+    <message name="IDS_AUTOFILL_MANAGE_PASSWORDS" desc="In Title Case: The text displayed at the bottom of the Autofill popup to allow the user to manage passwords that can be used by Mcloud Browser Autofill. Imperative. When the user clicks on it, opens the Passwords section of the Settings page." meaning="Manage passwords in the user profile that can be used by Mcloud Browser Autofill.">
       Manage Passwords...
     </message>
 
-    <message name="IDS_AUTOFILL_MANAGE_LOYALTY_CARDS" desc="In Title Case: The text displayed at the bottom of the Autofill popup to allow the user to manage loyalty cards that can be used by Thorium Autofill. Imperative. When the user clicks on it, opens the Wallet page." meaning="Manage loyalty cards in the user wallet that can be used by Thorium Autofill.">
+    <message name="IDS_AUTOFILL_MANAGE_LOYALTY_CARDS" desc="In Title Case: The text displayed at the bottom of the Autofill popup to allow the user to manage loyalty cards that can be used by Mcloud Browser Autofill. Imperative. When the user clicks on it, opens the Wallet page." meaning="Manage loyalty cards in the user wallet that can be used by Mcloud Browser Autofill.">
       Manage Loyalty Cards...
     </message>
   </if>
@@ -308,7 +308,7 @@
     </message>
   </if>
 
-  <message name="IDS_AUTOFILL_IPH_EXTERNAL_ACCOUNT_PROFILE_SUGGESTION" desc="IPH bubble for a suggestion item with an account profile that was created somewhere outside Thorium (e.g. Google Pay)." formatter_data="android_java">
+  <message name="IDS_AUTOFILL_IPH_EXTERNAL_ACCOUNT_PROFILE_SUGGESTION" desc="IPH bubble for a suggestion item with an account profile that was created somewhere outside Mcloud Browser (e.g. Google Pay)." formatter_data="android_java">
     You can now use addresses from your Google Account
   </message>
   <message name="IDS_AUTOFILL_IPH_HOME_AND_WORK_ACCOUNT_PROFILE_SUGGESTION" desc="IPH bubble for a suggestion item suggesting that home and work account profiles are available to use.">
@@ -404,7 +404,7 @@
   <message name="IDS_AUTOFILL_ADDRESS_WORK_RECORD_TYPE_NOTICE" desc="The footer message used to notify user that their work address won't be modified and a new address will be added to their Google Account.">
     You can use saved addresses across Google products. This won’t change your existing work address. It’ll be saved in your Google Account, <ph name="ACCOUNT">$1<ex>alexpark@gmail.com</ex></ph>.
   </message>
-  <message name="IDS_AUTOFILL_ADDRESS_HOME_AND_WORK_RECORD_TYPE_NOTICE" desc="The footer message used to notify user that their Home/Work address is used to fill forms faster in Thorium." formatter_data="android_java">
+  <message name="IDS_AUTOFILL_ADDRESS_HOME_AND_WORK_RECORD_TYPE_NOTICE" desc="The footer message used to notify user that their Home/Work address is used to fill forms faster in Mcloud Browser." formatter_data="android_java">
     Info from your Google Account <ph name="ACCOUNT">$1<ex>elisa.beckett@gmail.com</ex></ph> can help you fill forms faster in Chrome
   </message>
   <message name="IDS_AUTOFILL_EDIT_ADDRESS_REQUIRED_FIELD_FORM_ERROR" desc="The form error message shown to the user in case of a single required field missing.">
@@ -469,23 +469,23 @@
     <message name="IDS_AUTOFILL_EDIT_ADDRESS_REQUIRED_FIELD_ERROR" desc="Validation error message for missing required address field." formatter_data="android_java">
       Enter <ph name="FIELD">$1<ex>ZIP code</ex></ph>
     </message>
-    <message name="IDS_AUTOFILL_THIRD_PARTY_FILLING_DEFAULT" desc="Title of the option to use the default Thorium autofill experience." formatter_data="android_java">
+    <message name="IDS_AUTOFILL_THIRD_PARTY_FILLING_DEFAULT" desc="Title of the option to use the default Mcloud Browser autofill experience." formatter_data="android_java">
       Autofill with Google
     </message>
-    <message name="IDS_AUTOFILL_THIRD_PARTY_FILLING_OPT_IN" desc="Title of the option to use third-party autofill in Thorium." formatter_data="android_java">
+    <message name="IDS_AUTOFILL_THIRD_PARTY_FILLING_OPT_IN" desc="Title of the option to use third-party autofill in Mcloud Browser." formatter_data="android_java">
       Autofill using another service
     </message>
-    <message name="IDS_AUTOFILL_THIRD_PARTY_FILLING_DEFAULT_DESCRIPTION" desc="Description shown on the option to use the default Thorium autofill experience." formatter_data="android_java">
-      Use Google Password Manager and Thorium Autofill to save and fill passwords, payment methods, and addresses
+    <message name="IDS_AUTOFILL_THIRD_PARTY_FILLING_DEFAULT_DESCRIPTION" desc="Description shown on the option to use the default Mcloud Browser autofill experience." formatter_data="android_java">
+      Use Google Password Manager and Mcloud Browser Autofill to save and fill passwords, payment methods, and addresses
     </message>
-    <message name="IDS_AUTOFILL_THIRD_PARTY_FILLING_OPT_IN_DESCRIPTION" desc="Description shown on the option enabling the use of third-party autofill in Thorium." formatter_data="android_java">
-      To use another autofill service in Thorium, turn it on in Android settings and here
+    <message name="IDS_AUTOFILL_THIRD_PARTY_FILLING_OPT_IN_DESCRIPTION" desc="Description shown on the option enabling the use of third-party autofill in Mcloud Browser." formatter_data="android_java">
+      To use another autofill service in Mcloud Browser, turn it on in Android settings and here
     </message>
-    <message name="IDS_AUTOFILL_THIRD_PARTY_FILLING_DEFAULT_DESCRIPTION_NEW" desc="Description shown on the option to use the default Thorium autofill experience." formatter_data="android_java">
+    <message name="IDS_AUTOFILL_THIRD_PARTY_FILLING_DEFAULT_DESCRIPTION_NEW" desc="Description shown on the option to use the default Mcloud Browser autofill experience." formatter_data="android_java">
       Use info saved in your Google Account to autofill passwords, passkeys, addresses, payment methods, and other info
     </message>
-    <message name="IDS_AUTOFILL_THIRD_PARTY_FILLING_OPT_IN_DESCRIPTION_NEW" desc="Description shown on the option enabling the use of third-party autofill in Thorium." formatter_data="android_java">
-      To use another autofill service in Thorium, choose your autofill provider in Android settings
+    <message name="IDS_AUTOFILL_THIRD_PARTY_FILLING_OPT_IN_DESCRIPTION_NEW" desc="Description shown on the option enabling the use of third-party autofill in Mcloud Browser." formatter_data="android_java">
+      To use another autofill service in Mcloud Browser, choose your autofill provider in Android settings
     </message>
     <message name="IDS_PAYMENT_METHODS_SETTINGS_LOYALTY_CARDS_TITLE" desc="Title for the payment methods settings page row that links the user to the Google Wallet app." formatter_data="android_java">
       Loyalty cards
@@ -570,7 +570,7 @@
     You can use saved addresses across Google products. This address is saved in your Google Account, <ph name="ACCOUNT">$1<ex>alexpark@gmail.com</ex></ph>.
   </message>
   <message name="IDS_AUTOFILL_SYNCABLE_PROFILE_MIGRATION_PROMPT_NOTICE" desc="The syncable profile prompt body text.">
-    This address is currently saved to Thorium. To use it across Google products, save it in your Google Account, <ph name="ACCOUNT">$1<ex>alexpark@gmail.com</ex></ph>.
+    This address is currently saved to Mcloud Browser. To use it across Google products, save it in your Google Account, <ph name="ACCOUNT">$1<ex>alexpark@gmail.com</ex></ph>.
   </message>
   <message name="IDS_AUTOFILL_LOCAL_PROFILE_MIGRATION_PROMPT_NOTICE" desc="The local profile prompt body text.">
     This address is currently saved to this device. To use it across Google products, save it in your Google Account, <ph name="ACCOUNT">$1<ex>alexpark@gmail.com</ex></ph>.
@@ -653,7 +653,7 @@
       You can use saved addresses across Google products. This address will be saved in your Google Account, <ph name="USER_EMAIL">$1<ex>janedoe@google.com</ex></ph>.
     </message>
     <message name="IDS_IOS_AUTOFILL_HOME_WORK_PROFILE_FOOTER" desc="Footer text shown in the settings when home and work profile details are shown">
-      Info from your Google Account <ph name="USER_EMAIL">$1<ex>janedoe@google.com</ex></ph> can help you fill forms faster in Thorium
+      Info from your Google Account <ph name="USER_EMAIL">$1<ex>janedoe@google.com</ex></ph> can help you fill forms faster in Mcloud Browser
     </message>
   </if>
   <!-- Used on Desktop: -->
@@ -679,8 +679,8 @@
     <message name="IDS_AUTOFILL_ADD_NEW_ADDRESS_EDITOR_TITLE" desc="The title of the editor dialog called after the 'Add new address' prompt is accepted.">
       Add address
     </message>
-    <message name="IDS_AUTOFILL_ADD_NEW_ADDRESS_INTO_CHROME_PROMPT_BODY_TEXT" desc="The 'Add new address' bubble body text if the address will be saved in Thorium (locally or syncable among Thoriums on different devices).">
-      You don't have any addresses saved. Add an address to use it in Thorium.
+    <message name="IDS_AUTOFILL_ADD_NEW_ADDRESS_INTO_CHROME_PROMPT_BODY_TEXT" desc="The 'Add new address' bubble body text if the address will be saved in Mcloud Browser (locally or syncable among Mcloud Browsers on different devices).">
+      You don't have any addresses saved. Add an address to use it in Mcloud Browser.
     </message>
     <message name="IDS_AUTOFILL_ADD_NEW_ADDRESS_INTO_ACCOUNT_PROMPT_BODY_TEXT" desc="The 'Add new address' bubble body text if the address will be save in the user's Google account.">
       You don't have any addresses saved. Add an address to use it across Google products.
@@ -727,10 +727,10 @@
     <message name="IDS_AUTOFILL_EXPANDABLE_SUGGESTION_SUBMENU_HINT" desc="Autofill desktop popup: additional screen reader info to let the user know that the suggestion can be expanded into a sub-menu.">
       Submenu available, use <ph name="SHORTCUT">$1<ex>right key</ex></ph> to navigate to additional options.
     </message>
-    <message name="IDS_AUTOFILL_SIGNIN_PROMO_TITLE_PASSWORD" desc="This is the body text of a confirmation message and means that the password was only saved locally to the user's device (not in their Google Account). It appears after a password save if the user is not signed in to Thorium or their sign-in credentials have expired. If the user wants to save this data to their Google Account, they can click the button at the bottom of this message. The tone should be motivating.">
+    <message name="IDS_AUTOFILL_SIGNIN_PROMO_TITLE_PASSWORD" desc="This is the body text of a confirmation message and means that the password was only saved locally to the user's device (not in their Google Account). It appears after a password save if the user is not signed in to Mcloud Browser or their sign-in credentials have expired. If the user wants to save this data to their Google Account, they can click the button at the bottom of this message. The tone should be motivating.">
     Password saved to this device
     </message>
-    <message name="IDS_AUTOFILL_VERIFY_PROMO_SUBTITLE_PASSWORD" desc="This is the body text of a confirmation message and means that the password was only saved locally to the user's device (not in their Google Account). It appears when the user was signed in to Thorium but their sign-in credentials have expired; now, they need to sign back in to Thorium. The string is after the 'Password saved to this device' string. If the user wants to save this data to their Google Account, they can click the 'Verify it's you' button at the bottom of this message. The tone should be motivating.">
+    <message name="IDS_AUTOFILL_VERIFY_PROMO_SUBTITLE_PASSWORD" desc="This is the body text of a confirmation message and means that the password was only saved locally to the user's device (not in their Google Account). It appears when the user was signed in to Mcloud Browser but their sign-in credentials have expired; now, they need to sign back in to Mcloud Browser. The string is after the 'Password saved to this device' string. If the user wants to save this data to their Google Account, they can click the 'Verify it's you' button at the bottom of this message. The tone should be motivating.">
     To get this password on all your devices, verify it's you
     </message>
     <message name="IDS_AUTOFILL_POPUP_SEARCH_BAR_CLEAR_SEARCH_BUTTON_A11Y_NAME" desc="The a11y name for the clear button accompanying the autofill popup search bar input.">
@@ -742,10 +742,10 @@
     <message name="IDS_AUTOFILL_POPUP_SEARCH_BAR_PASSWORDS_NOT_FOUND" desc="On the autofill popup for paswords, the label to be used when no passwords matching user's request were found.">
       No passwords found
     </message>
-    <message name="IDS_AUTOFILL_SIGNIN_PROMO_TITLE_ADDRESS" desc="This is the body text of a confirmation message and means that the address was only saved locally to the user's device (not in their Google Account). It appears after an address save if the user is not signed in to Thorium or their sign-in credentials have expired. If the user wants to save this data to their Google Account, they can click the button at the bottom of this message. The tone should be motivating.">
+    <message name="IDS_AUTOFILL_SIGNIN_PROMO_TITLE_ADDRESS" desc="This is the body text of a confirmation message and means that the address was only saved locally to the user's device (not in their Google Account). It appears after an address save if the user is not signed in to Mcloud Browser or their sign-in credentials have expired. If the user wants to save this data to their Google Account, they can click the button at the bottom of this message. The tone should be motivating.">
     Address saved to this device
     </message>
-    <message name="IDS_AUTOFILL_VERIFY_PROMO_SUBTITLE_ADDRESS" desc="This is the body text of a confirmation message and means that the address was only saved locally to the user's device (not in their Google Account). It appears when the user was signed in to Thorium but their sign-in credentials have expired; now, they need to sign back in to Thorium. The string is after the 'Address saved to this device' string. If the user wants to save this data to their Google Account, they can click the 'Verify it's you' button at the bottom of this message. The tone should be motivating.">
+    <message name="IDS_AUTOFILL_VERIFY_PROMO_SUBTITLE_ADDRESS" desc="This is the body text of a confirmation message and means that the address was only saved locally to the user's device (not in their Google Account). It appears when the user was signed in to Mcloud Browser but their sign-in credentials have expired; now, they need to sign back in to Mcloud Browser. The string is after the 'Address saved to this device' string. If the user wants to save this data to their Google Account, they can click the 'Verify it's you' button at the bottom of this message. The tone should be motivating.">
     To get this address on all your devices, verify it's you
     </message>
     <message name="IDS_AUTOFILL_IPH_LOYALTY_CARD_SUGGESTION_TITLE" desc="IPH toast for a suggestion item with a loyalty card from Google Wallet.">
@@ -806,25 +806,25 @@
   </if>
 
   <!-- Entities -->
-  <message name="IDS_AUTOFILL_AI_DRIVERS_LICENSE_ENTITY_NAME" desc="The label for something that a user can save when submitting a form. For context, a user has been able to save credit cards within Thorium for many users. Now a user can also save a “Passport”.">
+  <message name="IDS_AUTOFILL_AI_DRIVERS_LICENSE_ENTITY_NAME" desc="The label for something that a user can save when submitting a form. For context, a user has been able to save credit cards within Mcloud Browser for many users. Now a user can also save a “Passport”.">
     Driver's license
   </message>
-  <message name="IDS_AUTOFILL_AI_NATIONAL_ID_CARD_ENTITY_NAME" desc="The label for something that a user can save when submitting a form. For context, a user has been able to save credit cards within Thorium for many users. Now a user can also save a “Identity card”. Important: Avoid translations that refer to a single, specific government document. Instead try to find a general term that is inclusive of all identity cards that meet the definition below, including documents issued by foreign governments. DEFINITION OF “NATIONAL IDENTITY CARD”: The definition we use for this feature is: “An identity document that meets the following criteria: 1) Issued by the government 2) Primary purpose is proving a natural person's identity (as opposed to e.g. their residence) 3) Common form of identification that most people keep with them 4) Not a passport or driver’s license.” EXAMPLES: This definition would include https://www.service-public.fr/particuliers/vosdroits/N358?lang=en. It would not include a United States Social Security Number or https://www.bzst.de/EN/Private_individuals/Tax_identification_number/tax_identification_number_node.html.">
+  <message name="IDS_AUTOFILL_AI_NATIONAL_ID_CARD_ENTITY_NAME" desc="The label for something that a user can save when submitting a form. For context, a user has been able to save credit cards within Mcloud Browser for many users. Now a user can also save a “Identity card”. Important: Avoid translations that refer to a single, specific government document. Instead try to find a general term that is inclusive of all identity cards that meet the definition below, including documents issued by foreign governments. DEFINITION OF “NATIONAL IDENTITY CARD”: The definition we use for this feature is: “An identity document that meets the following criteria: 1) Issued by the government 2) Primary purpose is proving a natural person's identity (as opposed to e.g. their residence) 3) Common form of identification that most people keep with them 4) Not a passport or driver’s license.” EXAMPLES: This definition would include https://www.service-public.fr/particuliers/vosdroits/N358?lang=en. It would not include a United States Social Security Number or https://www.bzst.de/EN/Private_individuals/Tax_identification_number/tax_identification_number_node.html.">
     Identity card
   </message>
-  <message name="IDS_AUTOFILL_AI_PASSPORT_ENTITY_NAME" desc="The label for something that a user can save when submitting a form. For context, a user has been able to save credit cards within Thorium for many users. Now a user can also save a “Driver’s license”.">
+  <message name="IDS_AUTOFILL_AI_PASSPORT_ENTITY_NAME" desc="The label for something that a user can save when submitting a form. For context, a user has been able to save credit cards within Mcloud Browser for many users. Now a user can also save a “Driver’s license”.">
     Passport
   </message>
-  <message name="IDS_AUTOFILL_AI_VEHICLE_ENTITY_NAME" desc="The label for something that a user can save when submitting a form. For context, a user has been able to save credit cards within Thorium for many users. Now a user can also save a “Vehicle”.">
+  <message name="IDS_AUTOFILL_AI_VEHICLE_ENTITY_NAME" desc="The label for something that a user can save when submitting a form. For context, a user has been able to save credit cards within Mcloud Browser for many users. Now a user can also save a “Vehicle”.">
     Vehicle
   </message>
-  <message name="IDS_AUTOFILL_AI_KNOWN_TRAVELER_NUMBER_ENTITY_NAME" desc="The label for something that a user can save when submitting a form. For context, a user has been able to save credit cards within Thorium for many users. Now a user can also save a “Known Traveler Number”. This field is designed for Known Traveler Numbers issued by the United States only. For more info, see https://www.tsa.gov/travel/frequently-asked-questions/what-known-traveler-number-ktn.">
+  <message name="IDS_AUTOFILL_AI_KNOWN_TRAVELER_NUMBER_ENTITY_NAME" desc="The label for something that a user can save when submitting a form. For context, a user has been able to save credit cards within Mcloud Browser for many users. Now a user can also save a “Known Traveler Number”. This field is designed for Known Traveler Numbers issued by the United States only. For more info, see https://www.tsa.gov/travel/frequently-asked-questions/what-known-traveler-number-ktn.">
     Known Traveler Number
   </message>
-  <message name="IDS_AUTOFILL_AI_REDRESS_NUMBER_ENTITY_NAME" desc="The label for something that a user can save when submitting a form. For context, a user has been able to save credit cards within Thorium for many users. Now a user can also save a “Redress number”. This field is designed for redress numbers issued by the United States only. For more info, see https://www.dhs.gov/dhs-trip.">
+  <message name="IDS_AUTOFILL_AI_REDRESS_NUMBER_ENTITY_NAME" desc="The label for something that a user can save when submitting a form. For context, a user has been able to save credit cards within Mcloud Browser for many users. Now a user can also save a “Redress number”. This field is designed for redress numbers issued by the United States only. For more info, see https://www.dhs.gov/dhs-trip.">
     Redress number
   </message>
-  <message name="IDS_AUTOFILL_AI_FLIGHT_RESERVATION_ENTITY_NAME" desc="The label for something that a user can autofill when filling a form. For context, a user has been able to fill addresses within Thorium for many users. Now a user can also fill a “Flight reservation”.">
+  <message name="IDS_AUTOFILL_AI_FLIGHT_RESERVATION_ENTITY_NAME" desc="The label for something that a user can autofill when filling a form. For context, a user has been able to fill addresses within Mcloud Browser for many users. Now a user can also fill a “Flight reservation”.">
     Flight
   </message>
 
@@ -849,22 +849,22 @@
   </message>
 
   <!-- Add entity strings -->
-  <message name="IDS_AUTOFILL_AI_ADD_DRIVERS_LICENSE_ENTITY" desc="A title of a dialog within Thorium settings that allows a user to explicitly create a driver’s license. Beneath the title is a form. Instead of the autofill service prompting the user to save values at the moment they submit a form, the user can explicitly add data to the autofill service with this interface. This is similar to adding a Credit card to Thorium.">
+  <message name="IDS_AUTOFILL_AI_ADD_DRIVERS_LICENSE_ENTITY" desc="A title of a dialog within Mcloud Browser settings that allows a user to explicitly create a driver’s license. Beneath the title is a form. Instead of the autofill service prompting the user to save values at the moment they submit a form, the user can explicitly add data to the autofill service with this interface. This is similar to adding a Credit card to Mcloud Browser.">
     Add driver's license
   </message>
-  <message name="IDS_AUTOFILL_AI_ADD_NATIONAL_ID_CARD_ENTITY" desc="A title of a dialog within Thorium settings that allows a user to explicitly create an identity card. Beneath the title is a form. Instead of the autofill service prompting the user to save values at the moment they submit a form, the user can explicitly add data to the autofill service with this interface. This is similar to adding a Credit card to Thorium. Important: Avoid translations that refer to a single, specific government document. Instead try to find a general term that is inclusive of all identity cards that meet the definition below, including documents issued by foreign governments. DEFINITION OF “NATIONAL IDENTITY CARD”: The definition we use for this feature is: “An identity document that meets the following criteria: 1) Issued by the government 2) Primary purpose is proving a natural person's identity (as opposed to e.g. their residence) 3) Common form of identification that most people keep with them 4) Not a passport or driver’s license.” EXAMPLES: This definition would include https://www.service-public.fr/particuliers/vosdroits/N358?lang=en. It would not include a United States Social Security Number or https://www.bzst.de/EN/Private_individuals/Tax_identification_number/tax_identification_number_node.html.">
+  <message name="IDS_AUTOFILL_AI_ADD_NATIONAL_ID_CARD_ENTITY" desc="A title of a dialog within Mcloud Browser settings that allows a user to explicitly create an identity card. Beneath the title is a form. Instead of the autofill service prompting the user to save values at the moment they submit a form, the user can explicitly add data to the autofill service with this interface. This is similar to adding a Credit card to Mcloud Browser. Important: Avoid translations that refer to a single, specific government document. Instead try to find a general term that is inclusive of all identity cards that meet the definition below, including documents issued by foreign governments. DEFINITION OF “NATIONAL IDENTITY CARD”: The definition we use for this feature is: “An identity document that meets the following criteria: 1) Issued by the government 2) Primary purpose is proving a natural person's identity (as opposed to e.g. their residence) 3) Common form of identification that most people keep with them 4) Not a passport or driver’s license.” EXAMPLES: This definition would include https://www.service-public.fr/particuliers/vosdroits/N358?lang=en. It would not include a United States Social Security Number or https://www.bzst.de/EN/Private_individuals/Tax_identification_number/tax_identification_number_node.html.">
     Add identity card
   </message>
-  <message name="IDS_AUTOFILL_AI_ADD_PASSPORT_ENTITY" desc="A title of a dialog within Thorium settings that allows a user to explicitly create a passport. Beneath the title is a form. Instead of the autofill service prompting the user to save values at the moment they submit a form, the user can explicitly add data to the autofill service with this interface. This is similar to adding a Credit card to Thorium.">
+  <message name="IDS_AUTOFILL_AI_ADD_PASSPORT_ENTITY" desc="A title of a dialog within Mcloud Browser settings that allows a user to explicitly create a passport. Beneath the title is a form. Instead of the autofill service prompting the user to save values at the moment they submit a form, the user can explicitly add data to the autofill service with this interface. This is similar to adding a Credit card to Mcloud Browser.">
     Add passport
   </message>
-  <message name="IDS_AUTOFILL_AI_ADD_VEHICLE_ENTITY" desc="A title of a dialog within Thorium settings that allows a user to explicitly create a vehicle. Beneath the title is a form. Instead of the autofill service prompting the user to save values at the moment they submit a form, the user can explicitly add data to the autofill service with this interface. This is similar to adding a Credit card to Thorium.">
+  <message name="IDS_AUTOFILL_AI_ADD_VEHICLE_ENTITY" desc="A title of a dialog within Mcloud Browser settings that allows a user to explicitly create a vehicle. Beneath the title is a form. Instead of the autofill service prompting the user to save values at the moment they submit a form, the user can explicitly add data to the autofill service with this interface. This is similar to adding a Credit card to Mcloud Browser.">
     Add vehicle
   </message>
-  <message name="IDS_AUTOFILL_AI_ADD_KNOWN_TRAVELER_NUMBER_ENTITY" desc="A title of a dialog within settings that allows a user to explicitly create a nown Traveler Number. Beneath the title is a form. Instead of the autofill service prompting the user to save values at the moment they submit a form, the user can explicitly add data to the autofill service with this interface. This is similar to adding a Credit card to Thorium. This is designed for Known Traveler Numbers issued by the United States only. For more info, see https://www.tsa.gov/travel/frequently-asked-questions/what-known-traveler-number-ktn.">
+  <message name="IDS_AUTOFILL_AI_ADD_KNOWN_TRAVELER_NUMBER_ENTITY" desc="A title of a dialog within settings that allows a user to explicitly create a nown Traveler Number. Beneath the title is a form. Instead of the autofill service prompting the user to save values at the moment they submit a form, the user can explicitly add data to the autofill service with this interface. This is similar to adding a Credit card to Mcloud Browser. This is designed for Known Traveler Numbers issued by the United States only. For more info, see https://www.tsa.gov/travel/frequently-asked-questions/what-known-traveler-number-ktn.">
     Add Known Traveler Number
   </message>
-  <message name="IDS_AUTOFILL_AI_ADD_REDRESS_NUMBER_ENTITY" desc="A title of a dialog within settings that allows a user to explicitly create a redress number. Beneath the title is a form. Instead of the autofill service prompting the user to save values at the moment they submit a form, the user can explicitly add data to the autofill service with this interface. This is similar to adding a Credit card to Thorium. Now a user can also save a “Redress number”. This is designed for redress numbers issued by the United States only. For more info, see https://www.dhs.gov/dhs-trip.">
+  <message name="IDS_AUTOFILL_AI_ADD_REDRESS_NUMBER_ENTITY" desc="A title of a dialog within settings that allows a user to explicitly create a redress number. Beneath the title is a form. Instead of the autofill service prompting the user to save values at the moment they submit a form, the user can explicitly add data to the autofill service with this interface. This is similar to adding a Credit card to Mcloud Browser. Now a user can also save a “Redress number”. This is designed for redress numbers issued by the United States only. For more info, see https://www.dhs.gov/dhs-trip.">
     Add redress number
   </message>
 

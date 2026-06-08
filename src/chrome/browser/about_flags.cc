@@ -5317,13 +5317,13 @@ const FeatureEntry::Choice kOmniboxAutofocusOnIncognitoNtpChoices[] = {
 //
 // When adding a new choice, add it to the end of the list.
 // Include Thorium Flags
-#include "chrome/browser/thorium_flag_choices.h"
+#include "chrome/browser/mcloud_flag_choices.h"
 const FeatureEntry kFeatureEntries[] = {
 // Include generated flags for flag unexpiry; see //docs/flag_expiry.md and
 // //tools/flags/generate_unexpire_flags.py.
 #include "build/chromeos_buildflags.h"
 #include "chrome/browser/unexpire_flags_gen.inc"
-#include "chrome/browser/thorium_flag_entries.h"
+#include "chrome/browser/mcloud_flag_entries.h"
     {variations::switches::kEnableBenchmarking,
      flag_descriptions::kEnableBenchmarkingName,
      flag_descriptions::kEnableBenchmarkingDescription, kOsAll,

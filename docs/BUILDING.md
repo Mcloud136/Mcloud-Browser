@@ -1,10 +1,10 @@
-# Checking out and building Thorium on Linux &nbsp;<img src="https://github.com/Alex313031/thorium/blob/main/logos/NEW/build_light.svg#gh-dark-mode-only" width="48"> <img src="https://github.com/Alex313031/thorium/blob/main/logos/NEW/build_dark.svg#gh-light-mode-only" width="48">
+# Checking out and building Mcloud Browser on Linux &nbsp;<img src="https://github.com/Alex313031/mcloud/blob/main/logos/NEW/build_light.svg#gh-dark-mode-only" width="48"> <img src="https://github.com/Alex313031/mcloud/blob/main/logos/NEW/build_dark.svg#gh-light-mode-only" width="48">
 
-There are instructions for other platforms here in the Thorium Docs directory.
-You can also read the [old building instructions](https://github.com/Alex313031/thorium/blob/main/infra/BUILDING.md).
+There are instructions for other platforms here in the Mcloud Browser Docs directory.
+You can also read the [old building instructions](https://github.com/Alex313031/mcloud/blob/main/infra/BUILDING.md).
 
 #### Windows
-For Windows and Windows [AVX2](https://en.wikipedia.org/wiki/Advanced_Vector_Extensions#Advanced_Vector_Extensions_2), I made new dedicated instructions. If you are building on Windows use [BUILDING_WIN.md](https://github.com/Alex313031/thorium/blob/main/docs/BUILDING_WIN.md) and if you are building for Windows on Linux, use [WIN_CROSS_BUILD_INSTRUCTIONS](https://github.com/Alex313031/thorium/blob/main/docs/WIN_CROSS_BUILD_INSTRUCTIONS.txt)
+For Windows and Windows [AVX2](https://en.wikipedia.org/wiki/Advanced_Vector_Extensions#Advanced_Vector_Extensions_2), I made new dedicated instructions. If you are building on Windows use [BUILDING_WIN.md](https://github.com/Alex313031/mcloud/blob/main/docs/BUILDING_WIN.md) and if you are building for Windows on Linux, use [WIN_CROSS_BUILD_INSTRUCTIONS](https://github.com/Alex313031/mcloud/blob/main/docs/WIN_CROSS_BUILD_INSTRUCTIONS.txt)
 
 ## System Requirements
 
@@ -20,7 +20,7 @@ Most development is done on Ubuntu 22.04, Jammy Jellyfish (This is what Chromium
 Ubuntu 16.04/18.04 no longer works. 20.04 and Debian 10/11/12 will work.
 There are some instructions for other distros below, but they are mostly unsupported.
 
-__The scripts to build Thorium assume that depot_tools, thorium and chromium are both in $HOME!__
+__The scripts to build Mcloud Browser assume that depot_tools, mcloud and chromium are both in $HOME!__
 
 ## Install `depot_tools` <a name="depot-tools"></a>
 
@@ -41,12 +41,12 @@ $ export PATH="${HOME}/depot_tools:$PATH" or $ export PATH="/home/alex/depot_too
 
 ## Get the code <a name="get-the-code"></a>
 
-### Thorium Code
+### Mcloud Browser Code
 
-Clone the Thorium repo into *$HOME*
+Clone the Mcloud Browser repo into *$HOME*
 
 ```shell
-$ git clone --recursive https://github.com/Alex313031/thorium.git
+$ git clone --recursive https://github.com/Alex313031/mcloud.git
 ```
 
 ### Chromium Code
@@ -97,7 +97,7 @@ $ ./build/install-build-deps.sh --no-nacl
 ```
 
 You can run it with the flag `--help` to see arguments. For example, you would want `--lib32` if building for 32 bit Linux, `--arm` for building
-a Raspberry Pi release, `--chromeos-fonts` for building Thorium for ThoriumOS, and `--quick-check` just to verify needed libraries are installed.
+a Raspberry Pi release, `--chromeos-fonts` for building Mcloud Browser for Mcloud Browser OS, and `--quick-check` just to verify needed libraries are installed.
 
 You may need to adjust the build dependencies for other distros. There are
 some [notes](#notes) at the end of this document, but we make no guarantees
@@ -115,43 +115,43 @@ $ gclient runhooks
 
 *Optional:* You can also [build with API
 keys](https://www.chromium.org/developers/how-tos/api-keys) if you want your
-build to talk to some Google services like Google Sync, Translate, and GeoLocation.&nbsp;<img src="https://github.com/Alex313031/thorium/blob/main/logos/NEW/Key_Light.svg#gh-dark-mode-only" width="26"> <img src="https://github.com/Alex313031/thorium/blob/main/logos/NEW/Key_Dark.svg#gh-light-mode-only" width="26">&nbsp;Thorium has its own keys in a private repository, if you are a builder or would like access to them, contact me. Otherwise, for personal or development builds, 
+build to talk to some Google services like Google Sync, Translate, and GeoLocation.&nbsp;<img src="https://github.com/Alex313031/mcloud/blob/main/logos/NEW/Key_Light.svg#gh-dark-mode-only" width="26"> <img src="https://github.com/Alex313031/mcloud/blob/main/logos/NEW/Key_Dark.svg#gh-light-mode-only" width="26">&nbsp;Mcloud Browser has its own keys in a private repository, if you are a builder or would like access to them, contact me. Otherwise, for personal or development builds, 
 you can create your own keys and add yourself to [google-browser-signin-testaccounts](https://groups.google.com/u/1/a/chromium.org/g/google-browser-signin-testaccounts)
 to enable Sync.
 
 ## Setting up the build <a name="setup"></a>
 
-First, we need to run `./trunk.sh` (in the root of the Thorium repo.) This will Rebase/Sync the Chromium repo, and revert it to stock Chromium.  
+First, we need to run `./trunk.sh` (in the root of the Mcloud Browser repo.) This will Rebase/Sync the Chromium repo, and revert it to stock Chromium.  
 It will also fetch all the tags/branches, which is needed for the version.sh script.
 It should be used before every separate build. See the [Updating](#updating) section.
 
 __IMPORTANT__
 This will update and sync the sources to the latest revision (tip of tree) and ensure you have all the version tags.
 
-- Then, to check out the current Chromium revision that Thorium is using, run `./version.sh`. At the end it will download the [PGO profiles](https://chromium.googlesource.com/chromium/src.git/+/refs/heads/main/docs/pgo.md) for Chromium for all platforms. The file will be downloaded to *//chromium/src/chrome/build/pgo_profiles/&#42;.profdata* with the actual file name looking something like 'chrome-linux-6167-1706004111-41f78c57fb3a1fe49a5c549b16f0221465339af9.profdata', which should be added to the end of args.gn as per below.
+- Then, to check out the current Chromium revision that Mcloud Browser is using, run `./version.sh`. At the end it will download the [PGO profiles](https://chromium.googlesource.com/chromium/src.git/+/refs/heads/main/docs/pgo.md) for Chromium for all platforms. The file will be downloaded to *//chromium/src/chrome/build/pgo_profiles/&#42;.profdata* with the actual file name looking something like 'chrome-linux-6167-1706004111-41f78c57fb3a1fe49a5c549b16f0221465339af9.profdata', which should be added to the end of args.gn as per below.
 Take note of this, as we will be using it in the `args.gn` below.
 - Then, (from where you cloned this repo) run `./setup.sh`. This will copy all the files and patches to the needed locations.
 - NOTE: To build for MacOS, use `./setup.sh --mac`. To build for Raspberry Pi, use `./setup.sh --raspi`. Use `./setup.sh --help` to see all options/platforms.
 
-Chromium and Thorium use [Ninja](https://ninja-build.org) as their main build tool, along with
+Chromium and Mcloud Browser use [Ninja](https://ninja-build.org) as their main build tool, along with
 a tool called [GN](https://gn.googlesource.com/gn/+/refs/heads/main/README.md)
 to generate `.ninja` files in the build output directory. You can create any number of *build directories*
 with different configurations. Create the build output directory by running:
-- Run `gn args out/thorium` and the contents of '[args.gn](https://github.com/Alex313031/thorium/blob/main/args.gn)' in the root of this repo should be copy/pasted into the editor. Note that for Windows, Mac, ChromiumOS, or Android there are separate &#42;_args.gn files for those platforms. *--Include your api keys here at the top or leave blank, and edit the last line to point to the actual path and file name of '&#42;.profdata'* 
-- For more info about args.gn, read the [ABOUT_GN_ARGS.md](https://github.com/Alex313031/thorium/blob/main/infra/DEBUG/ABOUT_GN_ARGS.md) file.
-- '[infra/args.list](https://github.com/Alex313031/thorium/blob/main/infra/args.list)' contains an alphabetical list with descriptions of all possible build arguments; [gn_args.list](https://github.com/Alex313031/thorium/blob/main/infra/gn_args.list) gives a similar list but with the flags in args.gn added.
+- Run `gn args out/mcloud` and the contents of '[args.gn](https://github.com/Alex313031/mcloud/blob/main/args.gn)' in the root of this repo should be copy/pasted into the editor. Note that for Windows, Mac, ChromiumOS, or Android there are separate &#42;_args.gn files for those platforms. *--Include your api keys here at the top or leave blank, and edit the last line to point to the actual path and file name of '&#42;.profdata'* 
+- For more info about args.gn, read the [ABOUT_GN_ARGS.md](https://github.com/Alex313031/mcloud/blob/main/infra/DEBUG/ABOUT_GN_ARGS.md) file.
+- '[infra/args.list](https://github.com/Alex313031/mcloud/blob/main/infra/args.list)' contains an alphabetical list with descriptions of all possible build arguments; [gn_args.list](https://github.com/Alex313031/mcloud/blob/main/infra/gn_args.list) gives a similar list but with the flags in args.gn added.
 
 You can list all the possible build arguments and pipe it to a text file by running:
 
 ```shell
-$ gn args out/thorium --list >> /path/to/ARGS.list
+$ gn args out/mcloud --list >> /path/to/ARGS.list
 ```
 
 * You only have to run this once for each new build directory, Ninja will
   update the build files as needed.
-* You can replace *thorium* with another name, but
+* You can replace *mcloud* with another name, but
   it should be a subdirectory of *out*. Note that if you choose another name, the `trunk.sh` and `build.sh` scripts will not work.
-* For information on the args.gn that Thorium uses, see [ABOUT_GN_ARGS.md](https://github.com/Alex313031/thorium/blob/main/docs/ABOUT_GN_ARGS.md).  
+* For information on the args.gn that Mcloud Browser uses, see [ABOUT_GN_ARGS.md](https://github.com/Alex313031/mcloud/blob/main/docs/ABOUT_GN_ARGS.md).  
 * For other build arguments, including release settings, see [GN build
   configuration](https://www.chromium.org/developers/gn-build-configuration).
   The default will be a vanilla Chromium debug component build matching the current host
@@ -189,9 +189,9 @@ This is especially useful if you use
 [git-worktree](http://git-scm.com/docs/git-worktree) and keep multiple local
 working directories going at once.
 
-## Build Thorium <a name="build"></a>
+## Build Mcloud Browser <a name="build"></a>
 
-Build Thorium (the "chrome" target), as well as [chrome_sandbox](https://chromium.googlesource.com/chromium/src/+/HEAD/docs/linux/sandboxing.md), [chromedriver](https://chromedriver.chromium.org/home), and [thorium_shell](https://github.com/Alex313031/thorium/tree/main/thorium_shell#readme) (based on [content_shell](https://chromium.googlesource.com/chromium/src/+/HEAD/docs/testing/web_tests_in_content_shell.md#as-a-simple-browser) ), using the `build.sh` script in the root of the Thorium repo (where the # is the number of jobs). Assuming you have an 8 Core system:
+Build Mcloud Browser (the "chrome" target), as well as [chrome_sandbox](https://chromium.googlesource.com/chromium/src/+/HEAD/docs/linux/sandboxing.md), [chromedriver](https://chromedriver.chromium.org/home), and [mcloud_shell](https://github.com/Alex313031/mcloud/tree/main/mcloud_shell#readme) (based on [content_shell](https://chromium.googlesource.com/chromium/src/+/HEAD/docs/testing/web_tests_in_content_shell.md#as-a-simple-browser) ), using the `build.sh` script in the root of the Mcloud Browser repo (where the # is the number of jobs). Assuming you have an 8 Core system:
 
 ```shell
 $ ./build.sh 8
@@ -200,47 +200,47 @@ $ ./build.sh 8
 You could also manually issue the command (where -j is the number of jobs):
 
 ```shell
-$ autoninja -C ~/chromium/src/out/thorium thorium chrome_sandbox chromedriver thorium_shell -j8
+$ autoninja -C ~/chromium/src/out/mcloud mcloud chrome_sandbox chromedriver mcloud_shell -j8
 ```
 
 `autoninja` is a wrapper that automatically provides optimal values for the
-arguments passed to `ninja`. `build.sh` uses a [custom autoninja](https://github.com/Alex313031/thorium/blob/main/depot_tools/autoninja) in the *depot_tools* directory in Thorium.
+arguments passed to `ninja`. `build.sh` uses a [custom autoninja](https://github.com/Alex313031/mcloud/blob/main/depot_tools/autoninja) in the *depot_tools* directory in Mcloud Browser.
 
 You can get a list of all of the other build targets from GN by running `gn ls
-out/thorium` from the command line. To compile one, pass the GN label to Ninja
+out/mcloud` from the command line. To compile one, pass the GN label to Ninja
 with no preceding "//" (so, for `//chrome/test:unit_tests` use `autoninja -C
-out/thorium chrome/test:unit_tests`).
+out/mcloud chrome/test:unit_tests`).
 
-## Run Thorium
+## Run Mcloud Browser
 
 Once it is built, you can simply run the browser:
 
 ```shell
-$ out/thorium/thorium
+$ out/mcloud/mcloud
 ```
-*Note - Copy and run [clean.sh](https://github.com/Alex313031/thorium/blob/main/clean.sh) within this dir to clean up build artifacts.*
+*Note - Copy and run [clean.sh](https://github.com/Alex313031/mcloud/blob/main/clean.sh) within this dir to clean up build artifacts.*
 
-## Installing Thorium
+## Installing Mcloud Browser
 
 Of course, you will probably want to make installation packages. To make .deb and .rpm packages run `package.sh` (where the # is the number of jobs) in the root of the repo:
 
 ```shell
 $ ./package.sh 8
 ```
-To make an appimage, copy the .deb to `//thorium/infra/APPIMAGE/`
-and follow the [Instructions](https://github.com/Alex313031/thorium/blob/main/infra/APPIMAGE/README.md#instructions) therein.
+To make an appimage, copy the .deb to `//mcloud/infra/APPIMAGE/`
+and follow the [Instructions](https://github.com/Alex313031/mcloud/blob/main/infra/APPIMAGE/README.md#instructions) therein.
 
 ### Tests
 
 See the [Debugging](#debugging) section below, as well as
-[Thorium UI Debug Shell](https://github.com/Alex313031/thorium/blob/main/infra/DEBUG/DEBUG_SHELL_README.md).
+[Mcloud Browser UI Debug Shell](https://github.com/Alex313031/mcloud/blob/main/infra/DEBUG/DEBUG_SHELL_README.md).
 
 Learn about [how to use Chromedriver](https://chromedriver.chromium.org/getting-started) and Google Test at its
 [GitHub page](https://github.com/google/googletest).
 
 ## Update your checkout and revert to latest vanilla tip-o-tree Chromium. <a name="updating"></a>
 
-Simply run `trunk.sh` in the root of the Thorium repo or execute the commands inside.
+Simply run `trunk.sh` in the root of the Mcloud Browser repo or execute the commands inside.
 
 ```shell
 $ ./trunk.sh
@@ -271,14 +271,14 @@ $ autoninja -C out/Default unit_tests
 *   Information about [building with Clang](https://chromium.googlesource.com/chromium/src.git/+/refs/heads/main/docs/clang.md).
 *   You may want to [use a chroot](https://chromium.googlesource.com/chromium/src.git/+/refs/heads/main/docs/linux/using_a_chroot.md) to
     isolate yourself from versioning or packaging conflicts.
-*   Cross-compiling for ARM? (Raspberry Pi) See the [Thorium ARM](https://github.com/Alex313031/thorium/tree/main/arm#readme) dir and [chromium_arm.md](https://chromium.googlesource.com/chromium/src.git/+/refs/heads/main/docs/linux/chromium_arm.md).
-*   [Atom](https://thorium.rocks/atom-ng/) and [Geany](https://www.geany.org/) are recommended IDEs for working on Thorium.
+*   Cross-compiling for ARM? (Raspberry Pi) See the [Mcloud Browser ARM](https://github.com/Alex313031/mcloud/tree/main/arm#readme) dir and [chromium_arm.md](https://chromium.googlesource.com/chromium/src.git/+/refs/heads/main/docs/linux/chromium_arm.md).
+*   [Atom](https://mcloud.rocks/atom-ng/) and [Geany](https://www.geany.org/) are recommended IDEs for working on Mcloud Browser.
 
 ### Debugging <a name="debugging"></a>
-*   See the [Thorium DEBUG](https://github.com/Alex313031/thorium/tree/main/infra/DEBUG#readme) dir, including the [More Info](https://github.com/Alex313031/thorium/blob/main/infra/DEBUG/README.md#more-info-) section, and [DEBUGGING.md](https://github.com/Alex313031/thorium/blob/main/infra/DEBUG/DEBUGGING.md).
+*   See the [Mcloud Browser DEBUG](https://github.com/Alex313031/mcloud/tree/main/infra/DEBUG#readme) dir, including the [More Info](https://github.com/Alex313031/mcloud/blob/main/infra/DEBUG/README.md#more-info-) section, and [DEBUGGING.md](https://github.com/Alex313031/mcloud/blob/main/infra/DEBUG/DEBUGGING.md).
 
-If you have problems building, join us in the Thorium IRC Channel at 
-`#thorium` on `irc.libera.chat` and ask there.
+If you have problems building, join us in the Mcloud Browser IRC Channel at 
+`#mcloud` on `irc.libera.chat` and ask there.
 
 ## Notes for other distros <a name="notes"></a>
 
@@ -300,7 +300,7 @@ For the optional packages on Arch Linux:
 *   `wdiff` is not in the main repository but `dwdiff` is. You can get `wdiff`
     in AUR/`yaourt`
 
-### Crostini on ChromiumOS/ThoriumOS (Debian based)
+### Crostini on ChromiumOS/Mcloud Browser OS (Debian based)
 
 First install the `file` and `lsb-release` commands for the script to run properly:
 
@@ -344,6 +344,6 @@ For the optional packages:
 You can install the deps by doing a dry run of `emerge www-client/chromium`.
 
 ---------------------------------
-*Happy Thorium Building!*
+*Happy Mcloud Browser Building!*
 
-<img src="https://github.com/Alex313031/thorium/blob/main/logos/STAGING/Thorium90_504.jpg" width="200">
+<img src="https://github.com/Alex313031/mcloud/blob/main/logos/STAGING/Mcloud Browser90_504.jpg" width="200">

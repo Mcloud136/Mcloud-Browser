@@ -1,6 +1,6 @@
-# Checking out and Building Thorium for Windows &nbsp;<img src="https://github.com/Alex313031/thorium/blob/main/logos/NEW/build_light.svg#gh-dark-mode-only" width="48"> <img src="https://github.com/Alex313031/thorium/blob/main/logos/NEW/build_dark.svg#gh-light-mode-only" width="48">
+# Checking out and Building Mcloud Browser for Windows &nbsp;<img src="https://github.com/Alex313031/mcloud/blob/main/logos/NEW/build_light.svg#gh-dark-mode-only" width="48"> <img src="https://github.com/Alex313031/mcloud/blob/main/logos/NEW/build_dark.svg#gh-light-mode-only" width="48">
 
-There are instructions for other platforms here in the Thorium Docs directory.
+There are instructions for other platforms here in the Mcloud Browser Docs directory.
 
 ## System Requirements
 
@@ -154,26 +154,26 @@ cd src
 ```
 
 *Optional:* You can also [build with API keys](https://www.chromium.org/developers/how-tos/api-keys) if you want your
-build to talk to some Google services like Google Sync, Translate, and GeoLocation.&nbsp;<img src="https://github.com/Alex313031/thorium/blob/main/logos/NEW/Key_Light.svg#gh-dark-mode-only" width="26"> <img src="https://github.com/Alex313031/thorium/blob/main/logos/NEW/Key_Dark.svg#gh-light-mode-only" width="26">&nbsp;Thorium has its own keys in a private repository, if you are a builder or would like access to them, contact me. Otherwise, for personal or development builds, 
+build to talk to some Google services like Google Sync, Translate, and GeoLocation.&nbsp;<img src="https://github.com/Alex313031/mcloud/blob/main/logos/NEW/Key_Light.svg#gh-dark-mode-only" width="26"> <img src="https://github.com/Alex313031/mcloud/blob/main/logos/NEW/Key_Dark.svg#gh-light-mode-only" width="26">&nbsp;Mcloud Browser has its own keys in a private repository, if you are a builder or would like access to them, contact me. Otherwise, for personal or development builds, 
 you can create your own keys and add yourself to [google-browser-signin-testaccounts](https://groups.google.com/u/1/a/chromium.org/g/google-browser-signin-testaccounts)
 to enable Sync.
 
-##  Downloading the Thorium code
+##  Downloading the Mcloud Browser code
 
 Using Git:
 It should be placed in $HOME, i.e. C:\Users\$USERNAME.  
 
 ```shell
-git clone --recursive https://github.com/Alex313031/thorium.git
+git clone --recursive https://github.com/Alex313031/mcloud.git
 ```
 
 ## Setting up the build
 
 To use the build scripts, we need bash on Windows. It is recommended to use Git Bash from [Git for Windows](https://gitforwindows.org/).
-All the following script instructions assume that Chromium is in *C:\src\chromium\src* and that you have changed to the thorium repo in bash.
+All the following script instructions assume that Chromium is in *C:\src\chromium\src* and that you have changed to the mcloud repo in bash.
 
 First, we need to make sure we have all the tags/branches and are on Tip of Tree.
-For this, run (from within the Thorium repo):
+For this, run (from within the Mcloud Browser repo):
 
 ```shell
 ./trunk.sh
@@ -191,7 +191,7 @@ The file for Windows will be downloaded to *C:\src\chromium\src\chrome\build\pgo
 'chrome-win64-6167-1706032279-97e63d82a0938b7701d8cdf028299c39d523a3c6.profdata', which should be added to the end of args.gn as per below.
 Take note of this, as we will be using it in the `args.gn` below.
 
-Lastly, we need to copy the Thorium source files over the Chromium tree.
+Lastly, we need to copy the Mcloud Browser source files over the Chromium tree.
 For this, run:
 
 ```shell
@@ -201,7 +201,7 @@ This will copy all the files and patches to the needed locations.
 - NOTE: To build for AVX2, use `./setup.sh --avx2`. To build SSE3, use `./setup.sh --sse3`. Use `./setup.sh --help` to see all options/platforms.
 
 ### Creating the build directory
-Chromium & Thorium use [Ninja](https://ninja-build.org) as its main build tool along with
+Chromium & Mcloud Browser use [Ninja](https://ninja-build.org) as its main build tool along with
 a tool called [GN](https://gn.googlesource.com/gn/+/main/docs/quick_start.md) to generate `.ninja` files.
 
 NOTE: Instructions from here on out assume you are back in __cmd.exe__ (not Bash), and have changed to the *C:\src\chromium\src* directory.
@@ -209,11 +209,11 @@ NOTE: Instructions from here on out assume you are back in __cmd.exe__ (not Bash
 Create the build output directory by running:
 
 ```shell
-gn args out\thorium
+gn args out\mcloud
 ```
 
 This will open up notepad.exe, and this is where we will specify build arguments ("args") which direct Ninja on how to lay out the build directory tree.
-We will be copy/pasting the contents of the [win_args.gn](https://github.com/Alex313031/thorium/blob/main/win_args.gn) file (from *C:\src\Thorium\win_args.gn*) into notepad.
+We will be copy/pasting the contents of the [win_args.gn](https://github.com/Alex313031/mcloud/blob/main/win_args.gn) file (from *C:\src\Mcloud Browser\win_args.gn*) into notepad.
 Notice the three lines at the top, related to API Keys. It is fine to leave them blank, or add the ones you have made.  
 __At the bottom__, though, notice the line that says *pgo_data_path = ""*. This is where we will put the full path to the PGO profile data file we downloaded earlier.
 
@@ -221,15 +221,15 @@ That line should look something like:
 
 `pgo_data_path = "C:\src\chromium\src\chrome\build\pgo_profiles\chrome-win64-6167-1706032279-97e63d82a0938b7701d8cdf028299c39d523a3c6.profdata"`
 
-* For other build arguments, and what the ones that Thorium uses do, see [ABOUT_GN_ARGS.md](https://github.com/Alex313031/thorium/blob/main/docs/ABOUT_GN_ARGS.md) & [win_args.list](https://github.com/Alex313031/thorium/blob/main/infra/win_args.list)
+* For other build arguments, and what the ones that Mcloud Browser uses do, see [ABOUT_GN_ARGS.md](https://github.com/Alex313031/mcloud/blob/main/docs/ABOUT_GN_ARGS.md) & [win_args.list](https://github.com/Alex313031/mcloud/blob/main/infra/win_args.list)
 * For more info on GN, run `gn help` on the command line or read the [quick start guide](https://gn.googlesource.com/gn/+/main/docs/quick_start.md).
 
-## Build Thorium <a name="build"></a>
+## Build Mcloud Browser <a name="build"></a>
 
-Build Thorium (the "chrome" target), and the other things like [chromedriver](https://chromedriver.chromium.org/home) and [thorium_shell](https://github.com/Alex313031/thorium/tree/main/thorium_shell#readme) with Ninja using the command:
+Build Mcloud Browser (the "chrome" target), and the other things like [chromedriver](https://chromedriver.chromium.org/home) and [mcloud_shell](https://github.com/Alex313031/mcloud/tree/main/mcloud_shell#readme) with Ninja using the command:
 
 ```shell
-autoninja -C out\thorium thorium chromedriver thorium_shell setup mini_installer -j8
+autoninja -C out\mcloud mcloud chromedriver mcloud_shell setup mini_installer -j8
 ```
 (Where -j# can be any number, and should generally be set to the number of cores on your CPU).
 
@@ -237,22 +237,22 @@ autoninja -C out\thorium thorium chromedriver thorium_shell setup mini_installer
 arguments passed to `ninja`.
 
 You can get a list of all of the other build targets from GN by running
-`gn ls out\thorium` from the command line. To compile one, pass to Ninja
+`gn ls out\mcloud` from the command line. To compile one, pass to Ninja
 the GN label with no preceding "//" (so for `//chrome/test:unit_tests`
-use autoninja -C out\thorium chrome/test:unit_tests).
+use autoninja -C out\mcloud chrome/test:unit_tests).
 
-## Install/Run Thorium
+## Install/Run Mcloud Browser
 
 Once it is built, you can simply run the browser:
 
 ```shell
-out\thorium\thorium.exe
+out\mcloud\mcloud.exe
 ```
 
 Or install it using the mini_installer:
 
 ```shell
-out\thorium\mini_installer.exe
+out\mcloud\mini_installer.exe
 ```
 
 ## Update your checkout
@@ -266,22 +266,22 @@ To update an existing Chromium checkout, you should run the `trunk.sh` script ag
 This syncs the subrepositories to the appropriate versions,
 deleting those that are no longer needed, and re-runs the hooks as needed.
 
-To update an existing Thorium checkout, just download the latest .zip, or do a git pull:
+To update an existing Mcloud Browser checkout, just download the latest .zip, or do a git pull:
 
 ```shell
 git pull --recurse-submodules origin main
 ```
 
 ### Debugging <a name="debugging"></a>
-*   See the [Thorium DEBUG](https://github.com/Alex313031/thorium/tree/main/infra/DEBUG#readme) dir, including the [More Info](https://github.com/Alex313031/thorium/blob/main/infra/DEBUG/README.md#more-info-) section, and [DEBUGGING.md](https://github.com/Alex313031/thorium/blob/main/infra/DEBUG/DEBUGGING.md).
+*   See the [Mcloud Browser DEBUG](https://github.com/Alex313031/mcloud/tree/main/infra/DEBUG#readme) dir, including the [More Info](https://github.com/Alex313031/mcloud/blob/main/infra/DEBUG/README.md#more-info-) section, and [DEBUGGING.md](https://github.com/Alex313031/mcloud/blob/main/infra/DEBUG/DEBUGGING.md).
 
-If you have problems building, join us in the Thorium IRC Channel at 
-`#thorium` on `irc.libera.chat` and ask there.
+If you have problems building, join us in the Mcloud Browser IRC Channel at 
+`#mcloud` on `irc.libera.chat` and ask there.
 
 If you suspect that Windows Defender is slowing your build then you can try Microsoft's
 [Performance analyzer for Microsoft Defender Antivirus](https://learn.microsoft.com/en-us/microsoft-365/security/defender-endpoint/tune-performance-defender-antivirus?view=o365-worldwide)
 to investigate in detail.
 
-*Happy Thorium Building!*
+*Happy Mcloud Browser Building!*
 
-<img src="https://github.com/Alex313031/thorium/blob/main/logos/STAGING/Thorium90_504.jpg" width="200">
+<img src="https://github.com/Alex313031/mcloud/blob/main/logos/STAGING/Mcloud Browser90_504.jpg" width="200">

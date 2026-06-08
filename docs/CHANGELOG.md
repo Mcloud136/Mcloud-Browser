@@ -1,3 +1,3 @@
-## Thorium Changelog
+## Mcloud Browser Changelog
 
 M130

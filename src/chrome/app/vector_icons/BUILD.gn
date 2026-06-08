@@ -259,21 +259,21 @@ aggregate_vector_icons("chrome_vector_icons") {
     # go/keep-sorted end
   ]
 
-  if (is_thorium_build) {
+  if (is_mcloud_build) {
     sources += [
-      "thorium/browser_tools_thorium.icon",
-      "thorium/browser_tools_chrome_refresh_thorium.icon",
-      "thorium/chrome_labs_thorium.icon",
-      "thorium/chrome_labs_chrome_refresh_thorium.icon",
-      "thorium/navigate_home_thorium.icon",
-      "thorium/navigate_home_chrome_refresh_thorium.icon",
-      "thorium/science_thorium.icon",
-      "thorium/side_panel_left_thorium.icon",
-      "thorium/side_panel_left_chrome_refresh_thorium.icon",
-      "thorium/side_panel_left_touch_thorium.icon",
-      "thorium/side_panel_thorium.icon",
-      "thorium/side_panel_chrome_refresh_thorium.icon",
-      "thorium/side_panel_touch_thorium.icon",
+      "thorium/browser_tools_mcloud.icon",
+      "thorium/browser_tools_chrome_refresh_mcloud.icon",
+      "thorium/chrome_labs_mcloud.icon",
+      "thorium/chrome_labs_chrome_refresh_mcloud.icon",
+      "thorium/navigate_home_mcloud.icon",
+      "thorium/navigate_home_chrome_refresh_mcloud.icon",
+      "thorium/science_mcloud.icon",
+      "thorium/side_panel_left_mcloud.icon",
+      "thorium/side_panel_left_chrome_refresh_mcloud.icon",
+      "thorium/side_panel_left_touch_mcloud.icon",
+      "thorium/side_panel_mcloud.icon",
+      "thorium/side_panel_chrome_refresh_mcloud.icon",
+      "thorium/side_panel_touch_mcloud.icon",
     ]
   }
 

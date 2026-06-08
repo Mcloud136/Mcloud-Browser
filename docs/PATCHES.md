@@ -1,16 +1,16 @@
-<img src="https://github.com/Alex313031/thorium/blob/main/logos/STAGING/Thorium90_504.jpg" width="200">
+<img src="https://github.com/Alex313031/mcloud/blob/main/logos/STAGING/Mcloud Browser90_504.jpg" width="200">
 
-## List of patches/changes/features included in Thorium <img src="https://raw.githubusercontent.com/Alex313031/thorium/main/logos/NEW/patches.png" width="32">
+## List of patches/changes/features included in Mcloud Browser <img src="https://raw.githubusercontent.com/Alex313031/mcloud/main/logos/NEW/patches.png" width="32">
 
 Compiler modifications include SSE4.2, AVX, AES, and CFLAGS, LTO flags, and import_instr_limit flags set to /03, 3, and 30, respectively. \
 NEW > Added some LLVM LOOP optimizations as -mllvm flags. See here > https://github.com/RobRich999/Chromium_Clang/issues/26#issuecomment-976883814
 
-FTP Support - Thorium is the only current browser that still supports [ftp:// sites](https://github.com/pegvin/w64devkit-extended/blob/13ea4c213e89db20ccd74a32763b31a85052cdb6/.github/workflows/build.yml).
-See [the patch](../patches/ftp-support-thorium.patch) I use. See https://www.vogons.org/viewtopic.php?t=66653 for fun FTP sites.
+FTP Support - Mcloud Browser is the only current browser that still supports [ftp:// sites](https://github.com/pegvin/w64devkit-extended/blob/13ea4c213e89db20ccd74a32763b31a85052cdb6/.github/workflows/build.yml).
+See [the patch](../patches/ftp-support-mcloud.patch) I use. See https://www.vogons.org/viewtopic.php?t=66653 for fun FTP sites.
 
-.desktop files are created for Thorium itself and content-shell (named thorium-shell).
+.desktop files are created for Mcloud Browser itself and content-shell (named mcloud-shell).
 
-There are also additional desktop actions: when right clicking the Thorium launcher it gives three additional desktop actions, one to open thorium-shell, another to open in Safe Mode which disables any flags one has set in chrome://flags until the next launch, and lastly to open in Dark Mode which appends the --force-dark-mode flag.
+There are also additional desktop actions: when right clicking the Mcloud Browser launcher it gives three additional desktop actions, one to open mcloud-shell, another to open in Safe Mode which disables any flags one has set in chrome://flags until the next launch, and lastly to open in Dark Mode which appends the --force-dark-mode flag.
 
 Ink > https://chromium.googlesource.com/chromium/src/third_party/+/c4f7a938fcdc796ad9fead3ab01e0508c129b831/ink NOTE: Disabled for now due to bugs!
   - Implemented with the args.gn flag "enable_ink = true" Adds PDF annotation features present in CrOS.
@@ -45,7 +45,7 @@ Intel HD Support Patch > https://github.com/saiarcot895/chromium-ubuntu-build/bl
 
 Nicer Native Notifications Patch > https://github.com/saiarcot895/chromium-ubuntu-build/blob/master/debian/patches/notifications-nicer
 
-Enable Quiet Notifications Patch > https://github.com/Alex313031/thorium/blob/main/src/chrome/browser/permissions/quiet_notification_permission_ui_state.cc
+Enable Quiet Notifications Patch > https://github.com/Alex313031/mcloud/blob/main/src/chrome/browser/permissions/quiet_notification_permission_ui_state.cc
   - Made by me.
 
 Title Bar Patch > https://github.com/saiarcot895/chromium-ubuntu-build/blob/master/debian/patches/title-bar-default-system.patch-v35
@@ -69,7 +69,7 @@ Enable Do Not Track By Default Patch > https://github.com/GrapheneOS/Vanadium/bl
 Enable Fingerprinting Protection Patch
   - Made by me.
 
-Show full URLs by Default Patch > https://github.com/Alex313031/thorium/blob/74219f27911e133483c3ab85c70ba4360ea98423/src/chrome/browser/ui/toolbar/chrome_location_bar_model_delegate.cc#L292
+Show full URLs by Default Patch > https://github.com/Alex313031/mcloud/blob/74219f27911e133483c3ab85c70ba4360ea98423/src/chrome/browser/ui/toolbar/chrome_location_bar_model_delegate.cc#L292
   - Made by me.
 
 Disable Privacy Sandbox (previously known as FLOC) Patch > https://github.com/ungoogled-software/ungoogled-chromium/blob/master/patches/core/ungoogled-chromium/disable-privacy-sandbox.patch
@@ -124,13 +124,13 @@ Always Show Component Extensions Patch > https://github.com/iridium-browser/irid
 
 Increase default key length for newly-generated RSA keys from 1024 to 2048 Patch > https://github.com/iridium-browser/iridium-browser/commit/d016769081706d591188b5b2929c5fc2efd8ef20
 
-Enable UI Features: Side Search, Side Panel Journeys, Chrome Labs, Extensions Access Menu, Tab Hover Cards, WebUI Tab Strip, Drag and Drop Tabs on Wayland, Tab Groups Saving > https://github.com/Alex313031/thorium/blob/main/chrome/browser/ui/ui_features.cc
+Enable UI Features: Side Search, Side Panel Journeys, Chrome Labs, Extensions Access Menu, Tab Hover Cards, WebUI Tab Strip, Drag and Drop Tabs on Wayland, Tab Groups Saving > https://github.com/Alex313031/mcloud/blob/main/chrome/browser/ui/ui_features.cc
   - Made by me.
 
 Tab Outlines in Low Contrast Themes, More Prominent Active Tab Title in Dark Mode: Restore after they removed it in M113 > 
 https://chromium-review.googlesource.com/c/chromium/src/+/4578380 
 https://chromium-review.googlesource.com/c/chromium/src/+/4578188 
-https://github.com/Alex313031/thorium/commit/17a3074d3f2cd32a05b71cdcb57942d5319845f0
+https://github.com/Alex313031/mcloud/commit/17a3074d3f2cd32a05b71cdcb57942d5319845f0
  - Made by me.
 
 Disable History Expiration Patch > https://github.com/ungoogled-software/ungoogled-chromium/blob/master/patches/extra/ungoogled-chromium/add-flag-to-disable-local-history-expiration.patch
@@ -139,7 +139,7 @@ Disable History Expiration Patch > https://github.com/ungoogled-software/ungoogl
 Toggle Tab Scrolling (for Non-Linux Platforms) Patch > https://github.com/ungoogled-software/ungoogled-chromium/blob/master/patches/extra/ungoogled-chromium/add-flag-to-scroll-tabs.patch
  - Modified by me.
 
-Enable Precompiling of Inline Scripts in HTML - https://github.com/Alex313031/thorium/commit/8d237b76adff2ab4e89147b18ee1d0ab7bb29fb6
+Enable Precompiling of Inline Scripts in HTML - https://github.com/Alex313031/mcloud/commit/8d237b76adff2ab4e89147b18ee1d0ab7bb29fb6
   - Modified by me.
 
 Patch Windows installer to close previous browser instance > https://github.com/Hibbiki/chromium-win64/blob/master/patch/0001-Patch-installer-to-close-previous-browser-instance-o.patch
@@ -150,7 +150,7 @@ Enable Dark Mode flag Patch
   - Made by me.
   
 Enable GTK Auto Dark Mode Patch - https://github.com/qcasey/chromium-patches/blob/main/patches/gtk-dark-mode-switch-fix.patch
-  - Modified by me. > https://github.com/Alex313031/thorium/issues/74#issuecomment-1270435944
+  - Modified by me. > https://github.com/Alex313031/mcloud/issues/74#issuecomment-1270435944
 
 Disable AutoPlay flag Patch
   - Made by me.
@@ -191,8 +191,8 @@ Enable multi-threaded HEVC decoding - https://github.com/RobRich999/Chromium_Cla
 
 Enable AC3 and EAC3 for HEVC Patch - https://github.com/Muril-o/electron-chromium-codecs/tree/main/v29.1.4
   - Modified by midzer and me.
-  - https://github.com/Alex313031/thorium/commit/a2e49dd2fe00e4c6fa882a41e8a1a27f93bedfff AND
-  - https://github.com/Alex313031/thorium/commit/7d0b4f045ce0e16ea9edb05a4dc056a1d4583752#diff-09b3d55a8198fc42186bfd6bf5869fe78b8edad6f67e75b78228446f1d7cf66f
+  - https://github.com/Alex313031/mcloud/commit/a2e49dd2fe00e4c6fa882a41e8a1a27f93bedfff AND
+  - https://github.com/Alex313031/mcloud/commit/7d0b4f045ce0e16ea9edb05a4dc056a1d4583752#diff-09b3d55a8198fc42186bfd6bf5869fe78b8edad6f67e75b78228446f1d7cf66f
 
 Show the Apps button in Bookmarks Bar by Default Patch - Made by me. NOTE: Now only enabled in the legacy builds after M120.
 
@@ -212,13 +212,13 @@ Enable close confirmation flag - https://github.com/ungoogled-software/ungoogled
 Disable window exit on closing last tab flag - https://github.com/ungoogled-software/ungoogled-chromium/blob/master/patches/extra/ungoogled-chromium/add-flag-to-close-window-with-last-tab.patch
   - Modified by me.
 
-Disable Download Bubble Flag > https://github.com/Alex313031/thorium/commit/e2ed50459d9f27e705ba9d3b6ae2106e260b5ac2
+Disable Download Bubble Flag > https://github.com/Alex313031/mcloud/commit/e2ed50459d9f27e705ba9d3b6ae2106e260b5ac2
   - Made by me.
 
-Allow Insecure Downloads > https://github.com/Alex313031/thorium/commit/333a2154d6066b1243a7a02d24001e166fd78002
+Allow Insecure Downloads > https://github.com/Alex313031/mcloud/commit/333a2154d6066b1243a7a02d24001e166fd78002
   - Made by me.
 
-Block annoying Promo Toasts > https://github.com/Alex313031/thorium/commit/2abe24c0db83c3cb5884535830036abe61953c46
+Block annoying Promo Toasts > https://github.com/Alex313031/mcloud/commit/2abe24c0db83c3cb5884535830036abe61953c46
   - Made by me.
 
 CFI Ignores Patch - https://github.com/RobRich999/Chromium_Clang/blob/150e755bdb3f2c389ab3d485f38d62a36414e73a/Linux/linux64-avx.patch#L386
@@ -227,7 +227,7 @@ CFI Ignores Patch - https://github.com/RobRich999/Chromium_Clang/blob/150e755bdb
 Warn instead of Error on V8 PGO Profile Mismatch Patch - https://github.com/RobRich999/Chromium_Clang/blob/main/V8/v8.patch
   - Made by RobRich999
 
-Enable Middle Click Autoscroll on ALL Platforms - https://github.com/Alex313031/thorium/issues/199
+Enable Middle Click Autoscroll on ALL Platforms - https://github.com/Alex313031/mcloud/issues/199
   - Made by me.
 
 Patches to enable truly Portable usage > Disable Encryption and Machine ID
@@ -251,17 +251,17 @@ Installer patches to include unstripped and RPATH binaries, with chrome_sandbox 
   - Created by me.
 
 Windows mini_installer GUI, with buttons and progress bar/error handling, instead of the silent, no GUI installer Chromium has.
-  - Created by me, see https://github.com/Alex313031/thorium/blob/main/other/mini_installer.patch
+  - Created by me, see https://github.com/Alex313031/mcloud/blob/main/other/mini_installer.patch
 
 Patches for mini_installer and abseil when using AVX on Windows. Credit goes to @RobRich999
 
 "Ctrl+Shift+Q" to close all windows (exit) "Ctrl+Shift+K" to open a new tab to the right "Ctrl+Shift+D" to duplicate the current tab "Ctrl+Shift+P" to pop out the current tab into a new window
-  - https://github.com/Alex313031/thorium/blob/main/src/chrome/browser/ui/views/accelerator_table.cc
+  - https://github.com/Alex313031/mcloud/blob/main/src/chrome/browser/ui/views/accelerator_table.cc
 
-Use Super + Arrow Keys to manage Windows on ThoriumOS > https://github.com/Alex313031/thorium/blob/main/src/ash/public/cpp/accelerators.cc
+Use Super + Arrow Keys to manage Windows on Mcloud Browser OS > https://github.com/Alex313031/mcloud/blob/main/src/ash/public/cpp/accelerators.cc
   - Made by me
 
-The Thorium .desktop file and content-shell .desktop file have flags added for experimental and useful features, namely: Disabling the Default Browser check and InfoBar, Experimental web platform features, and Experimental Canvas2D.
+The Mcloud Browser .desktop file and content-shell .desktop file have flags added for experimental and useful features, namely: Disabling the Default Browser check and InfoBar, Experimental web platform features, and Experimental Canvas2D.
   - Modified by me.
 
 Remove discovery module from NTP on Android

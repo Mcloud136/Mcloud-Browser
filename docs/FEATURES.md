@@ -1,8 +1,8 @@
-<img src="https://github.com/Alex313031/thorium/blob/main/logos/STAGING/features.png" width="116">
+<img src="https://github.com/Alex313031/mcloud/blob/main/logos/STAGING/features.png" width="116">
 
-## List of user-facing features included in Thorium :
+## List of user-facing features included in Mcloud Browser :
 
-#### For quick reference for people looking into what Thorium has to offer, besides compiler optimizations and privacy patches.
+#### For quick reference for people looking into what Mcloud Browser has to offer, besides compiler optimizations and privacy patches.
 
  - JPEG-XL Support > 
  - FTP Support > 

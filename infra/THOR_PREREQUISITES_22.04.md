@@ -1,4 +1,4 @@
-### Dependencies to build Thorium on Ubuntu 22.04 "Jammy Jellyfish", since *//chromium/src/build/install-build-deps.sh* has not yet been updated.
+### Dependencies to build Mcloud Browser on Ubuntu 22.04 "Jammy Jellyfish", since *//chromium/src/build/install-build-deps.sh* has not yet been updated.
 
 Step 1. Add `umask 022` to your __*.bashrc*__ file ahead of any export lines.
 
@@ -22,6 +22,6 @@ Then install the sysroots for all platforms (to avoid issues), run (from chromiu
 
 `build/linux/sysroot_scripts/install-sysroot.py --all`
 
-Lastly, if you want ChromiumOS fonts for ThoriumOS development, you can run (as root)
+Lastly, if you want ChromiumOS fonts for Mcloud Browser OS development, you can run (as root)
 
 `build/linux/install-chromeos-fonts.py`

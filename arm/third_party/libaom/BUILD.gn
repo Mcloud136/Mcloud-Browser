@@ -235,7 +235,7 @@ if (current_cpu == "arm64" || current_cpu == "arm64e") {
     configs += [ "//build/config/compiler:no_chromium_code" ]
     configs += [ ":libaom_config" ]
     configs -= [ "//build/config/compiler:default_init_stack_vars" ]
-    configs -= [ "//build/config/compiler:thorium_simd_optimization" ]
+    configs -= [ "//build/config/compiler:mcloud_simd_optimization" ]
     if (!is_win || is_clang) {
       cflags = [ "-march=armv8-a+crc" ]
     }
@@ -248,7 +248,7 @@ if (current_cpu == "arm64" || current_cpu == "arm64e") {
     configs += [ "//build/config/compiler:no_chromium_code" ]
     configs += [ ":libaom_config" ]
     configs -= [ "//build/config/compiler:default_init_stack_vars" ]
-    configs -= [ "//build/config/compiler:thorium_simd_optimization" ]
+    configs -= [ "//build/config/compiler:mcloud_simd_optimization" ]
     if (!is_win || is_clang) {
       cflags = [ "-march=armv8.2-a+dotprod" ]
     }
@@ -263,7 +263,7 @@ if (current_cpu == "arm64" || current_cpu == "arm64e") {
     configs += [ "//build/config/compiler:no_chromium_code" ]
     configs += [ ":libaom_config" ]
     configs -= [ "//build/config/compiler:default_init_stack_vars" ]
-    configs -= [ "//build/config/compiler:thorium_simd_optimization" ]
+    configs -= [ "//build/config/compiler:mcloud_simd_optimization" ]
     if (!is_win || is_clang) {
       cflags = [ "-march=armv8.2-a+dotprod+i8mm" ]
     }
@@ -281,7 +281,7 @@ if (current_cpu == "arm64" || current_cpu == "arm64e") {
       configs += [ "//build/config/compiler:no_chromium_code" ]
       configs += [ ":libaom_config" ]
       configs -= [ "//build/config/compiler:default_init_stack_vars" ]
-      configs -= [ "//build/config/compiler:thorium_simd_optimization" ]
+      configs -= [ "//build/config/compiler:mcloud_simd_optimization" ]
       if (!is_win || is_clang) {
         cflags = [ "-march=armv8.2-a+dotprod+i8mm+sve" ]
       }
@@ -295,7 +295,7 @@ if (current_cpu == "arm64" || current_cpu == "arm64e") {
       configs += [ "//build/config/compiler:no_chromium_code" ]
       configs += [ ":libaom_config" ]
       configs -= [ "//build/config/compiler:default_init_stack_vars" ]
-      configs -= [ "//build/config/compiler:thorium_simd_optimization" ]
+      configs -= [ "//build/config/compiler:mcloud_simd_optimization" ]
       if (!is_win || is_clang) {
         cflags = [ "-march=armv9-a+i8mm+sve2" ]
       }

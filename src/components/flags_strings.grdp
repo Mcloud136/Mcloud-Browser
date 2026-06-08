@@ -46,12 +46,12 @@
     Not available on your platform.
   </message>
   <if expr="is_chromeos">
-    <message name="IDS_FLAGS_UI_RELAUNCH" desc="Label for button that restarts ThoriumOS.">
+    <message name="IDS_FLAGS_UI_RELAUNCH" desc="Label for button that restarts Mcloud Browser OS.">
       Restart
     </message>
   </if>
   <if expr="not is_chromeos">
-    <message name="IDS_FLAGS_UI_RELAUNCH" desc="Label for button that relaunches Thorium.">
+    <message name="IDS_FLAGS_UI_RELAUNCH" desc="Label for button that relaunches Mcloud Browser.">
       Relaunch
     </message>
   </if>

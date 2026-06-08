@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <grit-part>
   <message name="IDS_SETTINGS_TITLE" desc="Title for the settings tab.">
-    Thorium Settings
+    Mcloud Browser Settings
   </message>
   <message name="IDS_SETTINGS_HIDE_ADVANCED_SETTINGS" desc="Title for the link to hide advanced settings.">
     Hide advanced settings...

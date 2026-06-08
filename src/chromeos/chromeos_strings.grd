@@ -630,7 +630,7 @@
 
         <!-- Time out sign-in with camera screen -->
         <message name="IDS_ASH_LOGIN_CAMERA_TIME_OUT_TITLE" desc="Text shown on camera usage timeout after the third-party SAML dialog is dismissed.">
-          Sign in to your <ph name="DEVICE_TYPE">$1<ex>Thoriumbook</ex></ph>
+          Sign in to your <ph name="DEVICE_TYPE">$1<ex>Mcloud Browserbook</ex></ph>
         </message>
         <message name="IDS_ASH_LOGIN_CAMERA_TIME_OUT_SUBTITLE" desc="Description shown above the button that leads to login dialog. Shown on camera usage timeout after the third-party SAML dialog is dismissed.">
           Enter your username and password or scan your QR code
@@ -638,7 +638,7 @@
 
         <!-- Pop-up enterprise management. -->
         <message name="IDS_ASH_LOGIN_ENTERPRISE_MANAGED_POP_UP" desc="Text shown in the management pop-up when user clicks on status tray enterprise management. MANAGER can be a domain or an email address.">
-          This <ph name="DEVICE_TYPE">$1<ex>Thoriumbook</ex></ph> is managed by <ph name="MANAGER">$2<ex>example.com</ex></ph>. Administrators may remotely configure the device.
+          This <ph name="DEVICE_TYPE">$1<ex>Mcloud Browserbook</ex></ph> is managed by <ph name="MANAGER">$2<ex>example.com</ex></ph>. Administrators may remotely configure the device.
         </message>
 
         <!-- Pop-up secondary login screen. -->
@@ -648,7 +648,7 @@
 
         <!-- Status tray enterprise management. -->
         <message name="IDS_ASH_ENTERPRISE_DEVICE_MANAGED_BY" desc="Text for notifications showing that this device is enterprise managed. Used when the manager is available. MANAGER can be a domain or an email address.">
-          This <ph name="DEVICE_TYPE">$1<ex>Thoriumbook</ex></ph> is managed by <ph name="MANAGER">$2<ex>acmecorp.com</ex></ph>.
+          This <ph name="DEVICE_TYPE">$1<ex>Mcloud Browserbook</ex></ph> is managed by <ph name="MANAGER">$2<ex>acmecorp.com</ex></ph>.
         </message>
         <message name="IDS_ASH_SHORT_MANAGED_BY" desc="A short version of text showing that this device is enterprise managed. Used when the manager is available. MANAGER can be a domain or an email address.">
           Managed by <ph name="MANAGER">$1<ex>acmecorp.com</ex></ph>
@@ -657,7 +657,7 @@
           Managed by <ph name="FIRST_MANAGER">$1<ex>acmecorp.com</ex></ph> and <ph name="SECOND_MANAGER">$2<ex>rusticbakery.com</ex></ph>
         </message>
         <message name="IDS_ASH_ENTERPRISE_DEVICE_MANAGED" desc="Text for notifications showing that this device is enterprise managed. Used when the manager is not available (e.g. Active Directory).">
-          This <ph name="DEVICE_TYPE">$1<ex>Thoriumbook</ex></ph> is enterprise managed
+          This <ph name="DEVICE_TYPE">$1<ex>Mcloud Browserbook</ex></ph> is enterprise managed
         </message>
         <message name="IDS_ASH_ENTERPRISE_DEVICE_MANAGED_SHORT" desc="Short text showing that the device is enterprise managed.">
           Managed
@@ -679,7 +679,7 @@
         <message name="IDS_ASH_SHELF_CANCEL_BUTTON" desc="Text shown on cancel button on add user screen.">
           Cancel
         </message>
-        <message name="IDS_ASH_BROWSE_AS_GUEST_BUTTON" desc="Text shown on ThoriumOS sign-in screen button that launches guest session. Should be short.">
+        <message name="IDS_ASH_BROWSE_AS_GUEST_BUTTON" desc="Text shown on Mcloud Browser OS sign-in screen button that launches guest session. Should be short.">
           Browse as Guest
         </message>
         <message name="IDS_ASH_ADD_USER_BUTTON" desc="Text shown on an add user button on login/lock screen">
@@ -703,8 +703,8 @@
         <message name="IDS_ASH_SHELF_SIGNIN_BUTTON" desc="Text shown on sign in button on enrollment screen.">
           Use as a personal device
         </message>
-        <message name="IDS_ASH_SHELF_OS_INSTALL_BUTTON" desc="Text shown on install ThoriumOS button on login screen.">
-          Install ThoriumOS
+        <message name="IDS_ASH_SHELF_OS_INSTALL_BUTTON" desc="Text shown on install Mcloud Browser OS button on login screen.">
+          Install Mcloud Browser OS
         </message>
         <message name="IDS_ASH_SHELF_APP_LIST_LAUNCHER_TITLE" desc="The title used for the Ash Launcher in the Shelf (not mentioning 'Apps' since this is a general launcher).">
           Launcher
@@ -727,7 +727,7 @@
           Change password
         </message>
         <message name="IDS_PASSWORD_CHANGE_NOTIFICATION_TITLE" desc="Message title for a notification that tells the user that the password was updated.">
-          ThoriumOS password updated
+          Mcloud Browser OS password updated
         </message>
         <message name="IDS_PASSWORD_CHANGE_NOTIFICATION_BODY" desc="Message body on a notification that politely requests the user to start using the new password.">
           Your password change was successful. Please use the new password from now on.
@@ -774,7 +774,7 @@
         </message>
 
         <message name="IDS_IME_SERVICE_DISPLAY_NAME" desc="The display name (in the system task manager, etc) of the service process providing the input methods.">
-          ThoriumOS Input Method Service
+          Mcloud Browser OS Input Method Service
         </message>
 
         <!-- Content transfer App -->
@@ -816,7 +816,7 @@
         </message>
 
         <!-- Help App -->
-        <message name="IDS_HELP_APP_EXPLORE" desc="Name of the Explore app in the app shelf. Explore is an app for users to find helpful information about their Thoriumbooks. Should be translated into other languages into a similar verb." meaning="App name.">
+        <message name="IDS_HELP_APP_EXPLORE" desc="Name of the Explore app in the app shelf. Explore is an app for users to find helpful information about their Mcloud Browserbooks. Should be translated into other languages into a similar verb." meaning="App name.">
           Explore
         </message>
         <message name="IDS_HELP_APP_OFFERS" desc="Name of a tab in the Help app that offers users discounts or freebies, 'offers'.">
@@ -826,12 +826,12 @@
           Perks
         </message>
         <message name="IDS_HELP_APP_WHATS_NEW_SUGGESTION_CHIP" desc="Text for the suggestion chip to view updated patch notes are available. [CHAR_LIMIT=24]">
-          What's new with ThoriumOS
+          What's new with Mcloud Browser OS
         </message>
-        <message name="IDS_HELP_APP_WHATS_NEW_CONTINUE_TASK_TITLE" desc="Title for a ThoriumOS launcher continue section item that can be used to quickly access most recent ThoriumOS release notes. Continue section contains set of UI elements that are suggestions for continuing recent user workflows. Release notes element is shown after ThoriumOS device updates to a new version. Clicking the relese notes element will redirect user to an app that gives the user more information about the ThoriumOS update [CHAR_LIMIT=20]">
-          ThoriumOS update
+        <message name="IDS_HELP_APP_WHATS_NEW_CONTINUE_TASK_TITLE" desc="Title for a Mcloud Browser OS launcher continue section item that can be used to quickly access most recent Mcloud Browser OS release notes. Continue section contains set of UI elements that are suggestions for continuing recent user workflows. Release notes element is shown after Mcloud Browser OS device updates to a new version. Clicking the relese notes element will redirect user to an app that gives the user more information about the Mcloud Browser OS update [CHAR_LIMIT=20]">
+          Mcloud Browser OS update
         </message>
-        <message name="IDS_HELP_APP_WHATS_NEW_CONTINUE_TASK_DETAILS" desc="Details label for a ThoriumOS launcher continue section item that can be used to quickly access most recent ThoriumOS release notes. Continue section contains set of UI elements that are suggestions for continuing recent user workflows. Release notes element is shown after ThoriumOS device updates to a new version. Clicking the relese notes element will redirect user to an app that gives the user more information about the ThoriumOS update [CHAR_LIMIT=22]">
+        <message name="IDS_HELP_APP_WHATS_NEW_CONTINUE_TASK_DETAILS" desc="Details label for a Mcloud Browser OS launcher continue section item that can be used to quickly access most recent Mcloud Browser OS release notes. Continue section contains set of UI elements that are suggestions for continuing recent user workflows. Release notes element is shown after Mcloud Browser OS device updates to a new version. Clicking the relese notes element will redirect user to an app that gives the user more information about the Mcloud Browser OS update [CHAR_LIMIT=22]">
           See what's new
         </message>
 
@@ -907,7 +907,7 @@
         <message name="IDS_PRINT_MANAGEMENT_COMPLETED_JOB_ARIA_LABEL" desc="The aria label that describes a completed print job that includes the print job documenet title, printer name, creation time, and completion status. This is a sentence with commas and spaces (minor pause) between placeholders.">
           <ph name="DOCUMENT_TITLE">$1<ex>my_essay.doc</ex></ph>, <ph name="PRINTER_NAME">$2<ex>canon 6450</ex></ph>, <ph name="CREATION_TIME">$3<ex>February 8, 2020</ex></ph>, <ph name="COMPLETION_STATUS">$4<ex>Printed</ex></ph>
         </message>
-        <message name="IDS_PRINT_MANAGEMENT_ONGOING_JOB_ARIA_LABEL" desc="The aria label that describes an ongoing print job that includes the print job documenet title, printer name, creation time, and ongoing status. Also notifies users that the ongoing print job can be cancelled with the 'Enter' key. This is only used for ThoriumVox voice transcriptions.">
+        <message name="IDS_PRINT_MANAGEMENT_ONGOING_JOB_ARIA_LABEL" desc="The aria label that describes an ongoing print job that includes the print job documenet title, printer name, creation time, and ongoing status. Also notifies users that the ongoing print job can be cancelled with the 'Enter' key. This is only used for McloudVox voice transcriptions.">
           <ph name="DOCUMENT_TITLE">$1<ex>my_essay.doc</ex></ph>, <ph name="PRINTER_NAME">$2<ex>canon 6450</ex></ph>, <ph name="CREATION_TIME">$3<ex>February 8, 2020</ex></ph>, <ph name="PRINTED_PAGE_NUMBER">$4<ex>5</ex></ph> out of <ph name="TOTAL_PAGE_NUMBER">$5<ex>7</ex></ph>. Press enter to cancel the print job.
         </message>
         <message name="IDS_PRINT_MANAGEMENT_STOPPED_ONGOING_JOB_ARIA_LABEL" desc="The aria label that describes a stopped print job that includes the print job documenet title, printer name, creation time, and error status. This is a sentence with commas and spaces (minor pause) between placeholders.">
@@ -985,7 +985,7 @@
         <message name="IDS_PRINT_MANAGEMENT_CANCEL_PRINT_JOB_BUTTON_LABEL" desc="The label for the button that cancels a print job.">
           Cancel print job
         </message>
-        <message name="IDS_PRINT_MANAGEMENT_CANCELED_PRINT_JOB_ARIA_ANNOUNCEMENT" desc="The announcement said to notify ThoriumVox that a print job was recently cancelled.">
+        <message name="IDS_PRINT_MANAGEMENT_CANCELED_PRINT_JOB_ARIA_ANNOUNCEMENT" desc="The announcement said to notify McloudVox that a print job was recently cancelled.">
           Cancelled print job <ph name="DOCUMENT_TITLE">$1<ex>my_essay.doc</ex></ph>
         </message>
         <message name="IDS_PRINT_MANAGEMENT_COLLAPSE_PRINTING_STATUS" desc="A text that indicates to the user that the print job is currently printing. This text only appears if the width of the app's window is small and cannot display the entire ongoing printing status.">
@@ -1139,7 +1139,7 @@
         <message name="IDS_SCANNING_APP_SCAN_FAILED_DIALOG_TITLE_TEXT" desc="The text displayed as the title of the dialog shown when a scan job fails.">
           Couldn't complete scan
         </message>
-        <message name="IDS_SCANNING_APP_SCAN_FAILED_DIALOG_UNKNOWN_ERROR_TEXT" desc="The text displayed as the body of the dialog shown when a scan job fails for an unknown reason. The text advises the user to make sure their Thoriumbook has enough space to save files.">
+        <message name="IDS_SCANNING_APP_SCAN_FAILED_DIALOG_UNKNOWN_ERROR_TEXT" desc="The text displayed as the body of the dialog shown when a scan job fails for an unknown reason. The text advises the user to make sure their Mcloud Browserbook has enough space to save files.">
           Check the scanner and try again. Make sure there is enough local space to save scanned files.
         </message>
         <message name="IDS_SCANNING_APP_SCAN_FAILED_DIALOG_DEVICE_BUSY_TEXT" desc="The text displayed as the body of the dialog shown when a scan job fails due to the scanner being busy. The text advises the user to try scanning again once the scanner is no longer in use.">
@@ -1710,22 +1710,22 @@
         <message name="IDS_KEYBOARD_DIAGRAM_ARIA_NAME_BACKSPACE" desc="Describes the Backspace key on a keyboard. Used as part of an ARIA label on a keyboard testing UI (one of 'Backspace key not pressed', 'Backspace key pressed', or 'Backspace key tested').">
           Backspace
         </message>
-        <message name="IDS_KEYBOARD_DIAGRAM_ARIA_NAME_CONTROL_PANEL" desc="Describes the key on a ThoriumOS keyboard that shows the quick settings when pressed. Used as part of an ARIA label on a keyboard testing UI (one of 'Control Panel key not pressed', 'Control Panel key pressed', or 'Control Panel key tested').">
+        <message name="IDS_KEYBOARD_DIAGRAM_ARIA_NAME_CONTROL_PANEL" desc="Describes the key on a Mcloud Browser OS keyboard that shows the quick settings when pressed. Used as part of an ARIA label on a keyboard testing UI (one of 'Control Panel key not pressed', 'Control Panel key pressed', or 'Control Panel key tested').">
           Control Panel
         </message>
         <message name="IDS_KEYBOARD_DIAGRAM_ARIA_NAME_ENTER" desc="Describes the Enter key on a keyboard. Used as part of an ARIA label on a keyboard testing UI (one of 'Enter key not pressed', 'Enter key pressed', or 'Enter key tested').">
           Enter
         </message>
-        <message name="IDS_KEYBOARD_DIAGRAM_ARIA_NAME_JIS_LETTER_SWITCH" desc="Describes the key on a Japanese Thoriumbook keyboard that switches between entering Kana and alphanumeric characters, labelled 'かな/英数' on the keyboard itself. Used as part of an ARIA label on a keyboard testing UI (one of 'Kana/alphanumeric switch key not pressed', 'Kana/alphanumeric switch key pressed', or 'Kana/alphanumeric switch key tested').">
+        <message name="IDS_KEYBOARD_DIAGRAM_ARIA_NAME_JIS_LETTER_SWITCH" desc="Describes the key on a Japanese Mcloud Browserbook keyboard that switches between entering Kana and alphanumeric characters, labelled 'かな/英数' on the keyboard itself. Used as part of an ARIA label on a keyboard testing UI (one of 'Kana/alphanumeric switch key not pressed', 'Kana/alphanumeric switch key pressed', or 'Kana/alphanumeric switch key tested').">
           Kana/alphanumeric switch
         </message>
         <message name="IDS_KEYBOARD_DIAGRAM_ARIA_NAME_LAUNCHER" desc="Describes the Launcher key on a keyboard. Used as part of an ARIA label on a keyboard testing UI (one of 'Launcher key not pressed', 'Launcher key pressed', or 'Launcher key tested').">
           Launcher
         </message>
-        <message name="IDS_KEYBOARD_DIAGRAM_ARIA_NAME_LAYOUT_SWITCH" desc="Describes the key on a Dell Thoriumbook keyboard that switches between keyboard layouts. Used as part of an ARIA label on a keyboard testing UI (one of 'Layout switch key not pressed', 'Layout switch key pressed', or 'Layout switch key tested').">
+        <message name="IDS_KEYBOARD_DIAGRAM_ARIA_NAME_LAYOUT_SWITCH" desc="Describes the key on a Dell Mcloud Browserbook keyboard that switches between keyboard layouts. Used as part of an ARIA label on a keyboard testing UI (one of 'Layout switch key not pressed', 'Layout switch key pressed', or 'Layout switch key tested').">
           Layout switch
         </message>
-        <message name="IDS_KEYBOARD_DIAGRAM_ARIA_NAME_LOCK" desc="Describes the key on a ThoriumOS keyboard that locks the screen when pressed. Used as part of an ARIA label on a keyboard testing UI (one of 'Lock key not pressed', 'Lock key pressed', or 'Lock key tested').">
+        <message name="IDS_KEYBOARD_DIAGRAM_ARIA_NAME_LOCK" desc="Describes the key on a Mcloud Browser OS keyboard that locks the screen when pressed. Used as part of an ARIA label on a keyboard testing UI (one of 'Lock key not pressed', 'Lock key pressed', or 'Lock key tested').">
           Lock
         </message>
         <message name="IDS_KEYBOARD_DIAGRAM_ARIA_NAME_POWER" desc="Describes the power key on a keyboard. Used as part of an ARIA label on a keyboard testing UI (one of 'Power key not pressed', 'Power key pressed', or 'Power key tested').">
@@ -1741,69 +1741,69 @@
           Tab
         </message>
 
-        <message name="IDS_KEYBOARD_DIAGRAM_ARIA_NAME_BACK" desc="Describes the Back key on the top row of a ThoriumOS keyboard. Used as part of an ARIA label on a keyboard testing UI (one of 'Back key not pressed', 'Back key pressed', or 'Back key tested')">
+        <message name="IDS_KEYBOARD_DIAGRAM_ARIA_NAME_BACK" desc="Describes the Back key on the top row of a Mcloud Browser OS keyboard. Used as part of an ARIA label on a keyboard testing UI (one of 'Back key not pressed', 'Back key pressed', or 'Back key tested')">
           Back
         </message>
-        <message name="IDS_KEYBOARD_DIAGRAM_ARIA_NAME_FORWARD" desc="Describes the Forward key on the top row of a ThoriumOS keyboard. Used as part of an ARIA label on a keyboard testing UI (one of 'Forward key not pressed', 'Forward key pressed', or 'Forward key tested')">
+        <message name="IDS_KEYBOARD_DIAGRAM_ARIA_NAME_FORWARD" desc="Describes the Forward key on the top row of a Mcloud Browser OS keyboard. Used as part of an ARIA label on a keyboard testing UI (one of 'Forward key not pressed', 'Forward key pressed', or 'Forward key tested')">
           Forward
         </message>
-        <message name="IDS_KEYBOARD_DIAGRAM_ARIA_NAME_FULLSCREEN" desc="Describes the Fullscreen key on the top row of a ThoriumOS keyboard. Used as part of an ARIA label on a keyboard testing UI (one of 'Fullscreen key not pressed', 'Fullscreen key pressed', or 'Fullscreen key tested')">
+        <message name="IDS_KEYBOARD_DIAGRAM_ARIA_NAME_FULLSCREEN" desc="Describes the Fullscreen key on the top row of a Mcloud Browser OS keyboard. Used as part of an ARIA label on a keyboard testing UI (one of 'Fullscreen key not pressed', 'Fullscreen key pressed', or 'Fullscreen key tested')">
           Fullscreen
         </message>
-        <message name="IDS_KEYBOARD_DIAGRAM_ARIA_NAME_KEYBOARD_BACKLIGHT_DOWN" desc="Describes the key for decreasing keyboard backlight brightness on the top row of a ThoriumOS keyboard. Used as part of an ARIA label on a keyboard testing UI (one of 'Keyboard brightness down key not pressed', 'Keyboard brightness down key pressed', or 'Keyboard brightness down key tested')">
+        <message name="IDS_KEYBOARD_DIAGRAM_ARIA_NAME_KEYBOARD_BACKLIGHT_DOWN" desc="Describes the key for decreasing keyboard backlight brightness on the top row of a Mcloud Browser OS keyboard. Used as part of an ARIA label on a keyboard testing UI (one of 'Keyboard brightness down key not pressed', 'Keyboard brightness down key pressed', or 'Keyboard brightness down key tested')">
           Keyboard brightness down
         </message>
-        <message name="IDS_KEYBOARD_DIAGRAM_ARIA_NAME_KEYBOARD_BACKLIGHT_TOGGLE" desc="Describes the key for toggling the keyboard backlight on the top row of a ThoriumOS keyboard. Used as part of an ARIA label on a keyboard testing UI (one of 'Keyboard backlight toggle key not pressed', 'Keyboard backlight toggle key pressed', or 'Keyboard backlight toggle key tested')">
+        <message name="IDS_KEYBOARD_DIAGRAM_ARIA_NAME_KEYBOARD_BACKLIGHT_TOGGLE" desc="Describes the key for toggling the keyboard backlight on the top row of a Mcloud Browser OS keyboard. Used as part of an ARIA label on a keyboard testing UI (one of 'Keyboard backlight toggle key not pressed', 'Keyboard backlight toggle key pressed', or 'Keyboard backlight toggle key tested')">
           Keyboard backlight toggle
         </message>
-        <message name="IDS_KEYBOARD_DIAGRAM_ARIA_NAME_KEYBOARD_BACKLIGHT_UP" desc="Describes the key for increasing keyboard backlight brightness on the top row of a ThoriumOS keyboard. Used as part of an ARIA label on a keyboard testing UI (one of 'Keyboard brightness up key not pressed', 'Keyboard brightness up key pressed', or 'Keyboard brightness up key tested')">
+        <message name="IDS_KEYBOARD_DIAGRAM_ARIA_NAME_KEYBOARD_BACKLIGHT_UP" desc="Describes the key for increasing keyboard backlight brightness on the top row of a Mcloud Browser OS keyboard. Used as part of an ARIA label on a keyboard testing UI (one of 'Keyboard brightness up key not pressed', 'Keyboard brightness up key pressed', or 'Keyboard brightness up key tested')">
           Keyboard brightness up
         </message>
-        <message name="IDS_KEYBOARD_DIAGRAM_ARIA_NAME_MICROPHONE_MUTE" desc="Describes the key on the top row of a ThoriumOS keyboard for muting and unmuting the microphone. Used as part of an ARIA label on a keyboard testing UI (one of 'Microphone mute key not pressed', 'Microphone mute key pressed', or 'Microphone mute key tested')">
+        <message name="IDS_KEYBOARD_DIAGRAM_ARIA_NAME_MICROPHONE_MUTE" desc="Describes the key on the top row of a Mcloud Browser OS keyboard for muting and unmuting the microphone. Used as part of an ARIA label on a keyboard testing UI (one of 'Microphone mute key not pressed', 'Microphone mute key pressed', or 'Microphone mute key tested')">
           Microphone mute
         </message>
-        <message name="IDS_KEYBOARD_DIAGRAM_ARIA_NAME_MUTE" desc="Describes the Mute key on the top row of a ThoriumOS keyboard. Used as part of an ARIA label on a keyboard testing UI (one of 'Mute key not pressed', 'Mute key pressed', or 'Mute key tested')">
+        <message name="IDS_KEYBOARD_DIAGRAM_ARIA_NAME_MUTE" desc="Describes the Mute key on the top row of a Mcloud Browser OS keyboard. Used as part of an ARIA label on a keyboard testing UI (one of 'Mute key not pressed', 'Mute key pressed', or 'Mute key tested')">
           Mute
         </message>
-        <message name="IDS_KEYBOARD_DIAGRAM_ARIA_NAME_OVERVIEW" desc="Describes the Overview key on the top row of a ThoriumOS keyboard. Used as part of an ARIA label on a keyboard testing UI (one of 'Overview key not pressed', 'Overview key pressed', or 'Overview key tested')">
+        <message name="IDS_KEYBOARD_DIAGRAM_ARIA_NAME_OVERVIEW" desc="Describes the Overview key on the top row of a Mcloud Browser OS keyboard. Used as part of an ARIA label on a keyboard testing UI (one of 'Overview key not pressed', 'Overview key pressed', or 'Overview key tested')">
           Overview
         </message>
-        <message name="IDS_KEYBOARD_DIAGRAM_ARIA_NAME_PLAY_PAUSE" desc="Describes the play/pause key on the top row of a ThoriumOS keyboard. Used as part of an ARIA label on a keyboard testing UI (one of 'Play/Pause key not pressed', 'Play/Pause key pressed', or 'Play/Pause key tested')">
+        <message name="IDS_KEYBOARD_DIAGRAM_ARIA_NAME_PLAY_PAUSE" desc="Describes the play/pause key on the top row of a Mcloud Browser OS keyboard. Used as part of an ARIA label on a keyboard testing UI (one of 'Play/Pause key not pressed', 'Play/Pause key pressed', or 'Play/Pause key tested')">
           Play/Pause
         </message>
-        <message name="IDS_KEYBOARD_DIAGRAM_ARIA_NAME_PRIVACY_SCREEN_TOGGLE" desc="Describes the key on the top row of a ThoriumOS keyboard that toggles the electronic privacy screen. Used as part of an ARIA label on a keyboard testing UI (one of 'Privacy screen toggle key not pressed', 'Privacy screen toggle key pressed', or 'Privacy screen toggle key tested')">
+        <message name="IDS_KEYBOARD_DIAGRAM_ARIA_NAME_PRIVACY_SCREEN_TOGGLE" desc="Describes the key on the top row of a Mcloud Browser OS keyboard that toggles the electronic privacy screen. Used as part of an ARIA label on a keyboard testing UI (one of 'Privacy screen toggle key not pressed', 'Privacy screen toggle key pressed', or 'Privacy screen toggle key tested')">
           Privacy screen toggle
         </message>
-        <message name="IDS_KEYBOARD_DIAGRAM_ARIA_NAME_REFRESH" desc="Describes the Refresh key on the top row of a ThoriumOS keyboard. Used as part of an ARIA label on a keyboard testing UI (one of 'Refresh key not pressed', 'Refresh key pressed', or 'Refresh key tested')">
+        <message name="IDS_KEYBOARD_DIAGRAM_ARIA_NAME_REFRESH" desc="Describes the Refresh key on the top row of a Mcloud Browser OS keyboard. Used as part of an ARIA label on a keyboard testing UI (one of 'Refresh key not pressed', 'Refresh key pressed', or 'Refresh key tested')">
           Refresh
         </message>
-        <message name="IDS_KEYBOARD_DIAGRAM_ARIA_NAME_SCREENSHOT" desc="Describes the Screenshot key on the top row of a ThoriumOS keyboard. Used as part of an ARIA label on a keyboard testing UI (one of 'Screenshot key not pressed', 'Screenshot key pressed', or 'Screenshot key tested')">
+        <message name="IDS_KEYBOARD_DIAGRAM_ARIA_NAME_SCREENSHOT" desc="Describes the Screenshot key on the top row of a Mcloud Browser OS keyboard. Used as part of an ARIA label on a keyboard testing UI (one of 'Screenshot key not pressed', 'Screenshot key pressed', or 'Screenshot key tested')">
           Screenshot
         </message>
-        <message name="IDS_KEYBOARD_DIAGRAM_ARIA_NAME_SCREEN_BRIGHTNESS_DOWN" desc="Describes the key for decreasing display brightness on the top row of a ThoriumOS keyboard. Used as part of an ARIA label on a keyboard testing UI (one of 'Display brightness down key not pressed', 'Display brightness down key pressed', or 'Display brightness down key tested')">
+        <message name="IDS_KEYBOARD_DIAGRAM_ARIA_NAME_SCREEN_BRIGHTNESS_DOWN" desc="Describes the key for decreasing display brightness on the top row of a Mcloud Browser OS keyboard. Used as part of an ARIA label on a keyboard testing UI (one of 'Display brightness down key not pressed', 'Display brightness down key pressed', or 'Display brightness down key tested')">
           Display brightness down
         </message>
-        <message name="IDS_KEYBOARD_DIAGRAM_ARIA_NAME_SCREEN_BRIGHTNESS_UP" desc="Describes the key for increasing display brightness on the top row of a ThoriumOS keyboard. Used as part of an ARIA label on a keyboard testing UI (one of 'Display brightness up key not pressed', 'Display brightness up key pressed', or 'Display brightness up key tested')">
+        <message name="IDS_KEYBOARD_DIAGRAM_ARIA_NAME_SCREEN_BRIGHTNESS_UP" desc="Describes the key for increasing display brightness on the top row of a Mcloud Browser OS keyboard. Used as part of an ARIA label on a keyboard testing UI (one of 'Display brightness up key not pressed', 'Display brightness up key pressed', or 'Display brightness up key tested')">
           Display brightness up
         </message>
-        <message name="IDS_KEYBOARD_DIAGRAM_ARIA_NAME_SCREEN_MIRROR" desc="Describes the key on the top row of a ThoriumOS keyboard that changes the screen mirroring mode. Used as part of an ARIA label on a keyboard testing UI (one of 'Screen mirror key not pressed', 'Screen mirror key pressed', or 'Screen mirror key tested')">
+        <message name="IDS_KEYBOARD_DIAGRAM_ARIA_NAME_SCREEN_MIRROR" desc="Describes the key on the top row of a Mcloud Browser OS keyboard that changes the screen mirroring mode. Used as part of an ARIA label on a keyboard testing UI (one of 'Screen mirror key not pressed', 'Screen mirror key pressed', or 'Screen mirror key tested')">
           Screen mirror
         </message>
-        <message name="IDS_KEYBOARD_DIAGRAM_ARIA_NAME_TRACK_NEXT" desc="Describes the next track key on the top row of a ThoriumOS keyboard. Used as part of an ARIA label on a keyboard testing UI (one of 'Next track key not pressed', 'Next track key pressed', or 'Next track key tested')">
+        <message name="IDS_KEYBOARD_DIAGRAM_ARIA_NAME_TRACK_NEXT" desc="Describes the next track key on the top row of a Mcloud Browser OS keyboard. Used as part of an ARIA label on a keyboard testing UI (one of 'Next track key not pressed', 'Next track key pressed', or 'Next track key tested')">
           Next track
         </message>
-        <message name="IDS_KEYBOARD_DIAGRAM_ARIA_NAME_TRACK_PREVIOUS" desc="Describes the previous track key on the top row of a ThoriumOS keyboard. Used as part of an ARIA label on a keyboard testing UI (one of 'Previous track key not pressed', 'Previous track key pressed', or 'Previous track key tested')">
+        <message name="IDS_KEYBOARD_DIAGRAM_ARIA_NAME_TRACK_PREVIOUS" desc="Describes the previous track key on the top row of a Mcloud Browser OS keyboard. Used as part of an ARIA label on a keyboard testing UI (one of 'Previous track key not pressed', 'Previous track key pressed', or 'Previous track key tested')">
           Previous track
         </message>
-        <message name="IDS_KEYBOARD_DIAGRAM_ARIA_NAME_VOLUME_DOWN" desc="Describes the volume down key on the top row of a ThoriumOS keyboard. Used as part of an ARIA label on a keyboard testing UI (one of 'Volume down key not pressed', 'Volume down key pressed', or 'Volume down key tested')">
+        <message name="IDS_KEYBOARD_DIAGRAM_ARIA_NAME_VOLUME_DOWN" desc="Describes the volume down key on the top row of a Mcloud Browser OS keyboard. Used as part of an ARIA label on a keyboard testing UI (one of 'Volume down key not pressed', 'Volume down key pressed', or 'Volume down key tested')">
           Volume down
         </message>
-        <message name="IDS_KEYBOARD_DIAGRAM_ARIA_NAME_VOLUME_UP" desc="Describes the volume up key on the top row of a ThoriumOS keyboard. Used as part of an ARIA label on a keyboard testing UI (one of 'Volume up key not pressed', 'Volume up key pressed', or 'Volume up key tested')">
+        <message name="IDS_KEYBOARD_DIAGRAM_ARIA_NAME_VOLUME_UP" desc="Describes the volume up key on the top row of a Mcloud Browser OS keyboard. Used as part of an ARIA label on a keyboard testing UI (one of 'Volume up key not pressed', 'Volume up key pressed', or 'Volume up key tested')">
           Volume up
         </message>
 
         <message name="IDS_ECHE_APP_DEFAULT_DEVICE_NAME" desc="The default device name used to display on Android endpoint of Eche app.">
-          <ph name="GIVEN_NAME">$1<ex>Josh</ex></ph>'s <ph name="DEVICE_TYPE">$2<ex>Thoriumbook</ex></ph>
+          <ph name="GIVEN_NAME">$1<ex>Josh</ex></ph>'s <ph name="DEVICE_TYPE">$2<ex>Mcloud Browserbook</ex></ph>
         </message>
 
       <!-- Common Network type strings -->
@@ -2028,7 +2028,7 @@
         <message name="IDS_ONC_VPN_WIREGUARD_KEY_USE_CURRENT" desc="Label for WireGuard key configuration method to use current one.">
           Use current keypair
         </message>
-        <message name="IDS_ONC_VPN_WIREGUARD_KEY_GENERATE_NEW" desc="Label for WireGuard key configuration method to let ThoriumOS general one.">
+        <message name="IDS_ONC_VPN_WIREGUARD_KEY_GENERATE_NEW" desc="Label for WireGuard key configuration method to let Mcloud Browser OS general one.">
           Generate random keypair
         </message>
         <message name="IDS_ONC_VPN_WIREGUARD_KEY_USER_INPUT" desc="Label for WireGuard key configuration method to use user inputed one.">
@@ -2541,7 +2541,7 @@
         </message>
 
         <!-- Personalization App -->
-        <message name="IDS_PERSONALIZATION_APP_PERSONALIZATION_HUB_TITLE" desc="Name of the system web app for personalizing ThoriumOS.">
+        <message name="IDS_PERSONALIZATION_APP_PERSONALIZATION_HUB_TITLE" desc="Name of the system web app for personalizing Mcloud Browser OS.">
           Wallpaper &amp; style
         </message>
         <message name="IDS_PERSONALIZATION_APP_WALLPAPER_LABEL" desc="Label for wallpaper element in personalization hub">
@@ -2728,7 +2728,7 @@
         <message name="IDS_PERSONALIZATION_APP_THEME_GEOLOCATION_DIALOG_BODY" desc="Description of the dialog that prompts the user to enable system geolocation access. This gives detailed explanation of the outcomes of enabling system geolocation access for system services.">
           Current schedule is set to <ph name="SUNRISE">$1<ex>6am</ex></ph>-<ph name="SUNSET">$2<ex>6pm</ex></ph>. To automatically update the sunset and sunrise schedule, turn on system location access.
         </message>
-        <message name="IDS_PERSONALIZATION_APP_THEME_GEOLOCATION_DIALOG_CONFIRM_BUTTON" desc="Label of the confirm button for the geolocation dialog, that enables geolocation for ThoriumOS system services.">
+        <message name="IDS_PERSONALIZATION_APP_THEME_GEOLOCATION_DIALOG_CONFIRM_BUTTON" desc="Label of the confirm button for the geolocation dialog, that enables geolocation for Mcloud Browser OS system services.">
           Turn on system location access
         </message>
         <message name="IDS_PERSONALIZATION_APP_THEME_GEOLOCATION_DIALOG_CANCEL_BUTTON" desc="Label of the cancel button, that dismisses the geolocation dialog.">
@@ -2743,7 +2743,7 @@
         <message name="IDS_PERSONALIZATION_APP_GEOLOCATION_DIALOG_BODY_PARAGRAPH2" desc="Description of the dialog that prompts the user to enable system geolocation access. This gives detailed explanation of the outcomes of enabling system geolocation access for system services.">
           You can turn off location in Settings &gt; Privacy and security &gt; Privacy controls &gt; Location access. <ph name="LINK_BEGIN">&lt;a&gt;</ph>Learn more<ph name="LINK_END">&lt;/a&gt;</ph>
         </message>
-        <message name="IDS_PERSONALIZATION_APP_GEOLOCATION_DIALOG_CONFIRM_BUTTON" desc="Label of the confirm button for the geolocation dialog, that enables geolocation for ThoriumOS system services.">
+        <message name="IDS_PERSONALIZATION_APP_GEOLOCATION_DIALOG_CONFIRM_BUTTON" desc="Label of the confirm button for the geolocation dialog, that enables geolocation for Mcloud Browser OS system services.">
           Allow
         </message>
         <message name="IDS_PERSONALIZATION_APP_GEOLOCATION_DIALOG_CANCEL_BUTTON" desc="Label of the cancel button, that dismisses the geolocation dialog.">
@@ -2838,7 +2838,7 @@
           Dawn to dark
         </message>
         <message name="IDS_PERSONALIZATION_APP_AMBIENT_MODE_TOPIC_SOURCE_VIDEO_DESCRIPTION" desc="Description for the radio button to choose the topic source from video animation. The radio button allows the user to set which video to play for ambient mode.">
-          Choose <ph name="PRODUCT_NAME">$1<ex>Thoriumbook</ex></ph> exclusive artwork
+          Choose <ph name="PRODUCT_NAME">$1<ex>Mcloud Browserbook</ex></ph> exclusive artwork
         </message>
         <message name="IDS_PERSONALIZATION_APP_AMBIENT_MODE_TOPIC_SOURCE_SELECTED_ROW" desc="A11y label for the selected topic source row in ambient mode.">
           <ph name="TOPIC_SOURCE">$1<ex>Google Photos</ex></ph> <ph name="TOPIC_SOURCE_DESC">$2<ex>Select your memories</ex></ph> selected, press Enter to select <ph name="TOPIC_SOURCE">$1<ex>Google Photos</ex></ph> albums
@@ -3038,10 +3038,10 @@
           Jupiter
         </message>
         <message name="IDS_PERSONALIZATION_APP_TIME_OF_DAY_VIDEO_ALBUM_DESCRIPTION" desc="Common description all videos in the ambient section of the hub.">
-          Exclusive to <ph name="PRODUCT_NAME">$1<ex>Thoriumbook</ex></ph>
+          Exclusive to <ph name="PRODUCT_NAME">$1<ex>Mcloud Browserbook</ex></ph>
         </message>
         <message name="IDS_PERSONALIZATION_APP_TIME_OF_DAY_BANNER_TITLE" desc="Title for the Time of Day promo banner.">
-          Exclusive <ph name="PRODUCT_NAME">$1<ex>Thoriumbook</ex></ph> assets now available
+          Exclusive <ph name="PRODUCT_NAME">$1<ex>Mcloud Browserbook</ex></ph> assets now available
         </message>
         <message name="IDS_PERSONALIZATION_APP_TIME_OF_DAY_BANNER_DESCRIPTION" desc="Description shown in the Time of Day promo banner.">
           You now have access to new <ph name="BEGIN_LINK_WALLPAPER_SUBPAGE">&lt;a href="chrome://personalization/wallpaper/collection?id=_time_of_day_chromebook_collection"&gt;</ph>wallpapers<ph name="END_LINK_WALLPAPER_SUBPAGE">&lt;/a&gt;</ph> and <ph name="BEGIN_LINK_SCREENSAVER_SUBPAGE">&lt;a href="chrome://personalization/ambient"&gt;</ph>screen saver<ph name="END_LINK_SCREENSAVER_SUBPAGE">&lt;/a&gt;</ph>
@@ -3103,7 +3103,7 @@
           Desktop
         </message>
         <message name="IDS_PERSONALIZATION_APP_SEARCH_RESULT_TIME_OF_DAY_WALLPAPER" desc="Text for search result item which, when clicked, navigates the user to time of day wallpaper settings. Alternate phrase for: 'Time of day wallpaper'">
-          <ph name="PRODUCT_NAME">$1<ex>Thoriumbook</ex></ph> exclusive wallpaper
+          <ph name="PRODUCT_NAME">$1<ex>Mcloud Browserbook</ex></ph> exclusive wallpaper
         </message>
         <message name="IDS_PERSONALIZATION_APP_SEARCH_RESULT_TIME_OF_DAY_WALLPAPER_ALT1" desc="Text for search result item which, when clicked, navigates the user to time of day wallpaper settings. Alternate phrase for: 'Time of day wallpaper'">
           Dawn to dark wallpaper
@@ -3121,7 +3121,7 @@
           Sunset wallpaper
         </message>
         <message name="IDS_PERSONALIZATION_APP_SEARCH_RESULT_AMBIENT_MODE_TIME_OF_DAY" desc="Text for search result item which, when clicked, navigates the user to time of day ambient mode settings, which allow the user to set special video backgrounds to be displayed when the device is idle. Alternate phrase for: 'Time of day screen saver'">
-          <ph name="PRODUCT_NAME">$1<ex>Thoriumbook</ex></ph> exclusive screen saver
+          <ph name="PRODUCT_NAME">$1<ex>Mcloud Browserbook</ex></ph> exclusive screen saver
         </message>
         <message name="IDS_PERSONALIZATION_APP_SEARCH_RESULT_AMBIENT_MODE_TIME_OF_DAY_ALT1" desc="Text for search result item which, when clicked, navigates the user to time of day ambient mode settings, which allow the user to set special video backgrounds to be displayed when the device is idle. Alternate phrase for: 'Time of day screen saver'">
           Dawn to dark screen saver
@@ -3312,8 +3312,8 @@
         <message name="IDS_PERSONALIZATION_APP_SEARCH_RESULT_KEYBOARD_BACKLIGHT_ALT20" desc="Text for search result item which, when clicked, navigates the user to personalization app keyboard backlight setting. Alternate phrase 20">
           rgb controls
         </message>
-        <message name="IDS_PERSONALIZATION_APP_EXCLUSIVE_WALLPAPERS_HEADING" desc="Heading describing that the following section is exclusive for Thoriumbook Plus users.">
-          Exclusive for Thoriumbook Plus
+        <message name="IDS_PERSONALIZATION_APP_EXCLUSIVE_WALLPAPERS_HEADING" desc="Heading describing that the following section is exclusive for Mcloud Browserbook Plus users.">
+          Exclusive for Mcloud Browserbook Plus
         </message>
         <message name="IDS_PERSONALIZATION_APP_CHOOSE_A_WALLPAPER_HEADING" desc="Heading describing that you can choose a wallpaper by clicking on the itemss below.">
           Choose a wallpaper
@@ -3327,10 +3327,10 @@
           Safety reset has been completed
         </message>
         <message name="IDS_SANITIZE_DONE_DESCRIPTION" desc="Description of the safety reset done dialog">
-          Your Thoriumbook was reset to safe defaults. You can adjust these changes anytime in Settings.
+          Your Mcloud Browserbook was reset to safe defaults. You can adjust these changes anytime in Settings.
         </message>
         <message name="IDS_SANITIZE_DONE_ROLLBACK" desc="Summary title">
-          Your Thoriumbook was reset to safe defaults. You can make changes anytime in Settings.
+          Your Mcloud Browserbook was reset to safe defaults. You can make changes anytime in Settings.
         </message>
         <message name="IDS_SANITIZE_DONE" desc="Name of the button that will close the safety reset done dialog">
           Done
@@ -3344,67 +3344,67 @@
         <message name="IDS_SANITIZE_DONE_ACCORDION_EXTENSIONS_REENABLE" desc="Instructions to re-enable extensions">
           Extensions disabled to prevent changes to settings. Only turn on extensions you trust.
         </message>
-        <message name="IDS_SANITIZE_DONE_ACCORDION_CHROMEOS_TITLE" desc="Accordion title for ThoriumOS resets">
-          ThoriumOS Settings
+        <message name="IDS_SANITIZE_DONE_ACCORDION_CHROMEOS_TITLE" desc="Accordion title for Mcloud Browser OS resets">
+          Mcloud Browser OS Settings
         </message>
-        <message name="IDS_SANITIZE_DONE_ACCORDION_CHROMEOS_INPUT_SUBHEADER" desc="Subheader for instructions to adjust ThoriumOS Inputs">
+        <message name="IDS_SANITIZE_DONE_ACCORDION_CHROMEOS_INPUT_SUBHEADER" desc="Subheader for instructions to adjust Mcloud Browser OS Inputs">
           Input method
         </message>
-        <message name="IDS_SANITIZE_DONE_ACCORDION_CHROMEOS_INPUT" desc="Instructions to adjust ThoriumOS Inputs">
+        <message name="IDS_SANITIZE_DONE_ACCORDION_CHROMEOS_INPUT" desc="Instructions to adjust Mcloud Browser OS Inputs">
           Reset to prevent others from accessing data. Only use input methods you trust.
         </message>
-        <message name="IDS_SANITIZE_DONE_ACCORDION_CHROMEOS_NETWORK_SUBHEADER" desc="Subheader for instructions to adjust ThoriumOS Network">
+        <message name="IDS_SANITIZE_DONE_ACCORDION_CHROMEOS_NETWORK_SUBHEADER" desc="Subheader for instructions to adjust Mcloud Browser OS Network">
           Network
         </message>
-        <message name="IDS_SANITIZE_DONE_ACCORDION_CHROMEOS_NETWORK" desc="Instructions to adjust ThoriumOS Network">
+        <message name="IDS_SANITIZE_DONE_ACCORDION_CHROMEOS_NETWORK" desc="Instructions to adjust Mcloud Browser OS Network">
           Reset to protect data sent through your networks. Only use networks you trust.
         </message>
-        <message name="IDS_SANITIZE_DONE_ACCORDION_CHROME_TITLE" desc="Accordion title for Thorium resets">
-          Thorium Settings
+        <message name="IDS_SANITIZE_DONE_ACCORDION_CHROME_TITLE" desc="Accordion title for Mcloud Browser resets">
+          Mcloud Browser Settings
         </message>
-        <message name="IDS_SANITIZE_DONE_ACCORDION_CHROME_SITE_CONTENT_SUBHEADER" desc="Subheader for instructions to adjust Thorium site content settings">
+        <message name="IDS_SANITIZE_DONE_ACCORDION_CHROME_SITE_CONTENT_SUBHEADER" desc="Subheader for instructions to adjust Mcloud Browser site content settings">
           Site content
         </message>
-        <message name="IDS_SANITIZE_DONE_ACCORDION_CHROME_SITE_CONTENT" desc="Instructions to adjust Thorium site content settings">
+        <message name="IDS_SANITIZE_DONE_ACCORDION_CHROME_SITE_CONTENT" desc="Instructions to adjust Mcloud Browser site content settings">
           Reset to stop others from using your microphone or camera. Only grant permissions to sites you trust.
         </message>
-        <message name="IDS_SANITZIE_DONE_ACCORDION_CHROME_STARTUP_SUBHEADER" desc="Subheader for instruction to adjust Thorium startup settings">
+        <message name="IDS_SANITZIE_DONE_ACCORDION_CHROME_STARTUP_SUBHEADER" desc="Subheader for instruction to adjust Mcloud Browser startup settings">
           Startup preferences
         </message>
-        <message name="IDS_SANITZIE_DONE_ACCORDION_CHROME_STARTUP" desc="Instruction to adjust Thorium startup settings">
+        <message name="IDS_SANITZIE_DONE_ACCORDION_CHROME_STARTUP" desc="Instruction to adjust Mcloud Browser startup settings">
           Reset to make sure the default startup page is not a phishing website. Only use websites you trust.
         </message>
-        <message name="IDS_SANITIZE_DONE_ACCORDION_CHROME_HOMEPAGE_SUBHEADER" desc="Subheader for instructions to adjust Thorium homepage settings">
+        <message name="IDS_SANITIZE_DONE_ACCORDION_CHROME_HOMEPAGE_SUBHEADER" desc="Subheader for instructions to adjust Mcloud Browser homepage settings">
           Homepage
         </message>
-        <message name="IDS_SANITIZE_DONE_ACCORDION_CHROME_HOMEPAGE" desc="Instructions to adjust Thorium homepage settings">
+        <message name="IDS_SANITIZE_DONE_ACCORDION_CHROME_HOMEPAGE" desc="Instructions to adjust Mcloud Browser homepage settings">
           Reset to make sure the default homepage is not a phishing site. Only use websites you trust.
         </message>
-        <message name="IDS_SANITIZE_DONE_ACCORDION_CHROME_LANGUAGES_SUBHEADER" desc="Subheader for instruction to adjust Thorium language settings">
+        <message name="IDS_SANITIZE_DONE_ACCORDION_CHROME_LANGUAGES_SUBHEADER" desc="Subheader for instruction to adjust Mcloud Browser language settings">
           Language
         </message>
-        <message name="IDS_SANITIZE_DONE_ACCORDION_CHROME_LANGUAGES" desc="Instruction to adjust Thorium language settings">
+        <message name="IDS_SANITIZE_DONE_ACCORDION_CHROME_LANGUAGES" desc="Instruction to adjust Mcloud Browser language settings">
           Reset to make sure you can access information in your preferred language. Check that only preferred languages are used.
         </message>
-        <message name="IDS_SANITIZE_DONE_BUTTON_EXTENSIONS" desc="Button label to redirect to Thorium Extensions page">
+        <message name="IDS_SANITIZE_DONE_BUTTON_EXTENSIONS" desc="Button label to redirect to Mcloud Browser Extensions page">
           Extensions
         </message>
-        <message name="IDS_SANITIZE_DONE_BUTTON_CHROMEOS_INPUT" desc="Button label to redirect to ThoriumOS Input Settings">
+        <message name="IDS_SANITIZE_DONE_BUTTON_CHROMEOS_INPUT" desc="Button label to redirect to Mcloud Browser OS Input Settings">
           Input settings
         </message>
-        <message name="IDS_SANITIZE_DONE_BUTTON_CHROMEOS_NETWORK" desc="Button label to redirect to ThoriumOS Network Settings">
+        <message name="IDS_SANITIZE_DONE_BUTTON_CHROMEOS_NETWORK" desc="Button label to redirect to Mcloud Browser OS Network Settings">
           Network settings
         </message>
-        <message name="IDS_SANITIZE_DONE_BUTTON_CHROME_SITE_CONTENT" desc="Button label to redirect to Thorium Site Content Settings">
+        <message name="IDS_SANITIZE_DONE_BUTTON_CHROME_SITE_CONTENT" desc="Button label to redirect to Mcloud Browser Site Content Settings">
           Site content settings
         </message>
-        <message name="IDS_SANITIZE_DONE_BUTTON_CHROME_STARTUP" desc="Button label to redirect to Thorium Startup Settings">
+        <message name="IDS_SANITIZE_DONE_BUTTON_CHROME_STARTUP" desc="Button label to redirect to Mcloud Browser Startup Settings">
           Startup settings
         </message>
-        <message name="IDS_SANITIZE_DONE_BUTTON_CHROME_HOMEPAGE" desc="Button label to redirect to Thorium Homepage Settings">
+        <message name="IDS_SANITIZE_DONE_BUTTON_CHROME_HOMEPAGE" desc="Button label to redirect to Mcloud Browser Homepage Settings">
           Homepage settings
         </message>
-        <message name="IDS_SANITIZE_DONE_BUTTON_CHROME_LANGUAGES" desc="Button label to redirecto to Thorium Language Settings">
+        <message name="IDS_SANITIZE_DONE_BUTTON_CHROME_LANGUAGES" desc="Button label to redirecto to Mcloud Browser Language Settings">
           Language settings
         </message>
         <message name="IDS_SANITIZE_HEADING" desc="Name of the 'Safety reset' window">
@@ -3414,11 +3414,11 @@
           Safety reset can help remove unwanted pop-ups, fix network issues, and address other unexpected issues.
         </message>
         <message name="IDS_SANITIZE_WARNING" desc="Warning text in the safety reset">
-          Safety reset turns off Thorium browser extensions and resets network and other settings to safe defaults.
+          Safety reset turns off Mcloud Browser browser extensions and resets network and other settings to safe defaults.
           Your default search engine will be reset, but your tabs, files, cookies, and history won’t be changed.
         </message>
         <message name="IDS_SANITIZE_FEEDBACK" translateable="false" desc="Feedback label in the Reset Profile Settings dialog">
-          Help make ThoriumOS better by reporting the current settings
+          Help make Mcloud Browser OS better by reporting the current settings
         </message>
         <message name="IDS_SANITIZE_CANCEL" desc="Button label to cancel proceeding with the safety reset">
           Cancel
@@ -5215,8 +5215,8 @@
         <message name="IDS_TRAFFIC_COUNTERS_UNKNOWN" desc="Traffic counters related to an unknown source">
           Unknown
         </message>
-        <message name="IDS_TRAFFIC_COUNTERS_CHROME" desc="Traffic counters related to Thorium">
-          Thorium
+        <message name="IDS_TRAFFIC_COUNTERS_CHROME" desc="Traffic counters related to Mcloud Browser">
+          Mcloud Browser
         </message>
         <message name="IDS_TRAFFIC_COUNTERS_USER" desc="Traffic counters related to User">
           User
@@ -5287,7 +5287,7 @@
           Your data usage will be reset each month on this day
         </message>
         <message name="IDS_TRAFFIC_COUNTERS_DATA_USAGE_DIFFERENT_FROM_PROVIDER_LABEL" desc="Settings > Network > Mobile data > SIM > Data usage, disclaimer about differences with data provider">
-          Data is measured by your Thoriumbook. This may be different from provider data.
+          Data is measured by your Mcloud Browserbook. This may be different from provider data.
         </message>
         <message name="IDS_TRAFFIC_COUNTERS_DATA_USAGE_RESET_DAY_TOOLTIP_TEXT" desc="Settings > Network > Mobile data > SIM > Data usage, text explaining what happens if last day of the month is before selected day">
           If the last day of the month is before this day, data will be reset on the last day of the month
@@ -5439,7 +5439,7 @@
         </message>
         <!-- Splash screen -->
         <message name="IDS_SHIMLESS_RMA_SPLASH_TITLE" translateable="false" desc="Message to display while waiting for RMA to initialize at boot.">
-          <ph name="DEVICE_TYPE">$1<ex>Thoriumbook</ex></ph> repair
+          <ph name="DEVICE_TYPE">$1<ex>Mcloud Browserbook</ex></ph> repair
         </message>
         <message name="IDS_SHIMLESS_RMA_SPLASH_REMEMBERING" translateable="false" desc="Message that lets the user know that we are resuming repair.">
           Resuming repair process…
@@ -5483,14 +5483,14 @@
           Exit repair?
         </message>
         <message name="IDS_SHIMLESS_RMA_EXIT_DIALOG_DESCRIPTION" translateable="false" desc="Detailed description for the exit dialog.">
-          If you exit now, you will need to begin the <ph name="DEVICE_TYPE">$1<ex>Thoriumbook</ex></ph> repair process from the start.
+          If you exit now, you will need to begin the <ph name="DEVICE_TYPE">$1<ex>Mcloud Browserbook</ex></ph> repair process from the start.
         </message>
         <message name="IDS_SHIMLESS_RMA_EXIT_DIALOG_CANCEL_BUTTON_LABEL" translateable="false" desc="Button used to close the exit dialog.">
           Cancel
         </message>
         <!-- Landing page -->
         <message name="IDS_SHIMLESS_RMA_LANDING_PAGE_TITLE" translateable="false" desc="Title for the landing page at the start of RMA.">
-          <ph name="DEVICE_TYPE">$1<ex>Thoriumbook</ex></ph> repair
+          <ph name="DEVICE_TYPE">$1<ex>Mcloud Browserbook</ex></ph> repair
         </message>
         <message name="IDS_SHIMLESS_RMA_AUTHORIZED_TECH_ONLY_WARNING" translateable="false" desc="Warning that RMA is only for qualified technicians.">
           This repair process is intended for a trained repair technician. Start after you’ve fixed any device issues such as broken or missing parts.
@@ -5510,7 +5510,7 @@
         <message name="IDS_SHIMLESS_RMA_GET_STARTED_BUTTON_LABEL" translateable="false" desc="The label for the button to start the RMA process.">
           Get started
         </message>
-        <message name="IDS_SHIMLESS_RMA_UNQUALIFIED_COMPONENTS_TITLE" translateable="false" desc="The title for the dialog showing the list of components unqualfiied by ThoriumOS.">
+        <message name="IDS_SHIMLESS_RMA_UNQUALIFIED_COMPONENTS_TITLE" translateable="false" desc="The title for the dialog showing the list of components unqualfiied by Mcloud Browser OS.">
           Unqualified components
         </message>
         <!-- Network connect page -->
@@ -5637,7 +5637,7 @@
         </message>
         <!-- Nearby Presence -->
         <message name="IDS_NEARBY_PRESENCE_DEVICE_NAME" is_accessibility_with_no_ui="true" desc="The device name used to advertise the user's device during a feature flow. Displayed to other devices.">
-          <ph name="GIVEN_NAME">$1<ex>Josh</ex></ph>'s <ph name="DEVICE_TYPE">$2<ex>Thoriumbook</ex></ph>
+          <ph name="GIVEN_NAME">$1<ex>Josh</ex></ph>'s <ph name="DEVICE_TYPE">$2<ex>Mcloud Browserbook</ex></ph>
         </message>
         <!-- Finalize device page -->
         <message name="IDS_SHIMLESS_RMA_FINALIZE_PAGE_TITLE" translateable="false" desc="Title for the page shown when finalizing the device. Finalizing is the process of confirming the device is ready to return to the owner.">
@@ -5753,22 +5753,22 @@
           Calibration complete
         </message>
         <!-- OS update page -->
-        <message name="IDS_SHIMLESS_RMA_UPDATE_OS_PAGE_TITLE" translateable="false" desc="Title of ThoriumOS update page.">
-          Make sure Thorium OS is up to date
+        <message name="IDS_SHIMLESS_RMA_UPDATE_OS_PAGE_TITLE" translateable="false" desc="Title of Mcloud Browser OS update page.">
+          Make sure Mcloud Browser OS is up to date
         </message>
-        <message name="IDS_SHIMLESS_RMA_UPDATE_OS_UNQUALIFIED_COMPONENTS_TOP" translateable="false" desc="Description when components not qualified for ThoriumOS are detected.">
-          <ph name="LINK_BEGIN">&lt;a id="unqualifiedComponentsLink"&gt;</ph>Unqualified components<ph name="LINK_END">&lt;/a&gt;</ph> found. To make sure all qualified components are identified, update your Thorium OS to the latest version.
+        <message name="IDS_SHIMLESS_RMA_UPDATE_OS_UNQUALIFIED_COMPONENTS_TOP" translateable="false" desc="Description when components not qualified for Mcloud Browser OS are detected.">
+          <ph name="LINK_BEGIN">&lt;a id="unqualifiedComponentsLink"&gt;</ph>Unqualified components<ph name="LINK_END">&lt;/a&gt;</ph> found. To make sure all qualified components are identified, update your Mcloud Browser OS to the latest version.
         </message>
-        <message name="IDS_SHIMLESS_RMA_UPDATE_OS_UNQUALIFIED_COMPONENTS_BOTTOM" translateable="false" desc="Description when components not qualified for ThoriumOS are detected.">
+        <message name="IDS_SHIMLESS_RMA_UPDATE_OS_UNQUALIFIED_COMPONENTS_BOTTOM" translateable="false" desc="Description when components not qualified for Mcloud Browser OS are detected.">
           If you still see the issue after the update, it's possible the component is newly qualified and hasn't made it to the database yet.
         </message>
-        <message name="IDS_SHIMLESS_RMA_UPDATE_OS_OUT_OF_DATE" translateable="false" desc="The instructions shown when there is a ThoriumOS update available.">
-          Update to the latest version of Thorium OS for an optimized repair process
+        <message name="IDS_SHIMLESS_RMA_UPDATE_OS_OUT_OF_DATE" translateable="false" desc="The instructions shown when there is a Mcloud Browser OS update available.">
+          Update to the latest version of Mcloud Browser OS for an optimized repair process
         </message>
-        <message name="IDS_SHIMLESS_RMA_CURRENT_VERSION_OUT_OF_DATE" translateable="false" desc="Label that shows the when the currently installed version of ThoriumOS is out of date.">
+        <message name="IDS_SHIMLESS_RMA_CURRENT_VERSION_OUT_OF_DATE" translateable="false" desc="Label that shows the when the currently installed version of Mcloud Browser OS is out of date.">
           Current version <ph name="VERSION_NUMBER">$1<ex>90.0.1234.56</ex></ph> is out of date
         </message>
-        <message name="IDS_SHIMLESS_RMA_UPDATE_VERSION_AND_RESTART" translateable="false" desc="Label for the button that updates the device to the latest version of ThoriumOS then restarts the device.">
+        <message name="IDS_SHIMLESS_RMA_UPDATE_VERSION_AND_RESTART" translateable="false" desc="Label for the button that updates the device to the latest version of Mcloud Browser OS then restarts the device.">
           Update to <ph name="VERSION_NUMBER">$1</ph> &#38; restart
         </message>
         <message name="IDS_SHIMLESS_RMA_UPDATING_OS_VERSION" translateable="false" desc="The message shown while updating the device's OS version.">
@@ -5876,10 +5876,10 @@
           Install complete
         </message>
         <message name="IDS_SHIMLESS_RMA_FIRMWARE_WAIT_FOR_USB" translateable="false" desc="The prompt to insert a thumb drive with the recovery image for this device.">
-          Insert external storage, such as a USB drive or an SD card, with the downloaded Thoriumbook Recovery Utility image
+          Insert external storage, such as a USB drive or an SD card, with the downloaded Mcloud Browserbook Recovery Utility image
         </message>
         <message name="IDS_SHIMLESS_RMA_FIRMWARE_FILE_NOT_FOUND" translateable="false" desc="The message when a thumb drive is detected but it does not conatin a valid recovery image for this device.">
-          Couldn’t find firmware image. Insert external storage, such as a USB drive or an SD card, with the downloaded Thoriumbook Recovery Utility image.
+          Couldn’t find firmware image. Insert external storage, such as a USB drive or an SD card, with the downloaded Mcloud Browserbook Recovery Utility image.
         </message>
         <message name="IDS_SHIMLESS_RMA_FIRMWARE_UPDATING" translateable="false" desc="The message when the firmware is being installed.">
           Installing firmware...
@@ -5929,13 +5929,13 @@
         </message>
         <!-- Critical error page -->
         <message name="IDS_SHIMLESS_RMA_CRITICAL_ERROR_TITLE" translateable="false" desc="The title for the critical error page. Critical errors cause the RMA process to attempt to exit to login or reboot the device at users discretion. It will try to cancel RMA, but if that fails the next boot may also trigger an RMA critical error.">
-          <ph name="DEVICE_TYPE">$1<ex>Thoriumbook</ex></ph> repair error
+          <ph name="DEVICE_TYPE">$1<ex>Mcloud Browserbook</ex></ph> repair error
         </message>
         <message name="IDS_SHIMLESS_RMA_CRITICAL_ERROR_MESSAGE" translateable="false" desc="The message for the critical error when Shimless RMA app is launched when not in RMA. This should never happen.">
           We're running into errors. Try rebooting or recover the firmware using a USB thumbdrive.
         </message>
         <message name="IDS_SHIMLESS_RMA_CRITICAL_EXIT_BUTTON" translateable="false" desc="Label for the exit button on the error page.">
-          Exit <ph name="DEVICE_TYPE">$1<ex>Thoriumbook</ex></ph> repair
+          Exit <ph name="DEVICE_TYPE">$1<ex>Mcloud Browserbook</ex></ph> repair
         </message>
         <message name="IDS_SHIMLESS_RMA_CRITICAL_REBOOT_BUTTON" translateable="false" desc="Label for the button that attempts to cancel RMA and reboot the device.">
           Restart
@@ -6149,7 +6149,7 @@
           Unlock the <ph name="DEVICE_NAME">$1<ex>Logitech keyboard</ex></ph> to continue the update process
         </message>
         <message name="IDS_FIRMWARE_REQUEST_ID_DO_NOT_POWER_OFF" desc="Request shown to the user during an update, requesting that the user not turn off their computer during the update.">
-          Do not turn off your <ph name="DEVICE_TYPE">$1<ex>Thoriumbook</ex></ph> or unplug the <ph name="DEVICE_TYPE">$1<ex>Thoriumbook</ex></ph> power cable while the update is in progress
+          Do not turn off your <ph name="DEVICE_TYPE">$1<ex>Mcloud Browserbook</ex></ph> or unplug the <ph name="DEVICE_TYPE">$1<ex>Mcloud Browserbook</ex></ph> power cable while the update is in progress
         </message>
         <message name="IDS_FIRMWARE_REQUEST_ID_REPLUG_INSTALL" desc="Request shown to the user during an update, requesting that the user unplug and replug the device and then install again.">
           Unplug and replug the <ph name="DEVICE_NAME">$1<ex>Logitech keyboard</ex></ph> to continue the update process
@@ -6250,7 +6250,7 @@
             Sharing Wi-Fi Debug Logs
         </message>
         <message name="IDS_FEEDBACK_TOOL_LINK_CROSS_DEVICE_DOGFOOD_FEEDBACK_INFO" translateable="false" desc="Checkbox for Google internal account to submit a Cross Device Feedback Report.">
-          This is an issue between this Thoriumbook and another device. <ph name="BEGIN_LINK1">&lt;a id="linkCrossDeviceDogfoodFeedbackInfoLink"&gt;</ph>View more details<ph name="END_LINK1">&lt;/a&gt;</ph>.
+          This is an issue between this Mcloud Browserbook and another device. <ph name="BEGIN_LINK1">&lt;a id="linkCrossDeviceDogfoodFeedbackInfoLink"&gt;</ph>View more details<ph name="END_LINK1">&lt;/a&gt;</ph>.
         </message>
         <message name="IDS_FEEDBACK_TOOL_LINK_CROSS_DEVICE_DOGFOOD_FEEDBACK_MESSAGE" translateable="false" desc="Message shown after user clicks on the Cross Device Feedback hyperlink">
           For cross-device issues related to features such as Phone Hub, Smart Lock, Instant Tethering, you may be prompted to file another feedback report from your phone.&#10;&#10;Access to this feedback report is restricted to the team working on this issue.
@@ -6310,16 +6310,16 @@
           Thanks for your feedback
         </message>
         <message name="IDS_FEEDBACK_TOOL_THANK_YOU_NOTE_OFFLINE" desc="Thank you note when feedback tool is offline">
-          Thanks for your feedback. Your feedback helps us improve the Thoriumbook experience and will be reviewed by our team. Because of the large number of reports, we won’t be able to send a reply.
+          Thanks for your feedback. Your feedback helps us improve the Mcloud Browserbook experience and will be reviewed by our team. Because of the large number of reports, we won’t be able to send a reply.
         </message>
         <message name="IDS_FEEDBACK_TOOL_THANK_YOU_NOTE_ONLINE" desc="Thank you note when feedback tool is online">
-          Your feedback helps us improve the Thoriumbook experience and will be reviewed by our team. Because of the large number of reports, we won’t be able to send a reply.
+          Your feedback helps us improve the Mcloud Browserbook experience and will be reviewed by our team. Because of the large number of reports, we won’t be able to send a reply.
         </message>
         <message name="IDS_FEEDBACK_TOOL_PAGE_TITLE_SEND_OFFLINE" desc="Label showing the title of the feedback tool when the user attempts to send a report while offline.">
           You're offline. Feedback will be sent later.
         </message>
-        <message name="IDS_FEEDBACK_TOOL_RESOURCES_EXPLORE_APP_DESCRIPTION" desc="Description of the explore app that links to some resourses like help articals and new features of Thoriumbook.">
-          Find help articles and answers to common Thoriumbook questions
+        <message name="IDS_FEEDBACK_TOOL_RESOURCES_EXPLORE_APP_DESCRIPTION" desc="Description of the explore app that links to some resourses like help articals and new features of Mcloud Browserbook.">
+          Find help articles and answers to common Mcloud Browserbook questions
         </message>
         <message name="IDS_FEEDBACK_TOOL_HELP_RESOURCES_LABEL" desc="Label of some other help resources.">
           Here are some other helpful resources:
@@ -6333,11 +6333,11 @@
         <message name="IDS_FEEDBACK_TOOL_RESOURCES_DIAGNOSTICS_APP_DESCRIPTION" desc="Description of the diagnostics app resource indicating that they can debug and run hardware tests in the Diagnostics app.">
           Run tests and troubleshooting for hardware issues
         </message>
-        <message name="IDS_FEEDBACK_TOOL_RESOURCES_ASK_COMMUNITY_LABEL" desc="Label of the ask community that opens an external link to the Thoriumbook community.">
-          Thoriumbook community
+        <message name="IDS_FEEDBACK_TOOL_RESOURCES_ASK_COMMUNITY_LABEL" desc="Label of the ask community that opens an external link to the Mcloud Browserbook community.">
+          Mcloud Browserbook community
         </message>
         <message name="IDS_FEEDBACK_TOOL_RESOURCES_ASK_COMMUNITY_DESCRIPTION" desc="Description of the ask community link">
-          Ask the experts in the Thoriumbook help forum
+          Ask the experts in the Mcloud Browserbook help forum
         </message>
         <message name="IDS_FEEDBACK_TOOL_SEND_NEW_REPORT_BUTTON_LABEL" desc="label for the send new report button to send a new report.">
           Send new report
@@ -6512,7 +6512,7 @@
         <message name="IDS_SHORTCUT_CUSTOMIZATION_SHORTCUT_RESTORED_A11Y" desc="The text read by the screen reader when shortcut is restored successfully.">
           Shortcut restored
         </message>
-        <message name="IDS_SHORTCUT_CUSTOMIZATION_SEARCH_RESULT_ROW_A11Y_RESULT_SELECTED" desc="ThoriumVox alert to indicate the position number of a selected result in a list of search results and the selected result text itself, and that the user can press enter to navigate to section described by the search result.">
+        <message name="IDS_SHORTCUT_CUSTOMIZATION_SEARCH_RESULT_ROW_A11Y_RESULT_SELECTED" desc="McloudVox alert to indicate the position number of a selected result in a list of search results and the selected result text itself, and that the user can press enter to navigate to section described by the search result.">
           Search result <ph name="LIST_POSITION">$1<ex>1</ex></ph> of <ph name="LIST_SIZE">$2<ex>2</ex></ph>: <ph name="SEARCH_RESULT_TEXT">$3<ex>Open new tab, ctrl T</ex></ph>. Press Enter to navigate to shortcut.
         </message>
         <message name="IDS_SHORTCUT_CUSTOMIZATION_NO_SHORTCUT_ASSIGNED" desc="The text shown when no shortcut is enabled with the accelerator">
@@ -6587,8 +6587,8 @@
         <message name="IDS_SHORTCUT_CUSTOMIZATION_SUBCATEGORY_DESKS" desc="Subcategory named 'Desks' shown within main shortcuts section">
           Desks
         </message>
-        <message name="IDS_SHORTCUT_CUSTOMIZATION_SUBCATEGORY_CHROMEVOX" desc="Subcategory named 'ThoriumVox' shown within main shortcuts section">
-          ThoriumVox
+        <message name="IDS_SHORTCUT_CUSTOMIZATION_SUBCATEGORY_CHROMEVOX" desc="Subcategory named 'McloudVox' shown within main shortcuts section">
+          McloudVox
         </message>
         <message name="IDS_SHORTCUT_CUSTOMIZATION_SUBCATEGORY_MOUSE_KEYS" desc="Subcategory named 'Mouse keys' shown within main shortcuts section">
           Mouse keys
@@ -7137,13 +7137,13 @@
         You've been signed out
       </message>
       <message name="IDS_DEVICE_RESTRICTION_SCHEDULE_POST_LOGOUT_NOTIFICATION_BODY" desc="Body of the notification telling the user that they were logged out.">
-        The <ph name="MANAGER">$1<ex>google.com</ex></ph> administrator has set when this <ph name="DEVICE_TYPE">$2<ex>Thoriumbook</ex></ph> can be used
+        The <ph name="MANAGER">$1<ex>google.com</ex></ph> administrator has set when this <ph name="DEVICE_TYPE">$2<ex>Mcloud Browserbook</ex></ph> can be used
       </message>
       <message name="IDS_DEVICE_DISABLED_HEADING_RESTRICTION_SCHEDULE" desc="Heading of the message shown to the user when the device has been disabled because it is inside restriction schedule.">
         Device can't be used
       </message>
       <message name="IDS_DEVICE_DISABLED_EXPLANATION_RESTRICTION_SCHEDULE" desc="Explanation shown to the user when the device has been disabled because it is inside restriction schedule.">
-        The <ph name="MANAGER">$1<ex>google.com</ex></ph> administrator has set when this <ph name="DEVICE_TYPE">$2<ex>Thoriumbook</ex></ph> can be used.
+        The <ph name="MANAGER">$1<ex>google.com</ex></ph> administrator has set when this <ph name="DEVICE_TYPE">$2<ex>Mcloud Browserbook</ex></ph> can be used.
       </message>
       <message name="IDS_DEVICE_DISABLED_EXPLANATION_RESTRICTION_SCHEDULE_TIME" desc="Time when the user will be able to use the device again.">
         You'll be able to use this device again <ph name="DAY">$1<ex>tomorrow</ex></ph> at <ph name="TIME">$2<ex>8:00 AM</ex></ph>.
@@ -7270,7 +7270,7 @@
       </message>
 
       <!-- Strings for Class Tools remote receiver -->
-      <message name="IDS_BOCA_RECEIVER_TITLE" desc="Title of an app which runs in kiosk mode and receives incoming screen share presentations. Screen share presentations are initiated from the Class Tools app on another ThoriumOS device.">
+      <message name="IDS_BOCA_RECEIVER_TITLE" desc="Title of an app which runs in kiosk mode and receives incoming screen share presentations. Screen share presentations are initiated from the Class Tools app on another Mcloud Browser OS device.">
         Class Tools display
       </message>
     </messages>
