@@ -118,7 +118,6 @@ for source in thorium_sources:
         os.path.normpath(os.path.join(cr_src_dir, relative_path)),
     )
 
-# gz83: Perhaps it could be integrated into BUILD.gn?
 copy_directory(
     os.path.normpath(os.path.join(thor_src_dir, "thorium_shell")),
     os.path.normpath(os.path.join(cr_src_dir, "out", "thorium")),

@@ -51,29 +51,6 @@ if (current_cpu == "x86" || current_cpu == "x64") {
   }
 }
 
-if (target_cpu == "arm64") {
-  _thorium_pak_source = "thorium/pak_arm64"
-} else {
-  _thorium_pak_source = "thorium/pak"
-}
-
-copy("thorium_extra_files") {
-  testonly = true
-
-  sources = [ _thorium_pak_source ]
-  outputs = [ "$root_out_dir/pak" ]
-}
-
-copy("thorium_shell_extra_files") {
-  testonly = true
-  sources = [
-    "thorium/thorium-shell",
-    "thorium/thorium-shell.desktop",
-    "thorium/thorium_shell.png",
-  ]
-  outputs = [ "$root_out_dir/{{source_file_part}}" ]
-}
-
 packaging_files_executables = [
   "$root_out_dir/thorium",
   "$root_out_dir/chrome_crashpad_handler",
@@ -121,13 +98,6 @@ packaging_files = packaging_files_binaries + [
                     "$root_out_dir/MEIPreload/preloaded_data.pb",
                     "$root_out_dir/PrivacySandboxAttestationsPreloaded/manifest.json",
                     "$root_out_dir/PrivacySandboxAttestationsPreloaded/privacy-sandbox-attestations.dat",
-                    "$root_out_dir/thorium_shell.stripped",
-                    "$root_out_dir/content_shell.pak",
-                    "$root_out_dir/shell_resources.pak",
-                    "$root_out_dir/thorium_shell.png",
-                    "$root_out_dir/thorium-shell",
-                    "$root_out_dir/thorium-shell.desktop",
-                    "$root_out_dir/pak",
                   ]
 if (enable_swiftshader) {
   packaging_files += [ "$root_out_dir/vk_swiftshader_icd.json" ]
@@ -144,7 +114,6 @@ if (use_qt6) {
 }
 
 action_foreach("calculate_deb_dependencies") {
-  testonly = true
   deps = [ ":installer_deps" ]
   script = "debian/calculate_package_deps.py"
   sources = packaging_files_binaries
@@ -168,7 +137,6 @@ action_foreach("calculate_deb_dependencies") {
 }
 
 action("merge_deb_dependencies") {
-  testonly = true
   deps = [ ":calculate_deb_dependencies" ]
   script = "debian/merge_package_versions.py"
   additional_deps = "debian/additional_deps"
@@ -188,7 +156,6 @@ action("merge_deb_dependencies") {
 }
 
 action_foreach("calculate_rpm_dependencies") {
-  testonly = true
   deps = [ ":installer_deps" ]
   script = "rpm/calculate_package_deps.py"
   sources = packaging_files_binaries
@@ -208,7 +175,6 @@ action_foreach("calculate_rpm_dependencies") {
 }
 
 action("merge_rpm_dependencies") {
-  testonly = true
   deps = [ ":calculate_rpm_dependencies" ]
   script = "rpm/merge_package_deps.py"
   additional_deps = "rpm/additional_deps"
@@ -243,12 +209,6 @@ strip_binary("strip_chrome_management_service") {
 strip_binary("strip_chrome_sandbox") {
   binary_input = "$root_out_dir/chrome_sandbox"
   deps = [ "//sandbox/linux:chrome_sandbox" ]
-}
-
-strip_binary("strip_thorium_shell") {
-  testonly = true
-  binary_input = "$root_out_dir/thorium_shell"
-  deps = [ "//content/shell:thorium_shell" ]
 }
 
 strip_binary("strip_libEGL_shlib") {
@@ -298,7 +258,6 @@ if (use_qt6) {
 # This target builds all "normal" Linux installers.  You must set
 # is_component_build=false before building this target.
 group("linux") {
-  testonly = true
   deps = [
     ":stable",
   ]
@@ -411,7 +370,6 @@ process_version("save_build_info") {
 
 # Dependencies for all Linux installer targets.
 group("installer_deps") {
-  testonly = true
   # Though many of these things appear in data_deps further down the
   # dependency chain, they must appear here as public_deps so that they can
   # be listed as inputs to the actions that depend on ":installer_deps"
@@ -425,19 +383,13 @@ group("installer_deps") {
     ":strip_chrome_crashpad_handler",
     ":strip_chrome_management_service",
     ":strip_chrome_sandbox",
-    ":strip_thorium_shell",
     ":theme_files",
-    ":thorium_extra_files",
-    ":thorium_shell_extra_files",
     "//chrome",
     "//chrome:packed_resources",
     "//chrome/browser/enterprise/connectors/device_trust/key_management/installer/management_service:chrome_management_service",
     "//chrome/browser/resources/media/mei_preload:component",
     "//components/crash/core/app:chrome_crashpad_handler",
     "//components/privacy_sandbox/privacy_sandbox_attestations/preload:component",
-    "//content/shell:copy_shell_resources",
-    "//content/shell:pak",
-    "//content/shell:thorium_shell",
     "//sandbox/linux:chrome_sandbox",
   ]
   if (bundle_widevine_cdm) {
@@ -501,7 +453,6 @@ template("linux_package") {
 
   deb_target_name = "${target_name}_deb"
   action(deb_target_name) {
-    testonly = true
     visibility = [ ":*" ]
     script = "debian/build.py"
 
@@ -566,7 +517,6 @@ template("linux_package") {
   if (!is_chromeos) {
     rpm_target_name = "${target_name}_rpm"
     action(rpm_target_name) {
-      testonly = true
       visibility = [ ":*" ]
       script = "rpm/build.py"
 
@@ -628,7 +578,6 @@ template("linux_package") {
   }
 
   group(target_name) {
-    testonly = true
     deps = [ ":$deb_target_name" ]
     if (!is_chromeos) {
       deps += [ ":$rpm_target_name" ]

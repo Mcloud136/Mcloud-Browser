@@ -1,3 +1,0 @@
-#!/bin/bash
-
-/opt/chromium.org/thorium/thorium_shell --enable-experimental-web-platform-features --debug --enable-clear-hevc-for-testing $@
