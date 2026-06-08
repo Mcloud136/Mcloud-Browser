@@ -2841,9 +2841,7 @@ config("thorium_simd_optimization") {
     if (is_win) {
       cflags += [ "-march=armv8-a+simd", ]
     } else if (is_mac) {
-      # Alex313031 TODO: Possibly use -mcpu here?
-      cflags += [ "-march=armv8.3-a+simd+crypto", "-mtune=apple-m1", ]
-      ldflags += [ "-march=armv8.3-a+simd+crypto", "-mtune=apple-m1", ]
+      cflags += [ "-mcpu=apple-m1"]
     } else if (!is_android) {
       # Linux and ChromiumOS.
       cflags += [ "-march=armv8-a+simd", ]
