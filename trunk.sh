@@ -70,7 +70,7 @@ git rebase-update &&
 git fetch --tags &&
 
 # Use our artifacts hash
-cd $HOME/thorium &&
+cd $HOME/mcloud &&
 cp -v src/build/vs_toolchain.py ${CR_SRC_DIR}/build/ &&
 cd ${CR_SRC_DIR} &&
 
@@ -118,6 +118,6 @@ tput sgr0 &&
 #printf "${c7}            Long Live Chromium\041\n${c0}\n" &&
 
 printf "\n" &&
-cat ~/thorium/logos/chromium_logo_ascii_art.txt &&
+cat ~/mcloud/logos/chromium_logo_ascii_art.txt &&
 printf "\n" &&
 tput sgr0

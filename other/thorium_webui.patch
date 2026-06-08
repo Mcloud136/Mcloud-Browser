@@ -6,7 +6,7 @@ index d122aff893703..1f4bd53890cac 100644
      "chrome_untrusted_web_ui_configs.h",
      "chrome_web_ui_configs.cc",
      "chrome_web_ui_configs.h",
-+    "thorium_easter_eggs.h",
++    "mcloud_easter_eggs.h",
    ]
  
    configs += [ "//build/config/compiler:wexit_time_destructors" ]
@@ -18,7 +18,7 @@ index d185bfdfbb3c7..deeadde6134c9 100644
  #include "chrome/browser/ui/webui/segmentation_internals/segmentation_internals_ui.h"
  #include "chrome/browser/ui/webui/signin_internals_ui.h"
  #include "chrome/browser/ui/webui/sync_internals/sync_internals_ui.h"
-+#include "chrome/browser/ui/webui/thorium_easter_eggs.h"
++#include "chrome/browser/ui/webui/mcloud_easter_eggs.h"
  #include "chrome/browser/ui/webui/translate_internals/translate_internals_ui.h"
  #include "chrome/browser/ui/webui/usb_internals/usb_internals_ui.h"
  #include "chrome/browser/ui/webui/user_actions/user_actions_ui.h"
@@ -26,7 +26,7 @@ index d185bfdfbb3c7..deeadde6134c9 100644
    map.AddWebUIConfig(std::make_unique<SignInInternalsUIConfig>());
    map.AddWebUIConfig(std::make_unique<SiteEngagementUIConfig>());
    map.AddWebUIConfig(std::make_unique<SyncInternalsUIConfig>());
-+  map.AddWebUIConfig(std::make_unique<ThoriumWebUILoadUIConfig>());
++  map.AddWebUIConfig(std::make_unique<Mcloud BrowserWebUILoadUIConfig>());
    map.AddWebUIConfig(std::make_unique<TranslateInternalsUIConfig>());
    map.AddWebUIConfig(std::make_unique<UsbInternalsUIConfig>());
    map.AddWebUIConfig(std::make_unique<UserActionsUIConfig>());
@@ -44,18 +44,18 @@ index 96f13925113dc..d774e76d1d485 100644
  }
  
  ChromeWebUIControllerFactory::ChromeWebUIControllerFactory() = default;
-diff --git a/chrome/browser/ui/webui/thorium_easter_eggs.h b/chrome/browser/ui/webui/thorium_easter_eggs.h
+diff --git a/chrome/browser/ui/webui/mcloud_easter_eggs.h b/chrome/browser/ui/webui/mcloud_easter_eggs.h
 new file mode 100644
 index 0000000000000..52f4b2506773c
 --- /dev/null
-+++ b/chrome/browser/ui/webui/thorium_easter_eggs.h
++++ b/chrome/browser/ui/webui/mcloud_easter_eggs.h
 @@ -0,0 +1,86 @@
 +// Copyright 2026 Alex313031
 +// Use of this source code is governed by a BSD-style license that can be
 +// found in the LICENSE file.
 +
-+#ifndef THORIUM_EASTER_EGGS_H_
-+#define THORIUM_EASTER_EGGS_H_
++#ifndef MCLOUD_EASTER_EGGS_H_
++#define MCLOUD_EASTER_EGGS_H_
 +
 +#include "base/memory/ref_counted_memory.h"
 +#include "chrome/browser/profiles/profile.h"
@@ -66,11 +66,11 @@ index 0000000000000..52f4b2506773c
 +#include "content/public/browser/webui_config.h"
 +#include "services/network/public/mojom/content_security_policy.mojom.h"
 +
-+class ThoriumDataSource : public content::URLDataSource {
++class Mcloud BrowserDataSource : public content::URLDataSource {
 + public:
-+  ThoriumDataSource() {}
-+  ThoriumDataSource(const ThoriumDataSource&) = delete;
-+  ThoriumDataSource& operator=(const ThoriumDataSource&) = delete;
++  Mcloud BrowserDataSource() {}
++  Mcloud BrowserDataSource(const Mcloud BrowserDataSource&) = delete;
++  Mcloud BrowserDataSource& operator=(const Mcloud BrowserDataSource&) = delete;
 +  std::string GetSource() override;
 +  std::string GetMimeType(const GURL& url) override;
 +  std::string GetContentSecurityPolicy(network::mojom::CSPDirectiveName directive) override;
@@ -79,20 +79,20 @@ index 0000000000000..52f4b2506773c
 +                        GotDataCallback callback) override;
 +};
 +
-+std::string ThoriumDataSource::GetSource() { return "eggs"; }
-+std::string ThoriumDataSource::GetMimeType(const GURL& url) { return "text/html"; }
-+std::string ThoriumDataSource::GetContentSecurityPolicy(network::mojom::CSPDirectiveName directive) {
++std::string Mcloud BrowserDataSource::GetSource() { return "eggs"; }
++std::string Mcloud BrowserDataSource::GetMimeType(const GURL& url) { return "text/html"; }
++std::string Mcloud BrowserDataSource::GetContentSecurityPolicy(network::mojom::CSPDirectiveName directive) {
 +  if (directive == network::mojom::CSPDirectiveName::ScriptSrc)
 +    return "script-src 'unsafe-inline'";
 +  return std::string();
 +}
-+void ThoriumDataSource::StartDataRequest(const GURL& url,
++void Mcloud BrowserDataSource::StartDataRequest(const GURL& url,
 +                      const content::WebContents::Getter& wc_getter,
 +                      GotDataCallback callback) {
 +  std::string source = R"(
 +    <html>
 +    <head>
-+      <title>Thorium Easter Eggs</title>
++      <title>Mcloud Browser Easter Eggs</title>
 +      <meta name="color-scheme" content="light dark">
 +      <meta name="viewport" content="width=device-width, initial-scale=1">
 +      <link rel="shortcut icon" type="image/x-icon" href="chrome://theme/current-channel-logo@2x">
@@ -103,14 +103,14 @@ index 0000000000000..52f4b2506773c
 +    </style>
 +    </head>
 +    <body>
-+      <h2><u>Thorium Easter Eggs WebUI Page</u></h3>
++      <h2><u>Mcloud Browser Easter Eggs WebUI Page</u></h3>
 +      <hr>
 +      <p>
-+        <img src="chrome://theme/IDR_PRODUCT_THORIUM_ELEMENT">
++        <img src="chrome://theme/IDR_PRODUCT_MCLOUD_ELEMENT">
 +        <hr>
-+        <img src="chrome://theme/IDR_PRODUCT_THORIUM_ATOMIC">
++        <img src="chrome://theme/IDR_PRODUCT_MCLOUD_ATOMIC">
 +        <img src="chrome://theme/IDR_PRODUCT_CHROMIUM_QUESTION">
-+        <img src="chrome://theme/IDR_PRODUCT_THORIUM_GUY">
++        <img src="chrome://theme/IDR_PRODUCT_MCLOUD_GUY">
 +        <img src="chrome://theme/IDR_PRODUCT_CHROMIUM_BLANK">
 +        <img src="chrome://theme/IDR_PRODUCT_AI_CHROME">
 +      </p>
@@ -120,22 +120,22 @@ index 0000000000000..52f4b2506773c
 +  std::move(callback).Run(base::MakeRefCounted<base::RefCountedString>(std::move(source)));
 +}
 +
-+class ThoriumWebUILoad;
-+class ThoriumWebUILoadUIConfig : public content::DefaultWebUIConfig<ThoriumWebUILoad> {
++class Mcloud BrowserWebUILoad;
++class Mcloud BrowserWebUILoadUIConfig : public content::DefaultWebUIConfig<Mcloud BrowserWebUILoad> {
 +  public:
-+   ThoriumWebUILoadUIConfig() : DefaultWebUIConfig("chrome", chrome::kChromeUIEggsHost) {}
++   Mcloud BrowserWebUILoadUIConfig() : DefaultWebUIConfig("chrome", chrome::kChromeUIEggsHost) {}
 +};
 +
-+class ThoriumWebUILoad : public content::WebUIController {
++class Mcloud BrowserWebUILoad : public content::WebUIController {
 + public:
-+  ThoriumWebUILoad(content::WebUI* web_ui) : content::WebUIController(web_ui) {
-+    content::URLDataSource::Add(Profile::FromWebUI(web_ui), std::make_unique<ThoriumDataSource>());
++  Mcloud BrowserWebUILoad(content::WebUI* web_ui) : content::WebUIController(web_ui) {
++    content::URLDataSource::Add(Profile::FromWebUI(web_ui), std::make_unique<Mcloud BrowserDataSource>());
 +  }
-+  ThoriumWebUILoad(const ThoriumWebUILoad&) = delete;
-+  ThoriumWebUILoad& operator=(const ThoriumWebUILoad&) = delete;
++  Mcloud BrowserWebUILoad(const Mcloud BrowserWebUILoad&) = delete;
++  Mcloud BrowserWebUILoad& operator=(const Mcloud BrowserWebUILoad&) = delete;
 +};
 +
-+#endif  // THORIUM_EASTER_EGGS_H_
++#endif  // MCLOUD_EASTER_EGGS_H_
 diff --git a/chrome/common/webui_url_constants.cc b/chrome/common/webui_url_constants.cc
 index f96fccfbc248a..10e848bcf5941 100644
 --- a/chrome/common/webui_url_constants.cc
@@ -169,8 +169,8 @@ index 5096175e285c1..6d4a41ab2815f 100644
  <div class="open-sourced">
 -    {{opensource_project}} software is made available as source code
 -    <a href="{{opensource_link}}">here</a>.
-+    {{thorium_project}} is based on {{opensource_project}} and is made available as source code
-+    <a href="{{thorium_link}}">here</a>. Chromium source code is available <a href="{{opensource_link}}">here</a>.
++    {{mcloud_project}} is based on {{opensource_project}} and is made available as source code
++    <a href="{{mcloud_link}}">here</a>. Chromium source code is available <a href="{{opensource_link}}">here</a>.
  </div>
 diff --git a/tools/licenses/licenses.py b/tools/licenses/licenses.py
 index 7f22f02d2bc80..9981813b17c28 100755
@@ -180,8 +180,8 @@ index 7f22f02d2bc80..9981813b17c28 100755
    entries_contents = '\n'.join([entry['content'] for entry in entries])
  
    reciprocal_contents = EvaluateTemplate(reciprocal_template, {
-+      'thorium_project': 'Thorium',
-+      'thorium_link': 'https://github.com/Alex313031/thorium',
++      'mcloud_project': 'Mcloud Browser',
++      'mcloud_link': 'https://github.com/Alex313031/mcloud',
        'opensource_project': 'Chromium',
        'opensource_link': 'https://source.chromium.org/chromium'
    },
@@ -224,15 +224,15 @@ index 0000000000000..21045cee4be90
 +  resource_path_prefix = "text"
 +
 +  input_files = [
-+    # chrome://resources/text/thorium_version.txt
-+    "thorium_version.txt",
++    # chrome://resources/text/mcloud_version.txt
++    "mcloud_version.txt",
 +    "AUTHORS.txt",
 +  ]
 +}
-diff --git a/ui/webui/resources/text/thorium_version.txt b/ui/webui/resources/text/thorium_version.txt
+diff --git a/ui/webui/resources/text/mcloud_version.txt b/ui/webui/resources/text/mcloud_version.txt
 new file mode 100644
 index 0000000000000..efba1ea4cc003
 --- /dev/null
-+++ b/ui/webui/resources/text/thorium_version.txt
++++ b/ui/webui/resources/text/mcloud_version.txt
 @@ -0,0 +1 @@
-+placeholder grit thorium version text
++placeholder grit mcloud version text

@@ -2238,7 +2238,7 @@ index 0000000000000..25d6421c12f4b
 +    }
 +  }
 +
-+  if (features::IsThorium2024()) {
++  if (features::IsMcloud Browser2024()) {
 +    height -= 16;
 +  }
 +

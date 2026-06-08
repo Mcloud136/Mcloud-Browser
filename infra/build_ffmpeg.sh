@@ -39,12 +39,12 @@ printf "\n" &&
 printf "${YEL}Building libffmpeg...\n" &&
 printf "${CYA}\n" &&
 
-# Build Thorium
+# Build Mcloud Browser
 export NINJA_SUMMARIZE_BUILD=1 &&
 export NINJA_STATUS="[%r processes, %f/%t @ %o/s | %e sec. ] " &&
 
 cd ${CR_SRC_DIR} &&
-autoninja -C out/thorium/ third_party/ffmpeg:ffmpeg third_party/ffmpeg:ffmpeg_features third_party/ffmpeg:ffmpeg_internal -j$@ &&
+autoninja -C out/mcloud/ third_party/ffmpeg:ffmpeg third_party/ffmpeg:ffmpeg_features third_party/ffmpeg:ffmpeg_internal -j$@ &&
 
 printf "${GRE}${bold}Done!\n" &&
 tput sgr0

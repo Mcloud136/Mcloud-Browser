@@ -13,8 +13,8 @@ blue="${bold}$(tput setaf 4)"
 yellow="${bold}$(tput setaf 3)"
 
 post_install() {
-    note "Custom flags should be put directly in: ~/.config/thorium-flags.conf"
-    note "The launcher is called: 'thorium-browser'"
+    note "Custom flags should be put directly in: ~/.config/mcloud-flags.conf"
+    note "The launcher is called: 'mcloud-browser'"
 }
 
 post_upgrade() {

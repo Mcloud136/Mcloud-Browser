@@ -65,41 +65,41 @@ index 283ea725c5..86bd75c692 100755
    else:
 -    raise Exception('Unknown build')
 +    config = {
-+        'build': 'thorium',
-+        'app_name': 'Thorium',
++        'build': 'mcloud',
++        'app_name': 'Mcloud Browser',
 +        'doc_url': 'https://chromeenterprise.google/policies/',
-+        'frame_name': 'Thorium Frame',
-+        'os_name': 'ThoriumOS',
-+        'webview_name': 'Thorium WebView',
++        'frame_name': 'Mcloud Browser Frame',
++        'os_name': 'Mcloud BrowserOS',
++        'webview_name': 'Mcloud Browser WebView',
 +        'win_config': {
 +            'win': {
-+                'reg_mandatory_key_name': 'Software\\Policies\\Thorium',
++                'reg_mandatory_key_name': 'Software\\Policies\\Mcloud Browser',
 +                'reg_recommended_key_name':
-+                'Software\\Policies\\Thorium\\Recommended',
++                'Software\\Policies\\Mcloud Browser\\Recommended',
 +                'mandatory_category_path': ['chromium'],
 +                'recommended_category_path': ['chromium_recommended'],
 +                'category_path_strings': {
-+                    'chromium': 'Thorium',
-+                    'chromium_recommended': 'Thorium - {doc_recommended}',
++                    'chromium': 'Mcloud Browser',
++                    'chromium_recommended': 'Mcloud Browser - {doc_recommended}',
 +                },
-+                'namespace': 'Chromium.Policies.Thorium',
++                'namespace': 'Chromium.Policies.Mcloud Browser',
 +            },
 +            'chrome_os': {
-+                'reg_mandatory_key_name': 'Software\\Policies\\ThoriumOS',
++                'reg_mandatory_key_name': 'Software\\Policies\\Mcloud BrowserOS',
 +                'reg_recommended_key_name':
-+                'Software\\Policies\\ThoriumOS\\Recommended',
++                'Software\\Policies\\Mcloud BrowserOS\\Recommended',
 +                'mandatory_category_path': ['chromium_os'],
 +                'recommended_category_path': ['chromium_os_recommended'],
 +                'category_path_strings': {
-+                    'chromium_os': 'ThoriumOS',
-+                    'chromium_os_recommended': 'ThoriumOS - {doc_recommended}',
++                    'chromium_os': 'Mcloud BrowserOS',
++                    'chromium_os_recommended': 'Mcloud BrowserOS - {doc_recommended}',
 +                },
-+                'namespace': 'Chromium.Policies.ThoriumOS'
++                'namespace': 'Chromium.Policies.Mcloud BrowserOS'
 +            },
 +        },
-+        'admx_prefix': 'thorium',
-+        'linux_policy_path': '/etc/thorium/policies/',
-+        'bundle_id': 'org.chromium.Thorium',
++        'admx_prefix': 'mcloud',
++        'linux_policy_path': '/etc/mcloud/policies/',
++        'bundle_id': 'org.chromium.Mcloud Browser',
 +    }
    if 'version' in defines:
      config['version'] = defines['version']

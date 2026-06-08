@@ -7,6 +7,6 @@ echo "Setting NINJA_SUMMARIZE_BUILD=1" &&
 
 set NINJA_SUMMARIZE_BUILD=1 &&
 
-echo "Building Thorium..." &&
+echo "Building Mcloud Browser..." &&
 
-autoninja -C out\thorium chrome chromedriver content_shell setup mini_installer -j %1
+autoninja -C out\mcloud chrome chromedriver content_shell setup mini_installer -j %1

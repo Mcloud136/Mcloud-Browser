@@ -2,7 +2,7 @@
 
 # Copyright (c) 2026 Alex313031.
 
-program="Thorium Browser." # The program we are checking for.
+program="Mcloud Browser Browser." # The program we are checking for.
 
 YEL='\033[1;33m' # Yellow
 CYA='\033[1;96m' # Cyan

@@ -1,7 +1,7 @@
-# MCloud Browser — Thorium M144 → M149 升级设计规格
+# MCloud Browser — Mcloud Browser M144 → M149 升级设计规格
 
 > 日期：2026-06-08
-> 目标：将 Thorium 从 Chromium 144.0.7559.254 升级到 Chromium 149.0.7827.53
+> 目标：将 Mcloud Browser 从 Chromium 144.0.7559.254 升级到 Chromium 149.0.7827.53
 > 平台：Windows x64
 > 仓库：Mcloud-Browser (GitHub)
 > SIMD 策略：纯 AVX2 编译（最低要求 AVX2，覆盖 2013 年后所有现代 CPU）
@@ -11,7 +11,7 @@
 
 ## 1. 项目概述
 
-MCloud Browser 基于 Thorium 项目（Chromium fork），以 AVX2 为最低指令集目标进行编译优化。
+MCloud Browser 基于 Mcloud Browser 项目（Chromium fork），以 AVX2 为最低指令集目标进行编译优化。
 
 **核心设计理念**：将整个浏览器编译为 AVX2 原生二进制文件。相比 SSE3 基准 + 运行时分发方案，纯 AVX2 编译有以下优势：
 - 编译器可全局使用 AVX2 指令做深度优化（循环向量化、内联展开等）
@@ -241,7 +241,7 @@ FFmpeg trunk 已原生支持多种硬件加速解码：
 
 ### 5.2 JPEG XL
 
-- 更新 `thorium-libjxl` 子模块到兼容 M149 的版本
+- 更新 `mcloud-libjxl` 子模块到兼容 M149 的版本
 - 更新 DEPS 文件中的 libjxl 依赖版本
 
 ### 5.3 Widevine CDM
@@ -256,9 +256,9 @@ FFmpeg trunk 已原生支持多种硬件加速解码：
 
 ## 6. 阶段四：UI/功能补丁
 
-### 6.1 Thorium 2024 UI
+### 6.1 Mcloud Browser 2024 UI
 
-`thorium-2024-ui.patch` 是最大的补丁之一。M145-M149 中 CR23 UI 持续演进：
+`mcloud-2024-ui.patch` 是最大的补丁之一。M145-M149 中 CR23 UI 持续演进：
 - Tab strip 布局变化
 - Omnibox 样式变化
 - Side panel 变化
@@ -457,7 +457,7 @@ jobs:
 ## 10. 成功标准
 
 1. M149 Windows x64 AVX2 原生构建成功
-2. 所有现有 Thorium 功能正常工作
+2. 所有现有 Mcloud Browser 功能正常工作
 3. HEVC/AC3/Dolby Vision 编解码器正常
 4. Widevine DRM 正常
 5. FTP 协议支持正常

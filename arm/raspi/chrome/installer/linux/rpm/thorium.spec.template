@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-#   Thorium RPM spec
+#   Mcloud Browser RPM spec
 #   chrome.spec
 #------------------------------------------------------------------------------
 
@@ -100,10 +100,10 @@ rm -rf "$RPM_BUILD_ROOT"
 /etc/cron.daily/@@PACKAGE@@
 %ghost %attr(755,root,root) /usr/bin/@@PACKAGE_ORIG@@
 /usr/bin/@@USR_BIN_SYMLINK_NAME@@
-# Extra Thorium stuff
+# Extra Mcloud Browser stuff
 /usr/bin/pak
-/usr/bin/thorium-shell
-/usr/share/applications/thorium-shell.desktop
+/usr/bin/mcloud-shell
+/usr/share/applications/mcloud-shell.desktop
 /usr/share/appdata/@@PACKAGE@@.appdata.xml
 /usr/share/applications/@@PACKAGE@@.desktop
 /usr/share/applications/@@RDN_DESKTOP@@.desktop
@@ -179,7 +179,7 @@ case $CHANNEL in
     ;;
 esac
 
-ln -sf /opt/chromium.org/thorium/thorium-browser /usr/bin/@@USR_BIN_SYMLINK_NAME@@
+ln -sf /opt/chromium.org/mcloud/mcloud-browser /usr/bin/@@USR_BIN_SYMLINK_NAME@@
 
 exit 0
 

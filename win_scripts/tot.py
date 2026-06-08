@@ -2,7 +2,7 @@
 
 """
 This file is used to sync commits in Chromium's Tip-of-tree branch and does not
-contain any Thorium-specific files.
+contain any Mcloud Browser-specific files.
 """
 
 

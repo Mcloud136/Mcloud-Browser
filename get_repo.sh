@@ -15,7 +15,7 @@ die() { yell "$*"; exit 111; }
 try() { "$@" || die "${RED}Failed $*"; }
 
 printf "\n" &&
-printf "${GRE}Script to download all prequisites to build Thorium...\n" &&
+printf "${GRE}Script to download all prequisites to build Mcloud Browser...\n" &&
 tput sgr0 &&
 
 # Give user a chance to stop if they wish
@@ -24,7 +24,7 @@ read -p "This script requires git and wget. Press Enter to continue, otherwise u
 tput sgr0 &&
 
 printf "\n" &&
-printf "${YEL}Installing depot_tools, cloning Thorium repo, and creating Chromium directories...\n" &&
+printf "${YEL}Installing depot_tools, cloning Mcloud Browser repo, and creating Chromium directories...\n" &&
 tput sgr0 &&
 sleep 1 &&
 
@@ -32,7 +32,7 @@ cd &&
 # Clone repos
 git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git &&
 printf "\n" &&
-git clone --recursive https://github.com/Alex313031/thorium.git &&
+git clone --recursive https://github.com/Alex313031/mcloud.git &&
 
 # Make Chromium dirs
 printf "\n" &&
@@ -122,18 +122,18 @@ cd ~/chromium &&
 echo "target_os = [ 'linux', 'win' ]" >> .gclient &&
 
 printf "\n" &&
-printf "${YEL}Running set_exec.sh in ~/Thorium...\n" &&
+printf "${YEL}Running set_exec.sh in ~/Mcloud Browser...\n" &&
 tput sgr0 &&
 
 # Make set_exec.sh executable so it can make all other scripts executable
-cd ~/Thorium &&
+cd ~/Mcloud Browser &&
 chmod +x set_exec.sh &&
 
 # Run set_exec.sh
 ./set_exec.sh &&
 
 printf "\n" &&
-printf "${YEL}Running trunk.sh in ~/Thorium...\n" &&
+printf "${YEL}Running trunk.sh in ~/Mcloud Browser...\n" &&
 tput sgr0 &&
 
 # Run final trunk.sh to sync/rebase everything with tags and branches, and to set the VS toolchain

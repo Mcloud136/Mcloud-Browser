@@ -18,7 +18,7 @@ try() { "$@" || die "${RED}Failed $*"; }
 # --help
 displayHelp () {
 	printf "\n" &&
-	printf "${bold}${GRE}Script to build Thorium for Windows.${c0}\n" &&
+	printf "${bold}${GRE}Script to build Mcloud Browser for Windows.${c0}\n" &&
 	printf "${underline}${YEL}Usage:${c0} build_win.sh # (where # is number of jobs)${c0}\n" &&
 	printf "\n"
 }
@@ -36,23 +36,23 @@ else
 fi
 
 printf "\n" &&
-printf "${YEL}Building Thorium for Windows...\n" &&
+printf "${YEL}Building Mcloud Browser for Windows...\n" &&
 printf "${GRE}\n" &&
 
-# Build Thorium and mini_installer
+# Build Mcloud Browser and mini_installer
 export NINJA_SUMMARIZE_BUILD=1 &&
 export NINJA_STATUS="[%r processes, %f/%t @ %o/s | %e sec. ] " &&
 
 cd ${CR_SRC_DIR} &&
 # For restoring individual build targets for customization
-#autoninja -C out/thorium thorium chromedriver clear_key_cdm thorium_shell policy_templates pack_policy_templates setup mini_installer -j$@ &&
-autoninja -C out/thorium thorium_all -j$@ &&
+#autoninja -C out/mcloud mcloud chromedriver clear_key_cdm mcloud_shell policy_templates pack_policy_templates setup mini_installer -j$@ &&
+autoninja -C out/mcloud mcloud_all -j$@ &&
 printf "${GRE}\nBuilding mini_installer...\n" &&
-autoninja -C out/thorium thorium_installer -j$@ &&
+autoninja -C out/mcloud mcloud_installer -j$@ &&
 
 printf "\n" &&
-cat ~/thorium/logos/thorium_logo_ascii_art.txt &&
+cat ~/mcloud/logos/mcloud_logo_ascii_art.txt &&
 printf "\n" &&
 
-printf "${GRE}${bold}Build Completed. ${YEL}${bold}Installer at \'//out/thorium/thorium_mini_installer.exe\'\n" &&
+printf "${GRE}${bold}Build Completed. ${YEL}${bold}Installer at \'//out/mcloud/mcloud_mini_installer.exe\'\n" &&
 tput sgr0

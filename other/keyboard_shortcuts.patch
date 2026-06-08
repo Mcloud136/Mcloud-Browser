@@ -88,7 +88,7 @@ index 3c40f982b3ca1..34887e9196711 100644
      // We used to define IDC_CLOSE_WINDOW here. Instead, see
      // AcceleratorForCloseWindow().
      {IDC_CLOSE_TAB, ui::EF_COMMAND_DOWN, ui::VKEY_W},
-+    // Thorium Accelerators
++    // Mcloud Browser Accelerators
 +    {IDC_MOVE_TAB_TO_NEW_WINDOW, ui::EF_COMMAND_DOWN | ui::EF_SHIFT_DOWN,
 +     ui::VKEY_P},
 +    {IDC_NEW_TAB_TO_RIGHT, ui::EF_COMMAND_DOWN | ui::EF_SHIFT_DOWN,
@@ -101,7 +101,7 @@ index 3c40f982b3ca1..34887e9196711 100644
      {IDC_BACK, ui::EF_COMMAND_DOWN, ui::VKEY_OEM_4},
      {IDC_FORWARD, ui::EF_COMMAND_DOWN, ui::VKEY_OEM_6},
 -    {IDC_BOOKMARK_ALL_TABS, ui::EF_COMMAND_DOWN | ui::EF_SHIFT_DOWN,
-+    {IDC_DUPLICATE_TAB, ui::EF_COMMAND_DOWN | ui::EF_SHIFT_DOWN, // Changed from IDC_BOOKMARK_ALL_TABS for Thorium
++    {IDC_DUPLICATE_TAB, ui::EF_COMMAND_DOWN | ui::EF_SHIFT_DOWN, // Changed from IDC_BOOKMARK_ALL_TABS for Mcloud Browser
       ui::VKEY_D},
      {IDC_MINIMIZE_WINDOW, ui::EF_COMMAND_DOWN, ui::VKEY_M},
      {IDC_SELECT_NEXT_TAB, ui::EF_CONTROL_DOWN, ui::VKEY_TAB},

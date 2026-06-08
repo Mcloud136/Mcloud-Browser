@@ -2,8 +2,8 @@
 
 # Copyright (c) 2026 Alex313031.
 
-# Copy and run from within out/thorium or wherever you put your build, or cd there first!
-# i.e. cd /home/alex/bin/thorium/
+# Copy and run from within out/mcloud or wherever you put your build, or cd there first!
+# i.e. cd /home/alex/bin/mcloud/
 
 YEL='\033[1;33m' # Yellow
 CYA='\033[1;96m' # Cyan
@@ -21,7 +21,7 @@ try() { "$@" || die "${RED}Failed $*"; }
 # --help
 displayHelp () {
 	printf "\n" &&
-	printf "${bold}${GRE}Script to remove unneeded artifacts in Thorium's build directory.${c0}\n" &&
+	printf "${bold}${GRE}Script to remove unneeded artifacts in Mcloud Browser's build directory.${c0}\n" &&
 	printf "\n"
 }
 case $1 in
@@ -41,7 +41,7 @@ printf "\n" &&
 printf "${YEL}Cleaning up build artifacts...\n" &&
 printf "${RED}\n" &&
 
-cd ${CR_SRC_DIR}/out/thorium &&
+cd ${CR_SRC_DIR}/out/mcloud &&
 
 rm -r -f -v pyproto &&
 rm -r -f -v obj &&
@@ -55,8 +55,8 @@ rm -r -f -v etc &&
 rm -r -f -v clang_newlib_x64 &&
 rm -r -f -v thinlto-cache &&
 rm -r -f -v fontconfig_caches &&
-find ${CR_SRC_DIR}/out/thorium -name "*deps*" -delete &&
-find ${CR_SRC_DIR}/out/thorium -name "*TOC*" -delete &&
+find ${CR_SRC_DIR}/out/mcloud -name "*deps*" -delete &&
+find ${CR_SRC_DIR}/out/mcloud -name "*TOC*" -delete &&
 
 printf "${GRE}Done cleaning artifacts.\n" &&
 tput sgr0

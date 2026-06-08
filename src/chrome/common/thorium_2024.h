@@ -9,6 +9,6 @@
 #include "ui/base/ui_base_features.h"
 
 // Blanking out until moving file to //ui/base
-//static const bool thor24 = features::IsThorium2024();
+//static const bool thor24 = features::IsMcloud Browser2024();
 
 #endif  // CHROME_BROWSER_UI_THORIUM_2024_UI_H_

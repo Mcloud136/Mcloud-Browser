@@ -19,9 +19,9 @@ rm C:\src\chromium\src\components\neterror\resources\favicon-16x16.png &&
 
 rm C:\src\chromium\src\components\neterror\resources\favicon-32x32.png &&
 
-rm C:\src\chromium\src\content\shell\app\thorium_shell.ico &&
+rm C:\src\chromium\src\content\shell\app\mcloud_shell.ico &&
 
-rm C:\src\chromium\src\chrome\browser\thorium_flag_entries.h &&
+rm C:\src\chromium\src\chrome\browser\mcloud_flag_entries.h &&
 
 cd C:\src\chromium\src &&
 

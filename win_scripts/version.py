@@ -37,7 +37,7 @@ def copy(src, dst):
 
 # --help
 def display_help():
-    print(f"\nScript to check out Chromium tag of current Thorium version.\n")
+    print(f"\nScript to check out Chromium tag of current Mcloud Browser version.\n")
     print(f"\nNOTE: You may need to run trunk.py before using this script\n")
 
 
@@ -48,16 +48,16 @@ if "--help" in sys.argv:
 
 # Set chromium/src dir from Windows environment variable
 cr_src_dir = os.getenv("CR_DIR", r"C:/src/chromium/src")
-# Set Thorium dir from Windows environment variable
+# Set Mcloud Browser dir from Windows environment variable
 thor_src_dir = os.path.expandvars(
-    os.getenv("THOR_DIR", r"%USERPROFILE%/thorium"))
+    os.getenv("THOR_DIR", r"%USERPROFILE%/mcloud"))
 
 
 # Set thor_ver
 thor_ver = "144.0.7559.254"
 
 
-print(f"\nCurrent Thorium version is: {thor_ver}\n")
+print(f"\nCurrent Mcloud Browser version is: {thor_ver}\n")
 print(f"\nNOTE: Checking out tags/{thor_ver} in {cr_src_dir}\n")
 
 # Change directory to cr_src_dir and run commands
@@ -67,17 +67,17 @@ try_run(f"git checkout -f tags/{thor_ver}")
 
 # Copy files using shutil
 copy(
-    os.path.normpath(os.path.join(thor_src_dir, "thorium-libjxl/src/DEPS")),
+    os.path.normpath(os.path.join(thor_src_dir, "mcloud-libjxl/src/DEPS")),
     os.path.normpath(os.path.join(cr_src_dir, "DEPS")),
 )
 copy(
     os.path.normpath(os.path.join(
-        thor_src_dir, "thorium-libjxl/src/.gitmodules")),
+        thor_src_dir, "mcloud-libjxl/src/.gitmodules")),
     os.path.normpath(os.path.join(cr_src_dir, ".gitmodules")),
 )
 copy(
     os.path.normpath(
-        os.path.join(thor_src_dir, "thorium-libjxl/src/third_party/.gitignore")
+        os.path.join(thor_src_dir, "mcloud-libjxl/src/third_party/.gitignore")
     ),
     os.path.normpath(os.path.join(cr_src_dir, "third_party/.gitignore")),
 )

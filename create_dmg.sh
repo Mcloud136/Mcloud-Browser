@@ -25,22 +25,22 @@ else
 fi
 
 printf "\n" &&
-printf "${YEL}Building .dmg of Thorium...\n" &&
+printf "${YEL}Building .dmg of Mcloud Browser...\n" &&
 printf "${CYA}\n" &&
 
 cd ${CR_SRC_DIR} &&
 
 # Fix file attr
-xattr -csr out/thorium/Thorium.app &&
+xattr -csr out/mcloud/Mcloud Browser.app &&
 
 # Sign binary
-codesign --force --deep --sign - out/thorium/Thorium.app &&
+codesign --force --deep --sign - out/mcloud/Mcloud Browser.app &&
 
 # Build dmg package
-chrome/installer/mac/pkg-dmg --sourcefile --source out/thorium/Thorium.app --target "out/thorium/Thorium_MacOS.dmg" --volname Thorium --symlink /Applications:/Applications --format UDBZ --verbosity 2 &&
+chrome/installer/mac/pkg-dmg --sourcefile --source out/mcloud/Mcloud Browser.app --target "out/mcloud/Mcloud Browser_MacOS.dmg" --volname Mcloud Browser --symlink /Applications:/Applications --format UDBZ --verbosity 2 &&
 
-cd $HOME/thorium &&
+cd $HOME/mcloud &&
 cat logos/apple_ascii_art.txt &&
 
-printf "${GRE}.DMG Build Completed. ${YEL}Installer at \'//chromium/src/out/thorium/Thorium*_MacOS.dmg\'\n" &&
+printf "${GRE}.DMG Build Completed. ${YEL}Installer at \'//chromium/src/out/mcloud/Mcloud Browser*_MacOS.dmg\'\n" &&
 tput sgr0

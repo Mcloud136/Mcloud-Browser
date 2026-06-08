@@ -124,7 +124,7 @@ index 02a8d8fbbc6e0..2ba6e2617b8ac 100644
    }
  
 -  return Status::kAllowed;
-+  // Always return restricted in Thorium
++  // Always return restricted in Mcloud Browser
 +  return Status::kRestricted;
  }
  

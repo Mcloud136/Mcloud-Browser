@@ -17,8 +17,8 @@ try() { "$@" || die "${RED}Failed $*"; }
 # --help
 displayHelp () {
 	printf "\n" &&
-	printf "${bold}${GRE}Script to build Thorium .AppImage on Linux.${c0}\n" &&
-	printf "${bold}${YEL}Please place the Thorium .deb file in this directory before running.${c0}\n" &&
+	printf "${bold}${GRE}Script to build Mcloud Browser .AppImage on Linux.${c0}\n" &&
+	printf "${bold}${YEL}Please place the Mcloud Browser .deb file in this directory before running.${c0}\n" &&
 	printf "\n"
 }
 case $1 in
@@ -26,8 +26,8 @@ case $1 in
 esac
 
 printf "\n" &&
-printf "${bold}${RED}NOTE: You must place the Thorium .deb file in this directory before running.${c0}\n" &&
-printf "${YEL}Extracting & Copying files from Thorium .deb package...\n" &&
+printf "${bold}${RED}NOTE: You must place the Mcloud Browser .deb file in this directory before running.${c0}\n" &&
+printf "${YEL}Extracting & Copying files from Mcloud Browser .deb package...\n" &&
 printf "${c0}\n" &&
 
 rm -r -f ./temp/ &&
@@ -38,23 +38,23 @@ sleep 2 &&
 mkdir -v ./temp &&
 ar xv *.deb &&
 tar xvf ./data.tar.xz &&
-cp -r -v ./opt/chromium.org/thorium/* ./temp/ &&
+cp -r -v ./opt/chromium.org/mcloud/* ./temp/ &&
 cp -r -v ./usr/bin/pak temp/ &&
 cp -r -v ./files/product_logo_512.png ./temp/ &&
 cp -r -v ./files/product_logo_22.png ./temp/ &&
-cp -r -v ./files/thorium-shell ./temp/ &&
+cp -r -v ./files/mcloud-shell ./temp/ &&
 rm -r -v ./temp/cron &&
-rm -r -v ./temp/thorium-browser &&
+rm -r -v ./temp/mcloud-browser &&
 
 printf "\n" &&
-printf "${YEL}Building .AppImage using Thorium.yml...\n" &&
+printf "${YEL}Building .AppImage using Mcloud Browser.yml...\n" &&
 printf "${c0}\n" &&
 
 sleep 2 &&
 
 # Build appimage
 # chmod +x pkg2appimage &&
-./pkg2appimage Thorium.yml &&
+./pkg2appimage Mcloud Browser.yml &&
 
 printf "\n" &&
 printf "${YEL}Cleaning up...\n" &&
@@ -69,10 +69,10 @@ rm -r -v -f ./usr &&
 rm -r -v -f ./control.tar.xz &&
 rm -r -v -f ./data.tar.xz &&
 rm -r -v -f ./debian-binary &&
-rm -r -v -f ./Thorium/ &&
+rm -r -v -f ./Mcloud Browser/ &&
 rm -r -v -f ./temp/ &&
 
 printf "\n" &&
-printf "${GRE}Done! ${YEL}AppImage at //out/Thorium*.AppImage\n" &&
+printf "${GRE}Done! ${YEL}AppImage at //out/Mcloud Browser*.AppImage\n" &&
 printf "\n" &&
 tput sgr0

@@ -1,11 +1,11 @@
 # Copyright (c) 2022 Alex313031.
 
-# Run from within out\Thorium or wherever you put your build, or cd there first
-# i.e. cd C:\src\chromium\src\out\thorium
+# Run from within out\Mcloud Browser or wherever you put your build, or cd there first
+# i.e. cd C:\src\chromium\src\out\mcloud
 
 echo "Cleaning up build artifacts..." &&
 
-cd C:\src\chromium\src\out\thorium &&
+cd C:\src\chromium\src\out\mcloud &&
 
 del *deps* &&
 del *TOC* &&

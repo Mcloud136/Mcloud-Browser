@@ -17,7 +17,7 @@ try() { "$@" || die "${RED}Failed $*"; }
 # --help
 displayHelp () {
 	printf "\n" &&
-	printf "${bold}${GRE}Script to copy Thorium ARM BUILD.gn file over the Chromium source tree.${c0}\n" &&
+	printf "${bold}${GRE}Script to copy Mcloud Browser ARM BUILD.gn file over the Chromium source tree.${c0}\n" &&
 	printf "\n"
 }
 case $1 in
@@ -28,7 +28,7 @@ printf "\n" &&
 printf "${YEL}Creating build output directory...\n" &&
 tput sgr0 &&
 
-mkdir -v -p $HOME/chromium/src/out/thorium/ &&
+mkdir -v -p $HOME/chromium/src/out/mcloud/ &&
 printf "\n" &&
 
 printf "${YEL}Copying BUILD.gn...\n" &&
@@ -41,6 +41,6 @@ cp -r -v ./third_party/* $HOME/chromium/src/third_party/ &&
 printf "${GRE}Done!\n" &&
 printf "\n" &&
 
-printf "${GRE}Enjoy Thorium on ARM!\n" &&
+printf "${GRE}Enjoy Mcloud Browser on ARM!\n" &&
 printf "\n" &&
 tput sgr0

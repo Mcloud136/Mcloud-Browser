@@ -40,7 +40,7 @@ index 568e1a05160ff..21146974a2884 100644
          Date Modified
        </message>
 +      <message name="IDS_DIRECTORY_LISTING_PARSING_ERROR_BOX_TEXT" desc="Text to show in a box when we failed to parse FTP directory listing.">
-+        Oh, no! This server is sending data <ph name="PRODUCT_NAME">$1<ex>Thorium</ex></ph> can't understand. Please <ph name="BEGIN_LINK">&lt;a href="https://issues.chromium.org/issues/new"&gt;</ph>report a bug<ph name="END_LINK">&lt;/a&gt;<ex>&lt;/a&gt;</ex></ph>, and include the <ph name="BEGIN2_LINK">&lt;a href="LOCATION"&gt;</ph>raw listing<ph name="END2_LINK">&lt;/a&gt;</ph>.
++        Oh, no! This server is sending data <ph name="PRODUCT_NAME">$1<ex>Mcloud Browser</ex></ph> can't understand. Please <ph name="BEGIN_LINK">&lt;a href="https://issues.chromium.org/issues/new"&gt;</ph>report a bug<ph name="END_LINK">&lt;/a&gt;<ex>&lt;/a&gt;</ex></ph>, and include the <ph name="BEGIN2_LINK">&lt;a href="LOCATION"&gt;</ph>raw listing<ph name="END2_LINK">&lt;/a&gt;</ph>.
 +      </message>
  
        <!-- Saving Page-->
@@ -70,7 +70,7 @@ index acccfc7de32cf..cde6d97fe5f7e 100644
      "(raster, webgl, video) "
      " continues using the gpu main thread.";
  
-+inline constexpr char kEnableFtpName[] = "Enable support for FTP URLs. Enabled by default. Thorium Flag.";
++inline constexpr char kEnableFtpName[] = "Enable support for FTP URLs. Enabled by default. Mcloud Browser Flag.";
 +inline constexpr char kEnableFtpDescription[] =
 +    "When enabled, the browser will handle navigations to ftp:// URLs by "
 +    "either showing a directory listing or downloading the resource over FTP. "

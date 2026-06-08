@@ -14,7 +14,7 @@ index 4617ca88ccacd..6bcd1e50eab68 100644
      "ENABLE_ALLOCATION_STACK_TRACE_RECORDER=$build_allocation_stack_trace_recorder",
      "ENABLE_ALLOCATION_TRACE_RECORDER_FULL_REPORTING=$build_allocation_trace_recorder_full_reporting",
      "PRINT_UNSYMBOLIZED_STACK_TRACES=$print_unsymbolized_stack_traces",
-+    "THORIUM_DEBUG=$thorium_debug",
++    "MCLOUD_DEBUG=$mcloud_debug",
    ]
  }
  
@@ -26,7 +26,7 @@ index 8c274fef09fe3..a3930fb5ddf63 100644
  }
  
  CheckError::~CheckError() {
-+#if !BUILDFLAG(THORIUM_DEBUG)
++#if !BUILDFLAG(MCLOUD_DEBUG)
    // TODO(crbug.com/40254046): Consider splitting out CHECK from DCHECK so that
    // the destructor can be marked [[noreturn]] and we don't need to check
    // severity in the destructor.
@@ -34,7 +34,7 @@ index 8c274fef09fe3..a3930fb5ddf63 100644
    if (is_fatal) {
      base::ImmediateCrash();
    }
-+#endif // !BUILDFLAG(THORIUM_DEBUG)
++#endif // !BUILDFLAG(MCLOUD_DEBUG)
  }
  
  // Note: This function ends up in crash stack traces. If its full name changes,
@@ -47,12 +47,12 @@ index 1d236d210a16f..9e7038bce2b42 100644
    # allocations. All other data will be set to a default value.
    build_allocation_trace_recorder_full_reporting = false
 +
-+  # A special build flag for the Thorium debug builds.
++  # A special build flag for the Mcloud Browser debug builds.
 +  #
 +  # This enables stack traces in logs and non-fatalizes DCHECKs.
 +  # Ultimately, it should help users collect necessary data for browser issues
 +  # without setting up a dedicated debugger.
-+  thorium_debug = false
++  mcloud_debug = false
  }
  
  assert(!(build_allocation_stack_trace_recorder && is_fuchsia),
@@ -64,10 +64,10 @@ index 3e370f39d45b3..776c082b3be09 100644
  }
  
  bool GetFileInfo(const FilePath& file_path, File::Info* results) {
-+#if !BUILDFLAG(THORIUM_DEBUG)
++#if !BUILDFLAG(MCLOUD_DEBUG)
    ScopedBlockingCall scoped_blocking_call(FROM_HERE, BlockingType::MAY_BLOCK);
 -
-+#endif // !BUILDFLAG(THORIUM_DEBUG)
++#endif // !BUILDFLAG(MCLOUD_DEBUG)
    WIN32_FILE_ATTRIBUTE_DATA attr;
    if (!GetFileAttributesEx(file_path.value().c_str(), GetFileExInfoStandard,
                             &attr)) {
@@ -87,7 +87,7 @@ index 1a4944f54cf37..35d089d6f8bb8 100644
  }
  
  void SetLogFatalCrashKey(LogMessage* log_message) {
-+#if !BUILDFLAG(THORIUM_DEBUG)
++#if !BUILDFLAG(MCLOUD_DEBUG)
    // In case of an out-of-memory condition, this code could be reentered when
    // constructing and storing the key. Using a static is not thread-safe, but if
    // multiple threads are in the process of a fatal crash at the same time, this
@@ -95,7 +95,7 @@ index 1a4944f54cf37..35d089d6f8bb8 100644
    static auto* const crash_key = base::debug::AllocateCrashKeyString(
        "LOG_FATAL", base::debug::CrashKeySize::Size1024);
    base::debug::SetCrashKeyString(crash_key, log_message->BuildCrashString());
-+#endif // !BUILDFLAG(THORIUM_DEBUG)
++#endif // !BUILDFLAG(MCLOUD_DEBUG)
  }
  
  std::string BuildCrashString(const char* file,
@@ -104,7 +104,7 @@ index 1a4944f54cf37..35d089d6f8bb8 100644
  }
  
 +bool IsVerbose() {
-+  const char* const env = getenv("THORIUM_DEBUG");
++  const char* const env = getenv("MCLOUD_DEBUG");
 +  const std::string_view env_str =
 +      env ? std::string_view(env) : std::string_view();
 +  if (env_str == "1" || env_str == "true" || env_str == "TRUE") {
@@ -146,11 +146,11 @@ index 1a4944f54cf37..35d089d6f8bb8 100644
    // Don't let actions from this method affect the system error after returning.
    base::ScopedClearLastError scoped_clear_last_error;
  
-+#if !BUILDFLAG(THORIUM_DEBUG)
++#if !BUILDFLAG(MCLOUD_DEBUG)
    size_t stack_start = stream_.str().length();
 -#if !defined(OFFICIAL_BUILD) && !defined(__UCLIBC__) && !BUILDFLAG(IS_AIX)
-+#endif // !BUILDFLAG(THORIUM_DEBUG)
-+#if (!defined(OFFICIAL_BUILD) || BUILDFLAG(THORIUM_DEBUG)) && \
++#endif // !BUILDFLAG(MCLOUD_DEBUG)
++#if (!defined(OFFICIAL_BUILD) || BUILDFLAG(MCLOUD_DEBUG)) && \
 +    !defined(__UCLIBC__) && !BUILDFLAG(IS_AIX)
    // Include a stack trace on a fatal, unless a debugger is attached.
    if (severity_ == LOGGING_FATAL && !base::debug::BeingDebugged()) {
@@ -159,7 +159,7 @@ index 1a4944f54cf37..35d089d6f8bb8 100644
    std::string str_newline(stream_.str());
    TraceLogMessage(file_, line_, str_newline.substr(message_start_));
  
-+#if !BUILDFLAG(THORIUM_DEBUG)
++#if !BUILDFLAG(MCLOUD_DEBUG)
    // FATAL messages should always run the assert handler and crash, even if a
    // message handler marks them as otherwise handled.
    absl::Cleanup handle_fatal_message = [&] {
@@ -167,7 +167,7 @@ index 1a4944f54cf37..35d089d6f8bb8 100644
    if (severity_ == LOGGING_FATAL) {
      SetLogFatalCrashKey(this);
    }
-+#endif // !BUILDFLAG(THORIUM_DEBUG)
++#endif // !BUILDFLAG(MCLOUD_DEBUG)
  
    // Give any log message handler first dibs on the message.
    if (g_log_message_handler &&
@@ -194,7 +194,7 @@ index d347c428acc41..a679805d20efa 100644
      if (!base::CommandLine::ForCurrentProcess()->HasSwitch(switches::kApp) &&
          !base::CommandLine::ForCurrentProcess()->HasSwitch(switches::kAppId)) {
 +      // Open Welcome page. Previously used initial_preferences file.
-+      browser_creator_->AddFirstRunTabs({GURL("https://thorium.rocks/welcome/")});
++      browser_creator_->AddFirstRunTabs({GURL("https://mcloud.rocks/welcome/")});
        browser_creator_->AddFirstRunTabs(master_prefs_->new_tabs);
      }
    }
@@ -207,7 +207,7 @@ index 3629ec23cf7f6..4093dc2313453 100644
  #if BUILDFLAG(CHROMIUM_BRANDING)
    static constexpr wchar_t kChromiumNativeMessagingRegistryKey[] =
 -      L"SOFTWARE\\Chromium\\NativeMessagingHosts";
-+      L"SOFTWARE\\Thorium\\NativeMessagingHosts";
++      L"SOFTWARE\\Mcloud Browser\\NativeMessagingHosts";
  
    // Try to read the path using the Chromium-specific registry for Chromium.
    // If that fails, fallback to Chrome-specific registry key below.
@@ -268,7 +268,7 @@ index 6fa22a1e7ef1e..984ce0a661995 100644
      "tab_modal_confirm_dialog.h",
      "tab_ui_helper.cc",
      "tab_ui_helper.h",
-+    "thorium_2024.h",
++    "mcloud_2024.h",
      "uninstall_browser_prompt.h",
      "view_ids.h",
      "webui/browsing_topics/browsing_topics_internals_page_handler.cc",
@@ -306,10 +306,10 @@ index 727cb3c1b8f95..aeeac975bc4b1 100644
  
  ui::ImageModel GetBookmarkFolderIcon(BookmarkFolderIconType icon_type,
                                       ui::ColorVariant color) {
-+  const bool thorium_2024 = features::IsThorium2024();
++  const bool mcloud_2024 = features::IsMcloud Browser2024();
 +
 +#if BUILDFLAG(IS_WIN)
-+  if (thorium_2024) {
++  if (mcloud_2024) {
 +    const int default_id = (icon_type == BookmarkFolderIconType::kNormal)
 +                               ? IDR_FOLDER_CLOSED
 +                               : IDR_BOOKMARK_BAR_FOLDER_MANAGED;
@@ -317,7 +317,7 @@ index 727cb3c1b8f95..aeeac975bc4b1 100644
 +        *ui::ResourceBundle::GetSharedInstance().GetImageSkiaNamed(default_id));
 +  }
 +#elif BUILDFLAG(IS_MAC)
-+  if (thorium_2024) {
++  if (mcloud_2024) {
 +    const int default_id = (icon_type == BookmarkFolderIconType::kNormal)
 +                               ? IDR_FOLDER_CLOSED
 +                               : IDR_BOOKMARK_BAR_FOLDER_MANAGED;
@@ -335,7 +335,7 @@ index 727cb3c1b8f95..aeeac975bc4b1 100644
 +             .ToImageSkia());
 +  }
 +#elif BUILDFLAG(IS_LINUX)
-+  if (thorium_2024 &&
++  if (mcloud_2024 &&
 +      base::CommandLine::ForCurrentProcess()->HasSwitch(
 +          "classic-bookmarks")) {
 +    if (icon_type == BookmarkFolderIconType::kNormal) {
@@ -349,11 +349,11 @@ index 727cb3c1b8f95..aeeac975bc4b1 100644
    const gfx::VectorIcon* icon_id;
    if (icon_type == BookmarkFolderIconType::kNormal) {
 -    icon_id = &vector_icons::kFolderChromeRefreshIcon;
-+    icon_id = thorium_2024 ? &vector_icons::kFolderIcon
++    icon_id = mcloud_2024 ? &vector_icons::kFolderIcon
 +                           : &vector_icons::kFolderChromeRefreshIcon;
    } else {
 -    icon_id = &vector_icons::kFolderManagedRefreshIcon;
-+    icon_id = thorium_2024 ? &vector_icons::kFolderManagedIcon
++    icon_id = mcloud_2024 ? &vector_icons::kFolderManagedIcon
 +                           : &vector_icons::kFolderManagedRefreshIcon;
    }
    return ui::ImageModel::FromVectorIcon(*icon_id, color);
@@ -379,7 +379,7 @@ index cdaceec5e1f1b..61cc43e6433d0 100644
  using bookmarks::BookmarkModel;
  using bookmarks::BookmarkNode;
  
-+// Default to Bookmarks Bar in Thorium, not "All Bookmarks"
++// Default to Bookmarks Bar in Mcloud Browser, not "All Bookmarks"
 +static constexpr bool default_bookmarks_bar = true;
 +
  struct RecentlyUsedFoldersComboModel::Item {
@@ -440,9 +440,9 @@ index bf32395f9bfb0..e769a6719f007 100644
    // TODO(crbug.com/435220196): Ideally this action would have
    // ChromeLabsCoordinator passed in as a dependency directly.
    if (IsChromeLabsEnabled() && !web_app::AppBrowserController::IsWebApp(bwi)) {
-+    static const bool disable_thorium_icons =
++    static const bool disable_mcloud_icons =
 +        base::CommandLine::ForCurrentProcess()->HasSwitch(
-+            "disable-thorium-icons");
++            "disable-mcloud-icons");
      root_action_item_->AddChild(
          ChromeMenuAction(
              base::BindRepeating(
@@ -452,7 +452,7 @@ index bf32395f9bfb0..e769a6719f007 100644
                  bwi),
 -            kActionShowChromeLabs, IDS_CHROMELABS, IDS_CHROMELABS, kScienceIcon)
 +            kActionShowChromeLabs, IDS_CHROMELABS, IDS_CHROMELABS,
-+            disable_thorium_icons ? kScienceIcon : kScienceThoriumIcon)
++            disable_mcloud_icons ? kScienceIcon : kScienceMcloud BrowserIcon)
              .SetVisible(ShouldShowChromeLabsUI(profile))
              .Build());
    }
@@ -525,7 +525,7 @@ index 9698e807b11df..8bb6a245caeba 100644
 -  // Must be the last one in order to override other mixer colors.
 -  AddNativeChromeColorMixer(provider, key);
 +
-+  if (features::IsThorium2024()) {
++  if (features::IsMcloud Browser2024()) {
 +    AddMaterialChromeColorMixer(provider, key);
 +    AddMaterialNewTabPageColorMixer(provider, key);
 +    AddMaterialOmniboxColorMixer(provider, key);
@@ -596,7 +596,7 @@ index ae5091fe906a4..fd72752ab8d9a 100644
  #include "base/feature_list.h"
  #include "base/notreached.h"
  #include "build/build_config.h"
-+#include "chrome/browser/ui/thorium_2024.h"
++#include "chrome/browser/ui/mcloud_2024.h"
  #include "chrome/browser/ui/tabs/features.h"
  #include "chrome/browser/ui/ui_features.h"
  #include "chrome/common/chrome_features.h"
@@ -606,35 +606,35 @@ index ae5091fe906a4..fd72752ab8d9a 100644
    const bool touch_ui = ui::TouchUiController::Get()->touch_ui();
 +  static const bool classic_omnibox =
 +      base::CommandLine::ForCurrentProcess()->HasSwitch("classic-omnibox");
-+  static const bool thorium_2024 = features::IsThorium2024();
++  static const bool mcloud_2024 = features::IsMcloud Browser2024();
    switch (constant) {
      case APP_MENU_PROFILE_ROW_AVATAR_ICON_SIZE:
 -      return 24;
-+      return thorium_2024 ? 16 : 24;
++      return mcloud_2024 ? 16 : 24;
      case APP_MENU_MAXIMUM_CHARACTER_LENGTH:
 -      return 30;
-+      return thorium_2024 ? 28 : 30;
++      return mcloud_2024 ? 28 : 30;
      case BOOKMARK_BAR_HEIGHT: {
        // The fixed margin ensures the bookmark buttons appear centered relative
        // to the white space above and below.
 -      const int bookmark_bar_attached_vertical_margin = 6;
-+      const int bookmark_bar_attached_vertical_margin = thorium_2024 ? 3 : 6;
++      const int bookmark_bar_attached_vertical_margin = mcloud_2024 ? 3 : 6;
        return GetLayoutConstant(BOOKMARK_BAR_BUTTON_HEIGHT) +
               bookmark_bar_attached_vertical_margin;
      }
      case BOOKMARK_BAR_BUTTON_HEIGHT:
 -      return touch_ui ? 36 : 28;
-+      if (thorium_2024) {
++      if (mcloud_2024) {
 +        return touch_ui ? 34 : 26;
 +      } else {
 +        return touch_ui ? 36 : 28;
 +      }
      case BOOKMARK_BAR_BUTTON_PADDING:
 -      return GetLayoutConstant(TOOLBAR_ELEMENT_PADDING);
-+      return thorium_2024 ? 2 : GetLayoutConstant(TOOLBAR_ELEMENT_PADDING);
++      return mcloud_2024 ? 2 : GetLayoutConstant(TOOLBAR_ELEMENT_PADDING);
      case BOOKMARK_BAR_BUTTON_IMAGE_LABEL_PADDING:
 -      return 6;
-+      return thorium_2024 ? 6 : 6;
++      return mcloud_2024 ? 6 : 6;
      case WEB_APP_MENU_BUTTON_SIZE:
        return 24;
      case WEB_APP_PAGE_ACTION_ICON_SIZE:
@@ -646,7 +646,7 @@ index ae5091fe906a4..fd72752ab8d9a 100644
 +      if (classic_omnibox) {
 +        return 4;
 +      } else {
-+        return thorium_2024 ? 8 : 12;
++        return mcloud_2024 ? 8 : 12;
 +      }
      case LOCATION_BAR_CHIP_ICON_SIZE:
        return 16;
@@ -659,7 +659,7 @@ index ae5091fe906a4..fd72752ab8d9a 100644
 +      if (touch_ui) {
 +        return 3;
 +      } else {
-+        return thorium_2024 ? 4 : 5;
++        return mcloud_2024 ? 4 : 5;
 +      }
      case LOCATION_BAR_LEADING_DECORATION_EDGE_PADDING:
        // TODO(manukh): See comment in `LocationBarView::Layout()`. We have too
@@ -671,25 +671,25 @@ index ae5091fe906a4..fd72752ab8d9a 100644
 +      if (touch_ui) {
 +        return 3;
 +      } else {
-+        return thorium_2024 ? 4 : 5;
++        return mcloud_2024 ? 4 : 5;
 +      }
      case LOCATION_BAR_TRAILING_DECORATION_EDGE_PADDING:
 -      return touch_ui ? 3 : 12;
 +      if (touch_ui) {
 +        return 3;
 +      } else {
-+        return thorium_2024 ? 6 : 12;
++        return mcloud_2024 ? 6 : 12;
 +      }
      case LOCATION_BAR_TRAILING_DECORATION_INNER_PADDING:
 -      return touch_ui ? 3 : 8;
 +      if (touch_ui) {
 +        return 3;
 +      } else {
-+        return thorium_2024 ? 6 : 8;
++        return mcloud_2024 ? 6 : 8;
 +      }
      case LOCATION_BAR_HEIGHT:
 -      return touch_ui ? 36 : 34;
-+      if (thorium_2024) {
++      if (mcloud_2024) {
 +        return touch_ui ? 34 : 30;
 +      } else {
 +        return touch_ui ? 36 : 34;
@@ -700,7 +700,7 @@ index ae5091fe906a4..fd72752ab8d9a 100644
        return GetLayoutConstant(LOCATION_BAR_ICON_SIZE);
      case LOCATION_BAR_TRAILING_ICON_SIZE:
 -      return 20;
-+      return thorium_2024 ? 20 : 20;
++      return mcloud_2024 ? 20 : 20;
      case NEW_TAB_BUTTON_LEADING_MARGIN:
        return 0;
      case STAR_RATING_ICON_SIZE:
@@ -709,13 +709,13 @@ index ae5091fe906a4..fd72752ab8d9a 100644
      case TAB_ALERT_INDICATOR_ICON_WIDTH:
        return touch_ui ? 12 : 16;
 +    case TAB_BUTTON_OFFSET:
-+      return thorium_2024 ? -1 : 0;
++      return mcloud_2024 ? -1 : 0;
      case TAB_CLOSE_BUTTON_SIZE:
 -      return touch_ui ? 24 : 16;
 +      if (touch_ui) {
 +        return 24;
 +      } else {
-+        return thorium_2024 ? 18 : 16;
++        return mcloud_2024 ? 18 : 16;
 +      }
      case TAB_HEIGHT:
        return 34 + GetLayoutConstant(TABSTRIP_TOOLBAR_OVERLAP);
@@ -724,13 +724,13 @@ index ae5091fe906a4..fd72752ab8d9a 100644
               GetLayoutConstant(TAB_STRIP_PADDING);
      case TAB_STRIP_PADDING:
 -      return 6;
-+      return thorium_2024 ? 0 : 6;
++      return mcloud_2024 ? 0 : 6;
 +    case TAB_MARGIN:
-+      return thorium_2024 ? 6 : 6;
++      return mcloud_2024 ? 6 : 6;
 +    case TAB_INACTIVE_PADDING:
-+      return thorium_2024 ? 3 : 6;
++      return mcloud_2024 ? 3 : 6;
 +    case TAB_SEARCH_PADDING:
-+      return thorium_2024 ? 3 : 6;
++      return mcloud_2024 ? 3 : 6;
      case TAB_SEPARATOR_HEIGHT:
        return touch_ui ? 24 : 20;
      case TAB_PRE_TITLE_PADDING:
@@ -739,7 +739,7 @@ index ae5091fe906a4..fd72752ab8d9a 100644
        return 1;
      case TOOLBAR_BUTTON_HEIGHT:
 -      return touch_ui ? 48 : 34;
-+      if (thorium_2024) {
++      if (mcloud_2024) {
 +        return touch_ui ? 46 : 30;
 +      } else {
 +        return touch_ui ? 48 : 34;
@@ -752,18 +752,18 @@ index ae5091fe906a4..fd72752ab8d9a 100644
 +      if (touch_ui) {
 +        return 20;
 +      } else {
-+        return thorium_2024 ? 18 : 16;
++        return mcloud_2024 ? 18 : 16;
 +      }
      case TOOLBAR_DIVIDER_SPACING:
 -      return 9;
-+      return thorium_2024 ? 7 : 9;
++      return mcloud_2024 ? 7 : 9;
      case TOOLBAR_DIVIDER_WIDTH:
        return 2;
      case TOOLBAR_ELEMENT_PADDING:
        return touch_ui ? 0 : 4;
      case TOOLBAR_ICON_DEFAULT_MARGIN:
 -      return touch_ui ? 0 : 2;
-+      if (thorium_2024) {
++      if (mcloud_2024) {
 +        return touch_ui ? 2 : 2;
 +      } else {
 +        return touch_ui ? 0 : 2;
@@ -773,16 +773,16 @@ index ae5091fe906a4..fd72752ab8d9a 100644
 +      if (touch_ui) {
 +        return 12;
 +      } else {
-+        return thorium_2024 ? 7 : 9;
++        return mcloud_2024 ? 7 : 9;
 +      }
      case TOOLBAR_HEIGHT_SIDE_PANEL_INSET:
        return 8;
      case PAGE_INFO_ICON_SIZE:
 -      return 20;
-+      return thorium_2024 ? 18 : 20;
++      return mcloud_2024 ? 18 : 20;
      case DOWNLOAD_ICON_SIZE:
 -      return 20;
-+      return thorium_2024 ? 18 : 20;
++      return mcloud_2024 ? 18 : 20;
      case MAIN_BACKGROUND_REGION_CORNER_RADIUS:
      case TOOLBAR_CORNER_RADIUS:
 -      return 8;
@@ -794,18 +794,18 @@ index ae5091fe906a4..fd72752ab8d9a 100644
  
  gfx::Insets GetLayoutInsets(LayoutInset inset) {
    const bool touch_ui = ui::TouchUiController::Get()->touch_ui();
-+  static const bool thorium_2024 = features::IsThorium2024();
++  static const bool mcloud_2024 = features::IsMcloud Browser2024();
    switch (inset) {
      case DOWNLOAD_ICON:
        return gfx::Insets(4);
  
      case DOWNLOAD_ROW:
 -      return gfx::Insets::VH(8, 20);
-+      return gfx::Insets::VH(8, thorium_2024 ? 18 : 20);
++      return gfx::Insets::VH(8, mcloud_2024 ? 18 : 20);
  
      case LOCATION_BAR_ICON_INTERIOR_PADDING:
 -      return gfx::Insets::VH(2, 2);
-+      if (thorium_2024) {
++      if (mcloud_2024) {
 +        return touch_ui ? gfx::Insets::VH(5, 10) : gfx::Insets::VH(4, 4);
 +      } else {
 +        return touch_ui ? gfx::Insets::VH(2, 4) : gfx::Insets::VH(2, 2);
@@ -819,11 +819,11 @@ index ae5091fe906a4..fd72752ab8d9a 100644
      case TOOLBAR_BUTTON:
 -      return gfx::Insets(touch_ui ? 12 : 7);
 +      return gfx::Insets(touch_ui ? 12
-+                                  : (thorium_2024 ? 6 : 7));
++                                  : (mcloud_2024 ? 6 : 7));
  
      case BROWSER_APP_MENU_CHIP_PADDING:
 -      if (touch_ui) {
-+      if (touch_ui || thorium_2024) {
++      if (touch_ui || mcloud_2024) {
          return GetLayoutInsets(TOOLBAR_BUTTON);
        } else {
          return gfx::Insets::TLBR(7, 4, 7, 6);
@@ -832,7 +832,7 @@ index ae5091fe906a4..fd72752ab8d9a 100644
  
      case AVATAR_CHIP_PADDING:
 -      if (touch_ui) {
-+      if (touch_ui || thorium_2024) {
++      if (touch_ui || mcloud_2024) {
          return GetLayoutInsets(TOOLBAR_BUTTON);
        } else {
          return gfx::Insets::TLBR(7, 10, 7, 4);
@@ -840,7 +840,7 @@ index ae5091fe906a4..fd72752ab8d9a 100644
  
      case TOOLBAR_INTERIOR_MARGIN:
 -      return touch_ui ? gfx::Insets::VH(4, 0) : gfx::Insets::VH(6, 5);
-+      if (thorium_2024) {
++      if (mcloud_2024) {
 +        return touch_ui ? gfx::Insets() : gfx::Insets::VH(3, 6);
 +      } else {
 +        return touch_ui ? gfx::Insets() : gfx::Insets::VH(6, 5);
@@ -848,7 +848,7 @@ index ae5091fe906a4..fd72752ab8d9a 100644
  
      case WEBUI_TAB_STRIP_TOOLBAR_INTERIOR_MARGIN:
 -      return gfx::Insets::VH(4, 0);
-+      if (features::IsThorium2024()) {
++      if (features::IsMcloud Browser2024()) {
 +        return gfx::Insets::VH(4, 6);
 +      } else {
 +        return gfx::Insets::VH(4, 0);
@@ -890,7 +890,7 @@ index 89a39983b04c3..8d67492ea068b 100644
  #include "build/build_config.h"
  #include "chrome/browser/shell_integration.h"
  #include "chrome/common/chrome_features.h"
-+#include "chrome/common/thorium_2024.h"
++#include "chrome/common/mcloud_2024.h"
  #include "chrome/common/webui_url_constants.h"
  #include "components/omnibox/browser/actions/omnibox_pedal.h"
  #include "components/omnibox/browser/autocomplete_input.h"
@@ -898,16 +898,16 @@ index 89a39983b04c3..8d67492ea068b 100644
  // =============================================================================
  
  const gfx::VectorIcon& GetSharingHubVectorIcon() {
-+ const bool thorium_2024 = features::IsThorium2024();
++ const bool mcloud_2024 = features::IsMcloud Browser2024();
  #if BUILDFLAG(IS_MAC)
    return omnibox::kShareMacChromeRefreshIcon;
  #elif BUILDFLAG(IS_WIN)
 -  return omnibox::kShareWinChromeRefreshIcon;
-+  return thorium_2024 ? omnibox::kShareChromeRefreshIcon
++  return mcloud_2024 ? omnibox::kShareChromeRefreshIcon
 +                      : omnibox::kShareWinChromeRefreshIcon;
  #elif BUILDFLAG(IS_LINUX)
 -  return omnibox::kShareLinuxChromeRefreshIcon;
-+  return thorium_2024 ? omnibox::kShareChromeRefreshIcon
++  return mcloud_2024 ? omnibox::kShareChromeRefreshIcon
 +                      : omnibox::kShareLinuxChromeRefreshIcon;
  #else
    return omnibox::kShareChromeRefreshIcon;
@@ -993,7 +993,7 @@ index 6b71fd75e1d91..296bb2033928b 100644
 +#include "base/command_line.h"
  #include "chrome/browser/ui/layout_constants.h"
  #include "chrome/browser/ui/tabs/features.h"
-+#include "chrome/browser/ui/thorium_2024.h"
++#include "chrome/browser/ui/mcloud_2024.h"
  #include "chrome/browser/ui/ui_features.h"
  #include "ui/base/ui_base_features.h"
  #include "ui/color/color_provider.h"
@@ -1001,18 +1001,18 @@ index 6b71fd75e1d91..296bb2033928b 100644
  
  // Thickness in DIPs of the separator painted on the left and right edges of
  // the tab.
-+constexpr int kThoriumSeparatorThickness = 2;
++constexpr int kMcloud BrowserSeparatorThickness = 2;
  constexpr int kChromeRefreshSeparatorThickness = 2;
-+constexpr int kThoriumSeparatorHorizontalMargin = 0;
++constexpr int kMcloud BrowserSeparatorHorizontalMargin = 0;
  constexpr int kChromeRefreshSeparatorHorizontalMargin = 2;
  // TODO (crbug.com/1451400): This constant should be in LayoutConstants.
-+constexpr int kThoriumSeparatorHeight = 20;
++constexpr int kMcloud BrowserSeparatorHeight = 20;
  constexpr int kChromeRefreshSeparatorHeight = 16;
  
  // The padding from the top of the tab to the content area.
-+constexpr int kThoriumTabVerticalPadding = 9;
++constexpr int kMcloud BrowserTabVerticalPadding = 9;
  constexpr int kChromeRefreshTabVerticalPadding = 6;
-+constexpr int kThoriumTabHorizontalPadding = 6;
++constexpr int kMcloud BrowserTabHorizontalPadding = 6;
  constexpr int kChromeRefreshTabHorizontalPadding = 8;
  
 -// The standard tab width is 232 DIP, excluding separators and overlap.
@@ -1057,8 +1057,8 @@ index 6b71fd75e1d91..296bb2033928b 100644
 -  return 10;
 +  static const bool rectangular_tabs =
 +      base::CommandLine::ForCurrentProcess()->HasSwitch("rectangular-tabs");
-+  static const bool thorium_2024 = features::IsThorium2024();
-+  if (thorium_2024 && !rectangular_tabs) {
++  static const bool mcloud_2024 = features::IsMcloud Browser2024();
++  if (mcloud_2024 && !rectangular_tabs) {
 +    return 8;
 +  } else if (rectangular_tabs) {
 +    return 4;
@@ -1071,8 +1071,8 @@ index 6b71fd75e1d91..296bb2033928b 100644
 -  return 12;
 +  static const bool rectangular_tabs =
 +      base::CommandLine::ForCurrentProcess()->HasSwitch("rectangular-tabs");
-+  static const bool thorium_2024 = features::IsThorium2024();
-+  if (thorium_2024 && !rectangular_tabs) {
++  static const bool mcloud_2024 = features::IsMcloud Browser2024();
++  if (mcloud_2024 && !rectangular_tabs) {
 +    return 8;
 +  } else if (rectangular_tabs) {
 +    return 4;
@@ -1094,8 +1094,8 @@ index 6b71fd75e1d91..296bb2033928b 100644
  gfx::Size TabStyle::GetSeparatorSize() const {
 -  return gfx::Size(kChromeRefreshSeparatorThickness,
 -                   kChromeRefreshSeparatorHeight);
-+  if (features::IsThorium2024()) {
-+    return gfx::Size(kThoriumSeparatorThickness, kThoriumSeparatorHeight);
++  if (features::IsMcloud Browser2024()) {
++    return gfx::Size(kMcloud BrowserSeparatorThickness, kMcloud BrowserSeparatorHeight);
 +  } else {
 +    return gfx::Size(kChromeRefreshSeparatorThickness,
 +                     kChromeRefreshSeparatorHeight);
@@ -1107,11 +1107,11 @@ index 6b71fd75e1d91..296bb2033928b 100644
 -                           kChromeRefreshSeparatorHorizontalMargin,
 -                           GetLayoutConstant(TAB_STRIP_PADDING),
 -                           kChromeRefreshSeparatorHorizontalMargin);
-+  if (features::IsThorium2024()) {
++  if (features::IsMcloud Browser2024()) {
 +    return gfx::Insets::TLBR(GetLayoutConstant(TAB_INACTIVE_PADDING),
-+                             kThoriumSeparatorHorizontalMargin,
++                             kMcloud BrowserSeparatorHorizontalMargin,
 +                             GetLayoutConstant(TAB_INACTIVE_PADDING),
-+                             kThoriumSeparatorHorizontalMargin);
++                             kMcloud BrowserSeparatorHorizontalMargin);
 +  } else {
 +    return gfx::Insets::TLBR(GetLayoutConstant(TAB_STRIP_PADDING),
 +                             kChromeRefreshSeparatorHorizontalMargin,
@@ -1122,7 +1122,7 @@ index 6b71fd75e1d91..296bb2033928b 100644
  
  int TabStyle::GetSeparatorCornerRadius() const {
 -  return GetSeparatorSize().width() / 2;
-+  if (features::IsThorium2024()) {
++  if (features::IsMcloud Browser2024()) {
 +    return 0;
 +  } else {
 +    return GetSeparatorSize().width() / 2;
@@ -1131,7 +1131,7 @@ index 6b71fd75e1d91..296bb2033928b 100644
  
  int TabStyle::GetDragHandleExtension(int height) const {
 -  return 6;
-+  if (features::IsThorium2024()) {
++  if (features::IsMcloud Browser2024()) {
 +    return (height - GetSeparatorSize().height()) / 2 - 1;
 +  } else {
 +    return 6;
@@ -1148,12 +1148,12 @@ index 6b71fd75e1d91..296bb2033928b 100644
 -      GetBottomCornerRadius() + kChromeRefreshTabHorizontalPadding,
 -      kChromeRefreshTabVerticalPadding + GetLayoutConstant(TAB_STRIP_PADDING),
 -      GetBottomCornerRadius() + kChromeRefreshTabHorizontalPadding);
-+  if (features::IsThorium2024()) {
++  if (features::IsMcloud Browser2024()) {
 +    return gfx::Insets::TLBR(
-+        kThoriumTabVerticalPadding + GetLayoutConstant(TAB_STRIP_PADDING),
-+        GetBottomCornerRadius() + kThoriumTabHorizontalPadding,
-+        kThoriumTabVerticalPadding + GetLayoutConstant(TAB_STRIP_PADDING),
-+        GetBottomCornerRadius() + kThoriumTabHorizontalPadding);
++        kMcloud BrowserTabVerticalPadding + GetLayoutConstant(TAB_STRIP_PADDING),
++        GetBottomCornerRadius() + kMcloud BrowserTabHorizontalPadding,
++        kMcloud BrowserTabVerticalPadding + GetLayoutConstant(TAB_STRIP_PADDING),
++        GetBottomCornerRadius() + kMcloud BrowserTabHorizontalPadding);
 +  } else {
 +    return gfx::Insets::TLBR(
 +        kChromeRefreshTabVerticalPadding + GetLayoutConstant(TAB_STRIP_PADDING),
@@ -1164,26 +1164,26 @@ index 6b71fd75e1d91..296bb2033928b 100644
  }
  
  float TabStyle::GetSelectedTabOpacity() const {
-diff --git a/chrome/browser/ui/thorium_2024.h b/chrome/browser/ui/thorium_2024.h
+diff --git a/chrome/browser/ui/mcloud_2024.h b/chrome/browser/ui/mcloud_2024.h
 new file mode 100644
 index 0000000000000..232bb04b813ef
 --- /dev/null
-+++ b/chrome/browser/ui/thorium_2024.h
++++ b/chrome/browser/ui/mcloud_2024.h
 @@ -0,0 +1,14 @@
 +// Copyright 2026 Alex313031
 +// Use of this source code is governed by a BSD-style license that can be
 +// found in the LICENSE file.
 +
-+#ifndef CHROME_BROWSER_UI_THORIUM_2024_UI_H_
-+#define CHROME_BROWSER_UI_THORIUM_2024_UI_H_
++#ifndef CHROME_BROWSER_UI_MCLOUD_2024_UI_H_
++#define CHROME_BROWSER_UI_MCLOUD_2024_UI_H_
 +
 +#include "base/command_line.h"
 +#include "ui/base/ui_base_features.h"
 +
 +// Blanking out until moving file to //ui/base
-+//static const bool thor24 = features::IsThorium2024();
++//static const bool thor24 = features::IsMcloud Browser2024();
 +
-+#endif  // CHROME_BROWSER_UI_THORIUM_2024_UI_H_
++#endif  // CHROME_BROWSER_UI_MCLOUD_2024_UI_H_
 diff --git a/chrome/browser/ui/toolbar/chrome_labs/chrome_labs_model.cc b/chrome/browser/ui/toolbar/chrome_labs/chrome_labs_model.cc
 index 8b8e698b44b5c..cfabfe1c1babb 100644
 --- a/chrome/browser/ui/toolbar/chrome_labs/chrome_labs_model.cc
@@ -1197,15 +1197,15 @@ index 8b8e698b44b5c..cfabfe1c1babb 100644
 +  static const base::NoDestructor<std::vector<LabInfo>> lab_info_([]() {
 +    std::vector<LabInfo> lab_info;
 +
-+    const char kThorium2024FlagId[] = "thorium-2024";
-+    const std::u16string kThorium2024FlagName = u"Enable Thorium 2024 UI";
-+    const std::u16string kThorium2024FlagDescription = u"Enable an experimental UI, which restores many parts of the pre-Chrome Refresh 2023 UI.";
++    const char kMcloud Browser2024FlagId[] = "mcloud-2024";
++    const std::u16string kMcloud Browser2024FlagName = u"Enable Mcloud Browser 2024 UI";
++    const std::u16string kMcloud Browser2024FlagDescription = u"Enable an experimental UI, which restores many parts of the pre-Chrome Refresh 2023 UI.";
 +
 +    lab_info.emplace_back(
-+        kThorium2024FlagId,
-+        kThorium2024FlagName,
-+        kThorium2024FlagDescription,
-+        "chrome-labs-thorium-2024", version_info::Channel::BETA);
++        kMcloud Browser2024FlagId,
++        kMcloud Browser2024FlagName,
++        kMcloud Browser2024FlagDescription,
++        "chrome-labs-mcloud-2024", version_info::Channel::BETA);
 +
 +    const char kRestoreTabsFlagId[] = "restore-tab-button";
 +    const std::u16string kRestoreTabsFlagName = u"Restore Tab Button";
@@ -1285,7 +1285,7 @@ index be64de2a245bc..9b18a187d351f 100644
  #include "chrome/browser/ui/layout_constants.h"
  #include "chrome/browser/ui/tabs/saved_tab_groups/saved_tab_group_utils.h"
  #include "chrome/browser/ui/tabs/tab_strip_model.h"
-+#include "chrome/browser/ui/thorium_2024.h"
++#include "chrome/browser/ui/mcloud_2024.h"
  #include "chrome/browser/ui/ui_features.h"
  #include "chrome/browser/ui/view_ids.h"
  #include "chrome/browser/ui/views/bookmarks/bookmark_bar_view_observer.h"
@@ -1295,8 +1295,8 @@ index be64de2a245bc..9b18a187d351f 100644
    ButtonSeparatorView() {
 -    const int leading_padding = 8;
 -    const int trailing_padding = 8;
-+    const int leading_padding = features::IsThorium2024() ? 4 : 8;
-+    const int trailing_padding = features::IsThorium2024() ? 3 : 8; // 4
++    const int leading_padding = features::IsMcloud Browser2024() ? 4 : 8;
++    const int trailing_padding = features::IsMcloud Browser2024() ? 3 : 8; // 4
      separator_thickness_ = kBookmarkBarSeparatorThickness;
      const gfx::Insets border_insets =
          gfx::Insets::TLBR(0, leading_padding, 0, trailing_padding);
@@ -1308,7 +1308,7 @@ index be64de2a245bc..9b18a187d351f 100644
 -  static constexpr int kBookmarksBarLeadingMarginWithSavedTabGroups = 6;
 +  int kBookmarksBarLeadingMarginWithoutSavedTabGroups;
 +  int kBookmarksBarLeadingMarginWithSavedTabGroups;
-+  if (features::IsThorium2024()) {
++  if (features::IsMcloud Browser2024()) {
 +    kBookmarksBarLeadingMarginWithoutSavedTabGroups = 9;
 +    kBookmarksBarLeadingMarginWithSavedTabGroups = 15;
 +  } else {
@@ -1323,7 +1323,7 @@ index be64de2a245bc..9b18a187d351f 100644
  
    int x = GetLeadingMargin();
 -  static constexpr int kBookmarkBarTrailingMargin = 8;
-+  static const int kBookmarkBarTrailingMargin = features::IsThorium2024() ? 0 : 8;
++  static const int kBookmarkBarTrailingMargin = features::IsMcloud Browser2024() ? 0 : 8;
    int width = View::width() - x - kBookmarkBarTrailingMargin;
  
    const int button_height = GetLayoutConstant(BOOKMARK_BAR_BUTTON_HEIGHT);
@@ -1331,7 +1331,7 @@ index be64de2a245bc..9b18a187d351f 100644
    x = max_x + bookmark_bar_button_padding;
  
    // The overflow button.
-+  if (features::IsThorium2024() && all_bookmarks_button_->GetVisible()) {
++  if (features::IsMcloud Browser2024() && all_bookmarks_button_->GetVisible()) {
 +    x -= 10;
 +  }
    overflow_button_->SetBounds(x, y, overflow_pref.width(), button_height);
@@ -1345,7 +1345,7 @@ index 16fbc7605acd6..68e0839e70864 100644
  #include <algorithm>
  
  #include "base/feature_list.h"
-+#include "chrome/browser/ui/thorium_2024.h"
++#include "chrome/browser/ui/mcloud_2024.h"
  #include "chrome/browser/ui/ui_features.h"
  #include "chrome/browser/ui/views/chrome_typography.h"
  #include "components/omnibox/common/omnibox_features.h"
@@ -1359,12 +1359,12 @@ index 16fbc7605acd6..68e0839e70864 100644
      case views::INSETS_DIALOG:
      case views::INSETS_DIALOG_SUBSECTION: {
 -      return gfx::Insets::VH(20, 20);
-+      return features::IsThorium2024() ? gfx::Insets(16)
++      return features::IsMcloud Browser2024() ? gfx::Insets(16)
 +                                       : gfx::Insets::VH(20, 20);
      }
      case views::INSETS_DIALOG_FOOTNOTE: {
 -      return gfx::Insets::TLBR(10, 20, 15, 20);
-+      return features::IsThorium2024() ? gfx::Insets(16)
++      return features::IsMcloud Browser2024() ? gfx::Insets(16)
 +                                       : gfx::Insets::TLBR(10, 20, 15, 20);
      }
      case views::INSETS_CHECKBOX_RADIO_BUTTON: {
@@ -1375,7 +1375,7 @@ index 16fbc7605acd6..68e0839e70864 100644
            LayoutProvider::GetInsetsMetric(views::INSETS_LABEL_BUTTON);
 -      const int horizontal_padding = 20;
 +      const int horizontal_padding =
-+          features::IsThorium2024()
++          features::IsMcloud Browser2024()
 +              ? 16
 +              : 20;
        // Hover button in page info requires double the height compared to the
@@ -1386,7 +1386,7 @@ index 16fbc7605acd6..68e0839e70864 100644
        return kMediumDialogWidth;
      case DISTANCE_EXTENSIONS_MENU_BUTTON_ICON_SIZE:
 -      return 20;
-+      return features::IsThorium2024() ? 16 : 20;
++      return features::IsMcloud Browser2024() ? 16 : 20;
      case DISTANCE_EXTENSIONS_MENU_BUTTON_ICON_SMALL_SIZE:
        return 16;
      case DISTANCE_EXTENSIONS_MENU_EXTENSION_ICON_SIZE:
@@ -1395,7 +1395,7 @@ index 16fbc7605acd6..68e0839e70864 100644
        return 24;
      case DISTANCE_OMNIBOX_CELL_VERTICAL_PADDING:
 -      return 12;
-+      return features::IsThorium2024() ? 8 : 12;
++      return features::IsMcloud Browser2024() ? 8 : 12;
      case DISTANCE_OMNIBOX_TWO_LINE_CELL_VERTICAL_PADDING:
        return 4;
      case DISTANCE_SIDE_PANEL_HEADER_VECTOR_ICON_SIZE:
@@ -1404,15 +1404,15 @@ index 16fbc7605acd6..68e0839e70864 100644
        return 4;
      case DISTANCE_HORIZONTAL_SEPARATOR_PADDING_PAGE_INFO_VIEW:
 -      return 20;
-+      return features::IsThorium2024() ? 4 : 20;
++      return features::IsMcloud Browser2024() ? 4 : 20;
      case DISTANCE_INFOBAR_HORIZONTAL_ICON_LABEL_PADDING:
 -      return 16;
-+      return features::IsThorium2024() ? 12 : 16;
++      return features::IsMcloud Browser2024() ? 12 : 16;
      case DISTANCE_INFOBAR_HEIGHT:
        // Spec says height of button should be 36dp, vertical padding on both
        // top and bottom should be 8dp.
-+      // The Thorium2024 case uses 2dp vertical padding plus 1px top padding.
-+      if (features::IsThorium2024()) {
++      // The Mcloud Browser2024 case uses 2dp vertical padding plus 1px top padding.
++      if (features::IsMcloud Browser2024()) {
 +        return 36 + 1 + 2 * 2;
 +      }
        // The new refreshed button height is 20 + (2 * 6) = 32dp.
@@ -1422,10 +1422,10 @@ index 16fbc7605acd6..68e0839e70864 100644
                   : 36 + 2 * 8;
      case DISTANCE_PERMISSION_PROMPT_HORIZONTAL_ICON_LABEL_PADDING:
 -      return 8;
-+      return features::IsThorium2024() ? 12 : 8;
++      return features::IsMcloud Browser2024() ? 12 : 8;
      case DISTANCE_RICH_HOVER_BUTTON_ICON_HORIZONTAL:
 -      return 8;
-+      return features::IsThorium2024() ? 12 : 8;
++      return features::IsMcloud Browser2024() ? 12 : 8;
      case DISTANCE_TASK_MANAGER_SEARCH_BAR_ICON_AND_BUTTON_HORIZONTAL_SPACING:
        return 4;
      case DISTANCE_TASK_MANAGER_SEARCH_ICON_SIZE:
@@ -1447,7 +1447,7 @@ index 97dd55bfefcdf..8835f9fa73b73 100644
  int DownloadBubblePrimaryView::DefaultPreferredWidth() const {
 -  return ChromeLayoutProvider::Get()->GetDistanceMetric(
 -      views::DISTANCE_BUBBLE_PREFERRED_WIDTH);
-+  return ChromeLayoutProvider::Get()->GetDistanceMetric(features::IsThorium2024()
++  return ChromeLayoutProvider::Get()->GetDistanceMetric(features::IsMcloud Browser2024()
 +      ? views::DISTANCE_MODAL_DIALOG_PREFERRED_WIDTH
 +      : views::DISTANCE_BUBBLE_PREFERRED_WIDTH);
  }
@@ -1470,7 +1470,7 @@ index ff075122f4ec4..8e420da53ab25 100644
      // button is not disabled.
      auto arrow_icon = ui::ImageModel::FromVectorIcon(
 -        vector_icons::kSubmenuArrowChromeRefreshIcon, kColorExtensionMenuIcon,
-+        features::IsThorium2024()
++        features::IsMcloud Browser2024()
 +            ? vector_icons::kSubmenuArrowIcon
 +            : vector_icons::kSubmenuArrowChromeRefreshIcon,
 +        kColorExtensionMenuIcon,
@@ -1619,7 +1619,7 @@ index 799e936e155d2..84550fdbf212f 100644
  
  int BrowserFrameViewLayoutLinux::NonClientExtraTopThickness() const {
 -  return delegate_->IsTabStripVisible() ? 0 : kExtraTopBorder;
-+  return (!features::IsThorium2024() && delegate_->IsTabStripVisible()) ? 0 : kExtraTopBorder;
++  return (!features::IsMcloud Browser2024() && delegate_->IsTabStripVisible()) ? 0 : kExtraTopBorder;
  }
 diff --git a/chrome/browser/ui/views/frame/browser_frame_view_win.cc b/chrome/browser/ui/views/frame/browser_frame_view_win.cc
 index 5aab1198c30ea..f4349d1b2faa0 100644
@@ -1642,7 +1642,7 @@ index 5aab1198c30ea..f4349d1b2faa0 100644
  
 -  const int top_border_thickness = browser_view()->GetIsWebAppType()
 +  // Alex313031: Maybe use INACTIVE_PADDING or simply 1
-+  const int top_border_thickness = browser_view()->GetIsWebAppType() || features::IsThorium2024()
++  const int top_border_thickness = browser_view()->GetIsWebAppType() || features::IsMcloud Browser2024()
                                         ? FrameTopBorderThickness(false)
                                         : GetLayoutConstant(TAB_STRIP_PADDING);
  
@@ -1652,7 +1652,7 @@ index 5aab1198c30ea..f4349d1b2faa0 100644
        // default value.
 -      return 0;
 +      // Alex313031 TODO: Consider smaller size, set to 0 for experiment
-+      const int kTopResizeFrameArea = features::IsThorium2024() ? 8 : 0;
++      const int kTopResizeFrameArea = features::IsMcloud Browser2024() ? 8 : 0;
 +      return kTopResizeFrameArea;
      }
  
@@ -1664,7 +1664,7 @@ index 5aab1198c30ea..f4349d1b2faa0 100644
 -  // The tabstrip controls its own top padding.
 -  return top;
 +  // In Cr23, the tabstrip controls its own top padding.
-+  if (!features::IsThorium2024()) {
++  if (!features::IsMcloud Browser2024()) {
 +    return top;
 +  }
 +  // In maximized mode, we do not add any additional thickness to the grab
@@ -1677,7 +1677,7 @@ index 5aab1198c30ea..f4349d1b2faa0 100644
 +  // // mode, to use to drag the window around.
 +  // constexpr int kNonClientRestoredExtraThickness = 8;
 +  // int thickness = kNonClientRestoredExtraThickness;
-+  // if (EverHasVisibleBackgroundTabShapes() && features::IsThorium2024()) {
++  // if (EverHasVisibleBackgroundTabShapes() && features::IsMcloud Browser2024()) {
 +  //   thickness =
 +  //       std::max(thickness, BrowserNonClientFrameView::kMinimumDragHeight);
 +  // }
@@ -1707,7 +1707,7 @@ index 5aab1198c30ea..f4349d1b2faa0 100644
            ? 0
            : caption_button_metrics_->GetCaptionButtonWidth();
  
-+  const int caption_height = features::IsThorium2024()
++  const int caption_height = features::IsMcloud Browser2024()
 +                                 ? std::min(GetFrameHeight(), init_height)
 +                                 : GetFrameHeight();
 +
@@ -1774,7 +1774,7 @@ index cc260e01903f2..af15f0840f694 100644
  
  int OpaqueBrowserFrameView::GetTopInset(bool restored) const {
 -  return layout_->NonClientTopHeight(restored);
-+  return browser_view()->ShouldDrawTabStrip() && features::IsThorium2024()
++  return browser_view()->ShouldDrawTabStrip() && features::IsMcloud Browser2024()
 +             ? layout_->GetTabStripInsetsTop(restored)
 +             : layout_->NonClientTopHeight(restored);
  }
@@ -1801,7 +1801,7 @@ index 58e5783a8f208..0f00c13c9cf2d 100644
 +  const int top = NonClientTopHeight(restored);
 +  const bool start_at_top_of_frame = !restored &&
 +                                     delegate_->IsFrameCondensed() &&
-+                                     features::IsThorium2024();
++                                     features::IsMcloud Browser2024();
 +  return start_at_top_of_frame ? top
 +                               : (top + GetNonClientRestoredExtraThickness());
 +}
@@ -1816,7 +1816,7 @@ index 58e5783a8f208..0f00c13c9cf2d 100644
 -  return kFrameShadowThickness;
 +  const bool start_at_top_of_frame = !restored &&
 +                                     delegate_->IsFrameCondensed() &&
-+                                     features::IsThorium2024();
++                                     features::IsMcloud Browser2024();
 +  return start_at_top_of_frame
 +             ? FrameBorderInsets(false).top()
 +             : kFrameShadowThickness;
@@ -1829,7 +1829,7 @@ index 58e5783a8f208..0f00c13c9cf2d 100644
  
 +int OpaqueBrowserFrameViewLayout::GetNonClientRestoredExtraThickness() const {
 +  // In Refresh, the tabstrip controls its own top padding.
-+  if (!features::IsThorium2024()) {
++  if (!features::IsMcloud Browser2024()) {
 +    return 0;
 +  }
 +  // // Besides the frame border, there's empty space atop the window in restored
@@ -1909,7 +1909,7 @@ index 582855d6a9922..4ffeeae7ebee9 100644
              base::BindRepeating(&TabStrip::NewTabButtonPressed,
                                  base::Unretained(tab_strip_)),
 -            vector_icons::kAddIcon, Edge::kNone, Edge::kNone, browser);
-+            features::IsThorium2024() ? kAddIcon : vector_icons::kAddIcon,
++            features::IsMcloud Browser2024() ? kAddIcon : vector_icons::kAddIcon,
 +            Edge::kNone, Edge::kNone, browser);
  
      new_tab_button_ = AddChildView(std::move(tab_strip_control_button));
@@ -1951,7 +1951,7 @@ index 582855d6a9922..4ffeeae7ebee9 100644
      // negative margins.
      gfx::Size button_size = button_to_paint_to_layer->GetPreferredSize();
 +    int Th24XOffset;
-+    if (features::IsThorium2024()) {
++    if (features::IsMcloud Browser2024()) {
 +      Th24XOffset = 4;
 +    } else {
 +      Th24XOffset = GetLayoutConstant(TAB_MARGIN);
@@ -1977,7 +1977,7 @@ index 582855d6a9922..4ffeeae7ebee9 100644
      button_to_paint_to_layer->SetBoundsRect(button_new_bounds);
 +
 +    // TODO: Alex313031 maybe remove?
-+    if (tab_search_container_ && features::IsThorium2024()) {
++    if (tab_search_container_ && features::IsMcloud Browser2024()) {
 +      gfx::Size tab_search_container_size =
 +          tab_search_container_->GetPreferredSize();
 +      const int tab_search_container_width =
@@ -2050,7 +2050,7 @@ index 0000000000000..6d7173af68408
 +
 +#include "build/build_config.h"
 +#include "chrome/browser/ui/browser.h"
-+#include "chrome/browser/ui/thorium_2024.h"
++#include "chrome/browser/ui/mcloud_2024.h"
 +
 +// static
 +bool WindowCaptionUtil::IsWindowsTabSearchCaptionButtonEnabled(
@@ -2062,7 +2062,7 @@ index 0000000000000..6d7173af68408
 +      base::CommandLine::ForCurrentProcess()->HasSwitch("disable-caption-button");
 +  static const bool left_aligned_tab_search_button =
 +      base::CommandLine::ForCurrentProcess()->HasSwitch("left-aligned-tab-search-button");
-+  return features::IsThorium2024() && browser->is_type_normal() &&
++  return features::IsMcloud Browser2024() && browser->is_type_normal() &&
 +      !remove_tabsearch_button && !disable_caption_button && !left_aligned_tab_search_button;
 +#else
 +  return false;
@@ -2162,11 +2162,11 @@ index 951608e4b3bdd..1996230c26edb 100644
  
  // The padding between the intent chip and the other trailing decorations.
  constexpr int kIntentChipIntraItemPadding = 12;
-+constexpr int kThoriumIntentChipIntraItemPadding = 6; // Th24 value
++constexpr int kMcloud BrowserIntentChipIntraItemPadding = 6; // Th24 value
  
  // The padding between the content setting icons and other trailing decorations.
  constexpr int kContentSettingIntraItemPadding = 8;
-+constexpr int kThoriumContentSettingIntraItemPadding = 4; // Th24 value
++constexpr int kMcloud BrowserContentSettingIntraItemPadding = 4; // Th24 value
  
  }  // namespace
  
@@ -2186,7 +2186,7 @@ index 951608e4b3bdd..1996230c26edb 100644
 -        }));
 -    views::FocusRing::Get(this)->SetOutsetFocusRingDisabled(true);
 -    views::InstallPillHighlightPathGenerator(this);
-+    if (!features::IsThorium2024()) {
++    if (!features::IsMcloud Browser2024()) {
 +      views::FocusRing::Install(this);
 +      views::FocusRing::Get(this)->SetHasFocusPredicate(
 +          base::BindRepeating([](const View* view) {
@@ -2216,12 +2216,12 @@ index 951608e4b3bdd..1996230c26edb 100644
 -  const gfx::FontList& page_action_font_list = typography_provider.GetFont(
 -      CONTEXT_OMNIBOX_PRIMARY, views::style::STYLE_BODY_3_EMPHASIS);
 +  const gfx::FontList& omnibox_chip_font_list =
-+      features::IsThorium2024()
++      features::IsMcloud Browser2024()
 +          ? font_list
 +          : typography_provider.GetFont(CONTEXT_OMNIBOX_PRIMARY,
 +                                        views::style::STYLE_BODY_4_EMPHASIS);
 +  const gfx::FontList& page_action_font_list =
-+      features::IsThorium2024()
++      features::IsMcloud Browser2024()
 +          ? font_list
 +          : typography_provider.GetFont(CONTEXT_OMNIBOX_PRIMARY,
 +                                        views::style::STYLE_BODY_3_EMPHASIS);
@@ -2233,7 +2233,7 @@ index 951608e4b3bdd..1996230c26edb 100644
    const bool should_bridge_containers =
        !IsPageActionMigrated(PageActionIconType::kBookmarkStar);
 -  static constexpr int kBetweenIconSpacing = 8;
-+  static const int kBetweenIconSpacing = features::IsThorium2024() ? 4 : 8;
++  static const int kBetweenIconSpacing = features::IsMcloud Browser2024() ? 4 : 8;
    const page_actions::PageActionViewParams page_action_params{
        .icon_size = GetLayoutConstant(LOCATION_BAR_TRAILING_ICON_SIZE),
        .icon_insets = GetLayoutInsets(LOCATION_BAR_PAGE_ACTION_ICON_PADDING),
@@ -2275,7 +2275,7 @@ index 951608e4b3bdd..1996230c26edb 100644
 +  int icon_left = GetLayoutConstant(LOCATION_BAR_LEADING_DECORATION_EDGE_PADDING);
    // The padding between the LHS icon and the text.
 -  int text_left = 8;
-+  int text_left = features::IsThorium2024() ? 0 : 8;
++  int text_left = features::IsMcloud Browser2024() ? 0 : 8;
  
    // Apply indentation to align the omnibox input icon and the text with those
    // of the suggestions in the popup. However, there are two exceptions where
@@ -2284,12 +2284,12 @@ index 951608e4b3bdd..1996230c26edb 100644
                               !ShouldShowKeywordBubble();
    if (should_indent) {
 -    icon_left += 7 /*icon_indent*/;
-+    icon_left += features::IsThorium2024() ? 9 : 7; /*icon_indent*/
++    icon_left += features::IsMcloud Browser2024() ? 9 : 7; /*icon_indent*/
      icon_left += omnibox_feature_configs::AdjustOmniboxIndent()
                       .Get()
                       .input_icon_indent_offset;
 -    text_left += 6 /*text_indent*/;
-+    text_left += features::IsThorium2024() ? 1 : 6; /*text_indent*/
++    text_left += features::IsMcloud Browser2024() ? 1 : 6; /*text_indent*/
      text_left += omnibox_feature_configs::AdjustOmniboxIndent()
                       .Get()
                       .input_text_indent_offset;
@@ -2297,12 +2297,12 @@ index 951608e4b3bdd..1996230c26edb 100644
      // Otherwise, if in keyword mode, adjust indentation to align the icon and
      // the text with the suggestion icons & texts.
 -    icon_left += 9; /*icon_indent_keyword_mode*/
-+    icon_left += features::IsThorium2024() ? 10 : 9; /*icon_indent_keyword_mode*/
++    icon_left += features::IsMcloud Browser2024() ? 10 : 9; /*icon_indent_keyword_mode*/
      icon_left += omnibox_feature_configs::AdjustOmniboxIndent()
                       .Get()
                       .input_icon_indent_offset;
 -    text_left += -9; /*text_indent_keyword_mode*/
-+    text_left += features::IsThorium2024() ? -10 : -9; /*text_indent_keyword_mode*/
++    text_left += features::IsMcloud Browser2024() ? -10 : -9; /*text_indent_keyword_mode*/
    }
  
    LocationBarLayout leading_decorations(LocationBarLayout::Position::kLeftEdge,
@@ -2310,7 +2310,7 @@ index 951608e4b3bdd..1996230c26edb 100644
                  !ShouldShowKeywordBubble()
            : chip_controller_->chip()->GetVisible() &&
                  !ShouldShowKeywordBubble();
-+  const int text_overriding_permission_chip_indent = features::IsThorium2024() ? 4 : 0;
++  const int text_overriding_permission_chip_indent = features::IsMcloud Browser2024() ? 4 : 0;
    if (show_overriding_permission_chip) {
 +    text_left += text_overriding_permission_chip_indent;
      if (base::FeatureList::IsEnabled(
@@ -2321,8 +2321,8 @@ index 951608e4b3bdd..1996230c26edb 100644
                            /*edge_padding=*/trailing_decorations_edge_padding);
    for (ContentSettingImageView* view : base::Reversed(content_setting_views_)) {
 -    int intra_item_padding = kContentSettingIntraItemPadding;
-+    int intra_item_padding = features::IsThorium2024()
-+                                 ? kThoriumContentSettingIntraItemPadding
++    int intra_item_padding = features::IsMcloud Browser2024()
++                                 ? kMcloud BrowserContentSettingIntraItemPadding
 +                                 : kContentSettingIntraItemPadding;
      add_trailing_decoration(view, intra_item_padding,
                              /*edge_padding=*/trailing_decorations_edge_padding);
@@ -2330,8 +2330,8 @@ index 951608e4b3bdd..1996230c26edb 100644
  
    if (intent_chip_) {
 -    int intra_item_padding = kIntentChipIntraItemPadding;
-+    int intra_item_padding = features::IsThorium2024()
-+                                 ? kThoriumIntentChipIntraItemPadding
++    int intra_item_padding = features::IsMcloud Browser2024()
++                                 ? kMcloud BrowserIntentChipIntraItemPadding
 +                                 : kIntentChipIntraItemPadding;
      add_trailing_decoration(intent_chip_, intra_item_padding,
                              /*edge_padding=*/trailing_decorations_edge_padding);
@@ -2341,7 +2341,7 @@ index 951608e4b3bdd..1996230c26edb 100644
    const auto color_id = ShouldShowKeywordBubble()
                              ? kColorOmniboxKeywordSeparator
 -                            : kColorOmniboxActionIcon;
-+                            : (features::IsThorium2024()
++                            : (features::IsMcloud Browser2024()
 +                               ? kColorOmniboxText
 +                               : kColorOmniboxActionIcon);
    return GetColorProvider()->GetColor(color_id);
@@ -2349,7 +2349,7 @@ index 951608e4b3bdd..1996230c26edb 100644
  
  SkAlpha LocationBarView::GetIconLabelBubbleSeparatorAlpha() const {
 -  return 0xFF;
-+  if (features::IsThorium2024()) {
++  if (features::IsMcloud Browser2024()) {
 +    return IconLabelBubbleView::Delegate::GetIconLabelBubbleSeparatorAlpha();
 +  } else {
 +    return 0xFF;
@@ -2379,7 +2379,7 @@ index 951608e4b3bdd..1996230c26edb 100644
      background_color_ =
          color_provider->GetColor(kColorOmniboxResultsBackground);
 -  } else if (input_in_progress && !high_contrast) {
-+  } else if (!features::IsThorium2024() && input_in_progress && !high_contrast) {
++  } else if (!features::IsMcloud Browser2024() && input_in_progress && !high_contrast) {
      // Under CR23 guidelines, if the Omnibox is unfocused, but still contains
      // in-progress user input, the background color matches the popup (unless
      // high-contrast mode is enabled).
@@ -2396,7 +2396,7 @@ index 951608e4b3bdd..1996230c26edb 100644
 +
 +// Alex313031: Looks ugly on Mac
 +#if !BUILDFLAG(IS_MAC)
-+  if (is_caret_visible && !is_open && features::IsThorium2024()) {
++  if (is_caret_visible && !is_open && features::IsMcloud Browser2024()) {
 +    border_color = color_provider->GetColor(ui::kColorFocusableBorderFocused);
 +  }
 +#endif
@@ -2414,7 +2414,7 @@ index 4031fa7f57765..5d72fdf3408ae 100644
  
 -  ConfigureInkDropForRefresh2023(this, kColorOmniboxIconHover,
 -                                 kColorOmniboxIconPressed);
-+  if (!features::IsThorium2024()) {
++  if (!features::IsMcloud Browser2024()) {
 +    ConfigureInkDropForRefresh2023(this, kColorOmniboxIconHover,
 +                                   kColorOmniboxIconPressed);
 +  }
@@ -2426,7 +2426,7 @@ index 4031fa7f57765..5d72fdf3408ae 100644
  
  bool LocationIconView::ShouldShowSeparator() const {
 -  return false;
-+  return features::IsThorium2024();
++  return features::IsMcloud Browser2024();
  }
  
  bool LocationIconView::ShouldShowLabelAfterAnimation() const {
@@ -2437,7 +2437,7 @@ index 4031fa7f57765..5d72fdf3408ae 100644
 -  const std::u16string& display_text = GetText();
 -  const bool is_text_dangerous =
 -      display_text == l10n_util::GetStringUTF16(IDS_DANGEROUS_VERBOSE_STATE);
-+  if (!features::IsThorium2024()) {
++  if (!features::IsMcloud Browser2024()) {
 +    const std::u16string& display_text = GetText();
 +    const bool is_text_dangerous =
 +        display_text == l10n_util::GetStringUTF16(IDS_DANGEROUS_VERBOSE_STATE);
@@ -2476,7 +2476,7 @@ index 4031fa7f57765..5d72fdf3408ae 100644
    UpdateLabelColors();
  
 -  if (force_hide_background) {
-+  if (force_hide_background && !features::IsThorium2024()) {
++  if (force_hide_background && !features::IsMcloud Browser2024()) {
      SetBackgroundColor(SK_ColorTRANSPARENT);
    }
  
@@ -2497,7 +2497,7 @@ index 4031fa7f57765..5d72fdf3408ae 100644
 -      // An extra space between chip's label and right edge.
 -      const int kExtraRightPadding = 4;
 -      insets.set_right(insets.right() + kExtraRightPadding);
-+  if (!features::IsThorium2024()) {
++  if (!features::IsMcloud Browser2024()) {
 +    if (ShouldShowLabel()) {
 +      SecurityLevel level = GetSecurityLevel();
 +      if (level == security_state::DANGEROUS) {
@@ -2566,7 +2566,7 @@ index feb716231f19a..2cec563faf270 100644
 +
 +  // Alex313031: Looks ugly on Mac
 +#if !BUILDFLAG(IS_MAC)
-+  if (features::IsThorium2024()) {
++  if (features::IsMcloud Browser2024()) {
 +    border->set_draw_border_stroke(true);
 +  }
 +#endif
@@ -2580,7 +2580,7 @@ index feb716231f19a..2cec563faf270 100644
  
 +// Static value from the spec controlling appearance of the shadow.
 +int RoundedOmniboxResultsFrame::GetBubbleElevation() {
-+  if (features::IsThorium2024()) {
++  if (features::IsMcloud Browser2024()) {
 +    return 6;
 +  } else {
 +    return 16;
@@ -2599,7 +2599,7 @@ index feb716231f19a..2cec563faf270 100644
    if (ui::TouchUiController::Get()->touch_ui()) {
      return gfx::Insets::TLBR(6, 1, 5, 1);
    }
-+  if (features::IsThorium2024()) {
++  if (features::IsMcloud Browser2024()) {
 +    return gfx::Insets::VH(3, 6);
 +  }
 +  return gfx::Insets::VH(5, 6);
@@ -2610,7 +2610,7 @@ index feb716231f19a..2cec563faf270 100644
 +  if (ui::TouchUiController::Get()->touch_ui()) {
 +    return gfx::Insets::TLBR(6, 1, 5, 1);
 +  }
-+  if (features::IsThorium2024()) {
++  if (features::IsMcloud Browser2024()) {
 +    return gfx::Insets::VH(4, 6);
 +  }
    return gfx::Insets::VH(5, 6);
@@ -2662,7 +2662,7 @@ index 8ef6bb7e15302..4a3c961d565d7 100644
      int horizontal_inset) {
    int separator_spacing = ChromeLayoutProvider::Get()->GetDistanceMetric(
        DISTANCE_CONTENT_LIST_VERTICAL_MULTI);
-+  if (features::IsThorium2024()) {
++  if (features::IsMcloud Browser2024()) {
 +    // Distance for multi content list is used, but split in half, since there
 +    // is a separator in the middle of it. For ChromeRefresh2023, the separator
 +    // spacing is larger hence no need to split in half.
@@ -2676,10 +2676,10 @@ index 8ef6bb7e15302..4a3c961d565d7 100644
    // GetIconSize() does not work for subpage icons because the default size of
    // kSubmenuArrowIcon is 8 rather than 16.
 -  constexpr int kIconSize = 20;
-+  const int kIconSize = features::IsThorium2024() ? 9 : 20;
++  const int kIconSize = features::IsMcloud Browser2024() ? 9 : 20;
    return ui::ImageModel::FromVectorIcon(
 -      vector_icons::kSubmenuArrowChromeRefreshIcon, ui::kColorIcon, kIconSize);
-+      features::IsThorium2024()
++      features::IsMcloud Browser2024()
 +          ? vector_icons::kSubmenuArrowIcon
 +          : vector_icons::kSubmenuArrowChromeRefreshIcon,
 +      ui::kColorIcon, kIconSize);
@@ -2717,7 +2717,7 @@ index 080d056b46f7c..a2a585c9a67b8 100644
      : side_panel_(side_panel) {
 -  gfx::Size preferred_size((lens::features::IsLensOverlayEnabled() ? 4 : 16),
 +  gfx::Size preferred_size((lens::features::IsLensOverlayEnabled()
-+                                ? (features::IsThorium2024() ? 8 : 4)
++                                ? (features::IsMcloud Browser2024() ? 8 : 4)
 +                                : 8),
                             24);
    SetPreferredSize(preferred_size);
@@ -2726,12 +2726,12 @@ index 080d056b46f7c..a2a585c9a67b8 100644
    FocusRing::Install(this);
 -  if (lens::features::IsLensOverlayEnabled()) {
 -    const int resize_handle_left_margin = 2;
-+  if (lens::features::IsLensOverlayEnabled() && !features::IsThorium2024()) {
++  if (lens::features::IsLensOverlayEnabled() && !features::IsMcloud Browser2024()) {
 +    constexpr int resize_handle_left_margin = 2;
      SetProperty(views::kMarginsKey,
                  gfx::Insets().set_left(resize_handle_left_margin));
 -  } else {
-+  } else if (!lens::features::IsLensOverlayEnabled() || features::IsThorium2024()) {
++  } else if (!lens::features::IsLensOverlayEnabled() || features::IsMcloud Browser2024()) {
 +    constexpr float resize_handle_right_margin = 1.5f;
 +    SetProperty(views::kMarginsKey,
 +                gfx::Insets().set_left(resize_handle_right_margin));
@@ -2743,7 +2743,7 @@ index 080d056b46f7c..a2a585c9a67b8 100644
  
  void SidePanelResizeHandle::UpdateVisibility(bool visible) {
 -  if (visible) {
-+  if (visible && !features::IsThorium2024() && lens::features::IsLensOverlayEnabled()) {
++  if (visible && !features::IsMcloud Browser2024() && lens::features::IsLensOverlayEnabled()) {
      const SkColor resize_handle_color =
          GetColorProvider()->GetColor(kColorSidePanelHoverResizeAreaHandle);
      SetBackground(CreateRoundedRectBackground(resize_handle_color, 2));
@@ -2812,7 +2812,7 @@ index 722f2832b44b4..62d566f927a11 100644
 -  const int start = contents_rect.x();
 +  int start = contents_rect.x();
 +
-+  if (extra_padding_before_content_ && features::IsThorium2024()) {
++  if (extra_padding_before_content_ && features::IsMcloud Browser2024()) {
 +    start += kExtraLeftPaddingToBalanceCloseButtonPadding;
 +  }
  
@@ -2823,9 +2823,9 @@ index 722f2832b44b4..62d566f927a11 100644
    gfx::Rect favicon_bounds(start, contents_rect.y(), 0, 0);
    if (showing_icon_) {
 +    // Height should go to the bottom of the tab for the crashed tab animation
-+    // to pop out of the bottom in Thorium 2024 UI.
++    // to pop out of the bottom in Mcloud Browser 2024 UI.
 +    favicon_bounds.set_y(contents_rect.y() +
-+                         Center(features::IsThorium2024()
++                         Center(features::IsMcloud Browser2024()
 +                                    ? contents_rect.height()
 +                                    : gfx::kFaviconSize,
 +                                gfx::kFaviconSize));
@@ -2837,7 +2837,7 @@ index 722f2832b44b4..62d566f927a11 100644
          right -= ui::TouchUiController::Get()->touch_ui()
                       ? kTabAlertIndicatorCloseButtonPaddingAdjustmentTouchUI
 -                     : kTabAlertIndicatorCloseButtonPaddingAdjustment;
-+                     : (features::IsThorium2024()
++                     : (features::IsMcloud Browser2024()
 +                           ? kTabAlertIndicatorCloseButtonPaddingAdjustmentTh24
 +                           : kTabAlertIndicatorCloseButtonPaddingAdjustment);
        }
@@ -2989,7 +2989,7 @@ index d6d122f64ca89..90f77e82f85bd 100644
      : TabStripControlButton(tab_strip_controller,
                              PressedCallback(),
 -                            vector_icons::kExpandMoreIcon,
-+                            features::IsThorium2024()
++                            features::IsMcloud Browser2024()
 +                                ? vector_icons::kCaretDownIcon
 +                                : vector_icons::kExpandMoreIcon,
                              fixed_flat_edge,
@@ -3004,7 +3004,7 @@ index d6d122f64ca89..90f77e82f85bd 100644
 -  SetBackgroundFrameActiveColorId(kColorNewTabButtonCRBackgroundFrameActive);
 -  SetBackgroundFrameInactiveColorId(
 -      kColorNewTabButtonCRBackgroundFrameInactive);
-+  if (!features::IsThorium2024()) {
++  if (!features::IsMcloud Browser2024()) {
 +    SetForegroundFrameActiveColorId(kColorNewTabButtonForegroundFrameActive);
 +    SetForegroundFrameInactiveColorId(
 +        kColorNewTabButtonForegroundFrameInactive);
@@ -3025,7 +3025,7 @@ index d6d122f64ca89..90f77e82f85bd 100644
 +  if (rectangular_tabs) {
 +    return kCRTabSearchFlatCornerRadius;
 +  } else {
-+    return features::IsThorium2024()
++    return features::IsMcloud Browser2024()
 +               ? TabStripControlButton::kButtonSize.width() / 2
 +               : kCRTabSearchCornerRadius;
 +  }
@@ -3115,7 +3115,7 @@ index fe66c423ab248..4c97c212d34bd 100644
  #include "chrome/browser/ui/layout_constants.h"
  #include "chrome/browser/ui/tabs/tab_style.h"
  #include "chrome/browser/ui/tabs/tab_types.h"
-+#include "chrome/browser/ui/thorium_2024.h"
++#include "chrome/browser/ui/mcloud_2024.h"
  #include "chrome/browser/ui/ui_features.h"
  #include "chrome/browser/ui/views/frame/browser_frame_view.h"
  #include "chrome/browser/ui/views/frame/browser_view.h"
@@ -3163,7 +3163,7 @@ index fe66c423ab248..4c97c212d34bd 100644
      if (path_type != TabStyle::PathType::kInteriorClip &&
          path_type != TabStyle::PathType::kHitTest) {
 -      tab_height -= GetLayoutConstant(TAB_STRIP_PADDING) * scale;
-+      // Keep this in Thorium
++      // Keep this in Mcloud Browser
 +      tab_height -= GetLayoutConstant(TAB_MARGIN) * scale;
        tab_height -= GetLayoutConstant(TABSTRIP_TOOLBAR_OVERLAP) * scale;
      }
@@ -3173,11 +3173,11 @@ index fe66c423ab248..4c97c212d34bd 100644
  
      float left = aligned_bounds.x() + extension_corner_radius;
 -    int top = aligned_bounds.y() + GetLayoutConstant(TAB_STRIP_PADDING) * scale;
-+    // Keep this in Thorium.
++    // Keep this in Mcloud Browser.
 +    int top = aligned_bounds.y() + GetLayoutConstant(TAB_INACTIVE_PADDING) * scale;
      float right = aligned_bounds.right() - extension_corner_radius;
 -    const int bottom = top + tab_height;
-+    // Keep this in Thorium.
++    // Keep this in Mcloud Browser.
 +    int bottom = top + tab_height;
  
      // For maximized and full screen windows, extend the tab hit test to the top
@@ -3186,7 +3186,7 @@ index fe66c423ab248..4c97c212d34bd 100644
      if (path_type == TabStyle::PathType::kHitTest &&
          tab()->controller()->IsFrameCondensed()) {
 -      top -= GetLayoutConstant(TAB_STRIP_PADDING) * scale;
-+      // Keep this in Thorium.
++      // Keep this in Mcloud Browser.
 +      top -= GetLayoutConstant(TAB_MARGIN) * scale;
        // Don't round the top corners to avoid creating dead space between tabs.
        top_left_corner_radius = 0;
@@ -3197,13 +3197,13 @@ index fe66c423ab248..4c97c212d34bd 100644
  
 +  /*
 +  #if BUILDFLAG(IS_LINUX)
-+    if (features::IsThorium2024()) {
++    if (features::IsMcloud Browser2024()) {
 +      constexpr float Th24StrokeOffset = 1.0f;
 +      top -= Th24StrokeOffset;
 +      //bottom -= Th24StrokeOffset;
 +    }
 +  #else
-+    if (features::IsThorium2024()) {
++    if (features::IsMcloud Browser2024()) {
 +      VLOG(0) << "Th24StrokeOffset on Windows is imperfect";
 +      constexpr float Th24StrokeOffset = 1.0f;
 +      top -= Th24StrokeOffset;
@@ -3445,8 +3445,8 @@ index f1b96ac850032..2c7fe39e8f5b7 100644
    if (ui::TouchUiController::Get()->touch_ui()) {
      return kDefaultTouchableIconSize;
    }
-+  if (features::IsThorium2024()) {
-+    return kDefaultIconSizeThorium2024;
++  if (features::IsMcloud Browser2024()) {
++    return kDefaultIconSizeMcloud Browser2024;
 +  }
  
    return kDefaultIconSizeChromeRefresh;
@@ -3465,7 +3465,7 @@ index eada18fb57bee..a06846d24618c 100644
 +  // the smaller version, if it exists in the .icon file as a
 +  // separate canvas. Chose 4 9's as even on an 8K screen, the
 +  // difference should be less than 1 pixel.
-+  static constexpr float kDefaultIconSizeThorium2024 = 20.0f;
++  static constexpr float kDefaultIconSizeMcloud Browser2024 = 20.0f;
    static constexpr int kDefaultTouchableIconSize = 24;
  
   private:
@@ -3623,7 +3623,7 @@ index 001b9d536abf8..caaf491cdfd22 100644
      "chrome_switches.cc",
      "chrome_switches.h",
      "env_vars.h",
-+    "thorium_2024.h"
++    "mcloud_2024.h"
    ]
    configs += [ "//build/config/compiler:wexit_time_destructors" ]
  
@@ -3636,7 +3636,7 @@ index 9c4d73b730baa..e239f29eb5ceb 100644
      FILE_PATH_LITERAL("/usr/share/google-chrome/extensions");
  #else
 -    FILE_PATH_LITERAL("/usr/share/chromium/extensions");
-+    FILE_PATH_LITERAL("/usr/share/thorium/extensions");
++    FILE_PATH_LITERAL("/usr/share/mcloud/extensions");
  #endif  // BUILDFLAG(GOOGLE_CHROME_BRANDING)
  
  #endif  // BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_CHROMEOS)
@@ -3646,7 +3646,7 @@ index 9c4d73b730baa..e239f29eb5ceb 100644
  
 -      cur = cur.Append(FILE_PATH_LITERAL("Google"))
 -                .Append(FILE_PATH_LITERAL("Chrome"))
-+      cur = cur.Append(FILE_PATH_LITERAL("Thorium"))
++      cur = cur.Append(FILE_PATH_LITERAL("Mcloud Browser"))
                  .Append(FILE_PATH_LITERAL("External Extensions"));
  #else
        if (!base::PathService::Get(base::DIR_MODULE, &cur)) {
@@ -3655,7 +3655,7 @@ index 9c4d73b730baa..e239f29eb5ceb 100644
  #else
        cur = base::FilePath(FILE_PATH_LITERAL(
 -          "/Library/Application Support/Chromium/NativeMessagingHosts"));
-+          "/Library/Application Support/Thorium/NativeMessagingHosts"));
++          "/Library/Application Support/Mcloud Browser/NativeMessagingHosts"));
  #endif
  #else  // BUILDFLAG(IS_MAC)
  #if BUILDFLAG(GOOGLE_CHROME_BRANDING)
@@ -3664,7 +3664,7 @@ index 9c4d73b730baa..e239f29eb5ceb 100644
  #else
        cur = base::FilePath(
 -          FILE_PATH_LITERAL("/etc/chromium/native-messaging-hosts"));
-+          FILE_PATH_LITERAL("/etc/thorium/native-messaging-hosts"));
++          FILE_PATH_LITERAL("/etc/mcloud/native-messaging-hosts"));
  #endif
  #endif  // !BUILDFLAG(IS_MAC)
        break;
@@ -3676,7 +3676,7 @@ index ed88895a1abf6..011d996a23559 100644
  #include "base/time/time.h"
  #include "build/branding_buildflags.h"
  #include "build/build_config.h"
-+#include "chrome/browser/ui/thorium_2024.h"
++#include "chrome/browser/ui/mcloud_2024.h"
  
  namespace lens::features {
  
@@ -3709,7 +3709,7 @@ index 6ad685197a92c..97d68f3623d62 100644
    }
  
 -#if BUILDFLAG(IS_WIN) && !defined(OFFICIAL_BUILD)
-+#if BUILDFLAG(IS_WIN) && !defined(OFFICIAL_BUILD) || BUILDFLAG(THORIUM_DEBUG)
++#if BUILDFLAG(IS_WIN) && !defined(OFFICIAL_BUILD) || BUILDFLAG(MCLOUD_DEBUG)
    // Needed because we can't show the dialog from the sandbox. Don't pass
    // --no-sandbox in official builds because that would bypass the bad_flgs
    // prompt.
@@ -3721,14 +3721,14 @@ index 741a2fe5f0fc7..b8e245ac60588 100644
    return base::FeatureList::IsEnabled(kEnableVariableRefreshRateAlwaysOn);
  }
  
-+BASE_FEATURE(kThorium2024,
-+             "Thorium2024",
++BASE_FEATURE(kMcloud Browser2024,
++             "Mcloud Browser2024",
 +             base::FEATURE_DISABLED_BY_DEFAULT);
 +
-+bool IsThorium2024() {
++bool IsMcloud Browser2024() {
 +  static const bool th24_flag =
 +      base::CommandLine::ForCurrentProcess()->HasSwitch("th24");
-+  return base::FeatureList::IsEnabled(kThorium2024) || th24_flag;
++  return base::FeatureList::IsEnabled(kMcloud Browser2024) || th24_flag;
 +}
 +
 +BASE_FEATURE(kDownloadShelf,
@@ -3765,8 +3765,8 @@ index ce95225cbfd7d..09f2045a63ced 100644
  COMPONENT_EXPORT(UI_BASE_FEATURES) bool IsVariableRefreshRateAlwaysOn();
  
 +// Used to revert some stupid UI decisions for Cr23
-+COMPONENT_EXPORT(UI_BASE_FEATURES) BASE_DECLARE_FEATURE(kThorium2024);
-+COMPONENT_EXPORT(UI_BASE_FEATURES) bool IsThorium2024();
++COMPONENT_EXPORT(UI_BASE_FEATURES) BASE_DECLARE_FEATURE(kMcloud Browser2024);
++COMPONENT_EXPORT(UI_BASE_FEATURES) bool IsMcloud Browser2024();
 +
 +// Whether to use the old download shelf instead of new toolbar bubble UI
 +COMPONENT_EXPORT(UI_BASE_FEATURES) BASE_DECLARE_FEATURE(kDownloadShelf);
@@ -3837,11 +3837,11 @@ index 0354600a1dd83..f0b44ed187645 100644
  
  const gfx::Size GetTrackSize() {
 -  return kTrackSize;
-+  return features::IsThorium2024() ? kTh24TrackSize : kTrackSize;
++  return features::IsMcloud Browser2024() ? kTh24TrackSize : kTrackSize;
  }
  
  int GetThumbInset(bool is_on) {
-+  if (features::IsThorium2024()) {
++  if (features::IsMcloud Browser2024()) {
 +    return kTh24ThumbInset;
 +  }
    return is_on ? kThumbInsetSelected : kThumbInset;
@@ -3852,7 +3852,7 @@ index 0354600a1dd83..f0b44ed187645 100644
      SkColor thumb_color =
          color_utils::AlphaBlend(thumb_on_color, thumb_off_color, color_ratio_);
 -    if (is_hovered_ && is_on_) {
-+    if (!features::IsThorium2024() && is_hovered_ && is_on_) {
++    if (!features::IsMcloud Browser2024() && is_hovered_ && is_on_) {
        // This will blend and additional color into the "on" state thumb color
        // while the view is hovered. This will also take into account both the
        // off->on color animating along with the hover animation. Those
@@ -3862,7 +3862,7 @@ index 0354600a1dd83..f0b44ed187645 100644
  ToggleButton::ToggleButton(PressedCallback callback)
 -    : ToggleButton(std::move(callback), /*has_thumb_shadow=*/false) {}
 +    : ToggleButton(std::move(callback),
-+                   /*has_thumb_shadow=*/features::IsThorium2024()) {}
++                   /*has_thumb_shadow=*/features::IsMcloud Browser2024()) {}
  
  ToggleButton::ToggleButton(PressedCallback callback, bool has_thumb_shadow)
      : Button(std::move(callback)) {
@@ -3872,17 +3872,17 @@ index 0354600a1dd83..f0b44ed187645 100644
    InkDrop::UseInkDropForSquareRipple(InkDrop::Get(this),
 -                                     /*highlight_on_hover=*/true,
 +                                     /*highlight_on_hover=*/
-+                                     !features::IsThorium2024(),
++                                     !features::IsMcloud Browser2024(),
                                       /*highlight_on_focus=*/false,
 -                                     /*show_highlight_on_ripple=*/true);
 +                                     /*show_highlight_on_ripple=*/
-+                                     !features::IsThorium2024());
++                                     !features::IsMcloud Browser2024());
    InkDrop::Get(this)->SetCreateRippleCallback(base::BindRepeating(
        [](ToggleButton* host,
           gfx::Insets insets) -> std::unique_ptr<InkDropRipple> {
          gfx::Rect rect = host->thumb_view_->GetLocalBounds();
          rect.Inset(insets);
-+        if (features::IsThorium2024()) {
++        if (features::IsMcloud Browser2024()) {
 +          return InkDrop::Get(host)->CreateSquareRipple(rect.CenterPoint());
 +        }
          const SkColor pressed_color = host->GetPressedColor();
@@ -3906,7 +3906,7 @@ index 0354600a1dd83..f0b44ed187645 100644
 -        return ink_drop_highlight;
 -      },
 -      this));
-+  if (!features::IsThorium2024()) {
++  if (!features::IsMcloud Browser2024()) {
 +    InkDrop::Get(this)->SetCreateHighlightCallback(base::BindRepeating(
 +        [](ToggleButton* host) {
 +          const gfx::Rect thumb_bounds = host->thumb_view_->GetLocalBounds();
@@ -3940,7 +3940,7 @@ index 0354600a1dd83..f0b44ed187645 100644
  gfx::Size ToggleButton::CalculatePreferredSize(
      const SizeBounds& /*available_size*/) const {
    gfx::Rect rect(GetTrackSize());
-+  if (features::IsThorium2024()) {
++  if (features::IsMcloud Browser2024()) {
 +    rect.Inset(gfx::Insets::VH(-kTrackVerticalMargin, -kTrackHorizontalMargin));
 +  }
    rect.Inset(-GetInsets());
@@ -3951,7 +3951,7 @@ index 0354600a1dd83..f0b44ed187645 100644
    thumb_bounds.set_width(thumb_bounds.height());
    thumb_bounds.Inset(thumb_view_->GetShadowOutsets());
 -  if (GetState() == STATE_PRESSED) {
-+  if (GetState() == STATE_PRESSED && !features::IsThorium2024()) {
++  if (GetState() == STATE_PRESSED && !features::IsMcloud Browser2024()) {
      thumb_bounds.Outset(kThumbPressedOutset);
    }
    return thumb_bounds;
@@ -3960,7 +3960,7 @@ index 0354600a1dd83..f0b44ed187645 100644
                        static_cast<float>(hover_animation_.GetCurrentValue()),
                        GetIsOn(), IsMouseHovered());
 -  if (IsMouseHovered()) {
-+  if (!features::IsThorium2024() && IsMouseHovered()) {
++  if (!features::IsMcloud Browser2024() && IsMouseHovered()) {
      InkDrop::Get(this)->GetInkDrop()->SetHovered(
          !slide_animation_.is_animating());
    }
@@ -3970,7 +3970,7 @@ index 0354600a1dd83..f0b44ed187645 100644
  
 -  InkDrop::Get(this)->AnimateToState(InkDropState::ACTION_TRIGGERED,
 -                                     ui::LocatedEvent::FromIfValid(&event));
-+  if (!features::IsThorium2024()) {
++  if (!features::IsMcloud Browser2024()) {
 +    InkDrop::Get(this)->AnimateToState(InkDropState::ACTION_TRIGGERED,
 +                                       ui::LocatedEvent::FromIfValid(&event));
 +  }
@@ -3988,7 +3988,7 @@ index 0354600a1dd83..f0b44ed187645 100644
 -      hover_animation_.Hide();
 -    } else {
 -      hover_animation_.Show();
-+  if (!features::IsThorium2024()) {
++  if (!features::IsMcloud Browser2024()) {
 +    if (GetState() == STATE_PRESSED || old_state == STATE_PRESSED) {
 +      UpdateThumb();
 +    } else if (GetState() == STATE_HOVERED || old_state == STATE_HOVERED) {
@@ -4007,7 +4007,7 @@ index 0354600a1dd83..f0b44ed187645 100644
  }
  
  SkPath ToggleButton::GetFocusRingPath() const {
-+  if (features::IsThorium2024()) {
++  if (features::IsMcloud Browser2024()) {
 +    const gfx::Point center = GetThumbBounds().CenterPoint();
 +    constexpr int kFocusRingRadius = 16;
 +    return SkPath::Circle(center.x(), center.y(), kFocusRingRadius);
@@ -4021,7 +4021,7 @@ index 0354600a1dd83..f0b44ed187645 100644
  
 +void ToggleButton::OnFocus() {
 +  Button::OnFocus();
-+  if (features::IsThorium2024()) {
++  if (features::IsMcloud Browser2024()) {
 +    InkDrop::Get(this)->AnimateToState(views::InkDropState::ACTION_PENDING,
 +                                       nullptr);
 +    SchedulePaint();
@@ -4031,7 +4031,7 @@ index 0354600a1dd83..f0b44ed187645 100644
 +void ToggleButton::OnBlur() {
 +  Button::OnBlur();
 +
-+  if (features::IsThorium2024()) {
++  if (features::IsMcloud Browser2024()) {
 +    // The ink drop may have already gone away if the user clicked after
 +    // focusing.
 +    if (InkDrop::Get(this)->GetInkDrop()->GetTargetInkDropState() ==
@@ -4051,7 +4051,7 @@ index 0354600a1dd83..f0b44ed187645 100644
        GetTrackColor(true), GetTrackColor(false), color_ratio));
    canvas->DrawRoundRect(track_rect, radius, track_flags);
 -  if (!GetIsOn() && inner_border_enabled_) {
-+  if (!GetIsOn() && inner_border_enabled_ && !features::IsThorium2024()) {
++  if (!GetIsOn() && inner_border_enabled_ && !features::IsMcloud Browser2024()) {
      track_rect.Inset(kBorderStrokeWidth * dsf / 2.0f);
      track_flags.setColor(
          GetColorProvider()->GetColor(ui::kColorToggleButtonShadow));
@@ -4060,7 +4060,7 @@ index 0354600a1dd83..f0b44ed187645 100644
  
  void ToggleButton::AnimationEnded(const gfx::Animation* animation) {
 -  if (animation == &slide_animation_ && IsMouseHovered()) {
-+  if (!features::IsThorium2024() && animation == &slide_animation_ &&
++  if (!features::IsMcloud Browser2024() && animation == &slide_animation_ &&
 +      IsMouseHovered()) {
      InkDrop::Get(this)->GetInkDrop()->SetHovered(true);
    }
@@ -4100,7 +4100,7 @@ index 10bd48f39898a..7eec2fdd769c2 100644
 -  return GetComboboxArrowContainerWidth() +
 -         LayoutProvider::Get()->GetDistanceMetric(
 -             DISTANCE_TEXTFIELD_HORIZONTAL_TEXT_PADDING);
-+  return features::IsThorium2024()
++  return features::IsMcloud Browser2024()
 +             ? GetComboboxArrowContainerWidth() +
 +                   LayoutProvider::Get()->GetDistanceMetric(
 +                       DISTANCE_TEXTFIELD_HORIZONTAL_TEXT_PADDING)
@@ -4110,7 +4110,7 @@ index 10bd48f39898a..7eec2fdd769c2 100644
  
  int GetComboboxArrowContainerWidth() {
 -  return ComboboxArrowSize().width() + kComboboxArrowPaddingWidth * 2;
-+  const int combobox_padding = features::IsThorium2024()
++  const int combobox_padding = features::IsMcloud Browser2024()
 +                    ? 8 * 2
 +                    : kComboboxArrowPaddingWidth * 2;
 +  return ComboboxArrowSize().width() + combobox_padding;
@@ -4126,7 +4126,7 @@ index 9c37830045427..a8c7f6de6fce8 100644
        0, 0, 0,
        std::max(control_elements_container_->GetPreferredSize({}).width() -
 -                   kComboboxArrowPaddingWidth,
-+                   (features::IsThorium2024()
++                   (features::IsMcloud Browser2024()
 +                        ? 8
 +                        : kComboboxArrowPaddingWidth),
                 0)));
@@ -4140,7 +4140,7 @@ index a711c503287a7..ba0aef5301358 100644
  
  #include "base/debug/dump_without_crashing.h"
  #include "base/no_destructor.h"
-+#include "chrome/browser/ui/thorium_2024.h"
++#include "chrome/browser/ui/mcloud_2024.h"
  #include "ui/base/ui_base_features.h"
  #include "ui/views/controls/menu/menu_controller.h"
  #include "ui/views/controls/menu/menu_item_view.h"
@@ -4156,16 +4156,16 @@ index a711c503287a7..ba0aef5301358 100644
 -  separator_height = 17;
 -  separator_spacing_height = 4;
 -  use_outer_border = false;
-+  menu_horizontal_border_size = features::IsThorium2024()
++  menu_horizontal_border_size = features::IsMcloud Browser2024()
 +                                ? 1
 +                                : 0;
-+  submenu_horizontal_overlap = features::IsThorium2024() ? -1 : 0;
-+  item_vertical_margin = features::IsThorium2024() ? 4 : 6;
-+  item_horizontal_border_padding = features::IsThorium2024() ? 0 : 12;
-+  arrow_size = features::IsThorium2024() ? 16 : 16;
-+  separator_height = features::IsThorium2024() ? 11 : 13;
-+  separator_spacing_height = features::IsThorium2024() ? 3 : 4;
-+  use_outer_border = features::IsThorium2024() ? true : false;
++  submenu_horizontal_overlap = features::IsMcloud Browser2024() ? -1 : 0;
++  item_vertical_margin = features::IsMcloud Browser2024() ? 4 : 6;
++  item_horizontal_border_padding = features::IsMcloud Browser2024() ? 0 : 12;
++  arrow_size = features::IsMcloud Browser2024() ? 16 : 16;
++  separator_height = features::IsMcloud Browser2024() ? 11 : 13;
++  separator_spacing_height = features::IsMcloud Browser2024() ? 3 : 4;
++  use_outer_border = features::IsMcloud Browser2024() ? true : false;
  }
  
  // static
@@ -4212,7 +4212,7 @@ index aec943d266793..98ee677630ff3 100644
  
  void MenuConfig::InitPlatform() {}
 -
-+  if (features::IsThorium2024()) {
++  if (features::IsMcloud Browser2024()) {
 +    arrow_to_edge_padding = 21;              // Undesirable in CR2023.
 +    corner_radius = 2;                       // Overridden in CR2023.
 +    minimum_text_item_height = 29;           // Undesirable in CR2023.
@@ -4235,7 +4235,7 @@ index 09c03d1e87011..9e661b29b27e6 100644
  
  #include "ui/views/controls/menu/menu_config.h"
  
-+#include "chrome/browser/ui/thorium_2024.h"
++#include "chrome/browser/ui/mcloud_2024.h"
 +#include "ui/base/ui_base_features.h"
  #include "ui/ozone/public/ozone_platform.h"
  
@@ -4245,17 +4245,17 @@ index 09c03d1e87011..9e661b29b27e6 100644
 -  use_bubble_border = true;
 +  use_bubble_border = corner_radius > 0;
 +  use_outer_border = true;
-+  menu_horizontal_border_size = features::IsThorium2024()
++  menu_horizontal_border_size = features::IsMcloud Browser2024()
 +                                ? 1
 +                                : 0;
-+  submenu_horizontal_overlap = features::IsThorium2024() ? 2 : 0;
-+  separator_horizontal_border_padding = features::IsThorium2024() ? 5 : 0;
-+  arrow_to_edge_padding = features::IsThorium2024() ? 0 : 8;
-+  separator_height = features::IsThorium2024() ? 5 : 13;
-+  separator_upper_height = features::IsThorium2024() ? 2 : 3;
-+  separator_lower_height = features::IsThorium2024() ? 2 : 4;
-+  separator_spacing_height = features::IsThorium2024() ? 2 : 3;
-+  nonrounded_menu_vertical_border_size = features::IsThorium2024() ? 3 : 4;
++  submenu_horizontal_overlap = features::IsMcloud Browser2024() ? 2 : 0;
++  separator_horizontal_border_padding = features::IsMcloud Browser2024() ? 5 : 0;
++  arrow_to_edge_padding = features::IsMcloud Browser2024() ? 0 : 8;
++  separator_height = features::IsMcloud Browser2024() ? 5 : 13;
++  separator_upper_height = features::IsMcloud Browser2024() ? 2 : 3;
++  separator_lower_height = features::IsMcloud Browser2024() ? 2 : 4;
++  separator_spacing_height = features::IsMcloud Browser2024() ? 2 : 3;
++  nonrounded_menu_vertical_border_size = features::IsMcloud Browser2024() ? 3 : 4;
  }
  
  }  // namespace views
@@ -4272,7 +4272,7 @@ index eabfb364890d3..c57c81e12eb7a 100644
 +#import <AppKit/AppKit.h>
 +
 +#include "base/mac/mac_util.h"
-+#include "chrome/browser/ui/thorium_2024.h"
++#include "chrome/browser/ui/mcloud_2024.h"
 +#include "ui/base/ui_base_features.h"
  #include "ui/views/controls/menu/menu_config.h"
  
@@ -4305,7 +4305,7 @@ index eabfb364890d3..c57c81e12eb7a 100644
  namespace views {
  
  void MenuConfig::InitPlatform() {
-+  if (features::IsThorium2024()) {
++  if (features::IsMcloud Browser2024()) {
 +    context_menu_font_list = font_list = gfx::FontList(gfx::Font(
 +        new gfx::PlatformFontMac(gfx::PlatformFontMac::SystemFontType::kMenu)));
 +  }
@@ -4314,14 +4314,14 @@ index eabfb364890d3..c57c81e12eb7a 100644
 +  arrow_key_selection_wraps = true;
    use_mnemonics = false;
 -  show_context_menu_accelerators = false;
-+  show_context_menu_accelerators = features::IsThorium2024() ? true : false;
++  show_context_menu_accelerators = features::IsMcloud Browser2024() ? true : false;
    all_menus_use_prefix_selection = true;
-+  if (features::IsThorium2024()) {
++  if (features::IsMcloud Browser2024()) {
 +    menu_horizontal_border_size = 1;
 +    use_outer_border = true;
 +    //use_bubble_border = corner_radius > 0;
 +  }
-+  if (features::IsThorium2024()) {
++  if (features::IsMcloud Browser2024()) {
 +    InitMaterialMenuConfig(this);
 +  }
  }
@@ -4349,7 +4349,7 @@ index a2dae078ccbd3..16100afdb3e77 100644
 -  show_mnemonics =
 -      (SystemParametersInfo(SPI_GETKEYBOARDCUES, 0, &show_cues, 0) &&
 -       show_cues == TRUE);
-+  if (features::IsThorium2024()) {
++  if (features::IsMcloud Browser2024()) {
 +    show_mnemonics = true;
 +  } else {
 +    BOOL show_cues;
@@ -4370,10 +4370,10 @@ index a2dae078ccbd3..16100afdb3e77 100644
 +  static const bool bubble_borders =
 +      base::CommandLine::ForCurrentProcess()->HasSwitch("bubble-borders");
 +  use_outer_border = true;
-+  nonrounded_menu_vertical_border_size = features::IsThorium2024() ? 3 : 4;
++  nonrounded_menu_vertical_border_size = features::IsMcloud Browser2024() ? 3 : 4;
 +  always_reserve_check_region = false;
 +
-+  if (features::IsThorium2024()) {
++  if (features::IsMcloud Browser2024()) {
 +    if (is_win11 || force_win11_for_testing) {
 +      corner_radius = 8;
 +      arrow_to_edge_padding = 4;
@@ -4415,7 +4415,7 @@ index ce1f10b8e7361..c97605d76513c 100644
  #include "ui/base/metadata/metadata_impl_macros.h"
  #include "ui/base/models/image_model.h"
  #include "ui/base/models/menu_model.h"
-+#include "chrome/browser/ui/thorium_2024.h"
++#include "chrome/browser/ui/mcloud_2024.h"
  #include "ui/base/ui_base_features.h"
  #include "ui/color/color_id.h"
  #include "ui/color/color_provider.h"
@@ -4424,7 +4424,7 @@ index ce1f10b8e7361..c97605d76513c 100644
    if (submenu_arrow_image_view_) {
      submenu_arrow_image_view_->SetImage(ui::ImageModel::FromVectorIcon(
 -        vector_icons::kSubmenuArrowChromeRefreshIcon, colors.icon_color));
-+        features::IsThorium2024()
++        features::IsMcloud Browser2024()
 +            ? vector_icons::kSubmenuArrowIcon
 +            : vector_icons::kSubmenuArrowChromeRefreshIcon,
 +        colors.icon_color));
@@ -4457,7 +4457,7 @@ index 8f91aadcf8b8b..40859ffb882e9 100644
 +#else
 +  constexpr bool kUseMdIcons = false;
 +#endif
-+  if (features::IsThorium2024()) {
++  if (features::IsMcloud Browser2024()) {
 +    if (kUseMdIcons) {
 +      closed_icon_ = open_icon_ = ui::ImageModel::FromVectorIcon(
 +          vector_icons::kFolderIcon, ui::kColorIcon);
@@ -4493,7 +4493,7 @@ index 8f91aadcf8b8b..40859ffb882e9 100644
 -    // Now paint the icon local to that flipped region.
 -    PaintRowIcon(canvas, folder_icon_.Rasterize(GetColorProvider()), icon_x,
 -                 gfx::Rect(0, bounds.y(), bounds.width(), bounds.height()));
-+  if (features::IsThorium2024()) {
++  if (features::IsMcloud Browser2024()) {
 +    if (!icon_index.has_value()) {
 +      // Flip just the |bounds| region of |canvas|.
 +      gfx::ScopedCanvas scoped_canvas(canvas);
@@ -4562,7 +4562,7 @@ index d424bec1e9773..b6bcc20e0e5d3 100644
  
  #include "base/containers/fixed_flat_map.h"
  #include "base/logging.h"
-+#include "chrome/browser/ui/thorium_2024.h"
++#include "chrome/browser/ui/mcloud_2024.h"
  #include "ui/base/ui_base_features.h"
  #include "ui/gfx/font_list.h"
  #include "ui/views/controls/focus_ring.h"
@@ -4570,7 +4570,7 @@ index d424bec1e9773..b6bcc20e0e5d3 100644
    DCHECK_GE(metric, VIEWS_DISTANCE_START);
    DCHECK_LT(metric, VIEWS_DISTANCE_END);
  
-+  static const bool thorium_2024 = features::IsThorium2024();
++  static const bool mcloud_2024 = features::IsMcloud Browser2024();
    switch (static_cast<DistanceMetric>(metric)) {
      case DISTANCE_BUBBLE_HEADER_VECTOR_ICON_SIZE:
        return 20;
@@ -4579,12 +4579,12 @@ index d424bec1e9773..b6bcc20e0e5d3 100644
        return 112;
      case DISTANCE_CLOSE_BUTTON_MARGIN:
 -      return 20;
-+      return thorium_2024 ? 4 : 20;
++      return mcloud_2024 ? 4 : 20;
      case DISTANCE_CONTROL_LIST_VERTICAL:
        return 12;
      case DISTANCE_CONTROL_VERTICAL_TEXT_PADDING:
 -      return 10;
-+      return thorium_2024 ? 8 : 10;
++      return mcloud_2024 ? 8 : 10;
      case DISTANCE_TABLE_VERTICAL_TEXT_PADDING:
        return 6;
      case DISTANCE_DIALOG_BUTTON_MINIMUM_WIDTH:
@@ -4593,7 +4593,7 @@ index d424bec1e9773..b6bcc20e0e5d3 100644
        return 12;
      case DISTANCE_TEXTFIELD_HORIZONTAL_TEXT_PADDING:
 -      return 10;
-+      return thorium_2024 ? 8 : 10;
++      return mcloud_2024 ? 8 : 10;
      case DISTANCE_UNRELATED_CONTROL_HORIZONTAL:
        return 16;
      case DISTANCE_UNRELATED_INFOBAR_CONTAINER_HORIZONTAL:
@@ -4603,7 +4603,7 @@ index d424bec1e9773..b6bcc20e0e5d3 100644
                                            const gfx::Size& size) const {
 +  static const bool classic_omnibox =
 +      base::CommandLine::ForCurrentProcess()->HasSwitch("classic-omnibox");
-+  if (features::IsThorium2024()) {
++  if (features::IsMcloud Browser2024()) {
 +    switch (id) {
 +      case ShapeContextTokens::kBadgeRadius:
 +        return 3;

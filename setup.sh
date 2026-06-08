@@ -18,7 +18,7 @@ try() { "$@" || die "${RED}Failed $*"; }
 # --help
 displayHelp () {
 	printf "\n" &&
-	printf "${bold}${GRE}Script to copy Thorium source files over the Chromium source tree.${c0}\n" &&
+	printf "${bold}${GRE}Script to copy Mcloud Browser source files over the Chromium source tree.${c0}\n" &&
 	printf "${bold}${YEL}  Use the --mac flag for MacOS builds.${c0}\n" &&
 	printf "${bold}${YEL}  Use the --raspi or --arm64 flag for Raspberry Pi builds.${c0}\n" &&
 	printf "${bold}${YEL}  Use the --woa flag for Windows on ARM builds.${c0}\n" &&
@@ -56,17 +56,17 @@ fi
 printf "\n" &&
 printf "${YEL}Creating build output directory...${c0}\n" &&
 
-mkdir -v -p ${CR_SRC_DIR}/out/thorium/ &&
+mkdir -v -p ${CR_SRC_DIR}/out/mcloud/ &&
 
 printf "\n" &&
-printf "${YEL}Copying Thorium source files over the Chromium tree...${c0}\n" &&
+printf "${YEL}Copying Mcloud Browser source files over the Chromium tree...${c0}\n" &&
 # Copy libjxl src
-cd ~/thorium &&
+cd ~/mcloud &&
 printf "\n" &&
-printf "${YEL}Copying thorium-libjxl source for JPEG-XL Support...${c0}\n" &&
-cp -r -v thorium-libjxl/src/. ${CR_SRC_DIR}/ &&
+printf "${YEL}Copying mcloud-libjxl source for JPEG-XL Support...${c0}\n" &&
+cp -r -v mcloud-libjxl/src/. ${CR_SRC_DIR}/ &&
 
-# Copy Thorium sources
+# Copy Mcloud Browser sources
 cp -r -v src/BUILD.gn ${CR_SRC_DIR}/ &&
 cp -r -v src/ash ${CR_SRC_DIR}/ &&
 cp -r -v src/build ${CR_SRC_DIR}/ &&
@@ -85,22 +85,22 @@ cp -r -v src/tools ${CR_SRC_DIR}/ &&
 cp -r -v src/ui ${CR_SRC_DIR}/ &&
 cp -r -v src/v8 ${CR_SRC_DIR}/ &&
 
-cp -r -v thorium_shell/. ${CR_SRC_DIR}/out/thorium/ &&
-cp -r -v pak_src/binaries/pak ${CR_SRC_DIR}/out/thorium/ &&
-cp -r -v pak_src/binaries/pak-win/. ${CR_SRC_DIR}/out/thorium/ &&
+cp -r -v mcloud_shell/. ${CR_SRC_DIR}/out/mcloud/ &&
+cp -r -v pak_src/binaries/pak ${CR_SRC_DIR}/out/mcloud/ &&
+cp -r -v pak_src/binaries/pak-win/. ${CR_SRC_DIR}/out/mcloud/ &&
 
 patchThor () {
 	cp -v other/add-hevc-ffmpeg-decoder-parser.patch ${CR_SRC_DIR}/third_party/ffmpeg/ &&
 	cp -v other/change-libavcodec-header.patch ${CR_SRC_DIR}/third_party/ffmpeg/ &&
     cp -v other/fix-ffmpeg-android-x86-disable-hevc-nasm.patch ${CR_SRC_DIR}/third_party/ffmpeg/ &&
 	cp -v other/fix-policy-templates.patch ${CR_SRC_DIR}/ &&
-	cp -v other/ftp-support-thorium.patch ${CR_SRC_DIR}/ &&
+	cp -v other/ftp-support-mcloud.patch ${CR_SRC_DIR}/ &&
 	cp -v other/restore_download_shelf.patch ${CR_SRC_DIR}/ &&
-	cp -v other/thorium-2024-ui.patch ${CR_SRC_DIR}/ &&
+	cp -v other/mcloud-2024-ui.patch ${CR_SRC_DIR}/ &&
 	cp -v other/GPC.patch ${CR_SRC_DIR}/ &&
 	cp -v other/mini_installer.patch ${CR_SRC_DIR}/ &&
 	cp -v other/open_in_same_tab.patch ${CR_SRC_DIR}/ &&
-	cp -v other/thorium_webui.patch ${CR_SRC_DIR}/ &&
+	cp -v other/mcloud_webui.patch ${CR_SRC_DIR}/ &&
 	cp -v other/disable-privacy-sandbox.patch ${CR_SRC_DIR}/ &&
 	cp -v other/win_updater.patch ${CR_SRC_DIR}/ &&
 	cp -v other/keyboard_shortcuts.patch ${CR_SRC_DIR}/ &&
@@ -143,7 +143,7 @@ patchThor () {
 	printf "\n" &&
 	printf "${YEL}Patching FTP support...${c0}\n" &&
 	cd ${CR_SRC_DIR} &&
-	git apply --reject ./ftp-support-thorium.patch &&
+	git apply --reject ./ftp-support-mcloud.patch &&
 
 	printf "\n" &&
 	printf "${YEL}Patching in GPC support...${c0}\n" &&
@@ -151,9 +151,9 @@ patchThor () {
 	git apply --reject ./GPC.patch &&
 
 	printf "\n" &&
-	printf "${YEL}Patching for Thorium 2024 UI...${c0}\n" &&
+	printf "${YEL}Patching for Mcloud Browser 2024 UI...${c0}\n" &&
 	cd ${CR_SRC_DIR} &&
-	git apply --reject ./thorium-2024-ui.patch &&
+	git apply --reject ./mcloud-2024-ui.patch &&
 	printf "${YEL}Download Shelf patch...${c0}\n" &&
 	git apply --reject ./restore_download_shelf.patch &&
 
@@ -173,11 +173,11 @@ patchThor () {
 	git apply --reject ./open_in_same_tab.patch &&
 	printf "${YEL}Allow Manifest V2 extensions...${c0}\n" &&
 	git apply --reject ./allow_manifest_v2_extensions.patch &&
-	printf "${YEL}Thorium WebUI patch...${c0}\n" &&
-	git apply --reject ./thorium_webui.patch &&
-	printf "${YEL}Thorium Updater patch...${c0}\n" &&
+	printf "${YEL}Mcloud Browser WebUI patch...${c0}\n" &&
+	git apply --reject ./mcloud_webui.patch &&
+	printf "${YEL}Mcloud Browser Updater patch...${c0}\n" &&
 	git apply --reject ./win_updater.patch &&
-	printf "${YEL}Thorium Keyboard Shortcuts patch...${c0}\n" &&
+	printf "${YEL}Mcloud Browser Keyboard Shortcuts patch...${c0}\n" &&
 	git apply --reject ./keyboard_shortcuts.patch &&
 	printf "${YEL}Disable Privacy Sandbox patch...${c0}\n" &&
 	git apply --reject ./disable-privacy-sandbox.patch &&
@@ -209,7 +209,7 @@ patchAC3 () {
 	#printf "${YEL}Patching FFMPEG for AC3 & E-AC3...${c0}\n" &&
 	#cd ${CR_SRC_DIR}/third_party/ffmpeg &&
 	#git apply --reject ./ffmpeg_hevc_ac3.patch &&
-	cd ~/thorium
+	cd ~/mcloud
 }
 
 patchSSE2 () {
@@ -219,33 +219,33 @@ patchSSE2 () {
 	printf "${YEL}Patching ANGLE for SSE2...${c0}\n" &&
 	cd ${CR_SRC_DIR}/third_party/angle/src &&
 	git apply --reject ./angle-lockfree.patch &&
-	cd ~/thorium
+	cd ~/mcloud
 }
 
-cd ~/thorium &&
+cd ~/mcloud &&
 
 printf "\n" &&
-echo "Copying other files to \`out/thorium\`" &&
+echo "Copying other files to \`out/mcloud\`" &&
 
 # Add default_apps dir for Google Docs Offline extension.
-mkdir -v -p ${CR_SRC_DIR}/out/thorium/default_apps &&
-cp -r -v infra/default_apps/. ${CR_SRC_DIR}/out/thorium/default_apps/ &&
+mkdir -v -p ${CR_SRC_DIR}/out/mcloud/default_apps &&
+cp -r -v infra/default_apps/. ${CR_SRC_DIR}/out/mcloud/default_apps/ &&
 
-# Add initial preferences file to open Thorium welcome page on first run.
-cp -v infra/initial_preferences ${CR_SRC_DIR}/out/thorium/ &&
-cp -v infra/thor_ver ${CR_SRC_DIR}/out/thorium/ &&
+# Add initial preferences file to open Mcloud Browser welcome page on first run.
+cp -v infra/initial_preferences ${CR_SRC_DIR}/out/mcloud/ &&
+cp -v infra/thor_ver ${CR_SRC_DIR}/out/mcloud/ &&
 
 # MacOS ARMv8.3-A optimizations
 copyMacOS () {
 	printf "\n" &&
 	printf "${YEL}Copying files for MacOS...${c0}\n" &&
 	cp -v arm/mac_arm.gni ${CR_SRC_DIR}/build/config/arm.gni &&
-	cp -v other/Mac/thorium_version.txt ${CR_SRC_DIR}/ui/webui/resources/text/ &&
+	cp -v other/Mac/mcloud_version.txt ${CR_SRC_DIR}/ui/webui/resources/text/ &&
 	cp -r -v arm/third_party/* ${CR_SRC_DIR}/third_party/ &&
 	cd ${CR_SRC_DIR} &&
 	python3 tools/update_pgo_profiles.py --target=mac update --gs-url-base=chromium-optimization-profiles/pgo_profiles &&
 	python3 tools/update_pgo_profiles.py --target=mac-arm update --gs-url-base=chromium-optimization-profiles/pgo_profiles &&
-	cd ~/thorium &&
+	cd ~/mcloud &&
 	[ -f ${CR_SRC_DIR}/third_party/ffmpeg/ffmpeg_hevc_ac3.patch ] || patchAC3;
 	printf "\n"
 }
@@ -263,9 +263,9 @@ copyRaspi () {
 	# cp -r -v arm/build/* ${CR_SRC_DIR}/build/ &&
 	cp -r -v arm/third_party/* ${CR_SRC_DIR}/third_party/ &&
 	cp -r -v arm/raspi/* ${CR_SRC_DIR}/ &&
-	cp -v arm/thorium_version.txt ${CR_SRC_DIR}/ui/webui/resources/text/ &&
+	cp -v arm/mcloud_version.txt ${CR_SRC_DIR}/ui/webui/resources/text/ &&
 	cp -v other/thor_ver_linux/wrapper-raspi ${CR_SRC_DIR}/chrome/installer/linux/common/wrapper &&
-	cp -v pak_src/binaries/pak_arm64 ${CR_SRC_DIR}/out/thorium/pak &&
+	cp -v pak_src/binaries/pak_arm64 ${CR_SRC_DIR}/out/mcloud/pak &&
 	#./infra/fix_libaom.sh &&
 	printf "\n" &&
 	cp -r -v arm/raspi/build/config/* ${CR_SRC_DIR}/build/config/ &&
@@ -285,11 +285,11 @@ copyWOA () {
 	printf "\n" &&
 	printf "${YEL}Copying Windows on ARM build files...${c0}\n" &&
 	# cp -r -v arm/build/* ${CR_SRC_DIR}/build/ &&
-	cp -v arm/thorium_version.txt ${CR_SRC_DIR}/ui/webui/resources/text/ &&
+	cp -v arm/mcloud_version.txt ${CR_SRC_DIR}/ui/webui/resources/text/ &&
 	cp -r -v arm/third_party/* ${CR_SRC_DIR}/third_party/ &&
 	cd ${CR_SRC_DIR} &&
 	python3 tools/update_pgo_profiles.py --target=win-arm64 update --gs-url-base=chromium-optimization-profiles/pgo_profiles &&
-	cd ~/thorium &&
+	cd ~/mcloud &&
 	# Use regular arm.gni from src, pending further testing
 	# cp -v arm/woa_arm.gni ${CR_SRC_DIR}/build/config/arm.gni &&
 	printf "\n"
@@ -303,8 +303,8 @@ copyAVX512 () {
 	printf "\n" &&
 	printf "${YEL}Copying AVX-512 build files...${c0}\n" &&
 	cp -r -v other/AVX2/third_party/* ${CR_SRC_DIR}/third_party/ &&
-	cp -v other/AVX512/thor_ver ${CR_SRC_DIR}/out/thorium/ &&
-	cp -v other/AVX512/thorium_version.txt ${CR_SRC_DIR}/ui/webui/resources/text/ &&
+	cp -v other/AVX512/thor_ver ${CR_SRC_DIR}/out/mcloud/ &&
+	cp -v other/AVX512/mcloud_version.txt ${CR_SRC_DIR}/ui/webui/resources/text/ &&
 	cp -v other/thor_ver_linux/wrapper-avx512 ${CR_SRC_DIR}/chrome/installer/linux/common/wrapper &&
 	[ -f ${CR_SRC_DIR}/third_party/ffmpeg/ffmpeg_hevc_ac3.patch ] || patchAC3;
 	printf "\n"
@@ -318,8 +318,8 @@ copyAVX2 () {
 	printf "\n" &&
 	printf "${YEL}Copying AVX2 build files...${c0}\n" &&
 	cp -r -v other/AVX2/third_party/* ${CR_SRC_DIR}/third_party/ &&
-	cp -v other/AVX2/thor_ver ${CR_SRC_DIR}/out/thorium/ &&
-	cp -v other/AVX2/thorium_version.txt ${CR_SRC_DIR}/ui/webui/resources/text/ &&
+	cp -v other/AVX2/thor_ver ${CR_SRC_DIR}/out/mcloud/ &&
+	cp -v other/AVX2/mcloud_version.txt ${CR_SRC_DIR}/ui/webui/resources/text/ &&
 	cp -v other/thor_ver_linux/wrapper-avx2 ${CR_SRC_DIR}/chrome/installer/linux/common/wrapper &&
 	[ -f ${CR_SRC_DIR}/third_party/ffmpeg/ffmpeg_hevc_ac3.patch ] || patchAC3;
 	printf "\n"
@@ -332,8 +332,8 @@ esac
 copySSE4 () {
 	printf "\n" &&
 	printf "${YEL}Copying SSE4.1 build files...${c0}\n" &&
-	cp -v other/SSE4.1/thor_ver ${CR_SRC_DIR}/out/thorium/ &&
-	cp -v other/SSE4.1/thorium_version.txt ${CR_SRC_DIR}/ui/webui/resources/text/ &&
+	cp -v other/SSE4.1/thor_ver ${CR_SRC_DIR}/out/mcloud/ &&
+	cp -v other/SSE4.1/mcloud_version.txt ${CR_SRC_DIR}/ui/webui/resources/text/ &&
 	cp -v other/thor_ver_linux/wrapper-sse4 ${CR_SRC_DIR}/chrome/installer/linux/common/wrapper &&
 	[ -f ${CR_SRC_DIR}/third_party/ffmpeg/ffmpeg_hevc_ac3.patch ] || patchAC3;
 	printf "\n"
@@ -346,12 +346,12 @@ esac
 copySSE3 () {
 	printf "\n" &&
 	printf "${YEL}Copying SSE3 build files...${c0}\n" &&
-	cp -v other/SSE3/thor_ver ${CR_SRC_DIR}/out/thorium/ &&
-	cp -v other/SSE3/thorium_version.txt ${CR_SRC_DIR}/ui/webui/resources/text/ &&
+	cp -v other/SSE3/thor_ver ${CR_SRC_DIR}/out/mcloud/ &&
+	cp -v other/SSE3/mcloud_version.txt ${CR_SRC_DIR}/ui/webui/resources/text/ &&
 	cp -v other/thor_ver_linux/wrapper-sse3 ${CR_SRC_DIR}/chrome/installer/linux/common/wrapper &&
 	cd ${CR_SRC_DIR} &&
 	python3 tools/update_pgo_profiles.py --target=win32 update --gs-url-base=chromium-optimization-profiles/pgo_profiles &&
-	cd ~/thorium &&
+	cd ~/mcloud &&
 	[ -f ${CR_SRC_DIR}/third_party/ffmpeg/ffmpeg_hevc_ac3.patch ] || patchAC3;
 	printf "\n"
 }
@@ -363,12 +363,12 @@ esac
 copySSE2 () {
 	printf "\n" &&
 	printf "${YEL}Copying SSE2 (32-bit) build files...${c0}\n" &&
-	cp -v other/SSE2/thor_ver ${CR_SRC_DIR}/out/thorium/ &&
-	cp -v other/SSE2/thorium_version.txt ${CR_SRC_DIR}/ui/webui/resources/text/ &&
+	cp -v other/SSE2/thor_ver ${CR_SRC_DIR}/out/mcloud/ &&
+	cp -v other/SSE2/mcloud_version.txt ${CR_SRC_DIR}/ui/webui/resources/text/ &&
 	cp -v other/thor_ver_linux/wrapper-sse2 ${CR_SRC_DIR}/chrome/installer/linux/common/wrapper &&
 	cd ${CR_SRC_DIR} &&
 	python3 tools/update_pgo_profiles.py --target=win32 update --gs-url-base=chromium-optimization-profiles/pgo_profiles &&
-	cd ~/thorium &&
+	cd ~/mcloud &&
 	[ -f ${CR_SRC_DIR}/third_party/ffmpeg/ffmpeg_hevc_ac3.patch ] || patchAC3;
 	[ -f ${CR_SRC_DIR}/third_party/angle/src/angle-lockfree.patch ] || patchSSE2;
 	printf "\n"
@@ -406,7 +406,7 @@ copyAndroid () {
 	cd ${CR_SRC_DIR} &&
 	python3 tools/update_pgo_profiles.py --target=android-desktop-arm64 update --gs-url-base=chromium-optimization-profiles/pgo_profiles &&
 	python3 tools/update_pgo_profiles.py --target=android-arm32 update --gs-url-base=chromium-optimization-profiles/pgo_profiles &&
-	cd ~/thorium &&
+	cd ~/mcloud &&
 	printf "\n"
 }
 case $1 in
@@ -418,7 +418,7 @@ copyCros () {
 	printf "\n" &&
 	printf "${YEL}Copying ChromiumOS build files...${c0}\n" &&
 	cp -r -v other/CrOS/* ${CR_SRC_DIR}/ &&
-	cp -v other/CrOS/thorium_version.txt ${CR_SRC_DIR}/ui/webui/resources/text/ &&
+	cp -v other/CrOS/mcloud_version.txt ${CR_SRC_DIR}/ui/webui/resources/text/ &&
 	[ -f ${CR_SRC_DIR}/third_party/ffmpeg/ffmpeg_hevc_ac3.patch ] || patchAC3;
 	printf "\n"
 }
@@ -429,7 +429,7 @@ esac
 printf "\n" &&
 printf "${GRE}Done!${c0}\n" &&
 
-#. ~/thorium/aliases.txt &&
+#. ~/mcloud/aliases.txt &&
 
 #printf "\n" &&
 #printf "export ${CYA}NINJA_SUMMARIZE_BUILD=1${c0}\n" &&
@@ -440,8 +440,8 @@ printf "${GRE}Done!${c0}\n" &&
 #printf "alias ${YEL}gfetch${c0} = ${CYA}git fetch --tags${c0}\n" &&
 #printf "alias ${YEL}rebase${c0} = ${CYA}git rebase-update${c0}\n" &&
 #printf "alias ${YEL}gsync${c0} = ${CYA}gclient sync --with_branch_heads --with_tags -f -R -D${c0}\n" &&
-#printf "alias ${YEL}args${c0} = ${CYA}gn args out/thorium${c0}\n" &&
-#printf "alias ${YEL}gnls${c0} = ${CYA}gn ls out/thorium${c0}\n" &&
+#printf "alias ${YEL}args${c0} = ${CYA}gn args out/mcloud${c0}\n" &&
+#printf "alias ${YEL}gnls${c0} = ${CYA}gn ls out/mcloud${c0}\n" &&
 #printf "alias ${YEL}show${c0} = ${CYA}git show-ref${c0}\n" &&
 #printf "alias ${YEL}runhooks${c0} = ${CYA}gclient runhooks${c0}\n" &&
 #printf "alias ${YEL}pgo${c0} = ${CYA}python3 tools/update_pgo_profiles.py --target=linux update --gs-url-base=chromium-optimization-profiles/pgo_profiles${c0}\n" &&
@@ -450,13 +450,13 @@ printf "${GRE}Done!${c0}\n" &&
 #printf "alias ${YEL}pgomac-arm${c0} = ${CYA}python3 tools/update_pgo_profiles.py --target=mac-arm update --gs-url-base=chromium-optimization-profiles/pgo_profiles${c0}\n" &&
 #printf "\n" &&
 
-cd ~/thorium &&
-cat ./logos/thorium_ascii_art.txt &&
+cd ~/mcloud &&
+cat ./logos/mcloud_ascii_art.txt &&
 
 printf "${YEL}Tip: See the ${CYA}aliases.txt${YEL} file for some handy bash aliases.${c0}\n" &&
 printf "\n" &&
 printf "${RED} IMPORTANT: If you ran setup.sh without any flags, you must also run ./patch_ac3.sh for AC3/E-AC3 support.\n" &&
 printf "\n" &&
-printf "${GRE}  Enjoy Thorium!\n" &&
+printf "${GRE}  Enjoy Mcloud Browser!\n" &&
 printf "\n" &&
 tput sgr0

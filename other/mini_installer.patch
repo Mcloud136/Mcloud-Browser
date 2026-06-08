@@ -79,7 +79,7 @@ index 5f9acdb7f3550..c492fa4e569b6 100644
      "$root_out_dir/chrome.dll",
      "$root_out_dir/chrome_elf.dll",
 -    "$root_out_dir/chrome.exe",
-+    "$root_out_dir/thorium.exe",
++    "$root_out_dir/mcloud.exe",
      "$root_out_dir/locales/en-US.pak",
      "$root_out_dir/setup.exe",
      "//chrome/tools/build/win/makecab.py",
@@ -88,7 +88,7 @@ index 5f9acdb7f3550..c492fa4e569b6 100644
      build_timestamp,
  
 +    # Optional arguments to generate diff installer.
-+    #'--last_chrome_installer=C:/src/chromium/src/out/thorium',
++    #'--last_chrome_installer=C:/src/chromium/src/out/mcloud',
 +    #'--setup_exe_format=DIFF',
 +    #'--diff_algorithm=ZUCCHINI',
 +
@@ -136,62 +136,62 @@ index 5f9acdb7f3550..c492fa4e569b6 100644
 +group("mini_installer") {
 +  deps = []
 +  if (use_sse2 && !use_sse3) {
-+    deps += [ ":thorium_WIN32_SSE2_mini_installer" ]
++    deps += [ ":mcloud_WIN32_SSE2_mini_installer" ]
 +  } else if (use_sse3 && !use_sse41 && !use_sse42) {
 +    if (current_cpu == "x86") {
-+      deps += [ ":thorium_WIN32_SSE3_mini_installer"  ]
++      deps += [ ":mcloud_WIN32_SSE3_mini_installer"  ]
 +    } else if (current_cpu == "x64") {
-+      deps += [ ":thorium_SSE3_mini_installer" ]
++      deps += [ ":mcloud_SSE3_mini_installer" ]
      }
 +  } else if (use_sse41 && !use_sse42) {
-+    deps += [ ":thorium_SSE4_mini_installer" ]
++    deps += [ ":mcloud_SSE4_mini_installer" ]
 +  } else if (use_sse42 && !use_avx) {
-+    deps += [ ":thorium_SSE4.2_mini_installer" ]
++    deps += [ ":mcloud_SSE4.2_mini_installer" ]
 +  } else if (use_avx && !use_avx2) {
-+    deps += [ ":thorium_AVX_mini_installer" ]
++    deps += [ ":mcloud_AVX_mini_installer" ]
 +  } else if (use_avx2 && !use_avx512) {
-+    deps += [":thorium_AVX2_mini_installer"  ]
++    deps += [":mcloud_AVX2_mini_installer"  ]
 +  } else if (use_avx512) {
-+    deps += [ ":thorium_AVX512_mini_installer" ]
++    deps += [ ":mcloud_AVX512_mini_installer" ]
 +  } else {
-+    deps += [ ":thorium_mini_installer" ]
++    deps += [ ":mcloud_mini_installer" ]
    }
  }
  
 -generate_mini_installer("mini_installer") {
-+generate_mini_installer("thorium_WIN32_SSE2_mini_installer") {
++generate_mini_installer("mcloud_WIN32_SSE2_mini_installer") {
 +  rc_file = packed_files_rc_file
 +}
 +
-+generate_mini_installer("thorium_WIN32_SSE3_mini_installer") {
++generate_mini_installer("mcloud_WIN32_SSE3_mini_installer") {
 +  rc_file = packed_files_rc_file
 +}
 +
-+generate_mini_installer("thorium_SSE3_mini_installer") {
++generate_mini_installer("mcloud_SSE3_mini_installer") {
 +  rc_file = packed_files_rc_file
 +}
 +
-+generate_mini_installer("thorium_SSE4_mini_installer") {
++generate_mini_installer("mcloud_SSE4_mini_installer") {
 +  rc_file = packed_files_rc_file
 +}
 +
-+generate_mini_installer("thorium_SSE4.2_mini_installer") {
++generate_mini_installer("mcloud_SSE4.2_mini_installer") {
 +  rc_file = packed_files_rc_file
 +}
 +
-+generate_mini_installer("thorium_AVX_mini_installer") {
++generate_mini_installer("mcloud_AVX_mini_installer") {
 +  rc_file = packed_files_rc_file
 +}
 +
-+generate_mini_installer("thorium_AVX2_mini_installer") {
++generate_mini_installer("mcloud_AVX2_mini_installer") {
 +  rc_file = packed_files_rc_file
 +}
 +
-+generate_mini_installer("thorium_AVX512_mini_installer") {
++generate_mini_installer("mcloud_AVX512_mini_installer") {
 +  rc_file = packed_files_rc_file
 +}
 +
-+generate_mini_installer("thorium_mini_installer") {
++generate_mini_installer("mcloud_mini_installer") {
    rc_file = packed_files_rc_file
  }
  
@@ -200,7 +200,7 @@ index 5f9acdb7f3550..c492fa4e569b6 100644
      inputs = [
        "$root_out_dir/" + alternate_version_generator_rel_path,
 -      "$root_out_dir/mini_installer.exe",
-+      "$root_out_dir/thorium_mini_installer.exe",
++      "$root_out_dir/mcloud_mini_installer.exe",
      ]
      outputs = [ "$root_out_dir/$target_name.exe" ]
      args = [
@@ -208,7 +208,7 @@ index 5f9acdb7f3550..c492fa4e569b6 100644
        alternate_version_generator_rel_path,
        "--mini_installer",
 -      "mini_installer.exe",
-+      "thorium_mini_installer.exe",
++      "mcloud_mini_installer.exe",
        "--out",
        "$target_name.exe",
        "--path_7za",
@@ -216,7 +216,7 @@ index 5f9acdb7f3550..c492fa4e569b6 100644
      ]
      deps = [
        ":mini_installer",
-+      ":thorium_mini_installer",
++      ":mcloud_mini_installer",
        alternate_version_generator_target,
      ]
    }
@@ -350,7 +350,7 @@ index 44f29f2fafda8..e774edf86da7b 100644
 +static constexpr wchar_t kInstallFailedTitle[] = L"Installation Failed!";
 +
 +static const std::wstring GetProductName() {
-+  static const std::wstring product_name = is_thorium_beta ? std::wstring(kBetaProductName)
++  static const std::wstring product_name = is_mcloud_beta ? std::wstring(kBetaProductName)
 +                                                           : std::wstring(kProductName);
 +  return product_name;
 +}
@@ -729,14 +729,14 @@ index c2a03ccbb6460..e2e8a628e5eb1 100644
  // The path to the key containing each app's Clients registry key.
  // No trailing slash on this one because the app's GUID is not appended.
 -const wchar_t kClientsKeyBase[] = L"Software\\Chromium";
-+const wchar_t kClientsKeyBase[] = L"Software\\Thorium";
++const wchar_t kClientsKeyBase[] = L"Software\\Mcloud Browser";
  // The path to the key containing each app's Client State registry key.
  // No trailing slash on this one because the app's GUID is not appended.
 -const wchar_t kClientStateKeyBase[] = L"Software\\Chromium";
-+const wchar_t kClientStateKeyBase[] = L"Software\\Thorium";
++const wchar_t kClientStateKeyBase[] = L"Software\\Mcloud Browser";
  // The path to the key in which kCleanupRegistryValue is found.
 -const wchar_t kCleanupRegistryKey[] = L"Software\\Chromium";
-+const wchar_t kCleanupRegistryKey[] = L"Software\\Thorium";
++const wchar_t kCleanupRegistryKey[] = L"Software\\Mcloud Browser";
  #endif
  
  }  // namespace mini_installer
@@ -752,7 +752,7 @@ index 23de845654342..71dfb9bbaced8 100644
 +
  namespace mini_installer {
  
-+const bool is_thorium_beta = false; // TODO. Add beta checker
++const bool is_mcloud_beta = false; // TODO. Add beta checker
 +
 +static const wchar_t* kMiniInstallerClass = L"ThMiniInstallerClass";
 +
@@ -836,7 +836,7 @@ index 2862d6b50a550..567c2bb2d6caa 100644
              VALUE "FileDescription", "@PRODUCT_INSTALLER_FULLNAME@"
              VALUE "FileVersion", "@MAJOR@.@MINOR@.@BUILD@.@PATCH@"
 -            VALUE "InternalName", "mini_installer"
-+            VALUE "InternalName", "thorium_mini_installer"
++            VALUE "InternalName", "mcloud_mini_installer"
 +            VALUE "OriginalFilename", "mini_installer.exe"
              VALUE "LegalCopyright", "@COPYRIGHT@"
              VALUE "ProductName", "@PRODUCT_INSTALLER_FULLNAME@"
@@ -845,7 +845,7 @@ index 2862d6b50a550..567c2bb2d6caa 100644
              VALUE "ProductShortName", "@PRODUCT_INSTALLER_SHORTNAME@"
              VALUE "LastChange", "@LASTCHANGE@"
              VALUE "Official Build", "@OFFICIAL_BUILD@"
-+            VALUE "Comments", "https://github.com/Alex313031/Thorium"
++            VALUE "Comments", "https://github.com/Alex313031/Mcloud Browser"
          END
      END
      BLOCK "VarFileInfo"
@@ -896,9 +896,9 @@ index 0000000000000..0930463ef38fc
 +
 +static constexpr wchar_t kVersionString[] = L"@MAJOR@.@MINOR@.@BUILD@.@PATCH@";
 +
-+static constexpr wchar_t kProductName[] = L"Thorium";
++static constexpr wchar_t kProductName[] = L"Mcloud Browser";
 +
-+static constexpr wchar_t kBetaProductName[] = L"Thorium Beta";
++static constexpr wchar_t kBetaProductName[] = L"Mcloud Browser Beta";
 +
 +} // namespace mini_installer
 +
@@ -934,7 +934,7 @@ index 317e77e81c040..7864422d46333 100644
  
  namespace {
  
-+// Thorium Application dir files
++// Mcloud Browser Application dir files
 +const wchar_t kInitPref[] = L"initial_preferences";
 +const wchar_t kThorVer[] = L"thor_ver";
 +
@@ -1004,7 +1004,7 @@ index 317e77e81c040..7864422d46333 100644
                                      temp_path, WorkItem::NEW_NAME_IF_IN_USE,
                                      new_chrome_exe);
  
-+  // Add Thorium-specific files
++  // Add Mcloud Browser-specific files
 +  install_list->AddCopyTreeWorkItem(src_path.Append(kInitPref),
 +                                    target_path.Append(kInitPref),
 +                                    temp_path, WorkItem::ALWAYS);
@@ -1289,7 +1289,7 @@ index e5dc6ab6d412f..74d1b90978f59 100644
    bool preferences_read_from_file_ = false;
  };
  
-+// Get the dir to mini_installer, for putting thorium_installer.log if --debug flag is used.
++// Get the dir to mini_installer, for putting mcloud_installer.log if --debug flag is used.
 +const base::FilePath GetMiniInstallerDir();
 +
  }  // namespace installer
@@ -1444,7 +1444,7 @@ index 4734595db4123..c370834634df7 100644
        FILE_PATH_LITERAL("chrome_installer.log");
  #else  // BUILDFLAG(CHROMIUM_BRANDING)
 -      FILE_PATH_LITERAL("chromium_installer.log");
-+      FILE_PATH_LITERAL("thorium_installer.log");
++      FILE_PATH_LITERAL("mcloud_installer.log");
  #endif
  
    // Fallback to current directory if getting the secure or temp directory
@@ -1520,9 +1520,9 @@ index 649e0d5f4db51..7c6eec238a572 100644
 -const wchar_t kChromeExe[] = L"chrome.exe";
 -const wchar_t kChromeNewExe[] = L"new_chrome.exe";
 -const wchar_t kChromeOldExe[] = L"old_chrome.exe";
-+const wchar_t kChromeExe[] = L"thorium.exe";
-+const wchar_t kChromeNewExe[] = L"new_thorium.exe";
-+const wchar_t kChromeOldExe[] = L"old_thorium.exe";
++const wchar_t kChromeExe[] = L"mcloud.exe";
++const wchar_t kChromeNewExe[] = L"new_mcloud.exe";
++const wchar_t kChromeOldExe[] = L"old_mcloud.exe";
  const wchar_t kChromeProxyExe[] = L"chrome_proxy.exe";
  const wchar_t kChromeProxyNewExe[] = L"new_chrome_proxy.exe";
  const wchar_t kChromeProxyOldExe[] = L"old_chrome_proxy.exe";

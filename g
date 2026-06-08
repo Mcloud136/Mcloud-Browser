@@ -20,7 +20,7 @@ try() { "$@" || die "${RED}Failed $*"; }
 # --help
 displayHelp () {
 	printf "\n" &&
-	printf "${bold}${GRE}Script to run \`gn args out\` from within the Thorium repo.${c0}\n" &&
+	printf "${bold}${GRE}Script to run \`gn args out\` from within the Mcloud Browser repo.${c0}\n" &&
 	printf "\n"
 }
 case $1 in
@@ -37,9 +37,9 @@ else
 fi
 
 printf "\n" &&
-printf "${YEL}Running \`gn args out/thorium\`...\n" &&
+printf "${YEL}Running \`gn args out/mcloud\`...\n" &&
 printf "${c0}\n" &&
 tput sgr0 &&
 
 cd ${CR_SRC_DIR} &&
-gn args out/thorium
+gn args out/mcloud

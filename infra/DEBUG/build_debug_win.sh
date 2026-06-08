@@ -18,7 +18,7 @@ try() { "$@" || die "${RED}Failed $*"; }
 # --help
 displayHelp () {
 	printf "\n" &&
-	printf "${bold}${YEL}Script to build Thorium DEBUG for Windows on Linux.${c0}\n" &&
+	printf "${bold}${YEL}Script to build Mcloud Browser DEBUG for Windows on Linux.${c0}\n" &&
 	printf "${underline}Usage: ${c0}build_debug_win.sh # (where # is number of jobs)\n" &&
 	printf "\n"
 }
@@ -27,45 +27,45 @@ case $1 in
 esac
 
 printf "\n" &&
-printf "${YEL}Building Thorium DEBUG for Windows...\n" &&
+printf "${YEL}Building Mcloud Browser DEBUG for Windows...\n" &&
 printf "${CYA}\n" &&
 
-# Build Thorium and Thorium UI Debug Shell
+# Build Mcloud Browser and Mcloud Browser UI Debug Shell
 export NINJA_SUMMARIZE_BUILD=1 &&
 
-autoninja -C ~/chromium/src/out/thorium chrome chromedriver thorium_shell setup mini_installer thorium_ui_debug_shell clear_key_cdm -j$@ &&
+autoninja -C ~/chromium/src/out/mcloud chrome chromedriver mcloud_shell setup mini_installer mcloud_ui_debug_shell clear_key_cdm -j$@ &&
 
-mkdir -v -p ~/chromium/src/out/thorium/Thorium_UI_Debug_Shell &&
-mkdir -v -p ~/chromium/src/out/thorium/Thorium_UI_Debug_Shell/icons &&
+mkdir -v -p ~/chromium/src/out/mcloud/Mcloud Browser_UI_Debug_Shell &&
+mkdir -v -p ~/chromium/src/out/mcloud/Mcloud Browser_UI_Debug_Shell/icons &&
 
-cp -r -f -v ./icons/icon_16.png ~/chromium/src/out/thorium/Thorium_UI_Debug_Shell/icons &&
-cp -r -f -v ./icons/icon_24.png ~/chromium/src/out/thorium/Thorium_UI_Debug_Shell/icons &&
-cp -r -f -v ./icons/icon_32.png ~/chromium/src/out/thorium/Thorium_UI_Debug_Shell/icons &&
-cp -r -f -v ./icons/icon_48.png ~/chromium/src/out/thorium/Thorium_UI_Debug_Shell/icons &&
-cp -r -f -v ./icons/icon_64.png ~/chromium/src/out/thorium/Thorium_UI_Debug_Shell/icons &&
-cp -r -f -v ./icons/icon_128.png ~/chromium/src/out/thorium/Thorium_UI_Debug_Shell/icons &&
-cp -r -f -v ./icons/icon_256.png ~/chromium/src/out/thorium/Thorium_UI_Debug_Shell/icons &&
-cp -r -f -v ./icons/thorium_debug_shell.ico ~/chromium/src/out/thorium/Thorium_UI_Debug_Shell &&
-cp -r -f -v DEBUG_SHELL_README.md ~/chromium/src/out/thorium/Thorium_UI_Debug_Shell/README.md &&
-cp -r -f -v ~/chromium/src/out/thorium/locales ~/chromium/src/out/thorium/Thorium_UI_Debug_Shell/ &&
-cp -r -f -v ~/chromium/src/out/thorium/test_fonts ~/chromium/src/out/thorium/Thorium_UI_Debug_Shell/ &&
-cp -r -f -v ~/chromium/src/out/thorium/resources ~/chromium/src/out/thorium/Thorium_UI_Debug_Shell/ &&
-cp -r -f -v ~/chromium/src/out/thorium/ui ~/chromium/src/out/thorium/Thorium_UI_Debug_Shell/ &&
-cp -r -f -v ~/chromium/src/out/thorium/blink_test_plugin.dll ~/chromium/src/out/thorium/Thorium_UI_Debug_Shell/ &&
-cp -r -f -v ~/chromium/src/out/thorium/icudtl.dat ~/chromium/src/out/thorium/Thorium_UI_Debug_Shell/ &&
-cp -r -f -v ~/chromium/src/out/thorium/content_resources.pak ~/chromium/src/out/thorium/Thorium_UI_Debug_Shell/ &&
-cp -r -f -v ~/chromium/src/out/thorium/libEGL.dll ~/chromium/src/out/thorium/Thorium_UI_Debug_Shell/ &&
-cp -r -f -v ~/chromium/src/out/thorium/libGLESv2.dll ~/chromium/src/out/thorium/Thorium_UI_Debug_Shell/ &&
-cp -r -f -v ~/chromium/src/out/thorium/vk_swiftshader.dll ~/chromium/src/out/thorium/Thorium_UI_Debug_Shell/ &&
-cp -r -f -v ~/chromium/src/out/thorium/vulkan-1.dll ~/chromium/src/out/thorium/Thorium_UI_Debug_Shell/ &&
-cp -r -f -v ~/chromium/src/out/thorium/vk_swiftshader_icd.json ~/chromium/src/out/thorium/Thorium_UI_Debug_Shell/ &&
-cp -r -f -v ~/chromium/src/out/thorium/v8_context_snapshot.bin ~/chromium/src/out/thorium/Thorium_UI_Debug_Shell/ &&
-cp -r -f -v ~/chromium/src/out/thorium/v8_context_snapshot_generator ~/chromium/src/out/thorium/Thorium_UI_Debug_Shell/ &&
-cp -r -f -v ~/chromium/src/out/thorium/ui_resources_100_percent.pak ~/chromium/src/out/thorium/Thorium_UI_Debug_Shell/ &&
-cp -r -f -v ~/chromium/src/out/thorium/ui_test.pak ~/chromium/src/out/thorium/Thorium_UI_Debug_Shell/ &&
-cp -r -f -v ~/chromium/src/out/thorium/ui_test_200_percent.pak ~/chromium/src/out/thorium/Thorium_UI_Debug_Shell/ &&
-cp -r -f -v ~/chromium/src/out/thorium/views_examples_resources.pak ~/chromium/src/out/thorium/Thorium_UI_Debug_Shell/ &&
-cp -r -f -v ~/chromium/src/out/thorium/thorium_ui_debug_shell.exe ~/chromium/src/out/thorium/Thorium_UI_Debug_Shell/ &&
+cp -r -f -v ./icons/icon_16.png ~/chromium/src/out/mcloud/Mcloud Browser_UI_Debug_Shell/icons &&
+cp -r -f -v ./icons/icon_24.png ~/chromium/src/out/mcloud/Mcloud Browser_UI_Debug_Shell/icons &&
+cp -r -f -v ./icons/icon_32.png ~/chromium/src/out/mcloud/Mcloud Browser_UI_Debug_Shell/icons &&
+cp -r -f -v ./icons/icon_48.png ~/chromium/src/out/mcloud/Mcloud Browser_UI_Debug_Shell/icons &&
+cp -r -f -v ./icons/icon_64.png ~/chromium/src/out/mcloud/Mcloud Browser_UI_Debug_Shell/icons &&
+cp -r -f -v ./icons/icon_128.png ~/chromium/src/out/mcloud/Mcloud Browser_UI_Debug_Shell/icons &&
+cp -r -f -v ./icons/icon_256.png ~/chromium/src/out/mcloud/Mcloud Browser_UI_Debug_Shell/icons &&
+cp -r -f -v ./icons/mcloud_debug_shell.ico ~/chromium/src/out/mcloud/Mcloud Browser_UI_Debug_Shell &&
+cp -r -f -v DEBUG_SHELL_README.md ~/chromium/src/out/mcloud/Mcloud Browser_UI_Debug_Shell/README.md &&
+cp -r -f -v ~/chromium/src/out/mcloud/locales ~/chromium/src/out/mcloud/Mcloud Browser_UI_Debug_Shell/ &&
+cp -r -f -v ~/chromium/src/out/mcloud/test_fonts ~/chromium/src/out/mcloud/Mcloud Browser_UI_Debug_Shell/ &&
+cp -r -f -v ~/chromium/src/out/mcloud/resources ~/chromium/src/out/mcloud/Mcloud Browser_UI_Debug_Shell/ &&
+cp -r -f -v ~/chromium/src/out/mcloud/ui ~/chromium/src/out/mcloud/Mcloud Browser_UI_Debug_Shell/ &&
+cp -r -f -v ~/chromium/src/out/mcloud/blink_test_plugin.dll ~/chromium/src/out/mcloud/Mcloud Browser_UI_Debug_Shell/ &&
+cp -r -f -v ~/chromium/src/out/mcloud/icudtl.dat ~/chromium/src/out/mcloud/Mcloud Browser_UI_Debug_Shell/ &&
+cp -r -f -v ~/chromium/src/out/mcloud/content_resources.pak ~/chromium/src/out/mcloud/Mcloud Browser_UI_Debug_Shell/ &&
+cp -r -f -v ~/chromium/src/out/mcloud/libEGL.dll ~/chromium/src/out/mcloud/Mcloud Browser_UI_Debug_Shell/ &&
+cp -r -f -v ~/chromium/src/out/mcloud/libGLESv2.dll ~/chromium/src/out/mcloud/Mcloud Browser_UI_Debug_Shell/ &&
+cp -r -f -v ~/chromium/src/out/mcloud/vk_swiftshader.dll ~/chromium/src/out/mcloud/Mcloud Browser_UI_Debug_Shell/ &&
+cp -r -f -v ~/chromium/src/out/mcloud/vulkan-1.dll ~/chromium/src/out/mcloud/Mcloud Browser_UI_Debug_Shell/ &&
+cp -r -f -v ~/chromium/src/out/mcloud/vk_swiftshader_icd.json ~/chromium/src/out/mcloud/Mcloud Browser_UI_Debug_Shell/ &&
+cp -r -f -v ~/chromium/src/out/mcloud/v8_context_snapshot.bin ~/chromium/src/out/mcloud/Mcloud Browser_UI_Debug_Shell/ &&
+cp -r -f -v ~/chromium/src/out/mcloud/v8_context_snapshot_generator ~/chromium/src/out/mcloud/Mcloud Browser_UI_Debug_Shell/ &&
+cp -r -f -v ~/chromium/src/out/mcloud/ui_resources_100_percent.pak ~/chromium/src/out/mcloud/Mcloud Browser_UI_Debug_Shell/ &&
+cp -r -f -v ~/chromium/src/out/mcloud/ui_test.pak ~/chromium/src/out/mcloud/Mcloud Browser_UI_Debug_Shell/ &&
+cp -r -f -v ~/chromium/src/out/mcloud/ui_test_200_percent.pak ~/chromium/src/out/mcloud/Mcloud Browser_UI_Debug_Shell/ &&
+cp -r -f -v ~/chromium/src/out/mcloud/views_examples_resources.pak ~/chromium/src/out/mcloud/Mcloud Browser_UI_Debug_Shell/ &&
+cp -r -f -v ~/chromium/src/out/mcloud/mcloud_ui_debug_shell.exe ~/chromium/src/out/mcloud/Mcloud Browser_UI_Debug_Shell/ &&
 
 printf "\n" &&
 printf "${GRE}Debug Windows Build Completed.\n" &&

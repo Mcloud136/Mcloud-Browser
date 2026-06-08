@@ -18,7 +18,7 @@ try() { "$@" || die "${RED}Failed $*"; }
 # --help
 displayHelp () {
 	printf "\n" &&
-	printf "${bold}${GRE}Script to build Thorium on Linux.${c0}\n" &&
+	printf "${bold}${GRE}Script to build Mcloud Browser on Linux.${c0}\n" &&
 	printf "${underline}${YEL}Usage:${c0} build.sh # (where # is number of jobs)${c0}\n" &&
 	printf "\n"
 }
@@ -36,22 +36,22 @@ else
 fi
 
 printf "\n" &&
-printf "${YEL}Building Thorium for Linux...\n" &&
+printf "${YEL}Building Mcloud Browser for Linux...\n" &&
 printf "${CYA}\n" &&
 
-# Build Thorium
+# Build Mcloud Browser
 export NINJA_SUMMARIZE_BUILD=1 &&
 export NINJA_STATUS="[%r processes, %f/%t @ %o/s | %e sec. ] " &&
 
 cd ${CR_SRC_DIR} &&
 # For restoring individual build targets for customization
-#autoninja -C out/thorium thorium chrome_sandbox chromedriver clear_key_cdm thorium_shell policy_templates -j$@ &&
-autoninja -C out/thorium thorium_all -j$@ &&
-printf "${GRE}\nBuilding Thorium .deb & .rpm packages...\n" &&
-autoninja -C out/thorium "chrome/installer/linux:stable_deb" "chrome/installer/linux:stable_rpm" -j$@ &&
+#autoninja -C out/mcloud mcloud chrome_sandbox chromedriver clear_key_cdm mcloud_shell policy_templates -j$@ &&
+autoninja -C out/mcloud mcloud_all -j$@ &&
+printf "${GRE}\nBuilding Mcloud Browser .deb & .rpm packages...\n" &&
+autoninja -C out/mcloud "chrome/installer/linux:stable_deb" "chrome/installer/linux:stable_rpm" -j$@ &&
 
 printf "\n" &&
-cat ~/thorium/logos/thorium_logo_ascii_art.txt &&
+cat ~/mcloud/logos/mcloud_logo_ascii_art.txt &&
 printf "\n" &&
 
 printf "${GRE}${bold}Build Completed!\n" &&

@@ -27,7 +27,7 @@ def try_run(command):
 
 # --help
 def display_help():
-    print(f"\nScript to check out Chromium tag of current Thorium version.\n")
+    print(f"\nScript to check out Chromium tag of current Mcloud Browser version.\n")
     print(f"\nNOTE: You may need to run trunk.py before using this script\n")
 
 
