@@ -185,11 +185,18 @@ copy(
     ),
     os.path.normpath(os.path.join(cr_src_dir, "third_party", "ffmpeg")),
 )
+copy(
+    os.path.normpath(
+        os.path.join(thor_src_dir, "other", "fix-ffmpeg-android-x86-disable-hevc-nasm.patch")
+    ),
+    os.path.normpath(os.path.join(cr_src_dir, "third_party", "ffmpeg")),
+)
 # Change directory to ffmpeg_dir and run commands
 ffmpeg_dir = os.path.join(cr_src_dir, "third_party", "ffmpeg")
 os.chdir(ffmpeg_dir)
 try_run(f"git apply --reject add-hevc-ffmpeg-decoder-parser.patch")
 try_run(f"git apply --reject change-libavcodec-header.patch")
+try_run(f"git apply --reject fix-ffmpeg-android-x86-disable-hevc-nasm.patch")
 
 
 print("\nPatching policy templates\n")

@@ -1,0 +1,20 @@
+diff --git a/ffmpeg_generated.gni b/ffmpeg_generated.gni
+index 46eb6b3c35..017397431f 100644
+--- a/ffmpeg_generated.gni
++++ b/ffmpeg_generated.gni
+@@ -522,6 +522,7 @@ if ((current_cpu == "x64" && ffmpeg_branding == "Chrome") ||
+     "libavcodec/x86/h26x/h2656dsp.c"
+   ]
+ 
++if (!(is_android && current_cpu == "x86")) {
+   ffmpeg_asm_sources += [
+     "libavcodec/x86/bswapdsp.asm",
+     "libavcodec/x86/hevc/add_res.asm",
+@@ -532,6 +533,7 @@ if ((current_cpu == "x64" && ffmpeg_branding == "Chrome") ||
+     "libavcodec/x86/hevc/sao_10bit.asm",
+     "libavcodec/x86/h26x/h2656_inter.asm"
+   ]
++}
+ 
+   ffmpeg_c_sources += [
+     "libavcodec/x86/aacpsdsp_init.c",

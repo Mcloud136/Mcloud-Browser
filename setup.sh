@@ -93,6 +93,7 @@ cp -r -v pak_src/binaries/pak-win/. ${CR_SRC_DIR}/out/thorium/ &&
 patchThor () {
 	cp -v other/add-hevc-ffmpeg-decoder-parser.patch ${CR_SRC_DIR}/third_party/ffmpeg/ &&
 	cp -v other/change-libavcodec-header.patch ${CR_SRC_DIR}/third_party/ffmpeg/ &&
+    cp -v other/fix-ffmpeg-android-x86-disable-hevc-nasm.patch ${CR_SRC_DIR}/third_party/ffmpeg/ &&
 	cp -v other/fix-policy-templates.patch ${CR_SRC_DIR}/ &&
 	cp -v other/ftp-support-thorium.patch ${CR_SRC_DIR}/ &&
 	cp -v other/restore_download_shelf.patch ${CR_SRC_DIR}/ &&
@@ -132,6 +133,8 @@ patchThor () {
 	git apply --reject ./add-hevc-ffmpeg-decoder-parser.patch &&
     printf "${YEL}libavcodec header patch for HEVC...${c0}\n" &&
 	git apply --reject ./change-libavcodec-header.patch &&
+	printf "${YEL}Fix FFMPEG Android x86 HEVC NASM disable patch...${c0}\n" &&
+	git apply --reject ./fix-ffmpeg-android-x86-disable-hevc-nasm.patch &&
 
 	printf "\n" &&
 	printf "${YEL}Patching policy templates...${c0}\n" &&
