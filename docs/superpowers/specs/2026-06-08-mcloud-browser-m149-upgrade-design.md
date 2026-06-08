@@ -1,7 +1,7 @@
-# MCloud Browser — Mcloud Browser M144 → M149 升级设计规格
+# MCloud Browser — Chromium M144 → M149 升级设计规格
 
 > 日期：2026-06-08
-> 目标：将 Mcloud Browser 从 Chromium 144.0.7559.254 升级到 Chromium 149.0.7827.53
+> 目标：将 MCloud Browser 从 Chromium 144.0.7559.254 升级到 Chromium 149.0.7827.53
 > 平台：Windows x64
 > 仓库：Mcloud-Browser (GitHub)
 > SIMD 策略：纯 AVX2 编译（最低要求 AVX2，覆盖 2013 年后所有现代 CPU）
@@ -11,7 +11,7 @@
 
 ## 1. 项目概述
 
-MCloud Browser 基于 Mcloud Browser 项目（Chromium fork），以 AVX2 为最低指令集目标进行编译优化。
+MCloud Browser 基于 Chromium fork（原 Thorium 项目），以 AVX2 为最低指令集目标进行编译优化。
 
 **核心设计理念**：将整个浏览器编译为 AVX2 原生二进制文件。相比 SSE3 基准 + 运行时分发方案，纯 AVX2 编译有以下优势：
 - 编译器可全局使用 AVX2 指令做深度优化（循环向量化、内联展开等）
