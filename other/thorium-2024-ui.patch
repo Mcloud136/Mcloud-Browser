@@ -291,7 +291,7 @@ index 6fa22a1e7ef1e..984ce0a661995 100644
        "views/frame/vertical_tab_strip_region_view.h",
        "views/frame/web_contents_close_handler.cc",
 diff --git a/chrome/browser/ui/bookmarks/bookmark_utils.cc b/chrome/browser/ui/bookmarks/bookmark_utils.cc
-index 727cb3c1b8f95..3f4c7edeea198 100644
+index 727cb3c1b8f95..aeeac975bc4b1 100644
 --- a/chrome/browser/ui/bookmarks/bookmark_utils.cc
 +++ b/chrome/browser/ui/bookmarks/bookmark_utils.cc
 @@ -7,6 +7,7 @@
@@ -327,7 +327,7 @@ index 727cb3c1b8f95..3f4c7edeea198 100644
 +                               ? IDR_FOLDER_CLOSED_WHITE
 +                               : IDR_BOOKMARK_BAR_FOLDER_MANAGED_WHITE;
 +      resource_id =
-+          color_utils::IsDark(*color.GetSkColor()) ? default_id : white_id;
++          color_utils::IsDark(color.ResolveToSkColor(nullptr)) ? default_id : white_id;
 +    }
 +    return ui::ImageModel::FromImageSkia(
 +        *ui::ResourceBundle::GetSharedInstance()
