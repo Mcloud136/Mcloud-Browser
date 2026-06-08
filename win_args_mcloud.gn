@@ -44,7 +44,7 @@ init_stack_vars_zero = true              # Security: zero-init stack variables
 
 # --- PGO (Profile Guided Optimization) ---
 chrome_pgo_phase = 2
-pgo_data_path = "C:/src/chromium/src/chrome/build/pgo_profiles/chrome-win64-<M149_PROFILE_HASH>.profdata"
+pgo_data_path = "C:/Users/XOS/chromium/src/chrome/build/pgo_profiles/chrome-win64-7827-1779988919-2c0a8dc88e7640a6daf7729772ffde561e21eda4-86ce7ec3ee0415adb4148ea865149fb1aefc5f81.profdata"
 
 # --- V8 JavaScript Engine Optimizations ---
 v8_enable_fast_torque = true
