@@ -2844,8 +2844,8 @@ config("thorium_simd_optimization") {
       # Alex313031 TODO: Possibly use -mcpu here?
       cflags += [ "-march=armv8.3-a+simd+crypto", "-mtune=apple-m1", ]
       ldflags += [ "-march=armv8.3-a+simd+crypto", "-mtune=apple-m1", ]
-    } else {
-      # Linux and ChromiumOS and Android
+    } else if (!is_android) {
+      # Linux and ChromiumOS.
       cflags += [ "-march=armv8-a+simd", ]
       if (is_raspi) {
         cflags += [ "-mtune=cortex-a72", ]

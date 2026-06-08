@@ -1,8 +1,8 @@
 diff --git a/chrome/android/chrome_java_resources.gni b/chrome/android/chrome_java_resources.gni
-index 151467c0cc4d6..c7840bc8a8796 100644
+index f1a1d5a227d6e..c4e239c57177c 100644
 --- a/chrome/android/chrome_java_resources.gni
 +++ b/chrome/android/chrome_java_resources.gni
-@@ -663,6 +663,7 @@ chrome_java_resources = [
+@@ -668,6 +668,7 @@ chrome_java_resources = [
    "java/res/xml/contextual_search_preferences.xml",
    "java/res/xml/developer_preferences.xml",
    "java/res/xml/do_not_track_preferences.xml",
@@ -416,7 +416,7 @@ index 0000000000000..d4c2ddde9d163
 +customElements.define(
 +  SettingsGpcToggleElement.is, SettingsGpcToggleElement);
 diff --git a/chrome/browser/ui/android/strings/android_chrome_strings.grd b/chrome/browser/ui/android/strings/android_chrome_strings.grd
-index 47938ce0c7f08..f4bb3deaef474 100644
+index 66c9c0aa5ad0c..f7eb644d25d25 100644
 --- a/chrome/browser/ui/android/strings/android_chrome_strings.grd
 +++ b/chrome/browser/ui/android/strings/android_chrome_strings.grd
 @@ -900,6 +900,18 @@ For more settings that use data to improve your Thorium experience, go to <ph na

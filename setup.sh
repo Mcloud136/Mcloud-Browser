@@ -258,7 +258,7 @@ esac
 copyRaspi () {
 	printf "\n" &&
 	printf "${YEL}Copying Raspberry Pi build files...${c0}\n" &&
-	cp -r -v arm/build/* ${CR_SRC_DIR}/build/ &&
+	# cp -r -v arm/build/* ${CR_SRC_DIR}/build/ &&
 	cp -r -v arm/third_party/* ${CR_SRC_DIR}/third_party/ &&
 	cp -r -v arm/raspi/* ${CR_SRC_DIR}/ &&
 	cp -v arm/thorium_version.txt ${CR_SRC_DIR}/ui/webui/resources/text/ &&
@@ -283,7 +283,7 @@ esac
 copyWOA () {
 	printf "\n" &&
 	printf "${YEL}Copying Windows on ARM build files...${c0}\n" &&
-	cp -r -v arm/build/* ${CR_SRC_DIR}/build/ &&
+	# cp -r -v arm/build/* ${CR_SRC_DIR}/build/ &&
 	cp -v arm/thorium_version.txt ${CR_SRC_DIR}/ui/webui/resources/text/ &&
 	cp -r -v arm/third_party/* ${CR_SRC_DIR}/third_party/ &&
 	cd ${CR_SRC_DIR} &&
@@ -380,7 +380,7 @@ esac
 copyAndroid () {
 	printf "\n" &&
 	printf "${YEL}Copying Android (ARM64 and ARM32) build files...${c0}\n" &&
-	cp -r -v arm/build/* ${CR_SRC_DIR}/build/ &&
+	# cp -r -v arm/build/* ${CR_SRC_DIR}/build/ &&
 	cp -r -v arm/third_party/* ${CR_SRC_DIR}/third_party/ &&
 	printf "\n" &&
 	cp -r -v arm/android/* ${CR_SRC_DIR}/ &&
