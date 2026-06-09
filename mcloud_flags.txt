@@ -1,0 +1,59 @@
+# =============================================================================
+# MCloud Browser — Performance Startup Flags
+# =============================================================================
+# This file contains command-line flags and feature flags for MCloud Browser
+# performance optimizations. These are applied at browser startup.
+# =============================================================================
+
+# --- Cold Startup Optimization ---
+--enable-features=SpareRendererForSitePerProcess
+--enable-features=BrowserProcessAboveNormalPriority
+
+# --- Video Playback Optimization ---
+--disable-background-media-suspend
+--enable-gpu-rasterization
+--enable-features=CanvasOopRasterization
+
+# --- Rendering Optimization ---
+--enable-features=FlingSchedulingImprovements
+--enable-features=BestEffortTaskInhibitingPolicy
+--enable-features=ThrottleUnimportantFrameRate
+--enable-features=DirectComposition
+
+# --- Memory Optimization ---
+--enable-features=InfiniteTabsFreezing
+--enable-features=InfiniteTabsFreezingOnMemoryPressure
+--enable-features=PartitionAllocEventuallyZeroFreedMemory
+--enable-features=PartitionAllocMemoryReclaimer
+--enable-features=EnableAdpfEfficiencyMode
+
+# --- Network Optimization ---
+--enable-features=BookmarkTriggerForPrefetch
+--enable-features=NewTabPageTriggerForPrefetch
+--enable-features=BackForwardCache
+--enable-features=CacheControlNoStoreEnterBackForwardCache
+--enable-features=AsyncDns
+--enable-features=EarlyData
+
+# --- Image Optimization ---
+--enable-features=AVIF
+
+# --- Speculation Rules ---
+--enable-features=SpeculationRules
+
+# --- V8 JavaScript Optimization ---
+--js-flags="--invocation-count-for-maglev=500 --invocation-count-for-turbofan=1500"
+
+# --- GPU Optimization ---
+--enable-features=GpuShaderDiskCache
+
+# --- Media Optimization ---
+--enable-features=PlatformHEVCDecoderSupport
+--enable-features=HardwareSecureDecryptionAv1
+
+# --- Service Worker Optimization ---
+--enable-features=ServiceWorkerNavigationPreload
+
+# --- Storage Optimization ---
+--enable-features=PWAFullCodeCache
+--enable-features=ServiceWorkerScriptFullCodeCache

@@ -38,6 +38,9 @@ use_text_section_splitting = true        # Better ICF with text section splittin
 enable_precompiled_headers = false
 treat_warnings_as_errors = false
 init_stack_vars_zero = true              # Security: zero-init stack variables
+is_full_optimization_build = true        # MCloud: -O3 aggressive optimization
+use_polly = true                         # MCloud: LLVM Polly loop optimization
+use_bolt = true                          # MCloud: BOLT binary layout optimization
 
 # --- PGO (Profile Guided Optimization) ---
 chrome_pgo_phase = 2
