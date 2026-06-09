@@ -7,14 +7,11 @@
 # =============================================================================
 
 # --- SIMD Instruction Sets ---
-# Pure AVX2 compilation for maximum performance
-use_sse3 = true
-use_sse41 = true
-use_sse42 = true
-use_avx = true
-use_avx2 = true
-use_fma = true
-use_avx512 = false    # Not available on 12th gen+ consumer CPUs
+# NOTE: Standard Chromium M149 does not have GN flags for SIMD instruction sets.
+# The compiler will use AVX2/FMA3 based on the target CPU and compiler flags.
+# These were Thorium-specific flags that have no effect in vanilla Chromium.
+# use_sse3, use_sse41, use_sse42, use_avx, use_avx2, use_fma, use_avx512
+# To enable AVX2, use: extra_cflags = ["-mavx2", "-mfma"] (if needed)
 
 # --- Build Target ---
 target_os = "win"
@@ -33,7 +30,7 @@ enable_stripping = true
 # --- Compiler Optimizations ---
 is_clang = true
 use_lld = true
-use_icf = true                          # Identical Code Folding
+use_icf = false                         # ICF not supported by lld-link on Windows
 use_thin_lto = true
 thin_lto_enable_optimizations = true
 thin_lto_enable_cache = false
@@ -56,7 +53,6 @@ use_v8_context_snapshot = true
 
 # --- Rendering & UI ---
 optimize_webui = true
-enable_webui_tab_strip = true
 
 # --- Windows Specific ---
 win_enable_cfg_guards = true             # Control Flow Guard
@@ -66,19 +62,17 @@ enable_rlz = true                        # RLZ tracking (for search engine attri
 media_use_ffmpeg = true
 media_use_libvpx = true
 enable_hls_demuxer = true
-enable_discovery = false                 # Not needed for Windows
 proprietary_codecs = true
 ffmpeg_branding = "Chrome"
 enable_ffmpeg_video_decoders = true
 is_component_ffmpeg = false              # Static link ffmpeg for better LTO
-use_webaudio_pffft = true                # Optimized FFT for WebAudio
+# NOTE: use_webaudio_pffft is not a valid GN arg in M149 (removed)
 
 # --- Widevine DRM ---
 enable_library_cdms = true
 enable_widevine = true
 bundle_widevine_cdm = true
 enable_cdm_storage_id = true
-enable_widevine_cdm_host_verification = true
 ignore_missing_widevine_signing_cert = true
 enable_media_drm_storage = true
 enable_hangout_services_extension = false
