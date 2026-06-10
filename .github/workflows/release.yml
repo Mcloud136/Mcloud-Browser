@@ -44,10 +44,14 @@ jobs:
             git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git
           }
           "$PWD\depot_tools" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+          # Ensure git is in PATH for depot_tools
+          $gitPath = (Get-Command git).Source | Split-Path
+          "$gitPath" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
         shell: pwsh
 
       - name: Fetch Chromium M149
         run: |
+          export PATH="$PWD/depot_tools:$PATH"
           mkdir chromium
           cd chromium
           fetch --nohooks --no-history chromium
