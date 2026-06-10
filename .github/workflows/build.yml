@@ -36,19 +36,25 @@ jobs:
           key: depot-tools-win-${{ hashFiles('mcloud-browser/version.sh') }}
           restore-keys: depot-tools-win-
 
-      - name: Setup depot_tools
+      - name: Setup depot_tools and git
         run: |
           if (-not (Test-Path depot_tools)) {
             git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git
           }
           "$PWD\depot_tools" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
-          $gitPath = (Get-Command git).Source | Split-Path
-          "$gitPath" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+          $gitExe = (Get-Command git -ErrorAction SilentlyContinue)
+          if ($gitExe) {
+            $gitDir = $gitExe.Source | Split-Path
+            "$gitDir" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+          }
+          "DEPOT_TOOLS_WIN_TOOLCHAIN=0" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
         shell: pwsh
 
       - name: Fetch Chromium M149
         run: |
-          export PATH="$PWD/depot_tools:$PATH"
+          $gitDir = Split-Path (Get-Command git).Source
+          $env:PATH = "$PWD\depot_tools;$gitDir;$env:PATH"
+          $env:DEPOT_TOOLS_WIN_TOOLCHAIN = "0"
           mkdir chromium
           cd chromium
           fetch --nohooks --no-history chromium
@@ -56,9 +62,7 @@ jobs:
           git checkout tags/149.0.7827.53
           gclient sync --with_branch_heads --with_tags --force --reset --nohooks --delete_unversioned_trees
           gclient runhooks
-        shell: bash
-        env:
-          CHROMIUM_BUILDTOOLS_PATH: ${{ github.workspace }}\chromium\src\buildtools
+        shell: pwsh
 
       - name: Download PGO profiles
         run: |

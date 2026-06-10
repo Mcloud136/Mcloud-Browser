@@ -38,20 +38,33 @@ jobs:
           key: depot-tools-win-${{ hashFiles('mcloud-browser/version.sh') }}
           restore-keys: depot-tools-win-
 
-      - name: Setup depot_tools
+      - name: Setup depot_tools and git
         run: |
           if (-not (Test-Path depot_tools)) {
             git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git
           }
+          # Add depot_tools to PATH
           "$PWD\depot_tools" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
-          # Ensure git is in PATH for depot_tools
-          $gitPath = (Get-Command git).Source | Split-Path
-          "$gitPath" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+          # Find and add git to PATH
+          $gitExe = (Get-Command git -ErrorAction SilentlyContinue)
+          if ($gitExe) {
+            $gitDir = $gitExe.Source | Split-Path
+            "$gitDir" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+            Write-Host "Git found at: $gitDir"
+          } else {
+            Write-Host "Warning: git not found in PATH"
+          }
+          # Set DEPOT_TOOLS_WIN_TOOLCHAIN to use local VS
+          "DEPOT_TOOLS_WIN_TOOLCHAIN=0" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
         shell: pwsh
 
       - name: Fetch Chromium M149
         run: |
-          export PATH="$PWD/depot_tools:$PATH"
+          # Explicitly set PATH to include depot_tools and git
+          $gitDir = Split-Path (Get-Command git).Source
+          $env:PATH = "$PWD\depot_tools;$gitDir;$env:PATH"
+          $env:DEPOT_TOOLS_WIN_TOOLCHAIN = "0"
+
           mkdir chromium
           cd chromium
           fetch --nohooks --no-history chromium
@@ -59,7 +72,7 @@ jobs:
           git checkout tags/149.0.7827.53
           gclient sync --with_branch_heads --with_tags --force --reset --nohooks --delete_unversioned_trees
           gclient runhooks
-        shell: bash
+        shell: pwsh
 
       - name: Download PGO profiles
         run: |
