@@ -15,10 +15,12 @@ jobs:
     name: Build & Release MCloud Browser
     runs-on: windows-latest
     timeout-minutes: 360
+    env:
+      DEPOT_TOOLS_WIN_TOOLCHAIN: 0
 
     steps:
       - name: Checkout MCloud Browser
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
         with:
           path: mcloud-browser
 
@@ -34,24 +36,16 @@ jobs:
           key: depot-tools-win-${{ hashFiles('mcloud-browser/version.sh') }}
           restore-keys: depot-tools-win-
 
-      - name: Setup depot_tools and git
+      - name: Setup depot_tools
         run: |
           if (-not (Test-Path depot_tools)) {
             git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git
           }
           "$PWD\depot_tools" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
-          $gitExe = (Get-Command git -ErrorAction SilentlyContinue)
-          if ($gitExe) {
-            $gitDir = $gitExe.Source | Split-Path
-            "$gitDir" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
-          }
-          "DEPOT_TOOLS_WIN_TOOLCHAIN=0" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
         shell: pwsh
 
       - name: Fetch Chromium M149
         run: |
-          $gitDir = Split-Path (Get-Command git).Source
-          $env:PATH = "$PWD\depot_tools;$gitDir;$env:PATH"
           $env:DEPOT_TOOLS_WIN_TOOLCHAIN = "0"
           mkdir chromium
           cd chromium
@@ -65,7 +59,13 @@ jobs:
       - name: Download PGO profiles
         run: |
           cd chromium/src
-          python3 tools/update_pgo_profiles.py --target=win64 update --gs-url-base=chromium-optimization-profiles/pgo_profiles
+          python tools/update_pgo_profiles.py --target=win64 update --gs-url-base=chromium-optimization-profiles/pgo_profiles
+        shell: bash
+
+      - name: Download V8 PGO profiles
+        run: |
+          cd chromium/src
+          python v8/tools/builtins-pgo/download_profiles.py --depot-tools="$PWD/../../depot_tools" --force download
         shell: bash
 
       - name: Copy MCloud Browser sources
@@ -98,7 +98,7 @@ jobs:
       - name: Create portable zip
         run: |
           cd chromium/src/out/mcloud
-          Compress-Archive -Path chrome.exe,chrome_*.pak,*.dll,*.bin,locales,en-US.pak -DestinationPath "MCloud-Browser-${{ steps.version.outputs.VERSION }}-win64-avx2-portable.zip" -Force
+          Compress-Archive -Path chrome.exe,chrome_*.pak,*.dll,*.bin,locales,en-US.pak -DestinationPath "MCloud-Browser-portable.zip" -Force
         shell: pwsh
 
       - name: Create GitHub Release
@@ -127,6 +127,6 @@ jobs:
             - Chrome Web Store support
           files: |
             chromium/src/out/mcloud/mini_installer.exe
-            chromium/src/out/mcloud/MCloud-Browser-${{ steps.version.outputs.VERSION }}-win64-avx2-portable.zip
+            chromium/src/out/mcloud/MCloud-Browser-portable.zip
           draft: false
           prerelease: false
