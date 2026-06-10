@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/Mcloud136/Mcloud-Browser/refs/heads/M144-LTS/logos/NEW/mcloud.svg" width="200">
+  <img src="https://raw.githubusercontent.com/Mcloud136/Mcloud-Browser/refs/heads/main/logos/NEW/mcloud.svg" width="200">
 </p>
 
 <h1 align="center">MCloud Browser</h1>
@@ -11,7 +11,7 @@
 <p align="center">
   <a href="https://github.com/Mcloud136/Mcloud-Browser/releases"><img src="https://img.shields.io/github/v/release/Mcloud136/Mcloud-Browser?label=Latest" /></a>
   <a href="https://github.com/Mcloud136/Mcloud-Browser/actions"><img src="https://img.shields.io/github/actions/workflow/status/Mcloud136/Mcloud-Browser/build.yml?label=Build" /></a>
-  <a href="https://github.com/Mcloud136/Mcloud-Browser/blob/M144-LTS/LICENSE.md"><img src="https://img.shields.io/github/license/Mcloud136/Mcloud-Browser?color=green" /></a>
+  <a href="https://github.com/Mcloud136/Mcloud-Browser/blob/main/LICENSE.md"><img src="https://img.shields.io/github/license/Mcloud136/Mcloud-Browser?color=green" /></a>
 </p>
 
 ---
@@ -178,7 +178,7 @@ MCloud Browser 是基于 [Chromium](https://www.chromium.org/) 的高性能浏�
 
 ```bash
 # 1. 克隆 MCloud Browser 仓库
-git clone --branch M144-LTS https://github.com/Mcloud136/Mcloud-Browser.git
+git clone --branch main https://github.com/Mcloud136/Mcloud-Browser.git
 cd Mcloud-Browser
 
 # 2. 安装 depot_tools
