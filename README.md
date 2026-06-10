@@ -309,7 +309,7 @@ git push origin v149.0.1
 
 ## 📄 许可证
 
-本项目基于 BSD 许可证开源。详见 [LICENSE.md](LICENSE.md)。
+本项目基于 MIT 许可证开源。详见 [LICENSE.md](LICENSE.md)。
 
 ---
 
