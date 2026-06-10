@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/Mcloud136/Mcloud-Browser/main/logos/NEW/mcloud_ver_2048_grey_old.png" width="200">
+  <img src="https://raw.githubusercontent.com/Mcloud136/Mcloud-Browser/refs/heads/M144-LTS/logos/NEW/mcloud.svg" width="200">
 </p>
 
 <h1 align="center">MCloud Browser</h1>
@@ -323,5 +323,5 @@ git push origin v149.0.1
 ---
 
 <p align="center">
-  Made with ❤️ by MCloud Browser Team
+  Made with ❤️ by MCloud
 </p>
