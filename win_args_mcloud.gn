@@ -7,11 +7,14 @@
 # =============================================================================
 
 # --- SIMD Instruction Sets ---
-# NOTE: Standard Chromium M149 does not have GN flags for SIMD instruction sets.
-# The compiler will use AVX2/FMA3 based on the target CPU and compiler flags.
-# These were Thorium-specific flags that have no effect in vanilla Chromium.
-# use_sse3, use_sse41, use_sse42, use_avx, use_avx2, use_fma, use_avx512
-# To enable AVX2, use: extra_cflags = ["-mavx2", "-mfma"] (if needed)
+# AVX2 + FMA3 native compilation via compiler_opt.gni
+use_sse3 = true
+use_sse41 = true
+use_sse42 = true
+use_avx = true
+use_avx2 = true
+use_fma = true
+use_avx512 = false
 
 # --- Build Target ---
 target_os = "win"
