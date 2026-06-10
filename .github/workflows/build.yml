@@ -5,9 +5,9 @@ name: MCloud Browser Build
 
 on:
   push:
-    branches: [main, M144-LTS]
+    branches: [main, main]
   pull_request:
-    branches: [main, M144-LTS]
+    branches: [main, main]
 
 concurrency:
   group: build-${{ github.ref }}
