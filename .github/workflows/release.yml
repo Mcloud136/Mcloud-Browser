@@ -1,10 +1,6 @@
 # =============================================================================
 # MCloud Browser — Release Workflow
 # =============================================================================
-# Builds and releases MCloud Browser when a version tag is pushed
-# Creates a GitHub Release with installer and portable zip
-# =============================================================================
-
 name: MCloud Browser Release
 
 on:
@@ -43,28 +39,20 @@ jobs:
           if (-not (Test-Path depot_tools)) {
             git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git
           }
-          # Add depot_tools to PATH
           "$PWD\depot_tools" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
-          # Find and add git to PATH
           $gitExe = (Get-Command git -ErrorAction SilentlyContinue)
           if ($gitExe) {
             $gitDir = $gitExe.Source | Split-Path
             "$gitDir" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
-            Write-Host "Git found at: $gitDir"
-          } else {
-            Write-Host "Warning: git not found in PATH"
           }
-          # Set DEPOT_TOOLS_WIN_TOOLCHAIN to use local VS
           "DEPOT_TOOLS_WIN_TOOLCHAIN=0" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
         shell: pwsh
 
       - name: Fetch Chromium M149
         run: |
-          # Explicitly set PATH to include depot_tools and git
           $gitDir = Split-Path (Get-Command git).Source
           $env:PATH = "$PWD\depot_tools;$gitDir;$env:PATH"
           $env:DEPOT_TOOLS_WIN_TOOLCHAIN = "0"
-
           mkdir chromium
           cd chromium
           fetch --nohooks --no-history chromium
@@ -76,40 +64,40 @@ jobs:
 
       - name: Download PGO profiles
         run: |
-          cd chromium\src
+          cd chromium/src
           python3 tools/update_pgo_profiles.py --target=win64 update --gs-url-base=chromium-optimization-profiles/pgo_profiles
         shell: bash
 
       - name: Copy MCloud Browser sources
         run: |
-          cd chromium\src
-          python ..\..\mcloud-browser\win_scripts\setup.py
+          cd chromium/src
+          python ../../mcloud-browser/win_scripts/setup.py
         shell: bash
         env:
-          CR_DIR: ${{ github.workspace }}\chromium\src
-          THOR_DIR: ${{ github.workspace }}\mcloud-browser
+          CR_DIR: ${{ github.workspace }}/chromium/src
+          THOR_DIR: ${{ github.workspace }}/mcloud-browser
 
       - name: Generate build configuration
         run: |
-          cd chromium\src
-          gn gen out\mcloud --args="is_official_build=true is_debug=false target_os=\"win\" target_cpu=\"x64\" use_avx2=true use_avx=true use_fma=true use_sse3=true use_sse41=true use_sse42=true is_clang=true use_lld=true use_icf=true use_thin_lto=true thin_lto_enable_optimizations=true use_text_section_splitting=true enable_precompiled_headers=false symbol_level=0 v8_symbol_level=0 blink_symbol_level=0 proprietary_codecs=true ffmpeg_branding=\"Chrome\" enable_widevine=true bundle_widevine_cdm=true enable_platform_hevc=true enable_hevc_parser_and_hw_decoder=true rtc_enable_avx2=true v8_enable_wasm_simd256_revec=true v8_enable_maglev=true v8_enable_turbofan=true v8_enable_builtins_optimization=true"
+          cd chromium/src
+          gn gen out/mcloud --args="is_official_build=true is_debug=false target_os=\"win\" target_cpu=\"x64\" use_avx2=true use_avx=true use_fma=true use_sse3=true use_sse41=true use_sse42=true is_clang=true use_lld=true use_thin_lto=true thin_lto_enable_optimizations=true use_text_section_splitting=true enable_precompiled_headers=false symbol_level=0 v8_symbol_level=0 blink_symbol_level=0 proprietary_codecs=true ffmpeg_branding=\"Chrome\" enable_widevine=true bundle_widevine_cdm=true enable_platform_hevc=true enable_hevc_parser_and_hw_decoder=true rtc_enable_avx2=true v8_enable_wasm_simd256_revec=true v8_enable_maglev=true v8_enable_turbofan=true v8_enable_builtins_optimization=true"
         shell: bash
 
       - name: Build Chrome
         run: |
-          cd chromium\src
-          autoninja -C out\mcloud chrome
+          cd chromium/src
+          autoninja -C out/mcloud chrome
         shell: bash
 
       - name: Build Mini Installer
         run: |
-          cd chromium\src
-          autoninja -C out\mcloud mini_installer
+          cd chromium/src
+          autoninja -C out/mcloud mini_installer
         shell: bash
 
       - name: Create portable zip
         run: |
-          cd chromium\src\out\mcloud
+          cd chromium/src/out/mcloud
           Compress-Archive -Path chrome.exe,chrome_*.pak,*.dll,*.bin,locales,en-US.pak -DestinationPath "MCloud-Browser-${{ steps.version.outputs.VERSION }}-win64-avx2-portable.zip" -Force
         shell: pwsh
 
@@ -123,23 +111,22 @@ jobs:
             Based on Chromium 149.0.7827.53 with AVX2 native compilation.
 
             ### Downloads
-            - **Installer**: `MCloud-Browser-${{ steps.version.outputs.VERSION }}-win64-avx2-installer.exe`
-            - **Portable**: `MCloud-Browser-${{ steps.version.outputs.VERSION }}-win64-avx2-portable.zip`
+            - **Installer**: `mini_installer.exe`
+            - **Portable**: `MCloud-Browser-portable.zip`
 
             ### System Requirements
             - Windows 10/11 x64
             - CPU with AVX2 support (Intel Haswell 2013+ / AMD Ryzen 2017+)
 
             ### Features
-            - AVX2 + FMA3 native compilation for maximum performance
-            - HEVC/H.265 hardware decode (DXVA2/D3D11VA)
+            - AVX2 + FMA3 native compilation
+            - 59 performance optimizations
+            - HEVC/H.265 hardware decode
             - Widevine DRM support
-            - FTP protocol support
-            - Classic UI with download shelf
-            - Privacy enhancements (GPC, DNT, Privacy Sandbox disabled)
-            - JPEG XL image format support
+            - Google Translate integration
+            - Chrome Web Store support
           files: |
-            chromium\src\out\mcloud\mini_installer.exe
-            chromium\src\out\mcloud\MCloud-Browser-${{ steps.version.outputs.VERSION }}-win64-avx2-portable.zip
+            chromium/src/out/mcloud/mini_installer.exe
+            chromium/src/out/mcloud/MCloud-Browser-${{ steps.version.outputs.VERSION }}-win64-avx2-portable.zip
           draft: false
           prerelease: false

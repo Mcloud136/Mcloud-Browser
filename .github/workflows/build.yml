@@ -1,10 +1,6 @@
 # =============================================================================
 # MCloud Browser — CI Build Workflow
 # =============================================================================
-# Builds MCloud Browser on Windows with AVX2 native compilation
-# Triggered on push to main/M149 branches and pull requests
-# =============================================================================
-
 name: MCloud Browser Build
 
 on:
@@ -21,7 +17,7 @@ jobs:
   build:
     name: Build MCloud Browser (Windows x64 AVX2)
     runs-on: windows-latest
-    timeout-minutes: 360  # Chromium builds take 3-6 hours
+    timeout-minutes: 360
 
     steps:
       - name: Checkout MCloud Browser
@@ -66,47 +62,47 @@ jobs:
 
       - name: Download PGO profiles
         run: |
-          cd chromium\src
+          cd chromium/src
           python3 tools/update_pgo_profiles.py --target=win64 update --gs-url-base=chromium-optimization-profiles/pgo_profiles
         shell: bash
 
       - name: Copy MCloud Browser sources
         run: |
-          cd chromium\src
-          python ..\..\mcloud-browser\win_scripts\setup.py
+          cd chromium/src
+          python ../../mcloud-browser/win_scripts/setup.py
         shell: bash
         env:
-          CR_DIR: ${{ github.workspace }}\chromium\src
-          THOR_DIR: ${{ github.workspace }}\mcloud-browser
+          CR_DIR: ${{ github.workspace }}/chromium/src
+          THOR_DIR: ${{ github.workspace }}/mcloud-browser
 
       - name: Generate build configuration
         run: |
-          cd chromium\src
-          gn gen out\mcloud --args="is_official_build=true is_debug=false target_os=\"win\" target_cpu=\"x64\" use_avx2=true use_avx=true use_fma=true use_sse3=true use_sse41=true use_sse42=true is_clang=true use_lld=true use_icf=true use_thin_lto=true thin_lto_enable_optimizations=true use_text_section_splitting=true enable_precompiled_headers=false symbol_level=0 v8_symbol_level=0 blink_symbol_level=0 proprietary_codecs=true ffmpeg_branding=\"Chrome\" enable_widevine=true bundle_widevine_cdm=true enable_platform_hevc=true enable_hevc_parser_and_hw_decoder=true rtc_enable_avx2=true v8_enable_wasm_simd256_revec=true v8_enable_maglev=true v8_enable_turbofan=true v8_enable_builtins_optimization=true"
+          cd chromium/src
+          gn gen out/mcloud --args="is_official_build=true is_debug=false target_os=\"win\" target_cpu=\"x64\" use_avx2=true use_avx=true use_fma=true use_sse3=true use_sse41=true use_sse42=true is_clang=true use_lld=true use_thin_lto=true thin_lto_enable_optimizations=true use_text_section_splitting=true enable_precompiled_headers=false symbol_level=0 v8_symbol_level=0 blink_symbol_level=0 proprietary_codecs=true ffmpeg_branding=\"Chrome\" enable_widevine=true bundle_widevine_cdm=true enable_platform_hevc=true enable_hevc_parser_and_hw_decoder=true rtc_enable_avx2=true v8_enable_wasm_simd256_revec=true v8_enable_maglev=true v8_enable_turbofan=true v8_enable_builtins_optimization=true"
         shell: bash
 
       - name: Build Chrome
         run: |
-          cd chromium\src
-          autoninja -C out\mcloud chrome
+          cd chromium/src
+          autoninja -C out/mcloud chrome
         shell: bash
 
       - name: Build Mini Installer
         run: |
-          cd chromium\src
-          autoninja -C out\mcloud mini_installer
+          cd chromium/src
+          autoninja -C out/mcloud mini_installer
         shell: bash
 
       - name: Upload Chrome executable
         uses: actions/upload-artifact@v4
         with:
           name: mcloud-browser-chrome-exe
-          path: chromium\src\out\mcloud\chrome.exe
+          path: chromium/src/out/mcloud/chrome.exe
           retention-days: 7
 
       - name: Upload Mini Installer
         uses: actions/upload-artifact@v4
         with:
           name: mcloud-browser-installer
-          path: chromium\src\out\mcloud\mini_installer.exe
+          path: chromium/src/out/mcloud/mini_installer.exe
           retention-days: 30
