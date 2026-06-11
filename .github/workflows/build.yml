@@ -31,26 +31,27 @@ jobs:
           sudo apt-get install -y git python3 python3-pip curl wget unzip lsb-release
           sudo pip3 install httplib2
 
+      - name: Setup depot_tools
+        run: |
+          if [ ! -f "depot_tools/fetch" ]; then
+            rm -rf depot_tools
+            git clone --depth 1 https://chromium.googlesource.com/chromium/tools/depot_tools.git
+          fi
+          chmod +x depot_tools/*
+          echo "$GITHUB_WORKSPACE/depot_tools" >> $GITHUB_PATH
+          echo "DEPOT_TOOLS_WIN_TOOLCHAIN=0" >> $GITHUB_ENV
+        shell: bash
+
       - name: Cache depot_tools
         id: cache-depot-tools
         uses: actions/cache@v4
         with:
           path: depot_tools
-          key: depot-tools-linux-v3-${{ hashFiles('version.sh') }}
-          restore-keys: depot-tools-linux-v3-
-
-      - name: Setup depot_tools
-        run: |
-          if [ ! -d "depot_tools" ]; then
-            git clone --depth 1 https://chromium.googlesource.com/chromium/tools/depot_tools.git
-          fi
-          echo "$PWD/depot_tools" >> $GITHUB_PATH
-          echo "DEPOT_TOOLS_WIN_TOOLCHAIN=0" >> $GITHUB_ENV
-        shell: bash
+          key: depot-tools-linux-v4-${{ hashFiles('depot_tools/.git/HEAD') }}
+          restore-keys: depot-tools-linux-v4-
 
       - name: Fetch Chromium
         run: |
-          export PATH="$PWD/depot_tools:$PATH"
           mkdir -p chromium && cd chromium
           fetch --nohooks --no-history chromium
           cd src
@@ -61,14 +62,12 @@ jobs:
 
       - name: Download PGO profiles
         run: |
-          export PATH="$PWD/depot_tools:$PATH"
           cd chromium/src
           python3 tools/update_pgo_profiles.py --target=win64 update --gs-url-base=chromium-optimization-profiles/pgo_profiles
         continue-on-error: true
 
       - name: Download V8 PGO profiles
         run: |
-          export PATH="$PWD/depot_tools:$PATH"
           cd chromium/src
           python3 v8/tools/builtins-pgo/download_profiles.py --force download
         continue-on-error: true
@@ -83,7 +82,6 @@ jobs:
 
       - name: Generate build config
         run: |
-          export PATH="$PWD/depot_tools:$PATH"
           cd chromium/src
           gn gen out/mcloud --args="
             target_os=\"win\"
@@ -112,21 +110,16 @@ jobs:
             v8_enable_turbofan=true
             v8_enable_builtins_optimization=true
           "
-        shell: bash
 
       - name: Build Chrome
         run: |
-          export PATH="$PWD/depot_tools:$PATH"
           cd chromium/src
           autoninja -C out/mcloud chrome
-        shell: bash
 
       - name: Build Mini Installer
         run: |
-          export PATH="$PWD/depot_tools:$PATH"
           cd chromium/src
           autoninja -C out/mcloud mini_installer
-        shell: bash
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
