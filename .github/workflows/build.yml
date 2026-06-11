@@ -40,17 +40,17 @@ jobs:
           chmod +x depot_tools/*
           echo "$GITHUB_WORKSPACE/depot_tools" >> $GITHUB_PATH
           echo "DEPOT_TOOLS_WIN_TOOLCHAIN=0" >> $GITHUB_ENV
-        shell: bash
 
-      - name: Cache depot_tools
-        id: cache-depot-tools
+      - name: Cache Chromium source
+        id: cache-chromium
         uses: actions/cache@v4
         with:
-          path: depot_tools
-          key: depot-tools-linux-v5-${{ hashFiles('depot_tools/.git/HEAD') }}
-          restore-keys: depot-tools-linux-v5-
+          path: chromium
+          key: chromium-${{ env.CHROMIUM_TAG }}-linux-v1
+          restore-keys: chromium-${{ env.CHROMIUM_TAG }}-linux-
 
       - name: Fetch Chromium
+        if: steps.cache-chromium.outputs.cache-hit != 'true'
         run: |
           mkdir -p chromium && cd chromium
           fetch --nohooks chromium
@@ -58,8 +58,11 @@ jobs:
           git fetch --depth 1 origin tag $CHROMIUM_TAG
           git checkout $CHROMIUM_TAG
           gclient sync --with_branch_heads --with_tags --force --reset --nohooks --delete_unversioned_trees
+
+      - name: Sync Chromium dependencies
+        run: |
+          cd chromium/src
           gclient runhooks
-        shell: bash
 
       - name: Download PGO profiles
         run: |
