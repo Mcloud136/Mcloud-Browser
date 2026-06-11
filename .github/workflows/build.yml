@@ -47,15 +47,16 @@ jobs:
         uses: actions/cache@v4
         with:
           path: depot_tools
-          key: depot-tools-linux-v4-${{ hashFiles('depot_tools/.git/HEAD') }}
-          restore-keys: depot-tools-linux-v4-
+          key: depot-tools-linux-v5-${{ hashFiles('depot_tools/.git/HEAD') }}
+          restore-keys: depot-tools-linux-v5-
 
       - name: Fetch Chromium
         run: |
           mkdir -p chromium && cd chromium
-          fetch --nohooks --no-history chromium
+          fetch --nohooks chromium
           cd src
-          git checkout "tags/$CHROMIUM_TAG"
+          git fetch --depth 1 origin tag $CHROMIUM_TAG
+          git checkout $CHROMIUM_TAG
           gclient sync --with_branch_heads --with_tags --force --reset --nohooks --delete_unversioned_trees
           gclient runhooks
         shell: bash
