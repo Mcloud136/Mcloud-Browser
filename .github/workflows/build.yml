@@ -5,14 +5,16 @@ name: MCloud Browser Build
 
 on:
   push:
-    branches: [main, main]
+    branches: [main]
   pull_request:
-    branches: [main, main]
+    branches: [main]
 
 concurrency:
   group: build-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
 jobs:
   build:
     name: Build MCloud Browser (Windows x64 AVX2)
@@ -23,7 +25,7 @@ jobs:
 
     steps:
       - name: Checkout MCloud Browser
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           path: mcloud-browser
 
@@ -63,7 +65,7 @@ jobs:
       - name: Copy MCloud Browser sources
         run: |
           cd chromium/src
-          python ../../mcloud-browser/win_scripts/setup.py
+          python ../../mcloud-browser/win_scripts/copy_essentials.py
         shell: bash
         env:
           CR_DIR: ${{ github.workspace }}/chromium/src
