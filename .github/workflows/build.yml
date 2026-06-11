@@ -1,5 +1,5 @@
 # =============================================================================
-# MCloud Browser — CI Build Workflow
+# MCloud Browser — Linux Cross-Compile to Windows Workflow
 # =============================================================================
 name: MCloud Browser Build
 
@@ -15,90 +15,135 @@ concurrency:
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+  DEPOT_TOOLS_WIN_TOOLCHAIN: 0
+  CHROMIUM_TAG: 149.0.7827.53
+  target_os: win
+  target_cpu: x64
+
 jobs:
   build:
-    name: Build MCloud Browser (Windows x64 AVX2)
-    runs-on: windows-latest
+    name: Build (Linux → Windows x64 AVX2)
+    runs-on: ubuntu-24.04
     timeout-minutes: 360
-    env:
-      DEPOT_TOOLS_WIN_TOOLCHAIN: 0
 
     steps:
-      - name: Checkout MCloud Browser
+      - name: Checkout
         uses: actions/checkout@v6
-        with:
-          path: mcloud-browser
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y git python3 python3-pip curl wget unzip lsb-release
+          sudo pip3 install httplib2
 
       - name: Cache depot_tools
+        id: cache-depot-tools
         uses: actions/cache@v4
         with:
           path: depot_tools
-          key: depot-tools-win-${{ hashFiles('mcloud-browser/version.sh') }}
-          restore-keys: depot-tools-win-
+          key: depot-tools-linux-${{ hashFiles('version.sh') }}
+          restore-keys: depot-tools-linux-
 
-      - name: Setup depot_tools
-        run: |
-          if (-not (Test-Path depot_tools)) {
-            git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git
-          }
-          "$PWD\depot_tools" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
-        shell: pwsh
+      - name: Clone depot_tools
+        if: steps.cache-depot-tools.outputs.cache-hit != 'true'
+        run: git clone --depth 1 https://chromium.googlesource.com/chromium/tools/depot_tools.git
 
-      - name: Fetch Chromium M149
+      - name: Setup environment
         run: |
-          $env:DEPOT_TOOLS_WIN_TOOLCHAIN = "0"
-          mkdir chromium
-          cd chromium
+          echo "$PWD/depot_tools" >> $GITHUB_PATH
+          echo "DEPOT_TOOLS_WIN_TOOLCHAIN=0" >> $GITHUB_ENV
+
+      - name: Fetch Chromium
+        run: |
+          mkdir -p chromium && cd chromium
           fetch --nohooks --no-history chromium
           cd src
-          git checkout tags/149.0.7827.53
+          git checkout "tags/$CHROMIUM_TAG"
           gclient sync --with_branch_heads --with_tags --force --reset --nohooks --delete_unversioned_trees
           gclient runhooks
-        shell: pwsh
 
       - name: Download PGO profiles
         run: |
           cd chromium/src
-          python tools/update_pgo_profiles.py --target=win64 update --gs-url-base=chromium-optimization-profiles/pgo_profiles
-        shell: bash
+          python3 tools/update_pgo_profiles.py --target=win64 update --gs-url-base=chromium-optimization-profiles/pgo_profiles
+        continue-on-error: true
+
+      - name: Download V8 PGO profiles
+        run: |
+          cd chromium/src
+          python3 v8/tools/builtins-pgo/download_profiles.py --force download
+        continue-on-error: true
 
       - name: Copy MCloud Browser sources
         run: |
           cd chromium/src
-          python ../../mcloud-browser/win_scripts/copy_essentials.py
-        shell: bash
+          python3 $GITHUB_WORKSPACE/win_scripts/copy_essentials.py
         env:
           CR_DIR: ${{ github.workspace }}/chromium/src
-          THOR_DIR: ${{ github.workspace }}/mcloud-browser
+          THOR_DIR: ${{ github.workspace }}
 
-      - name: Generate build configuration
+      - name: Copy compiler_opt.gni
+        run: |
+          cp chromium/src/build/config/compiler_opt.gni chromium/src/build/config/compiler_opt.gni.bak 2>/dev/null || true
+          cp win_args_mcloud.gn chromium/src/build/config/compiler_opt.gni
+
+      - name: Generate build config
         run: |
           cd chromium/src
-          gn gen out/mcloud --args="is_official_build=true is_debug=false target_os=\"win\" target_cpu=\"x64\" use_avx2=true use_avx=true use_fma=true use_sse3=true use_sse41=true use_sse42=true is_clang=true use_lld=true use_thin_lto=true thin_lto_enable_optimizations=true use_text_section_splitting=true enable_precompiled_headers=false symbol_level=0 v8_symbol_level=0 blink_symbol_level=0 proprietary_codecs=true ffmpeg_branding=\"Chrome\" enable_widevine=true bundle_widevine_cdm=true enable_platform_hevc=true enable_hevc_parser_and_hw_decoder=true rtc_enable_avx2=true v8_enable_wasm_simd256_revec=true v8_enable_maglev=true v8_enable_turbofan=true v8_enable_builtins_optimization=true"
+          gn gen out/mcloud --args="
+            target_os=\"win\"
+            target_cpu=\"x64\"
+            is_official_build=true
+            is_debug=false
+            is_clang=true
+            use_lld=true
+            use_thin_lto=true
+            thin_lto_enable_optimizations=true
+            use_text_section_splitting=true
+            enable_precompiled_headers=false
+            symbol_level=0
+            v8_symbol_level=0
+            blink_symbol_level=0
+            is_full_optimization_build=true
+            proprietary_codecs=true
+            ffmpeg_branding=\"Chrome\"
+            enable_widevine=true
+            bundle_widevine_cdm=true
+            enable_platform_hevc=true
+            enable_hevc_parser_and_hw_decoder=true
+            rtc_enable_avx2=true
+            v8_enable_wasm_simd256_revec=true
+            v8_enable_maglev=true
+            v8_enable_turbofan=true
+            v8_enable_builtins_optimization=true
+          "
         shell: bash
 
       - name: Build Chrome
         run: |
           cd chromium/src
           autoninja -C out/mcloud chrome
-        shell: bash
 
       - name: Build Mini Installer
         run: |
           cd chromium/src
           autoninja -C out/mcloud mini_installer
-        shell: bash
 
-      - name: Upload Chrome executable
+      - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: mcloud-browser-chrome-exe
-          path: chromium/src/out/mcloud/chrome.exe
-          retention-days: 7
-
-      - name: Upload Mini Installer
-        uses: actions/upload-artifact@v4
-        with:
-          name: mcloud-browser-installer
-          path: chromium/src/out/mcloud/mini_installer.exe
+          name: mcloud-browser-win64
+          path: |
+            chromium/src/out/mcloud/mini_installer.exe
+            chromium/src/out/mcloud/chrome.exe
+            chromium/src/out/mcloud/chrome.dll
           retention-days: 30
+
+      - name: Create Release (on tag)
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            chromium/src/out/mcloud/mini_installer.exe
+          draft: false
+          prerelease: false
