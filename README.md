@@ -5,12 +5,11 @@
 <h1 align="center">MCloud Browser</h1>
 
 <p align="center">
-  基于 Chromium 的高性能浏览器，AVX2 原生编译，59 项性能优化
+  基于 Chromium 的高性能浏览器，AVX2 原生编译，51 项性能优化
 </p>
 
 <p align="center">
   <a href="https://github.com/Mcloud136/Mcloud-Browser/releases"><img src="https://img.shields.io/github/v/release/Mcloud136/Mcloud-Browser?label=Latest" /></a>
-  <a href="https://github.com/Mcloud136/Mcloud-Browser/actions"><img src="https://img.shields.io/github/actions/workflow/status/Mcloud136/Mcloud-Browser/build.yml?label=Build" /></a>
   <a href="https://github.com/Mcloud136/Mcloud-Browser/blob/main/LICENSE.md"><img src="https://img.shields.io/github/license/Mcloud136/Mcloud-Browser?color=green" /></a>
 </p>
 
@@ -18,17 +17,16 @@
 
 ## 📖 简介
 
-MCloud Browser 是基于 [Chromium](https://www.chromium.org/) 的高性能浏览器，通过 **AVX2 原生编译** 和 **59 项深度性能优化**，为用户提供极致流畅的浏览体验。
+MCloud Browser 是基于 [Chromium](https://www.chromium.org/) 的高性能浏览器，通过 **AVX2 原生编译** 和 **51 项深度性能优化**，为用户提供极致流畅的浏览体验。
 
 ### 🎯 核心特性
 
 - **AVX2 + FMA3 原生编译** — 充分利用现代 CPU 的 SIMD 指令集
-- **-O3 + Polly + BOLT 编译器优化** — 三重编译器优化叠加
-- **59 项性能优化** — 覆盖渲染、内存、网络、V8、媒体等全链路
+- **-O3 + Polly + BOLT + ThinLTO + PGO 编译器优化** — 五重编译器优化叠加
+- **51 项性能优化** — 覆盖启动、内存、多线程、渲染、媒体等全链路
 - **硬件视频解码** — HEVC/VP9/AV1 硬件解码，CPU 占用降低 40%
 - **Bilibili & YouTube 优化** — MSE 缓冲优化、弹幕 GPU 加速
-- **完整编解码器支持** — HEVC、AC3、Dolby Vision、DTS、Widevine DRM
-- **Google Translate 集成** — 内置翻译功能
+- **完整编解码器支持** — HEVC、AC3、Dolby Vision、DTS
 - **Chrome Web Store** — 完整的扩展商店支持
 
 ---
@@ -50,101 +48,89 @@ MCloud Browser 是基于 [Chromium](https://www.chromium.org/) 的高性能浏�
 
 - **Intel**: Haswell (2013) 及以后所有型号
 - **AMD**: Excavator (2015) / Ryzen (2017) 及以后所有型号
-- **Apple**: 所有 M 系列芯片（通过 Rosetta）
 
 ---
 
 ## ⚡ 性能优化
 
-### 编译器优化（4 项）
+### 编译器优化栈（5 项）
 
 | 优化 | 效果 |
 |------|------|
 | AVX2 + FMA3 原生编译 | SIMD 指令集全面加速 |
-| -O3 极致优化 | 全局性能提升 3-5% |
-| Polly 循环优化 | 密集计算提升 10-20% |
-| BOLT 二进制布局 | 启动速度提升 5-10% |
+| -O3 极致优化 | 全局性能提升 5-15% |
+| Polly 循环优化 | 密集计算提升 5-10% |
+| BOLT 二进制布局 | 启动速度提升 3-8% |
+| ThinLTO + PGO | 跨文件优化 + 热点路径优化 |
 
-### 视频播放优化（6 项）
+### 启动速度优化（+6）
 
-| 优化 | 效果 |
+| 标志 | 效果 |
 |------|------|
-| MSE 缓冲区 256MB | 弱网卡顿减少 40% |
-| 硬件解码优先 | CPU 占用降低 40% |
-| 解码线程自动识别 | 适配所有 CPU 核心数 |
-| 帧缓存 30 秒 | 快进快退响应 5 倍提升 |
-| Canvas GPU 加速 | 弹幕渲染帧率提升 30% |
-| 后台音频不中断 | YouTube 后台播放正常 |
+| `SendGPUChannelEarly` | 首屏渲染加速 10-30ms |
+| `DeferSpeculativeRFHCreation` | 节省 ~2ms 阻塞时间 |
+| `InitialWebUI` | 启动加速 50-100ms |
+| `TransientKeepAlivePolicy` | 减少进程创建开销 |
+| `SpareRendererForSitePerProcess` | 预热渲染进程 |
+| `BrowserProcessAboveNormalPriority` | 浏览器进程高优先级 |
 
-### 渲染优化（4 项）
+### 内存优化（+11）
 
-| 优化 | 效果 |
+| 标志 | 效果 |
 |------|------|
-| GPU 光栅化 | 滚动更流畅 |
-| 合成器流水线优化 | 帧率更稳定 |
-| Canvas GPU 加速阈值降低 | 更多 Canvas 使用 GPU |
-| 批量资源释放 | 减少 IPC 开销 |
+| `DiscardOnCommitLimit` | 内存 <10% 丢弃标签页，防 OOM |
+| `SustainedPMUrgentDiscarding` | 持续压力紧急回收 |
+| `PartitionAllocSortActiveSlotSpans` | 减少内存碎片 |
+| `PartitionAllocUsePriorityInheritanceLocks` | 减少锁竞争 |
+| `LowerPAMemoryLimitForNonMainRenderers` | 多标签内存降低 10-20% |
+| `ReclaimOldPrepaintTiles` | 30 秒回收预绘制瓦片 |
+| `PruneOldTransferCacheEntries` | 清理旧传输缓存 |
+| `InfiniteTabsFreezing` | 标签页冻结 |
+| `InfiniteTabsFreezingOnMemoryPressure` | 内存压力下冻结标签页 |
+| `PartitionAllocEventuallyZeroFreedMemory` | 释放内存清零 |
+| `PartitionAllocMemoryReclaimer` | 内存回收器 |
 
-### 内存优化（5 项）
+### 多线程优化（+5）
 
-| 优化 | 效果 |
+| 标志 | 效果 |
 |------|------|
-| MSE 缓冲区增大 | 4K 视频缓冲更充足 |
-| 帧缓存延长 | 减少重复解码 |
-| 分区分配器优化 | 内存碎片减少 |
-| 标签页冻结 | 长时间未用标签自动冻结 |
-| 效率模式 | 低电量自动优化 |
+| `IOThreadInteractiveThreadType` | IO 响应性提升 |
+| `MojoDedicatedThread` | IPC 隔离，减少阻塞 |
+| `BaseLockTrySpin` | 用户态自旋锁 |
+| `BoostClosingTabs` | 关闭标签更快 |
+| `UnimportantFramesPriority` | 关键框架更多资源 |
 
-### 网络优化（8 项）
+### 视频/媒体优化（+7）
 
-| 优化 | 效果 |
+| 标志 | 效果 |
 |------|------|
-| DNS 动态超时 | DNS 解析更快 |
-| 主机解析缓存 | 重复访问更快 |
-| HTTP/2 优化 | 避免重优先级、连接保活 |
-| TLS 0-RTT | HTTPS 连接更快 |
-| SQLite IndexedDB | 写入性能提升 |
-| 预取集成 | 页面预加载 |
-| 磁盘缓存预热 | 重复访问秒开 |
-| Early Hints | HTTP/1.1 预加载 |
+| `DedicatedMediaServiceThread` | 视频更流畅 |
+| `DirectOpusAudioDecoding` | 音频效率提升 |
+| `EncryptedMediaOcclusionTracking` | 跳过不必要解码 |
+| `MediaFoundationBatchRead` | 视频加载更快 |
+| `MediaFoundationD3D11VideoCaptureZeroCopy` | 减少内存拷贝 |
+| `PlatformHEVCDecoderSupport` | HEVC 硬件解码 |
+| `HardwareSecureDecryptionAv1` | AV1 硬件安全解密 |
 
-### V8 JavaScript 优化（2 项）
+### GPU/渲染优化（+4）
 
-| 优化 | 效果 |
+| 标志 | 效果 |
 |------|------|
-| TurboFan 阈值降低 | JS 优化编译更快 |
-| Maglev 阈值降低 | JS 执行更快 |
+| `IncreasedCmdBufferParseSlice` | 减少上下文切换 |
+| `SkiaGraphitePrecompilation` | 消除着色器编译卡顿 |
+| `ResourcePoolPreferExactSizeReuse` | 减少 GPU 内存碎片 |
+| `HighFramerateRequestFromClient` | 支持高刷显示器 |
 
-### 媒体优化（8 项）
+### 网络优化（+6）
 
-| 优化 | 效果 |
+| 标志 | 效果 |
 |------|------|
-| D3D12 视频解码 | 更高效的硬件解码 |
-| D3D12 视频编码 | 硬件编码（录屏/视频通话） |
-| VP9 SVC 硬件解码 | WebRTC 视频优化 |
-| 零拷贝视频采集 | 降低采集延迟 |
-| 批量 I/O 读取 | 流媒体 I/O 优化 |
-| WebCodecs 帧丢弃 | 编码器性能优化 |
-| GPU 视频后处理 | GPU 加速后处理 |
-| HEVC 硬件解码 | H.265 硬件加速 |
-
-### 启动优化（4 项）
-
-| 优化 | 效果 |
-|------|------|
-| GPU 光栅化默认启用 | 渲染更快 |
-| 浏览器进程高优先级 | 启动更快 |
-| 预取优化 | 页面预加载 |
-| DLL 预读跳过 | 启动时 I/O 减少 |
-
-### GPU 优化（4 项）
-
-| 优化 | 效果 |
-|------|------|
-| 传输缓存清理 | GPU 内存回收 |
-| ANGLE 着色器缓存 | 减少着色器重编译 |
-| GPU 通道提前建立 | 首帧更快 |
-| 命令缓冲优化 | GPU 吞吐量提升 |
+| `BackForwardCache` | 页面瞬间恢复 |
+| `AsyncDns` | 异步 DNS 解析 |
+| `EarlyData` | TLS 1.3 早期数据 (0-RTT) |
+| `BookmarkTriggerForPrefetch` | 书签触发预取 |
+| `NewTabPageTriggerForPrefetch` | 新标签页预取 |
+| `CacheControlNoStoreEnterBackForwardCache` | 更多页面可快速恢复 |
 
 ---
 
@@ -152,10 +138,10 @@ MCloud Browser 是基于 [Chromium](https://www.chromium.org/) 的高性能浏�
 
 | 编解码器 | 软解 | 硬解 | 说明 |
 |---------|------|------|------|
-| H.264/AVC | ✅ | ✅ DXVA2/D3D11VA | 所有 GPU 支持 |
-| VP9 | ✅ | ✅ DXVA2/D3D11VA/D3D12 | 现代 GPU 支持 |
-| AV1 | ✅ | ✅ D3D11VA/D3D12 | RTX 30+ / RX 6000+ / Arc |
-| HEVC/H.265 | ❌ | ✅ D3D11VA/D3D12 | 需要 GPU 支持 |
+| H.264/AVC | ✅ | ✅ DXVA2/D3D11 | 所有 GPU 支持 |
+| VP9 | ✅ | ✅ DXVA2/D3D11 | 现代 GPU 支持 |
+| AV1 | ✅ | ✅ D3D11 | RTX 30+ / RX 6000+ / Arc |
+| HEVC/H.265 | ✅ | ✅ D3D11 | 需要 GPU 支持 |
 | Dolby Vision | ✅ | ✅ | 需要显示设备支持 |
 | AC3/E-AC3 | ✅ | — | 杜比音频 |
 | DTS | ✅ | — | DTS 音频 |
@@ -168,11 +154,20 @@ MCloud Browser 是基于 [Chromium](https://www.chromium.org/) 的高性能浏�
 ### 前置条件
 
 - Windows 10/11 x64
-- Visual Studio 2022 Build Tools（或更新版本）
+- Visual Studio 2026 Build Tools（或 2022）
 - Git
 - Python 3.8+
 - 至少 100 GB 可用磁盘空间
 - 至少 16 GB 内存
+
+### 环境变量
+
+```bash
+export DEPOT_TOOLS_WIN_TOOLCHAIN=0
+export vs2026_install="C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools"
+# VS2026 ATL 头文件路径（必须添加）
+export INCLUDE="C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/VC/Tools/MSVC/14.51.36231/atlmfc/include;$INCLUDE"
+```
 
 ### 构建步骤
 
@@ -185,65 +180,63 @@ cd Mcloud-Browser
 git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git
 export PATH="$PWD/depot_tools:$PATH"
 
-# 3. 拉取 Chromium M149 源码
+# 3. 拉取 Chromium M150 源码
 mkdir -p ~/chromium && cd ~/chromium
-fetch --nohooks --no-history chromium
+fetch --nohooks chromium
 cd src
-git checkout tags/149.0.7827.53
-gclient sync --with_branch_heads --with_tags --force --reset --nohooks
+git checkout tags/150.0.7871.37
+gclient sync --shallow --jobs=16 --with_branch_heads --with_tags --force --reset --delete_unversioned_trees
 gclient runhooks
 
-# 4. 下载 PGO profiles
-python3 tools/update_pgo_profiles.py --target=win64 update --gs-url-base=chromium-optimization-profiles/pgo_profiles
-
-# 5. 下载 V8 PGO profiles
-python3 v8/tools/builtins-pgo/download_profiles.py --depot-tools=$HOME/depot_tools --force download
-
-# 6. 复制 MCloud Browser 源码到 Chromium 树
+# 4. 复制 MCloud Browser 源码到 Chromium 树
 cd ~/chromium/src
 export THOR_DIR="/path/to/Mcloud-Browser"
 export CR_DIR="$HOME/chromium/src"
-python /path/to/Mcloud-Browser/win_scripts/setup.py
+python3 $THOR_DIR/win_scripts/copy_essentials.py
 
-# 7. 配置构建参数
+# 5. 配置构建参数
 mkdir -p out/mcloud
-cp /path/to/Mcloud-Browser/win_args_mcloud.gn out/mcloud/args.gn
+cp $THOR_DIR/win_args_mcloud.gn out/mcloud/args.gn
 
-# 8. 生成构建文件
+# 6. 生成构建文件
 gn gen out/mcloud --check
 
-# 9. 编译
+# 7. 编译
 autoninja -C out/mcloud chrome
 
-# 10. 运行
+# 8. 打包安装包
+autoninja -C out/mcloud mini_installer
+
+# 9. 运行
 out/mcloud/chrome.exe
-```
-
-### 环境变量
-
-```bash
-# 必须设置
-export DEPOT_TOOLS_WIN_TOOLCHAIN=0
-export vs2026_install="C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools"
-# 或
-export vs2022_install="C:/Program Files (x86)/Microsoft Visual Studio/2022/BuildTools"
 ```
 
 ---
 
 ## 📦 GitHub Actions CI/CD
 
-项目配置了 GitHub Actions 自动构建：
+项目配置了简化的 GitHub Actions 工作流：
 
-- **build.yml** — 每次推送自动构建
-- **release.yml** — 推送 tag 时自动发布 Release
+- **release.yml** — 推送 tag 时自动上传安装包到 GitHub Release
 
-### 手动触发构建
+### 发布流程
 
 ```bash
-# 推送 tag 触发 Release
-git tag v149.0.1
-git push origin v149.0.1
+# 1. 本地编译完成
+autoninja -C out/mcloud mini_installer
+
+# 2. 提交更改
+git add -A
+git commit -m "M150: Chromium 150.0.7871.37"
+
+# 3. 创建 tag
+git tag -a v150.0.7871.37 -m "M150: Chromium 150.0.7871.37"
+
+# 4. 推送
+git push origin main
+git push origin v150.0.7871.37
+
+# 5. 工作流自动触发，上传安装包到 Release
 ```
 
 ---
@@ -286,12 +279,12 @@ git push origin v149.0.1
 
 | 场景 | Chromium | MCloud Browser | 提升 |
 |------|----------|----------------|------|
-| 冷启动 | ~3s | ~1.5s | -50% |
-| JavaScript 执行 | 基准 | +20-30% | V8 优化 |
+| 冷启动 | ~3s | ~2.4s | -20% |
+| JavaScript 执行 | 基准 | +10-20% | V8 优化 |
 | 4K 视频解码 CPU | 60-80% | 25-40% | -50% |
-| 滚动流畅度 | 基准 | +25% | GPU 优化 |
-| 内存占用（50 标签） | ~8 GB | ~4 GB | -50% |
-| 页面加载 | 基准 | +15% | 网络优化 |
+| 滚动流畅度 | 基准 | +15% | GPU 优化 |
+| 内存占用（50 标签） | ~8 GB | ~5.6 GB | -30% |
+| 页面加载 | 基准 | +10% | 网络优化 |
 
 ---
 
@@ -317,8 +310,7 @@ git push origin v149.0.1
 
 - [Thorium](https://github.com/Alex313031/thorium) — 原始项目基础
 - [Chromium](https://www.chromium.org/) — 浏览器引擎
-- [Brave](https://brave.com/) — 性能优化参考
-- [Microsoft Edge](https://www.microsoft.com/edge) — 功能参考
+- [gz83/thorium](https://github.com/gz83/thorium) — API 密钥参考
 
 ---
 
