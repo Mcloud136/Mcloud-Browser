@@ -25,7 +25,7 @@ DefaultDnsOverHttpsConfigSource::DefaultDnsOverHttpsConfigSource(
   if (set_up_pref_defaults) {
     local_state->SetDefaultPrefValue(prefs::kDnsOverHttpsMode,
                                      base::Value(SecureDnsConfig::ModeToString(
-                                         net::SecureDnsMode::kSecure)));
+                                         net::SecureDnsMode::kAutomatic)));
   }
 }
 

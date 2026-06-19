@@ -8,10 +8,10 @@
 
 # --- SIMD Instruction Sets ---
 # AVX2 + FMA3 native compilation via compiler_opt.gni
-use_sse3 = true
-use_sse41 = true
-use_sse42 = true
-use_avx = true
+use_sse3 = false
+use_sse41 = false
+use_sse42 = false
+use_avx = false
 use_avx2 = true
 use_fma = true
 use_avx512 = false
@@ -28,7 +28,6 @@ symbol_level = 0
 v8_symbol_level = 0
 blink_symbol_level = 0
 exclude_unwind_tables = true
-enable_stripping = true
 
 # --- Compiler Optimizations ---
 is_clang = true
@@ -37,7 +36,6 @@ use_icf = false                         # ICF not supported by lld-link on Windo
 use_thin_lto = true
 thin_lto_enable_optimizations = true
 thin_lto_enable_cache = false
-use_text_section_splitting = true        # Better ICF with text section splitting
 enable_precompiled_headers = false
 treat_warnings_as_errors = false
 init_stack_vars_zero = true              # Security: zero-init stack variables
@@ -47,7 +45,7 @@ use_bolt = true                          # MCloud: BOLT binary layout optimizati
 
 # --- PGO (Profile Guided Optimization) ---
 chrome_pgo_phase = 2
-pgo_data_path = "C:/Users/XOS/chromium/src/chrome/build/pgo_profiles/chrome-win64-7827-1779988919-2c0a8dc88e7640a6daf7729772ffde561e21eda4-86ce7ec3ee0415adb4148ea865149fb1aefc5f81.profdata"
+pgo_data_path = "D:/wxmuma/chromium-src/src/chrome/build/pgo_profiles/chrome-win64-7871.profdata"
 
 # --- V8 JavaScript Engine Optimizations ---
 v8_enable_fast_torque = true
@@ -72,12 +70,12 @@ proprietary_codecs = true
 ffmpeg_branding = "Chrome"
 enable_ffmpeg_video_decoders = true
 is_component_ffmpeg = false              # Static link ffmpeg for better LTO
-# NOTE: use_webaudio_pffft is not a valid GN arg in M149 (removed)
+# NOTE: use_webaudio_pffft is not a valid GN arg in M150 (removed)
 
 # --- Widevine DRM ---
 enable_library_cdms = true
-enable_widevine = true
-bundle_widevine_cdm = true
+enable_widevine = false                   # CDM 未下载，暂时禁用
+bundle_widevine_cdm = false
 enable_cdm_storage_id = true
 ignore_missing_widevine_signing_cert = true
 enable_media_drm_storage = true
@@ -102,11 +100,8 @@ enable_platform_mpeg_h_audio = true
 enable_platform_dts_audio = true
 enable_mse_mpeg2ts_stream_parser = true
 
-# --- VR ---
-enable_vr = true
-
-# --- Rust ---
-enable_rust = true
+# --- GPU ---
+enable_vulkan = false                     # 禁用 Vulkan（Windows 使用 D3D12）
 
 # --- Resource / Reporting ---
 disable_fieldtrial_testing_config = true
@@ -114,3 +109,8 @@ enable_reporting = false
 enable_resource_allowlist_generation = false
 enable_profiling = false
 is_component_build = false
+
+# --- Google API Keys ---
+google_api_key = "AIzaSyBOti4mM-6x9WDnZIjIeyEU21OpBXqWBgw"
+google_default_client_id = "77185425430.apps.googleusercontent.com"
+google_default_client_secret = "OTJgUOQcT7lO7GsGZq2G4IlT"

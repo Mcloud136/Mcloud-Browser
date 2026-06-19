@@ -8,16 +8,17 @@ os.makedirs(f"{cr_src}/out/mcloud/", exist_ok=True)
 
 # Copy essential source files only (no patches)
 essential_files = [
-    "src/chrome/app/chromium_strings.grd",
-    "src/chrome/app/settings_chromium_strings.grdp", 
-    "src/chrome/app/shared_settings_strings.grdp",
-    "src/chrome/app/app_management_strings.grdp",
-    "src/chrome/app/generated_resources.grd",
-    "src/chrome/browser/about_flags.cc",
-    "src/chrome/browser/thorium_flag_entries.h",
-    "src/chrome/browser/thorium_flag_choices.h",
-    "src/chrome/common/thorium_2024.h",
+    # Build optimization (SIMD, Polly, BOLT, O3)
     "src/build/config/compiler_opt.gni",
+    "src/build/config/compiler/BUILD.gn",
+    "src/build/config/BUILDCONFIG.gn",
+    "src/build/config/win/BUILD.gn",
+    # DNS fix (HTTP断流修复)
+    "src/chrome/browser/net/default_dns_over_https_config_source.cc",
+    # D3D12 video decoder (default enabled)
+    "src/media/base/media_switches.cc",
+    # Background mode (default disabled)
+    "src/chrome/browser/background/extensions/background_mode_manager.cc",
 ]
 
 for f in essential_files:
@@ -27,5 +28,7 @@ for f in essential_files:
         os.makedirs(os.path.dirname(dst), exist_ok=True)
         shutil.copy2(src, dst)
         print(f"Copied: {f}")
+    else:
+        print(f"SKIP (not found): {f}")
 
 print("Done - essential files copied (patches skipped)")

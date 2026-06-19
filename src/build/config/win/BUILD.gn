@@ -1,4 +1,4 @@
-# Copyright 2026 The Chromium Authors and Alex313031
+# Copyright 2013 The Chromium Authors
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
@@ -117,89 +117,8 @@ config("compiler") {
       assert(false, "unknown current_cpu " + current_cpu)
     }
 
-    # Chrome currently requires SSE3. Clang supports targeting any Intel
-    # microarchitecture. MSVC only supports a subset of architectures, and the
-    # next step after SSE2 will be AVX.
-    if (current_cpu == "x86") {
-      cflags += [ "-mmmx", "-msse", "-msse2", "/clang:-msse2", ]
-      if (use_sse2) {
-        cflags += [ "/arch:SSE2", ]
-      }
-      if (use_sse3) {
-        cflags += [ "-msse3", "/clang:-msse3", ]
-      }
-    } else if (current_cpu == "x64") {
-      cflags += [ "-msse3", "/clang:-msse3", ]
-    }
-    
-    if (current_cpu == "x86" || current_cpu == "x64") {
-      if (is_official_build) {
-        cflags += [
-          "/clang:-O3",
-          "-Xclang", "-O3",
-        ]
-      }
-      if (use_sse41) {
-        cflags += [
-          "-mssse3",
-          "-msse4.1",
-          "/clang:-mssse3",
-          "/clang:-msse4.1",
-        ]
-      }
-      if (use_sse42) {
-        cflags += [
-          "-msse4.2",
-          "/clang:-msse4.2",
-          # "/arch:SSE4.2",
-        ]
-      }
-      if (use_avx) {
-        cflags += [
-          "-mpclmul",
-          "-maes",
-          "-mavx",
-          "/clang:-mpclmul",
-          "/clang:-maes",
-          "/clang:-mavx",
-          # "/arch:AVX",
-        ]
-      }
-      if (use_avx2) {
-        cflags += [
-          "-mavx2",
-          "-mfma",
-          "-mf16c",
-          "-mlzcnt",
-          "-mbmi",
-          "-mbmi2",
-          "/clang:-mavx2",
-          "/clang:-mfma",
-          "/clang:-mf16c",
-          "/clang:-mlzcnt",
-          "/clang:-mbmi",
-          "/clang:-mbmi2",
-          "/clang:-ffp-contract=fast",
-          # "/arch:AVX2",
-          # "/fp:fast",
-        ]
-      }
-      if (use_avx512) {
-        cflags += [
-          "-mavx512f",
-          "-mavx512cd",
-          "-mavx512vl",
-          "-mavx512bw",
-          "-mavx512dq",
-          "/clang:-mavx2",
-          "/clang:-mavx512f",
-          "/clang:-mavx512cd",
-          "/clang:-mavx512vl",
-          "/clang:-mavx512bw",
-          "/clang:-mavx512dq",
-        ]
-      }
-    }
+    # MCloud Browser: SIMD handled by thorium_simd_optimization in compiler/BUILD.gn
+    # Do not add AVX2 flags here to avoid duplication.
 
     # Enable ANSI escape codes if something emulating them is around (cmd.exe
     # doesn't understand ANSI escape codes by default). Make sure to not enable
@@ -237,13 +156,13 @@ config("compiler") {
 
     # Don't look for libpaths in %LIB%, similar to /X in cflags above.
     ldflags += [ "/lldignoreenv" ]
-    if (is_official_build) {
-      ldflags += [ "/OPT:lldlto=3", ]
-    }
+
+    # Enable /prefetch-inputs to improve linking performance.
+    ldflags += [ "/prefetch-inputs" ]
   }
 
-  # Some binaries create PDBs larger than 4 GiB. Increasing the PDB page size
-  # to 8 KiB allows 8 GiB PDBs. The larger page size also allows larger block maps
+  # Some binaries create PDBs larger than 4 GiB. Increasing the PDB page size to
+  # 8 KiB allows 8 GiB PDBs. The larger page size also allows larger block maps
   # which is a PDB limit that was hit in https://crbug.com/1406510. The page size
   # can easily be increased in the future to allow even larger PDBs or larger
   # block maps.
@@ -267,18 +186,11 @@ config("compiler") {
       "/INCREMENTAL:NO",
       "/FIXED:NO",
     ]
-    if (use_avx2) {
-      ldflags += [ "-mllvm:-march=haswell", ]
-    }
-    if (use_avx512) {
-      ldflags += [ "-mllvm:-march=skylake-avx512", ]
-    }
 
     if (use_lld) {
       # String tail merging leads to smaller binaries, but they don't compress
       # as well, leading to increased mini_installer size (crbug.com/838449).
-      # ldflags += [ "/OPT:NOLLDTAILMERGE" ]
-      ldflags += [ "/OPT:LLDTAILMERGE" ]
+      ldflags += [ "/OPT:NOLLDTAILMERGE" ]
     }
 
     # TODO(siggi): Is this of any use anymore?
@@ -286,7 +198,7 @@ config("compiler") {
     # PDB file by about 5%) but does not otherwise alter the output binary. It
     # is enabled opportunistically for builds where it is not prohibited (not
     # supported when incrementally linking, or using /debug:fastlink).
-    # ldflags += [ "/PROFILE" ]
+    ldflags += [ "/PROFILE" ]
   }
 
   # arflags apply only to static_libraries. The normal linker configs are only
@@ -376,14 +288,12 @@ config("runtime_library") {
 # manually override this config for their compiles.
 config("winver") {
   defines = [
-    # 0x0A000010
     "NTDDI_VERSION=NTDDI_WIN11_GE",
 
     # We can't say `=_WIN32_WINNT_WIN10` here because some files do
     # `#if WINVER < 0x0600` without including windows.h before,
     # and then _WIN32_WINNT_WIN10 isn't yet known to be 0x0A00.
     "_WIN32_WINNT=0x0A00",
-    "_WIN64_WINNT=0x0A00",
     "WINVER=0x0A00",
   ]
 }
@@ -527,17 +437,22 @@ config("delayloads_except_dbghelp") {
     "/DELAYLOAD:psapi.dll",
     "/DELAYLOAD:rpcrt4.dll",
     "/DELAYLOAD:rstrtmgr.dll",
+    "/DELAYLOAD:secur32.dll",
     "/DELAYLOAD:setupapi.dll",
     "/DELAYLOAD:shell32.dll",
     "/DELAYLOAD:shlwapi.dll",
     "/DELAYLOAD:uiautomationcore.dll",
     "/DELAYLOAD:urlmon.dll",
     "/DELAYLOAD:user32.dll",
+    "/DELAYLOAD:userenv.dll",
     "/DELAYLOAD:usp10.dll",
     "/DELAYLOAD:uxtheme.dll",
     "/DELAYLOAD:wer.dll",
     "/DELAYLOAD:wevtapi.dll",
+    "/DELAYLOAD:winhttp.dll",
     "/DELAYLOAD:wininet.dll",
+    "/DELAYLOAD:winspool.drv",
+    "/DELAYLOAD:wintrust.dll",
     "/DELAYLOAD:winusb.dll",
     "/DELAYLOAD:wsock32.dll",
     "/DELAYLOAD:wtsapi32.dll",
@@ -562,12 +477,7 @@ config("delayloads_not_for_child_dll") {
   ldflags = [
     "/DELAYLOAD:crypt32.dll",
     "/DELAYLOAD:dwrite.dll",
-    "/DELAYLOAD:secur32.dll",
-    "/DELAYLOAD:userenv.dll",
-    "/DELAYLOAD:winhttp.dll",
     "/DELAYLOAD:winmm.dll",
-    "/DELAYLOAD:winspool.drv",
-    "/DELAYLOAD:wintrust.dll",
     "/DELAYLOAD:ws2_32.dll",
   ]
 }
@@ -575,7 +485,8 @@ config("delayloads_not_for_child_dll") {
 # ACLs are placed on the filesystem in order to allow chrome to launch
 # sandboxed processes in an app container when run from the out directory.
 group("maybe_set_appcontainer_acls") {
-  # Exclude setting ACLs when build is not happening on chromium, or with a different toolchain.
+  # Exclude setting ACLs when build is not happening on chromium, or with a
+  # different toolchain.
   if (build_with_chromium && current_cpu == target_cpu && host_os == "win") {
     deps = [ ":set_appcontainer_acls" ]
   }
@@ -589,8 +500,8 @@ if (build_with_chromium && current_cpu == target_cpu && host_os == "win") {
     outputs = [ stamp_file ]
 
     args = [
-      "--stamp=" + rebase_path(stamp_file, root_out_dir),
-      "--dir=" + rebase_path(root_out_dir, root_out_dir),
+      "--stamp=" + rebase_path(stamp_file, root_build_dir),
+      "--dir=" + rebase_path(root_out_dir, root_build_dir),
     ]
   }
 }
@@ -780,4 +691,15 @@ config("lean_and_mean") {
 
 config("nominmax") {
   defines = [ "NOMINMAX" ]
+}
+
+# Wincrypt use symbol prefix ---------------------------------------------------
+
+# Some third party code might not compile with WINCRYPT_USE_SYMBOL_PREFIX so we
+# have to have a separate config for it. Remove this config from your target to
+# get the unprefixed versions of the wincrypt.h symbols. Note this will mean
+# your target cannot include wincrypt.h and OpenSSL/BoringSSL headers at the
+# same time.
+config("wincrypt_use_symbol_prefix") {
+  defines = [ "WINCRYPT_USE_SYMBOL_PREFIX" ]
 }

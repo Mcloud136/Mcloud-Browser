@@ -8,6 +8,10 @@
 # --- Cold Startup Optimization ---
 --enable-features=SpareRendererForSitePerProcess
 --enable-features=BrowserProcessAboveNormalPriority
+--enable-features=SendGPUChannelEarly
+--enable-features=DeferSpeculativeRFHCreation
+--enable-features=InitialWebUI:without_spellcheck/without_translate/high_stream_priority
+--enable-features=TransientKeepAlivePolicy
 
 # --- Video Playback Optimization ---
 --disable-background-media-suspend
@@ -25,7 +29,13 @@
 --enable-features=InfiniteTabsFreezingOnMemoryPressure
 --enable-features=PartitionAllocEventuallyZeroFreedMemory
 --enable-features=PartitionAllocMemoryReclaimer
---enable-features=EnableAdpfEfficiencyMode
+--enable-features=DiscardOnCommitLimit
+--enable-features=SustainedPMUrgentDiscarding
+--enable-features=PartitionAllocSortActiveSlotSpans
+--enable-features=PartitionAllocUsePriorityInheritanceLocks
+--enable-features=LowerPAMemoryLimitForNonMainRenderers
+--enable-features=ReclaimOldPrepaintTiles
+--enable-features=PruneOldTransferCacheEntries
 
 # --- Network Optimization ---
 --enable-features=BookmarkTriggerForPrefetch
@@ -46,10 +56,26 @@
 
 # --- GPU Optimization ---
 --enable-features=GpuShaderDiskCache
+--enable-features=IncreasedCmdBufferParseSlice
+--enable-features=SkiaGraphitePrecompilation
+--enable-features=ResourcePoolPreferExactSizeReuse
+--enable-features=HighFramerateRequestFromClient
 
 # --- Media Optimization ---
 --enable-features=PlatformHEVCDecoderSupport
 --enable-features=HardwareSecureDecryptionAv1
+--enable-features=DedicatedMediaServiceThread
+--enable-features=DirectOpusAudioDecoding
+--enable-features=EncryptedMediaOcclusionTracking
+--enable-features=MediaFoundationBatchRead
+--enable-features=MediaFoundationD3D11VideoCaptureZeroCopy
+
+# --- Threading Optimization ---
+--enable-features=IOThreadInteractiveThreadType
+--enable-features=MojoDedicatedThread
+--enable-features=BaseLockTrySpin
+--enable-features=BoostClosingTabs
+--enable-features=UnimportantFramesPriority
 
 # --- Service Worker Optimization ---
 --enable-features=ServiceWorkerNavigationPreload

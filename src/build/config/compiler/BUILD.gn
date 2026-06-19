@@ -1216,10 +1216,10 @@ config("compiler") {
       rustflags += [ "-Ctarget-feature=+sse3,+ssse3,+sse4.1,+sse4.2,+pclmulqdq,+aes,+avx", ]
     }
     if (use_avx2 && !use_avx512) {
-      rustflags += [ "-Ctarget-feature=+sse3,+ssse3,+sse4.1,+sse4.2,+pclmulqdq,+aes,+avx,+avx2,+fma,+f16c,+lzcnt,+bmi2", "-Cllvm-args=-fp-contract=fast", ]
+      rustflags += [ "-Ctarget-feature=+sse3,+ssse3,+sse4.1,+sse4.2,+pclmulqdq,+aes,+avx,+avx2,+fma,+f16c,+lzcnt,+bmi,+bmi2", "-Cllvm-args=-fp-contract=fast", ]
     }
     if (use_avx512) {
-      rustflags += [ "-Ctarget-feature=+sse3,+ssse3,+sse4.1,+sse4.2,+pclmulqdq,+aes,+avx,+avx2,+fma,+f16c,+lzcnt,+bmi2,+mavx512f", "-Cllvm-args=-fp-contract=fast", ]
+      rustflags += [ "-Ctarget-feature=+sse3,+ssse3,+sse4.1,+sse4.2,+pclmulqdq,+aes,+avx,+avx2,+fma,+f16c,+lzcnt,+bmi,+bmi2,+mavx512f", "-Cllvm-args=-fp-contract=fast", ]
     }
   }
 
@@ -2889,9 +2889,7 @@ if (is_win) {
     common_optimize_on_cflags += [
       "-mllvm", "-aggressive-ext-opt",
       "-mllvm", "-enable-gvn-hoist",
-      "/O2",
       "/clang:-O3",
-      "-Xclang", "-O3",
     ]
   }
 
