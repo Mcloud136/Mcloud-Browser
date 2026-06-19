@@ -1,14 +1,11 @@
-name: MCloud Browser Build
+name: MCloud Browser Release
 
 on:
   push:
-    branches: [main]
-  pull_request:
-    branches: [main]
+    tags: ['v*']
 
-concurrency:
-  group: build-${{ github.ref }}
-  cancel-in-progress: true
+permissions:
+  contents: write
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
@@ -16,8 +13,8 @@ env:
   CHROMIUM_TAG: 149.0.7827.53
 
 jobs:
-  build:
-    name: Build (Linux → Windows x64 AVX2)
+  build-and-release:
+    name: Build & Release
     runs-on: ubuntu-24.04
     timeout-minutes: 360
 
@@ -25,11 +22,17 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
+      - name: Extract version
+        id: version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+        shell: bash
+
       - name: Install dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y git python3 python3-pip curl wget unzip lsb-release
           sudo pip3 install httplib2
+        shell: bash
 
       - name: Setup depot_tools
         run: |
@@ -40,17 +43,17 @@ jobs:
           chmod +x depot_tools/*
           echo "$GITHUB_WORKSPACE/depot_tools" >> $GITHUB_PATH
           echo "DEPOT_TOOLS_WIN_TOOLCHAIN=0" >> $GITHUB_ENV
+        shell: bash
 
-      - name: Cache Chromium source
-        id: cache-chromium
+      - name: Cache depot_tools
+        id: cache-depot-tools
         uses: actions/cache@v4
         with:
-          path: chromium
-          key: chromium-${{ env.CHROMIUM_TAG }}-linux-v1
-          restore-keys: chromium-${{ env.CHROMIUM_TAG }}-linux-
+          path: depot_tools
+          key: depot-tools-linux-rel-${{ hashFiles('depot_tools/.git/HEAD') }}
+          restore-keys: depot-tools-linux-rel-
 
       - name: Fetch Chromium
-        if: steps.cache-chromium.outputs.cache-hit != 'true'
         run: |
           mkdir -p chromium && cd chromium
           fetch --nohooks chromium
@@ -58,11 +61,8 @@ jobs:
           git fetch --depth 1 origin tag $CHROMIUM_TAG
           git checkout $CHROMIUM_TAG
           gclient sync --with_branch_heads --with_tags --force --reset --nohooks --delete_unversioned_trees
-
-      - name: Sync Chromium dependencies
-        run: |
-          cd chromium/src
           gclient runhooks
+        shell: bash
 
       - name: Download PGO profiles
         run: |
@@ -125,9 +125,26 @@ jobs:
           cd chromium/src
           autoninja -C out/mcloud mini_installer
 
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
         with:
-          name: mcloud-browser-win64
-          path: chromium/src/out/mcloud/mini_installer.exe
-          retention-days: 30
+          name: "MCloud Browser v${{ steps.version.outputs.VERSION }}"
+          body: |
+            ## MCloud Browser v${{ steps.version.outputs.VERSION }}
+
+            Chromium ${{ env.CHROMIUM_TAG }} | AVX2 + FMA3 | Linux Cross-Compile
+
+            ### System Requirements
+            - Windows 10/11 x64
+            - CPU with AVX2 (Intel Haswell 2013+ / AMD Ryzen 2017+)
+
+            ### Features
+            - AVX2 + FMA3 native compilation
+            - -O3 + Polly + BOLT compiler optimizations
+            - HEVC/H.265, VP9, AV1 hardware decode
+            - Widevine DRM support
+            - Google Translate integration
+          files: |
+            chromium/src/out/mcloud/mini_installer.exe
+          draft: false
+          prerelease: false
