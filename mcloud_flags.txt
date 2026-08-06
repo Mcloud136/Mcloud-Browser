@@ -60,6 +60,7 @@
 --enable-features=SkiaGraphitePrecompilation
 --enable-features=ResourcePoolPreferExactSizeReuse
 --enable-features=HighFramerateRequestFromClient
+--enable-features=SkiaGraphite
 
 # --- Media Optimization ---
 --enable-features=PlatformHEVCDecoderSupport
@@ -81,5 +82,5 @@
 --enable-features=ServiceWorkerNavigationPreload
 
 # --- Storage Optimization ---
---enable-features=PWAFullCodeCache
---enable-features=ServiceWorkerScriptFullCodeCache
+# PWAFullCodeCache / ServiceWorkerScriptFullCodeCache 已移除：
+# M150 源码中不存在该 feature（check_features.py 校验确认，2026-08-05）。

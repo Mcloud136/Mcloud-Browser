@@ -57,11 +57,22 @@ jobs:
             echo "EOF" >> $GITHUB_OUTPUT
           fi
 
+      - name: Generate SHA256 checksum
+        run: |
+          if [ -f mini_installer.exe ]; then
+            sha256sum mini_installer.exe > mcloud_${{ steps.version.outputs.VERSION }}_win64_mini_installer.exe.sha256
+            cat mcloud_${{ steps.version.outputs.VERSION }}_win64_mini_installer.exe.sha256
+          else
+            echo "mini_installer.exe not found, skipping checksum"
+          fi
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           name: "MCloud Browser v${{ steps.version.outputs.VERSION }}"
           body: ${{ steps.content.outputs.NOTES }}
-          files: mini_installer.exe
+          files: |
+            mini_installer.exe
+            mcloud_${{ steps.version.outputs.VERSION }}_win64_mini_installer.exe.sha256
           draft: false
           prerelease: false

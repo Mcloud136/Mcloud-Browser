@@ -5,7 +5,7 @@
 <h1 align="center">MCloud Browser</h1>
 
 <p align="center">
-  基于 Chromium 的高性能浏览器，AVX2 原生编译，51 项性能优化
+  基于 Chromium 的高性能浏览器，AVX2 原生编译，52 项运行时优化标志
 </p>
 
 <p align="center">
@@ -17,13 +17,13 @@
 
 ## 📖 简介
 
-MCloud Browser 是基于 [Chromium](https://www.chromium.org/) 的高性能浏览器，通过 **AVX2 原生编译** 和 **51 项深度性能优化**，为用户提供极致流畅的浏览体验。
+MCloud Browser 是基于 [Chromium](https://www.chromium.org/) 的高性能浏览器，通过 **AVX2 原生编译** 和 **52 项运行时优化标志**（见 [mcloud_flags.txt](mcloud_flags.txt)），为用户提供极致流畅的浏览体验。
 
 ### 🎯 核心特性
 
 - **AVX2 + FMA3 原生编译** — 充分利用现代 CPU 的 SIMD 指令集
-- **-O3 + Polly + BOLT + ThinLTO + PGO 编译器优化** — 五重编译器优化叠加
-- **51 项性能优化** — 覆盖启动、内存、多线程、渲染、媒体等全链路
+- **-O3 + ThinLTO + PGO 编译器优化** — 三重编译器优化已生效（Polly/BOLT 待前置工具链就绪后启用，见技术规范 2.5/2.6/10.1）
+- **52 项运行时优化标志**（`mcloud_flags.txt`，浏览器启动时内置加载）— 覆盖启动、内存、多线程、渲染、媒体等全链路
 - **硬件视频解码** — HEVC/VP9/AV1 硬件解码，CPU 占用降低 40%
 - **Bilibili & YouTube 优化** — MSE 缓冲优化、弹幕 GPU 加速
 - **完整编解码器支持** — HEVC、AC3、Dolby Vision、DTS
@@ -53,15 +53,15 @@ MCloud Browser 是基于 [Chromium](https://www.chromium.org/) 的高性能浏�
 
 ## ⚡ 性能优化
 
-### 编译器优化栈（5 项）
+### 编译器优化栈（3 项已生效）
 
-| 优化 | 效果 |
-|------|------|
-| AVX2 + FMA3 原生编译 | SIMD 指令集全面加速 |
-| -O3 极致优化 | 全局性能提升 5-15% |
-| Polly 循环优化 | 密集计算提升 5-10% |
-| BOLT 二进制布局 | 启动速度提升 3-8% |
-| ThinLTO + PGO | 跨文件优化 + 热点路径优化 |
+| 优化 | 效果 | 状态 |
+|------|------|------|
+| AVX2 + FMA3 原生编译 | SIMD 指令集全面加速 | 已生效 |
+| -O3 极致优化 | 全局性能提升 5-15% | 已生效 |
+| ThinLTO + PGO | 跨文件优化 + 热点路径优化 | 已生效 |
+| Polly 循环优化 | 密集计算提升 5-10% | 待自建含 Polly 的 clang（规范 2.6） |
+| BOLT 二进制布局 | 启动速度提升 3-8% | 待后链接流程落地（规范 10.1） |
 
 ### 启动速度优化（+6）
 

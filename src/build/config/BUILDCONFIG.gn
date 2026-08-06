@@ -476,6 +476,20 @@ if (is_fuchsia) {
       [ "//build/config/fuchsia:rustc_no_pie_warning" ]
 }
 
+# MCloud Browser: wire LLVM Polly / BOLT emit-relocs configs into linkable
+# targets. The config bodies are internally gated by use_polly / use_bolt
+# (declared in //build/config/compiler_opt.gni), so referencing them here
+# makes those build args actually take effect (previously they were no-ops).
+# NOTE: Polly requires a self-built clang with Polly support
+# (infra/build_polly.sh); BOLT emit-relocs is only useful when the post-link
+# BOLT step is executed. See spec 2.5/2.6.
+if (!is_android && !is_apple) {
+  default_executable_configs += [
+    "//build/config/compiler:polly",
+    "//build/config/compiler:emit-relocs",
+  ]
+}
+
 set_defaults("executable") {
   configs = default_executable_configs
 }
@@ -505,6 +519,15 @@ if (is_fuchsia) {
   default_shared_library_configs +=
       [ "//build/config/fuchsia:rustc_no_pie_warning" ]
 }
+# MCloud Browser: same Polly / BOLT emit-relocs wiring for shared libraries
+# (chrome.dll). Internally gated by use_polly / use_bolt.
+if (!is_android && !is_apple) {
+  default_shared_library_configs += [
+    "//build/config/compiler:polly",
+    "//build/config/compiler:emit-relocs",
+  ]
+}
+
 set_defaults("shared_library") {
   configs = default_shared_library_configs
 }

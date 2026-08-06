@@ -198,7 +198,7 @@ For this, run:
 ./setup.sh
 ```
 This will copy all the files and patches to the needed locations.  
-- NOTE: To build for AVX2, use `./setup.sh --avx2`. To build SSE3, use `./setup.sh --sse3`. Use `./setup.sh --help` to see all options/platforms.
+- NOTE: To build for AVX2, use `./setup.sh --avx2`. Use `./setup.sh --help` to see all options/platforms. (SSE4.2 and below builds are deprecated per the performance spec; AVX2+FMA3 is the only release baseline.)
 
 ### Creating the build directory
 Chromium & Mcloud Browser use [Ninja](https://ninja-build.org) as its main build tool along with

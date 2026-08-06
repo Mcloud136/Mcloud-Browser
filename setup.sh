@@ -24,9 +24,7 @@ displayHelp () {
 	printf "${bold}${YEL}  Use the --woa flag for Windows on ARM builds.${c0}\n" &&
 	printf "${bold}${YEL}  Use the --avx512 flag for AVX-512 Builds.${c0}\n" &&
 	printf "${bold}${YEL}  Use the --avx2 flag for AVX2 Builds.${c0}\n" &&
-	printf "${bold}${YEL}  Use the --sse4 flag for SSE4.1 Builds.${c0}\n" &&
-	printf "${bold}${YEL}  Use the --sse3 flag for SSE3 Builds.${c0}\n" &&
-	printf "${bold}${YEL}  Use the --sse2 flag for 32 bit SSE2 Builds.${c0}\n" &&
+	printf "${bold}${YEL}  NOTE: SSE4.2 and below builds are deprecated (spec 1.5). AVX2+FMA3 is the only release baseline.${c0}\n" &&
 	printf "${bold}${YEL}  Use the --android flag for Android Builds.${c0}\n" &&
 	printf "${bold}${YEL}  Use the --cros flag for ChromiumOS Builds.${c0}\n" &&
 	printf "${bold}${YEL}  --help or -h shows this help.${c0}\n" &&
@@ -88,6 +86,7 @@ cp -r -v src/v8 ${CR_SRC_DIR}/ &&
 cp -r -v mcloud_shell/. ${CR_SRC_DIR}/out/mcloud/ &&
 cp -r -v pak_src/binaries/pak ${CR_SRC_DIR}/out/mcloud/ &&
 cp -r -v pak_src/binaries/pak-win/. ${CR_SRC_DIR}/out/mcloud/ &&
+cp -v mcloud_flags.txt ${CR_SRC_DIR}/out/mcloud/ &&
 
 patchThor () {
 	cp -v other/add-hevc-ffmpeg-decoder-parser.patch ${CR_SRC_DIR}/third_party/ffmpeg/ &&
@@ -212,15 +211,7 @@ patchAC3 () {
 	cd ~/mcloud
 }
 
-patchSSE2 () {
-	cp -v other/SSE2/angle-lockfree.patch ${CR_SRC_DIR}/third_party/angle/src/ &&
-
-	printf "\n" &&
-	printf "${YEL}Patching ANGLE for SSE2...${c0}\n" &&
-	cd ${CR_SRC_DIR}/third_party/angle/src &&
-	git apply --reject ./angle-lockfree.patch &&
-	cd ~/mcloud
-}
+# patchSSE2 removed: SSE2 builds deprecated per spec 1.5.
 
 cd ~/mcloud &&
 
@@ -328,54 +319,8 @@ case $1 in
 	--avx2) copyAVX2;
 esac
 
-# Copy SSE4.1 files
-copySSE4 () {
-	printf "\n" &&
-	printf "${YEL}Copying SSE4.1 build files...${c0}\n" &&
-	cp -v other/SSE4.1/thor_ver ${CR_SRC_DIR}/out/mcloud/ &&
-	cp -v other/SSE4.1/mcloud_version.txt ${CR_SRC_DIR}/ui/webui/resources/text/ &&
-	cp -v other/thor_ver_linux/wrapper-sse4 ${CR_SRC_DIR}/chrome/installer/linux/common/wrapper &&
-	[ -f ${CR_SRC_DIR}/third_party/ffmpeg/ffmpeg_hevc_ac3.patch ] || patchAC3;
-	printf "\n"
-}
-case $1 in
-	--sse4) copySSE4;
-esac
-
-# Copy SSE3 files
-copySSE3 () {
-	printf "\n" &&
-	printf "${YEL}Copying SSE3 build files...${c0}\n" &&
-	cp -v other/SSE3/thor_ver ${CR_SRC_DIR}/out/mcloud/ &&
-	cp -v other/SSE3/mcloud_version.txt ${CR_SRC_DIR}/ui/webui/resources/text/ &&
-	cp -v other/thor_ver_linux/wrapper-sse3 ${CR_SRC_DIR}/chrome/installer/linux/common/wrapper &&
-	cd ${CR_SRC_DIR} &&
-	python3 tools/update_pgo_profiles.py --target=win32 update --gs-url-base=chromium-optimization-profiles/pgo_profiles &&
-	cd ~/mcloud &&
-	[ -f ${CR_SRC_DIR}/third_party/ffmpeg/ffmpeg_hevc_ac3.patch ] || patchAC3;
-	printf "\n"
-}
-case $1 in
-	--sse3) copySSE3;
-esac
-
-# Copy SSE2 files
-copySSE2 () {
-	printf "\n" &&
-	printf "${YEL}Copying SSE2 (32-bit) build files...${c0}\n" &&
-	cp -v other/SSE2/thor_ver ${CR_SRC_DIR}/out/mcloud/ &&
-	cp -v other/SSE2/mcloud_version.txt ${CR_SRC_DIR}/ui/webui/resources/text/ &&
-	cp -v other/thor_ver_linux/wrapper-sse2 ${CR_SRC_DIR}/chrome/installer/linux/common/wrapper &&
-	cd ${CR_SRC_DIR} &&
-	python3 tools/update_pgo_profiles.py --target=win32 update --gs-url-base=chromium-optimization-profiles/pgo_profiles &&
-	cd ~/mcloud &&
-	[ -f ${CR_SRC_DIR}/third_party/ffmpeg/ffmpeg_hevc_ac3.patch ] || patchAC3;
-	[ -f ${CR_SRC_DIR}/third_party/angle/src/angle-lockfree.patch ] || patchSSE2;
-	printf "\n"
-}
-case $1 in
-	--sse2) copySSE2;
-esac
+# SSE4.1/SSE3/SSE2 build variants removed: deprecated per spec 1.5
+# (AVX2+FMA3 is the only release baseline; see performance-build-technical-spec.md).
 
 # Copy Android files
 copyAndroid () {

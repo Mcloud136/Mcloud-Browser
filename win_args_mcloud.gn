@@ -8,10 +8,11 @@
 
 # --- SIMD Instruction Sets ---
 # AVX2 + FMA3 native compilation via compiler_opt.gni
-use_sse3 = false
-use_sse41 = false
-use_sse42 = false
-use_avx = false
+# AVX2 包含 AVX（FMA 依赖 AVX，见 compiler_opt.gni 校验），use_avx 必须为 true
+use_sse3 = true
+use_sse41 = true
+use_sse42 = true
+use_avx = true
 use_avx2 = true
 use_fma = true
 use_avx512 = false
@@ -32,7 +33,7 @@ exclude_unwind_tables = true
 # --- Compiler Optimizations ---
 is_clang = true
 use_lld = true
-use_icf = false                         # ICF not supported by lld-link on Windows
+use_icf = false                         # 仅 GN 层开关；Windows 的 ICF 实际由 /OPT:ICF 保障（src/build/config/win/BUILD.gn），见规范 2.7
 use_thin_lto = true
 thin_lto_enable_optimizations = true
 thin_lto_enable_cache = false
@@ -40,12 +41,20 @@ enable_precompiled_headers = false
 treat_warnings_as_errors = false
 init_stack_vars_zero = true              # Security: zero-init stack variables
 is_full_optimization_build = true        # MCloud: -O3 aggressive optimization
-use_polly = true                         # MCloud: LLVM Polly loop optimization
-use_bolt = true                          # MCloud: BOLT binary layout optimization
+# Polly/BOLT 接线已修复（BUILDCONFIG.gn，此前为无效开关）。前置条件未就绪前必须保持 false：
+# - Polly：当前 Chromium 内置 clang 不含 Polly（已验证 -mllvm 选项列表），
+#   需先经 infra/build_polly.sh 自建含 Polly 的 clang（规范 2.6）；
+# - BOLT：后链接执行流程未落地（规范 10.1），emit-relocs 只会徒增体积。
+# 两者就绪后分别改为 true 并重新 gn gen + 全量构建。
+use_polly = false
+use_bolt = false
 
 # --- PGO (Profile Guided Optimization) ---
 chrome_pgo_phase = 2
-pgo_data_path = "D:/wxmuma/chromium-src/src/chrome/build/pgo_profiles/chrome-win64-7871.profdata"
+# profdata 须与内核大版本严格匹配（M150=7871，M151=7922），升级时同步更新；
+# 由 version.sh / tools/update_pgo_profiles.py 下载到 chromium/src/chrome/build/pgo_profiles/。
+# 注：GN 不支持环境变量展开，此处为构建机标准 Chromium 源码位置，换机时须同步修改（规范 A1）。
+pgo_data_path = "D:/wxmuma/chromium-src/src/chrome/build/pgo_profiles/chrome-win64-7922-1785260615-6ac4e83baf0934c1f70f2af0592d9696b32a86e1-0c69bbe6064e347ebf2e6316e669d4eaa4163879.profdata"
 
 # --- V8 JavaScript Engine Optimizations ---
 v8_enable_fast_torque = true
@@ -60,7 +69,7 @@ optimize_webui = true
 
 # --- Windows Specific ---
 win_enable_cfg_guards = true             # Control Flow Guard
-enable_rlz = true                        # RLZ tracking (for search engine attribution)
+enable_rlz = true                        # 维持 true，与 win_args.gn 口径一致；决策见 docs/decisions/ADR-001
 
 # --- Media / FFmpeg ---
 media_use_ffmpeg = true

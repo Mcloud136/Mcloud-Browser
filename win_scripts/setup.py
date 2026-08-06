@@ -55,9 +55,7 @@ def display_help():
     print("Use the --woa flag for Windows on ARM builds.")
     print("Use the --avx512 flag for AVX-512 Builds.")
     print("Use the --avx2 flag for AVX2 Builds.")
-    print("Use the --sse4 flag for SSE4.1 Builds.")
-    print("Use the --sse3 flag for SSE3 Builds.")
-    print("Use the --sse2 flag for 32-bit SSE2 Builds.")
+    print("NOTE: SSE4.2 and below builds are deprecated (spec 1.5). AVX2+FMA3 is the only release baseline.")
     print("\n")
 
 
@@ -286,7 +284,7 @@ copy(
     os.path.normpath(os.path.join(cr_src_dir, "out", "mcloud")),
 )
 
-flags_to_check = ["--woa", "--avx512", "--avx2", "--sse4", "--sse3", "--sse2"]
+flags_to_check = ["--woa", "--avx512", "--avx2"]
 if not any(flag in sys.argv for flag in flags_to_check):
     os.chdir(cr_src_dir)
     print("\nDownloading PGO Profiles for Windows x64\n")
@@ -405,110 +403,8 @@ if "--avx2" in sys.argv:
     copy_avx2()
 
 
-# Copy SSE4.1 build files
-def copy_sse4():
-    print("\nCopying SSE4.1 build files\n")
-    copy(
-        os.path.normpath(os.path.join(
-            thor_src_dir, "other", "SSE4.1", "thor_ver")),
-        os.path.normpath(os.path.join(cr_src_dir, "out", "mcloud")),
-    )
-    copy(
-        os.path.normpath(os.path.join(thor_src_dir, "other", "SSE4.1", "mcloud_version.txt")),
-        os.path.normpath(os.path.join(cr_src_dir, "ui", "webui", "resources", "text")),
-    )
-    os.chdir(cr_src_dir)
-    print("\nDownloading PGO Profiles for Windows x64\n")
-    try_run(
-        "python3 tools/update_pgo_profiles.py --target=win64 "
-        "update --gs-url-base=chromium-optimization-profiles/pgo_profiles"
-    )
-    print("\nDownloading PGO Profile for V8\n")
-    try_run(
-        "python3 v8/tools/builtins-pgo/download_profiles.py "
-        "--depot-tools=third_party/depot_tools --force download"
-    )
-
-
-if "--sse4" in sys.argv:
-    copy_sse4()
-
-
-# Copy SSE3 build files
-def copy_sse3():
-    print("\nCopying SSE3 build files\n")
-    copy(
-        os.path.normpath(os.path.join(
-            thor_src_dir, "other", "SSE3", "thor_ver")),
-        os.path.normpath(os.path.join(cr_src_dir, "out", "mcloud")),
-    )
-    copy(
-        os.path.normpath(os.path.join(thor_src_dir, "other", "SSE3", "mcloud_version.txt")),
-        os.path.normpath(os.path.join(cr_src_dir, "ui", "webui", "resources", "text")),
-    )
-    os.chdir(cr_src_dir)
-    print("\nDownloading PGO Profiles for Windows x64\n")
-    try_run(
-        "python3 tools/update_pgo_profiles.py --target=win64 "
-        "update --gs-url-base=chromium-optimization-profiles/pgo_profiles"
-    )
-    print("\nDownloading PGO Profiles for Windows x86\n")
-    try_run(
-        "python3 tools/update_pgo_profiles.py --target=win32 "
-        "update --gs-url-base=chromium-optimization-profiles/pgo_profiles"
-    )
-    print("\nDownloading PGO Profile for V8\n")
-    try_run(
-        "python3 v8/tools/builtins-pgo/download_profiles.py "
-        "--depot-tools=third_party/depot_tools --force download"
-    )
-
-
-if "--sse3" in sys.argv:
-    copy_sse3()
-
-
-# Copy SSE2 build files
-def copy_sse2():
-    print("\nCopying SSE2 build files\n")
-    copy(
-        os.path.normpath(os.path.join(
-            thor_src_dir, "other", "SSE2", "thor_ver")),
-        os.path.normpath(os.path.join(cr_src_dir, "out", "mcloud")),
-    )
-    copy(
-        os.path.normpath(os.path.join(thor_src_dir, "other", "SSE2", "mcloud_version.txt")),
-        os.path.normpath(os.path.join(cr_src_dir, "ui", "webui", "resources", "text")),
-    )
-    os.chdir(cr_src_dir)
-    print("\nDownloading PGO Profiles for Windows x86\n")
-    try_run(
-        "python3 tools/update_pgo_profiles.py --target=win32 "
-        "update --gs-url-base=chromium-optimization-profiles/pgo_profiles"
-    )
-    print("\nDownloading PGO Profile for V8\n")
-    try_run(
-        "python3 v8/tools/builtins-pgo/download_profiles.py "
-        "--depot-tools=third_party/depot_tools --force download"
-    )
-
-
-if "--sse2" in sys.argv:
-    copy_sse2()
-
-    print("\nPatching ANGLE for SSE2\n")
-    copy(
-        os.path.normpath(
-            os.path.join(thor_src_dir, "other", "SSE2", "angle-lockfree.patch")
-        ),
-        os.path.normpath(os.path.join(
-            cr_src_dir, "third_party", "angle", "src")),
-    )
-
-    # Change directory to angle_dir and run commands
-    angle_dir = os.path.join(cr_src_dir, "third_party", "angle", "src")
-    os.chdir(angle_dir)
-    try_run(f"git apply --reject angle-lockfree.patch")
+# SSE4.1/SSE3/SSE2 build variants removed: deprecated per spec 1.5
+# (AVX2+FMA3 is the only release baseline; see performance-build-technical-spec.md).
 
 
 print("\nDone!\n")

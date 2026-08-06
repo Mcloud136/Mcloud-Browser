@@ -2,7 +2,7 @@
 
 ## 项目简介
 
-MCloud Browser 是基于 Chromium 的高性能 Windows 浏览器，通过 AVX2 原生编译和 60+ 项深度性能优化提供极致流畅体验。
+MCloud Browser 是基于 Chromium 的高性能 Windows 浏览器，通过 AVX2 原生编译和 52 项运行时优化标志（`mcloud_flags.txt`，启动时内置加载）+ 编译时优化栈提供极致流畅体验。
 
 ## 技术栈
 
@@ -44,7 +44,7 @@ Mcloud-Browser/                      # 项目根目录
 │   ├── superpowers/specs/           # 设计规格文档
 │   └── superpowers/plans/           # 实施计划文档
 ├── win_args_mcloud.gn               # Windows AVX2 构建配置
-├── mcloud_flags.txt                 # 启动标志配置
+├── mcloud_flags.txt                 # 启动标志配置（由 chrome_main_delegate.cc 内置加载，见规范 4.1）
 ├── README.md                        # 项目说明
 ├── LICENSE.md                       # MIT 许可证
 └── .claude/                         # Claude 开发辅助
@@ -139,8 +139,8 @@ use_fma = true
 
 # 编译器优化
 is_full_optimization_build = true   # -O3
-use_polly = true                    # LLVM Polly
-use_bolt = true                     # BOLT 二进制布局
+use_polly = false                   # 接线已修复但需先自建含 Polly 的 clang（规范 2.6）
+use_bolt = false                    # 接线已修复但 BOLT 后链接流程未落地（规范 10.1）
 use_thin_lto = true                 # ThinLTO
 
 # V8 优化
@@ -159,7 +159,7 @@ enable_vulkan = false               # Windows 使用 D3D12
 
 # Windows
 win_enable_cfg_guards = true
-enable_rlz = false                  # 禁用 Google 追踪
+enable_rlz = true                   # 与 win_args_mcloud.gn 口径一致，决策见 docs/decisions/ADR-001
 ```
 
 ## GitHub 仓库

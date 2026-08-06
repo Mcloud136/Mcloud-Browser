@@ -74,12 +74,13 @@ index 5f9acdb7f3550..c492fa4e569b6 100644
  process_version_rc_template("version") {
    template_file = "mini_installer_exe_version.rc.version"
    output = "$root_out_dir/mini_installer_exe_version.rc"
-@@ -147,7 +185,7 @@ action("mini_installer_archive") {
+@@ -147,7 +185,8 @@ action("mini_installer_archive") {
    inputs = [
      "$root_out_dir/chrome.dll",
      "$root_out_dir/chrome_elf.dll",
 -    "$root_out_dir/chrome.exe",
 +    "$root_out_dir/mcloud.exe",
++    "$root_out_dir/mcloud_flags.txt",
      "$root_out_dir/locales/en-US.pak",
      "$root_out_dir/setup.exe",
      "//chrome/tools/build/win/makecab.py",
@@ -930,13 +931,14 @@ index 317e77e81c040..7864422d46333 100644
  #include "chrome/install_static/buildflags.h"
  #include "chrome/install_static/install_details.h"
  #include "chrome/install_static/install_modes.h"
-@@ -79,6 +82,10 @@ namespace installer {
+@@ -79,6 +82,11 @@ namespace installer {
  
  namespace {
  
 +// Mcloud Browser Application dir files
 +const wchar_t kInitPref[] = L"initial_preferences";
 +const wchar_t kThorVer[] = L"thor_ver";
++const wchar_t kMcloudFlags[] = L"mcloud_flags.txt";
 +
  void AddInstallerCopyTasks(const InstallParams& install_params,
                             WorkItemList* install_list) {
@@ -1000,7 +1002,7 @@ index 317e77e81c040..7864422d46333 100644
    if (current_version.IsValid()) {
      // TODO(crbug.com/441478433): Delete this cleanup some time in 2027.
      // Delete the archive from an existing install to save some disk space.
-@@ -234,6 +286,14 @@ void AddChromeWorkItems(const InstallParams& install_params,
+@@ -234,6 +287,18 @@ void AddChromeWorkItems(const InstallParams& install_params,
                                      temp_path, WorkItem::NEW_NAME_IF_IN_USE,
                                      new_chrome_exe);
  
@@ -1010,6 +1012,10 @@ index 317e77e81c040..7864422d46333 100644
 +                                    temp_path, WorkItem::ALWAYS);
 +  install_list->AddCopyTreeWorkItem(src_path.Append(kThorVer),
 +                                    target_path.Append(kThorVer),
++                                    temp_path, WorkItem::ALWAYS);
++  // 内置性能启动标志（规范 4.1.1，chrome_main_delegate.cc 启动时加载）
++  install_list->AddCopyTreeWorkItem(src_path.Append(kMcloudFlags),
++                                    target_path.Append(kMcloudFlags),
 +                                    temp_path, WorkItem::ALWAYS);
 +
    // Install kVisualElementsManifest if it is present in |src_path|. No need to

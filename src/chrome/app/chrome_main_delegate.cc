@@ -10,6 +10,7 @@
 #include <variant>
 
 #include "base/base_paths.h"
+#include "base/base_switches.h"
 #include "base/check.h"
 #include "base/command_line.h"
 #include "base/compiler_specific.h"
@@ -29,6 +30,7 @@
 #include "base/process/process.h"
 #include "base/process/process_handle.h"
 #include "base/profiler/thread_group_profiler.h"
+#include "base/strings/string_split.h"
 #include "base/strings/string_util.h"
 #include "base/strings/sys_string_conversions.h"
 #include "base/strings/utf_string_conversions.h"
@@ -233,6 +235,66 @@ const size_t ChromeMainDelegate::kNonWildcardDomainNonPortSchemesSize =
     std::size(kNonWildcardDomainNonPortSchemes);
 
 namespace {
+
+// --- MCloud Browser: 内置性能启动标志 (mcloud_flags.txt) ---
+// 从可执行文件同目录加载 `mcloud_flags.txt`，将其中每行一个的启动标志追加到
+// 当前进程命令行。用户命令行已有同名标志时以用户为准（普通标志跳过；
+// enable/disable-features 合并且用户条目在后、优先级更高）。
+// 见 docs/architecture/performance-build-technical-spec.md 第 4.1.1 条。
+void LoadMcloudPerformanceFlags() {
+  base::FilePath exe_dir;
+  if (!base::PathService::Get(base::DIR_EXE, &exe_dir)) {
+    return;
+  }
+  const base::FilePath flags_path = exe_dir.AppendASCII("mcloud_flags.txt");
+  std::string contents;
+  if (!base::ReadFileToString(flags_path, &contents)) {
+    return;
+  }
+
+  base::CommandLine* command_line = base::CommandLine::ForCurrentProcess();
+
+  for (base::StringPiece line : base::SplitStringPiece(
+           contents, "\n", base::TRIM_WHITESPACE, base::SPLIT_SKIP_EMPTY)) {
+    // 跳过空行与注释行。
+    if (line.empty() || line[0] == '#') {
+      continue;
+    }
+    if (!base::StartsWith(line, "--", base::CompareCase::SENSITIVE)) {
+      continue;
+    }
+
+    std::string switch_name;
+    std::string value;
+    size_t equals = line.find('=');
+    if (equals != std::string::npos) {
+      switch_name.assign(line.data() + 2, equals - 2);
+      value.assign(line.data() + equals + 1, line.size() - equals - 1);
+      // 去除成对双引号（支持 --js-flags="... ..." 这类含空格的值）。
+      if (value.size() >= 2 && value.front() == '"' && value.back() == '"') {
+        value = value.substr(1, value.size() - 2);
+      }
+    } else {
+      switch_name.assign(line.data() + 2, line.size() - 2);
+    }
+    if (switch_name.empty()) {
+      continue;
+    }
+
+    if (switch_name == switches::kEnableFeatures ||
+        switch_name == switches::kDisableFeatures) {
+      // 合并 feature 列表：内置项在前，用户项在后（同名带参条目以用户为准）。
+      std::string merged = value;
+      if (command_line->HasSwitch(switch_name)) {
+        merged += "," + command_line->GetSwitchValueASCII(switch_name);
+      }
+      command_line->AppendSwitchASCII(switch_name, merged);
+    } else if (!command_line->HasSwitch(switch_name)) {
+      command_line->AppendSwitchASCII(switch_name, value);
+    }
+  }
+}
+// --- MCloud Browser: end ---
 
 #if BUILDFLAG(IS_WIN)
 // Early versions of Chrome incorrectly registered a chromehtml: URL handler,
@@ -1046,6 +1108,9 @@ std::optional<int> ChromeMainDelegate::BasicStartupComplete() {
 #if BUILDFLAG(IS_CHROMEOS)
   ash::BootTimesRecorder::Get()->SaveChromeMainStats();
 #endif
+
+  // MCloud Browser: 内置性能启动标志，须在 feature 解析前注入命令行。
+  LoadMcloudPerformanceFlags();
 
   const base::CommandLine& command_line =
       *base::CommandLine::ForCurrentProcess();

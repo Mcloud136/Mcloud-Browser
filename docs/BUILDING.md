@@ -222,11 +222,13 @@ $ out/mcloud/mcloud
 
 ## Installing Mcloud Browser
 
-Of course, you will probably want to make installation packages. To make .deb and .rpm packages run `package.sh` (where the # is the number of jobs) in the root of the repo:
+Of course, you will probably want to make installation packages. The `build.sh` script in the root of the repo builds the browser **and** the .deb/.rpm packages in one pass (where the # is the number of jobs):
 
 ```shell
-$ ./package.sh 8
+$ ./build.sh 8
 ```
+
+*(Note: older docs referenced a separate `package.sh`; packaging is now integrated into `build.sh`, which runs the `chrome/installer/linux:stable_deb` and `stable_rpm` targets after the main build.)*
 To make an appimage, copy the .deb to `//mcloud/infra/APPIMAGE/`
 and follow the [Instructions](https://github.com/Alex313031/mcloud/blob/main/infra/APPIMAGE/README.md#instructions) therein.
 
