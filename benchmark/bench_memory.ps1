@@ -16,7 +16,8 @@ param(
     [int]$SettleSeconds = 90,
     [int]$Samples = 5,
     [int]$SampleInterval = 5,
-    [string]$UrlsFile = ""
+    [string]$UrlsFile = "",
+    [string]$ExtraFlags = ""
 )
 
 $ErrorActionPreference = "Stop"
@@ -46,7 +47,9 @@ function Get-Median([double[]]$values) {
 $userDataDir = Join-Path $env:TEMP "mcloud_bench_k2_$PID"
 if (Test-Path $userDataDir) { Remove-Item -Recurse -Force $userDataDir }
 
-$chromeArgs = @("--user-data-dir=$userDataDir", "--no-first-run", "--no-default-browser-check") + $targets
+$chromeArgs = @("--user-data-dir=$userDataDir", "--no-first-run", "--no-default-browser-check")
+if ($ExtraFlags) { $chromeArgs += $ExtraFlags -split '\s+' }
+$chromeArgs += $targets
 $proc = Start-Process -FilePath $ChromeExe -ArgumentList $chromeArgs -PassThru
 
 Write-Host ("驻留 {0} 秒等待稳定..." -f $SettleSeconds)

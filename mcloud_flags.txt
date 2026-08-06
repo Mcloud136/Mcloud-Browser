@@ -52,7 +52,33 @@
 --enable-features=SpeculationRules
 
 # --- V8 JavaScript Optimization ---
---js-flags="--invocation-count-for-maglev=500 --invocation-count-for-turbofan=1500"
+# V8 flag 命名使用下划线（M151 确认）；阈值低于默认值以更快进入 JIT
+# （默认：maglev=400、turbofan=3000；旧连字符写法在 M151 不生效）
+--js-flags="--invocation_count_for_maglev=200 --invocation_count_for_turbofan=1500 --osr-from-maglev --sparkplug-plus"
+
+# --- Startup Preload/Warmup ---
+# 已移除（数据驱动，2026-08-06）：MultipleSpareRPHs、LoadingPredictorPrefetch、
+# NewTabPageTriggerForPrerender2——真实站点 50 标签内存代价 -125MB，导航收益不稳定，
+# 见 docs/dev-logs/M151-opt-benchmark.md 预载收益验证章节
+--enable-features=Prerender2WarmUpCompositorForNewTabPage
+--enable-features=Prerender2WarmUpCompositorForBookmarkBar
+--enable-features=LoadingPreconnectToRedirectTarget
+--enable-features=PreloadTopChromeWebUI
+--enable-features=BookmarkTriggerForPreconnect
+
+# --- Script/Loading Speed ---
+# 已移除 LoadingPredictorPrefetch（内存代价大、收益依赖预测命中率，见上方说明）
+--enable-features=ThreadedPreloadScanner
+--enable-features=ConsumeCodeCacheOffThread
+--enable-features=InlineScriptCache
+--enable-features=PreloadSystemFonts
+--enable-features=HttpDiskCachePrewarming
+--enable-features=LCPPAutoPreconnectLcpOrigin
+
+# --- MSE/Video Buffer (Bilibili/YouTube) ---
+--enable-features=RevokeMediaSourceObjectURLOnAttach
+--enable-features=ReduceHardwareVideoDecoderBuffers
+--enable-features=BackForwardCacheDWCOnJavaScriptExecution
 
 # --- GPU Optimization ---
 --enable-features=GpuShaderDiskCache
