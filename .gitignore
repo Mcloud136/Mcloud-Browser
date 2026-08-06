@@ -28,3 +28,7 @@ Thorium_squashfs-root
 .qoder/
 __pycache__/
 *.pyc
+
+# M151+ 发布产物命名格式（ADR-003）
+mcloud_*_win64_mini_installer.exe
+mcloud_*_win64_mini_installer.exe.sha256
