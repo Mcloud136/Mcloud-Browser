@@ -1,16 +1,17 @@
 # GPU 兼容性处理
 
-<cite>
-**本文引用的文件**
-- [mcloud_flags.txt](file://mcloud_flags.txt)
-- [gpu_pre_sandbox_hook_linux.cc](file://src/content/common/gpu_pre_sandbox_hook_linux.cc)
-- [media_switches.cc](file://src/media/base/media_switches.cc)
-- [diag_igpu_green_screen.ps1](file://benchmark/tools/diag_igpu_green_screen.ps1)
-- [check_features.py](file://benchmark/tools/check_features.py)
-- [about_flags.cc](file://src/chrome/browser/about_flags.cc)
-- [win_args.list](file://infra/win_args.list)
-- [gn_args.list](file://infra/gn_args.list)
-</cite>
+<details><summary>本文引用的文件</summary>
+
+- [mcloud_flags.txt](https://github.com/Mcloud136/Mcloud-Browser/blob/main/mcloud_flags.txt)
+- [gpu_pre_sandbox_hook_linux.cc](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/content/common/gpu_pre_sandbox_hook_linux.cc)
+- [media_switches.cc](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/media/base/media_switches.cc)
+- [diag_igpu_green_screen.ps1](https://github.com/Mcloud136/Mcloud-Browser/blob/main/benchmark/tools/diag_igpu_green_screen.ps1)
+- [check_features.py](https://github.com/Mcloud136/Mcloud-Browser/blob/main/benchmark/tools/check_features.py)
+- [about_flags.cc](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/about_flags.cc)
+- [win_args.list](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/win_args.list)
+- [gn_args.list](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/gn_args.list)
+
+</details>
 
 ## 目录
 1. [简介](#简介)
@@ -46,18 +47,18 @@ H["Feature 校验<br/>check_features.py"] --> B
 ```
 
 **图示来源**
-- [mcloud_flags.txt:83-88](file://mcloud_flags.txt#L83-L88)
-- [media_switches.cc:742-776](file://src/media/base/media_switches.cc#L742-L776)
-- [gpu_pre_sandbox_hook_linux.cc:628-702](file://src/content/common/gpu_pre_sandbox_hook_linux.cc#L628-L702)
-- [diag_igpu_green_screen.ps1:40-56](file://benchmark/tools/diag_igpu_green_screen.ps1#L40-L56)
-- [check_features.py:1-21](file://benchmark/tools/check_features.py#L1-L21)
+- [mcloud_flags.txt:83-88](https://github.com/Mcloud136/Mcloud-Browser/blob/main/mcloud_flags.txt#L83-L88)
+- [media_switches.cc:742-776](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/media/base/media_switches.cc#L742-L776)
+- [gpu_pre_sandbox_hook_linux.cc:628-702](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/content/common/gpu_pre_sandbox_hook_linux.cc#L628-L702)
+- [diag_igpu_green_screen.ps1:40-56](https://github.com/Mcloud136/Mcloud-Browser/blob/main/benchmark/tools/diag_igpu_green_screen.ps1#L40-L56)
+- [check_features.py:1-21](https://github.com/Mcloud136/Mcloud-Browser/blob/main/benchmark/tools/check_features.py#L1-L21)
 
 **章节来源**
-- [mcloud_flags.txt:83-88](file://mcloud_flags.txt#L83-L88)
-- [media_switches.cc:742-776](file://src/media/base/media_switches.cc#L742-L776)
-- [gpu_pre_sandbox_hook_linux.cc:628-702](file://src/content/common/gpu_pre_sandbox_hook_linux.cc#L628-L702)
-- [diag_igpu_green_screen.ps1:40-56](file://benchmark/tools/diag_igpu_green_screen.ps1#L40-L56)
-- [check_features.py:1-21](file://benchmark/tools/check_features.py#L1-L21)
+- [mcloud_flags.txt:83-88](https://github.com/Mcloud136/Mcloud-Browser/blob/main/mcloud_flags.txt#L83-L88)
+- [media_switches.cc:742-776](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/media/base/media_switches.cc#L742-L776)
+- [gpu_pre_sandbox_hook_linux.cc:628-702](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/content/common/gpu_pre_sandbox_hook_linux.cc#L628-L702)
+- [diag_igpu_green_screen.ps1:40-56](https://github.com/Mcloud136/Mcloud-Browser/blob/main/benchmark/tools/diag_igpu_green_screen.ps1#L40-L56)
+- [check_features.py:1-21](https://github.com/Mcloud136/Mcloud-Browser/blob/main/benchmark/tools/check_features.py#L1-L21)
 
 ## 核心组件
 - 启动期特性与降级策略
@@ -73,12 +74,12 @@ H["Feature 校验<br/>check_features.py"] --> B
   - check_features.py 校验 mcloud_flags.txt 中的 feature 名称在当前源码树中是否仍然有效，防止上游变更导致的失效。
 
 **章节来源**
-- [mcloud_flags.txt:83-88](file://mcloud_flags.txt#L83-L88)
-- [about_flags.cc:196-210](file://src/chrome/browser/about_flags.cc#L196-L210)
-- [gpu_pre_sandbox_hook_linux.cc:253-350](file://src/content/common/gpu_pre_sandbox_hook_linux.cc#L253-L350)
-- [media_switches.cc:742-776](file://src/media/base/media_switches.cc#L742-L776)
-- [diag_igpu_green_screen.ps1:40-56](file://benchmark/tools/diag_igpu_green_screen.ps1#L40-L56)
-- [check_features.py:1-21](file://benchmark/tools/check_features.py#L1-L21)
+- [mcloud_flags.txt:83-88](https://github.com/Mcloud136/Mcloud-Browser/blob/main/mcloud_flags.txt#L83-L88)
+- [about_flags.cc:196-210](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/about_flags.cc#L196-L210)
+- [gpu_pre_sandbox_hook_linux.cc:253-350](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/content/common/gpu_pre_sandbox_hook_linux.cc#L253-L350)
+- [media_switches.cc:742-776](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/media/base/media_switches.cc#L742-L776)
+- [diag_igpu_green_screen.ps1:40-56](https://github.com/Mcloud136/Mcloud-Browser/blob/main/benchmark/tools/diag_igpu_green_screen.ps1#L40-L56)
+- [check_features.py:1-21](https://github.com/Mcloud136/Mcloud-Browser/blob/main/benchmark/tools/check_features.py#L1-L21)
 
 ## 架构总览
 下图展示了从浏览器启动到 GPU 进程初始化的关键路径，以及不同厂商驱动的分支与权限装配过程。
@@ -101,10 +102,10 @@ Note over App,Dev : 根据厂商/平台差异动态装配
 ```
 
 **图示来源**
-- [mcloud_flags.txt:83-88](file://mcloud_flags.txt#L83-L88)
-- [about_flags.cc:196-210](file://src/chrome/browser/about_flags.cc#L196-L210)
-- [media_switches.cc:742-776](file://src/media/base/media_switches.cc#L742-L776)
-- [gpu_pre_sandbox_hook_linux.cc:628-702](file://src/content/common/gpu_pre_sandbox_hook_linux.cc#L628-L702)
+- [mcloud_flags.txt:83-88](https://github.com/Mcloud136/Mcloud-Browser/blob/main/mcloud_flags.txt#L83-L88)
+- [about_flags.cc:196-210](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/about_flags.cc#L196-L210)
+- [media_switches.cc:742-776](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/media/base/media_switches.cc#L742-L776)
+- [gpu_pre_sandbox_hook_linux.cc:628-702](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/content/common/gpu_pre_sandbox_hook_linux.cc#L628-L702)
 
 ## 详细组件分析
 
@@ -135,12 +136,12 @@ Standard --> End
 ```
 
 **图示来源**
-- [gpu_pre_sandbox_hook_linux.cc:628-702](file://src/content/common/gpu_pre_sandbox_hook_linux.cc#L628-L702)
-- [gpu_pre_sandbox_hook_linux.cc:253-350](file://src/content/common/gpu_pre_sandbox_hook_linux.cc#L253-L350)
+- [gpu_pre_sandbox_hook_linux.cc:628-702](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/content/common/gpu_pre_sandbox_hook_linux.cc#L628-L702)
+- [gpu_pre_sandbox_hook_linux.cc:253-350](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/content/common/gpu_pre_sandbox_hook_linux.cc#L253-L350)
 
 **章节来源**
-- [gpu_pre_sandbox_hook_linux.cc:628-702](file://src/content/common/gpu_pre_sandbox_hook_linux.cc#L628-L702)
-- [gpu_pre_sandbox_hook_linux.cc:253-350](file://src/content/common/gpu_pre_sandbox_hook_linux.cc#L253-L350)
+- [gpu_pre_sandbox_hook_linux.cc:628-702](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/content/common/gpu_pre_sandbox_hook_linux.cc#L628-L702)
+- [gpu_pre_sandbox_hook_linux.cc:253-350](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/content/common/gpu_pre_sandbox_hook_linux.cc#L253-L350)
 
 ### 组件二：媒体子系统特性与厂商限制
 媒体子系统通过特性开关控制不同平台的硬件加速路径，并对存在已知问题的组合进行默认禁用或限制。
@@ -162,12 +163,12 @@ MediaSwitches --> FeatureFlag : "定义与默认值"
 ```
 
 **图示来源**
-- [media_switches.cc:742-776](file://src/media/base/media_switches.cc#L742-L776)
-- [media_switches.cc:1246-1268](file://src/media/base/media_switches.cc#L1246-L1268)
+- [media_switches.cc:742-776](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/media/base/media_switches.cc#L742-L776)
+- [media_switches.cc:1246-1268](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/media/base/media_switches.cc#L1246-L1268)
 
 **章节来源**
-- [media_switches.cc:742-776](file://src/media/base/media_switches.cc#L742-L776)
-- [media_switches.cc:1246-1268](file://src/media/base/media_switches.cc#L1246-L1268)
+- [media_switches.cc:742-776](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/media/base/media_switches.cc#L742-L776)
+- [media_switches.cc:1246-1268](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/media/base/media_switches.cc#L1246-L1268)
 
 ### 组件三：Windows 核显绿屏/花屏二分定位工具
 该工具通过四组受控启动参数逐步排除问题层级，帮助定位 DirectComposition overlay、D3D12 解码器输出、硬件 overlay 平面（MPO）等问题。
@@ -189,10 +190,10 @@ Check4 --> |否| Fix4["解码器首帧初始化问题，抓日志分析"]
 ```
 
 **图示来源**
-- [diag_igpu_green_screen.ps1:40-56](file://benchmark/tools/diag_igpu_green_screen.ps1#L40-L56)
+- [diag_igpu_green_screen.ps1:40-56](https://github.com/Mcloud136/Mcloud-Browser/blob/main/benchmark/tools/diag_igpu_green_screen.ps1#L40-L56)
 
 **章节来源**
-- [diag_igpu_green_screen.ps1:40-56](file://benchmark/tools/diag_igpu_green_screen.ps1#L40-L56)
+- [diag_igpu_green_screen.ps1:40-56](https://github.com/Mcloud136/Mcloud-Browser/blob/main/benchmark/tools/diag_igpu_green_screen.ps1#L40-L56)
 
 ### 组件四：Feature 清单有效性校验
 用于在升级上游 Chromium 源码后，自动校验 mcloud_flags.txt 中的 feature 名称是否仍然存在，避免构建或运行期因 feature 缺失导致的问题。
@@ -207,10 +208,10 @@ Report --> |否| Exit0["退出码 0，全部有效"]
 ```
 
 **图示来源**
-- [check_features.py:1-21](file://benchmark/tools/check_features.py#L1-L21)
+- [check_features.py:1-21](https://github.com/Mcloud136/Mcloud-Browser/blob/main/benchmark/tools/check_features.py#L1-L21)
 
 **章节来源**
-- [check_features.py:1-21](file://benchmark/tools/check_features.py#L1-L21)
+- [check_features.py:1-21](https://github.com/Mcloud136/Mcloud-Browser/blob/main/benchmark/tools/check_features.py#L1-L21)
 
 ## 依赖关系分析
 - 启动期特性与媒体特性的耦合
@@ -230,20 +231,20 @@ Build["win_args.list / gn_args.list"] --> Runtime
 ```
 
 **图示来源**
-- [mcloud_flags.txt:83-88](file://mcloud_flags.txt#L83-L88)
-- [media_switches.cc:742-776](file://src/media/base/media_switches.cc#L742-L776)
-- [about_flags.cc:196-210](file://src/chrome/browser/about_flags.cc#L196-L210)
-- [gpu_pre_sandbox_hook_linux.cc:628-702](file://src/content/common/gpu_pre_sandbox_hook_linux.cc#L628-L702)
-- [win_args.list:211-241](file://infra/win_args.list#L211-L241)
-- [gn_args.list:2756-2797](file://infra/gn_args.list#L2756-L2797)
+- [mcloud_flags.txt:83-88](https://github.com/Mcloud136/Mcloud-Browser/blob/main/mcloud_flags.txt#L83-L88)
+- [media_switches.cc:742-776](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/media/base/media_switches.cc#L742-L776)
+- [about_flags.cc:196-210](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/about_flags.cc#L196-L210)
+- [gpu_pre_sandbox_hook_linux.cc:628-702](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/content/common/gpu_pre_sandbox_hook_linux.cc#L628-L702)
+- [win_args.list:211-241](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/win_args.list#L211-L241)
+- [gn_args.list:2756-2797](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/gn_args.list#L2756-L2797)
 
 **章节来源**
-- [mcloud_flags.txt:83-88](file://mcloud_flags.txt#L83-L88)
-- [media_switches.cc:742-776](file://src/media/base/media_switches.cc#L742-L776)
-- [about_flags.cc:196-210](file://src/chrome/browser/about_flags.cc#L196-L210)
-- [gpu_pre_sandbox_hook_linux.cc:628-702](file://src/content/common/gpu_pre_sandbox_hook_linux.cc#L628-L702)
-- [win_args.list:211-241](file://infra/win_args.list#L211-L241)
-- [gn_args.list:2756-2797](file://infra/gn_args.list#L2756-L2797)
+- [mcloud_flags.txt:83-88](https://github.com/Mcloud136/Mcloud-Browser/blob/main/mcloud_flags.txt#L83-L88)
+- [media_switches.cc:742-776](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/media/base/media_switches.cc#L742-L776)
+- [about_flags.cc:196-210](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/about_flags.cc#L196-L210)
+- [gpu_pre_sandbox_hook_linux.cc:628-702](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/content/common/gpu_pre_sandbox_hook_linux.cc#L628-L702)
+- [win_args.list:211-241](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/win_args.list#L211-L241)
+- [gn_args.list:2756-2797](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/gn_args.list#L2756-L2797)
 
 ## 性能考量
 - 冷启动与渲染效率
@@ -268,10 +269,10 @@ Build["win_args.list / gn_args.list"] --> Runtime
   - 记录 GPU 型号、驱动版本、HwSchMode 等信息，便于回归与对比。
 
 **章节来源**
-- [mcloud_flags.txt:83-88](file://mcloud_flags.txt#L83-L88)
-- [about_flags.cc:196-210](file://src/chrome/browser/about_flags.cc#L196-L210)
-- [diag_igpu_green_screen.ps1:40-56](file://benchmark/tools/diag_igpu_green_screen.ps1#L40-L56)
-- [check_features.py:1-21](file://benchmark/tools/check_features.py#L1-L21)
+- [mcloud_flags.txt:83-88](https://github.com/Mcloud136/Mcloud-Browser/blob/main/mcloud_flags.txt#L83-L88)
+- [about_flags.cc:196-210](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/about_flags.cc#L196-L210)
+- [diag_igpu_green_screen.ps1:40-56](https://github.com/Mcloud136/Mcloud-Browser/blob/main/benchmark/tools/diag_igpu_green_screen.ps1#L40-L56)
+- [check_features.py:1-21](https://github.com/Mcloud136/Mcloud-Browser/blob/main/benchmark/tools/check_features.py#L1-L21)
 
 ## 结论
 本项目通过启动期特性开关、Linux GPU 沙箱前初始化与厂商适配、媒体子系统特性控制以及配套的诊断工具，形成了较为完整的 GPU 兼容性处理体系。针对 NVIDIA、Intel、AMD 等不同厂商的驱动差异，采用默认安全策略与可配置开关相结合的方式，既保证稳定性又保留灵活性。配合二分定位与 feature 校验工具，可有效缩短问题定位时间并降低回归风险。

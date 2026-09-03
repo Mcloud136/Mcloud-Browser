@@ -1,15 +1,16 @@
 # macOS DMG 包制作
 
-<cite>
-**本文引用的文件**
-- [create_dmg.sh](file://create_dmg.sh)
-- [build_mac.sh](file://build_mac.sh)
-- [BUILDING_MAC.md](file://docs/BUILDING_MAC.md)
-- [mac_args.gn](file://other/Mac/mac_args.gn)
-- [mac_ARM_args.gn](file://other/Mac/mac_ARM_args.gn)
-- [README.md](file://other/Mac/README.md)
-- [build_dmg_cr.sh](file://infra/build_dmg_cr.sh)
-</cite>
+<details><summary>本文引用的文件</summary>
+
+- [create_dmg.sh](https://github.com/Mcloud136/Mcloud-Browser/blob/main/create_dmg.sh)
+- [build_mac.sh](https://github.com/Mcloud136/Mcloud-Browser/blob/main/build_mac.sh)
+- [BUILDING_MAC.md](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/BUILDING_MAC.md)
+- [mac_args.gn](https://github.com/Mcloud136/Mcloud-Browser/blob/main/other/Mac/mac_args.gn)
+- [mac_ARM_args.gn](https://github.com/Mcloud136/Mcloud-Browser/blob/main/other/Mac/mac_ARM_args.gn)
+- [README.md](https://github.com/Mcloud136/Mcloud-Browser/blob/main/other/Mac/README.md)
+- [build_dmg_cr.sh](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/build_dmg_cr.sh)
+
+</details>
 
 ## 目录
 1. [简介](#简介)
@@ -50,13 +51,13 @@ F --> G["最终产物<br/>Mcloud Browser_MacOS.dmg"]
 ```
 
 图表来源
-- [build_mac.sh:63-83](file://build_mac.sh#L63-L83)
-- [create_dmg.sh:31-40](file://create_dmg.sh#L31-L40)
+- [build_mac.sh:63-83](https://github.com/Mcloud136/Mcloud-Browser/blob/main/build_mac.sh#L63-L83)
+- [create_dmg.sh:31-40](https://github.com/Mcloud136/Mcloud-Browser/blob/main/create_dmg.sh#L31-L40)
 
 章节来源
-- [build_mac.sh:1-84](file://build_mac.sh#L1-L84)
-- [create_dmg.sh:1-47](file://create_dmg.sh#L1-L47)
-- [BUILDING_MAC.md:150-178](file://docs/BUILDING_MAC.md#L150-L178)
+- [build_mac.sh:1-84](https://github.com/Mcloud136/Mcloud-Browser/blob/main/build_mac.sh#L1-L84)
+- [create_dmg.sh:1-47](https://github.com/Mcloud136/Mcloud-Browser/blob/main/create_dmg.sh#L1-L47)
+- [BUILDING_MAC.md:150-178](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/BUILDING_MAC.md#L150-L178)
 
 ## 核心组件
 - 构建阶段
@@ -69,10 +70,10 @@ F --> G["最终产物<br/>Mcloud Browser_MacOS.dmg"]
   - x64 与 ARM64 分别使用 mac_args.gn 与 mac_ARM_args.gn 控制目标 CPU、SIMD、媒体能力、Widevine、LTO、PGO 等。
 
 章节来源
-- [build_mac.sh:63-83](file://build_mac.sh#L63-L83)
-- [create_dmg.sh:31-40](file://create_dmg.sh#L31-L40)
-- [mac_args.gn:1-90](file://other/Mac/mac_args.gn#L1-L90)
-- [mac_ARM_args.gn:1-83](file://other/Mac/mac_ARM_args.gn#L1-L83)
+- [build_mac.sh:63-83](https://github.com/Mcloud136/Mcloud-Browser/blob/main/build_mac.sh#L63-L83)
+- [create_dmg.sh:31-40](https://github.com/Mcloud136/Mcloud-Browser/blob/main/create_dmg.sh#L31-L40)
+- [mac_args.gn:1-90](https://github.com/Mcloud136/Mcloud-Browser/blob/main/other/Mac/mac_args.gn#L1-L90)
+- [mac_ARM_args.gn:1-83](https://github.com/Mcloud136/Mcloud-Browser/blob/main/other/Mac/mac_ARM_args.gn#L1-L83)
 
 ## 架构总览
 下图展示了从源码到可分发 DMG 的完整流水线，包括构建、签名、打包与产物输出。
@@ -96,8 +97,8 @@ Pkg-->>Out : 产出 *_MacOS.dmg
 ```
 
 图表来源
-- [build_mac.sh:63-83](file://build_mac.sh#L63-L83)
-- [create_dmg.sh:31-40](file://create_dmg.sh#L31-L40)
+- [build_mac.sh:63-83](https://github.com/Mcloud136/Mcloud-Browser/blob/main/build_mac.sh#L63-L83)
+- [create_dmg.sh:31-40](https://github.com/Mcloud136/Mcloud-Browser/blob/main/create_dmg.sh#L31-L40)
 
 ## 详细组件分析
 
@@ -111,8 +112,8 @@ Pkg-->>Out : 产出 *_MacOS.dmg
   - 输出位置：out/mcloud。
 
 章节来源
-- [build_mac.sh:30-49](file://build_mac.sh#L30-L49)
-- [build_mac.sh:63-83](file://build_mac.sh#L63-L83)
+- [build_mac.sh:30-49](https://github.com/Mcloud136/Mcloud-Browser/blob/main/build_mac.sh#L30-L49)
+- [build_mac.sh:63-83](https://github.com/Mcloud136/Mcloud-Browser/blob/main/build_mac.sh#L63-L83)
 
 ### DMG 打包脚本 create_dmg.sh
 - 功能要点
@@ -125,7 +126,7 @@ Pkg-->>Out : 产出 *_MacOS.dmg
   - 打包：chrome/installer/mac/pkg-dmg --sourcefile --source ... --target ... --symlink /Applications:/Applications --format UDBZ
 
 章节来源
-- [create_dmg.sh:18-40](file://create_dmg.sh#L18-L40)
+- [create_dmg.sh:18-40](https://github.com/Mcloud136/Mcloud-Browser/blob/main/create_dmg.sh#L18-L40)
 
 ### 参考脚本 infra/build_dmg_cr.sh
 - 作用
@@ -134,7 +135,7 @@ Pkg-->>Out : 产出 *_MacOS.dmg
   - 同样使用 xattr 清理属性、codesign 签名、pkg-dmg 生成 DMG。
 
 章节来源
-- [build_dmg_cr.sh:18-40](file://infra/build_dmg_cr.sh#L18-L40)
+- [build_dmg_cr.sh:18-40](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/build_dmg_cr.sh#L18-L40)
 
 ### 平台构建参数
 - x64 构建参数（mac_args.gn）
@@ -145,8 +146,8 @@ Pkg-->>Out : 产出 *_MacOS.dmg
   - 与 x64 类似的媒体与 Widevine 配置，针对 ARM 的 NEON 等优化。
 
 章节来源
-- [mac_args.gn:1-90](file://other/Mac/mac_args.gn#L1-L90)
-- [mac_ARM_args.gn:1-83](file://other/Mac/mac_ARM_args.gn#L1-L83)
+- [mac_args.gn:1-90](https://github.com/Mcloud136/Mcloud-Browser/blob/main/other/Mac/mac_args.gn#L1-L90)
+- [mac_ARM_args.gn:1-83](https://github.com/Mcloud136/Mcloud-Browser/blob/main/other/Mac/mac_ARM_args.gn#L1-L83)
 
 ### 文档与环境要求
 - 系统要求
@@ -157,9 +158,9 @@ Pkg-->>Out : 产出 *_MacOS.dmg
   - Xcode 许可协议、Spotlight 索引影响构建性能等。
 
 章节来源
-- [BUILDING_MAC.md:5-33](file://docs/BUILDING_MAC.md#L5-L33)
-- [BUILDING_MAC.md:150-178](file://docs/BUILDING_MAC.md#L150-L178)
-- [BUILDING_MAC.md:310-339](file://docs/BUILDING_MAC.md#L310-L339)
+- [BUILDING_MAC.md:5-33](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/BUILDING_MAC.md#L5-L33)
+- [BUILDING_MAC.md:150-178](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/BUILDING_MAC.md#L150-L178)
+- [BUILDING_MAC.md:310-339](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/BUILDING_MAC.md#L310-L339)
 
 ## 依赖关系分析
 - 构建依赖
@@ -179,13 +180,13 @@ D --> E["分发产物<br/>*.dmg"]
 ```
 
 图表来源
-- [mac_args.gn:1-90](file://other/Mac/mac_args.gn#L1-L90)
-- [mac_ARM_args.gn:1-83](file://other/Mac/mac_ARM_args.gn#L1-L83)
-- [create_dmg.sh:31-40](file://create_dmg.sh#L31-L40)
+- [mac_args.gn:1-90](https://github.com/Mcloud136/Mcloud-Browser/blob/main/other/Mac/mac_args.gn#L1-L90)
+- [mac_ARM_args.gn:1-83](https://github.com/Mcloud136/Mcloud-Browser/blob/main/other/Mac/mac_ARM_args.gn#L1-L83)
+- [create_dmg.sh:31-40](https://github.com/Mcloud136/Mcloud-Browser/blob/main/create_dmg.sh#L31-L40)
 
 章节来源
-- [BUILDING_MAC.md:5-33](file://docs/BUILDING_MAC.md#L5-L33)
-- [create_dmg.sh:31-40](file://create_dmg.sh#L31-L40)
+- [BUILDING_MAC.md:5-33](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/BUILDING_MAC.md#L5-L33)
+- [create_dmg.sh:31-40](https://github.com/Mcloud136/Mcloud-Browser/blob/main/create_dmg.sh#L31-L40)
 
 ## 性能与体积优化
 - 构建期优化
@@ -201,9 +202,9 @@ D --> E["分发产物<br/>*.dmg"]
   - 注意：上述运行时策略属于应用层优化，需结合业务模块实现。
 
 章节来源
-- [mac_args.gn:70-90](file://other/Mac/mac_args.gn#L70-L90)
-- [mac_ARM_args.gn:60-83](file://other/Mac/mac_ARM_args.gn#L60-L83)
-- [create_dmg.sh:39-40](file://create_dmg.sh#L39-L40)
+- [mac_args.gn:70-90](https://github.com/Mcloud136/Mcloud-Browser/blob/main/other/Mac/mac_args.gn#L70-L90)
+- [mac_ARM_args.gn:60-83](https://github.com/Mcloud136/Mcloud-Browser/blob/main/other/Mac/mac_ARM_args.gn#L60-L83)
+- [create_dmg.sh:39-40](https://github.com/Mcloud136/Mcloud-Browser/blob/main/create_dmg.sh#L39-L40)
 
 ## 故障排查指南
 - 常见错误与处理
@@ -216,9 +217,9 @@ D --> E["分发产物<br/>*.dmg"]
   - 使用 spctl --assess --type execute 验证 Gatekeeper 状态。
 
 章节来源
-- [create_dmg.sh:33-37](file://create_dmg.sh#L33-L37)
-- [BUILDING_MAC.md:180-193](file://docs/BUILDING_MAC.md#L180-L193)
-- [BUILDING_MAC.md:239-308](file://docs/BUILDING_MAC.md#L239-L308)
+- [create_dmg.sh:33-37](https://github.com/Mcloud136/Mcloud-Browser/blob/main/create_dmg.sh#L33-L37)
+- [BUILDING_MAC.md:180-193](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/BUILDING_MAC.md#L180-L193)
+- [BUILDING_MAC.md:239-308](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/BUILDING_MAC.md#L239-L308)
 
 ## 结论
 本项目提供了清晰的 macOS DMG 打包流水线：通过 build_mac.sh 完成构建，再由 create_dmg.sh 进行签名与 DMG 生成。x64 与 ARM64 通过独立 GN 参数管理，满足多架构需求。结合 LTO、PGO 与 UDBZ 压缩，可在保证性能的同时控制产物体积。建议在 CI 中加入签名验证、架构检查与系统版本校验，确保交付质量。
@@ -246,9 +247,9 @@ Package --> End(["结束"])
 ```
 
 图表来源
-- [mac_args.gn:1-90](file://other/Mac/mac_args.gn#L1-L90)
-- [mac_ARM_args.gn:1-83](file://other/Mac/mac_ARM_args.gn#L1-L83)
-- [create_dmg.sh:31-40](file://create_dmg.sh#L31-L40)
+- [mac_args.gn:1-90](https://github.com/Mcloud136/Mcloud-Browser/blob/main/other/Mac/mac_args.gn#L1-L90)
+- [mac_ARM_args.gn:1-83](https://github.com/Mcloud136/Mcloud-Browser/blob/main/other/Mac/mac_ARM_args.gn#L1-L83)
+- [create_dmg.sh:31-40](https://github.com/Mcloud136/Mcloud-Browser/blob/main/create_dmg.sh#L31-L40)
 
 ### 代码签名与公证流程（要求与步骤）
 - 开发者证书获取
@@ -280,8 +281,8 @@ Staple-->>User : 用户下载并运行
 ```
 
 图表来源
-- [create_dmg.sh:33-37](file://create_dmg.sh#L33-L37)
-- [build_dmg_cr.sh:33-37](file://infra/build_dmg_cr.sh#L33-L37)
+- [create_dmg.sh:33-37](https://github.com/Mcloud136/Mcloud-Browser/blob/main/create_dmg.sh#L33-L37)
+- [build_dmg_cr.sh:33-37](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/build_dmg_cr.sh#L33-L37)
 
 ### 质量保证流程清单
 - 签名验证
@@ -295,5 +296,5 @@ Staple-->>User : 用户下载并运行
   - 在 CI 中集成上述检查项，失败则阻断发布。
 
 章节来源
-- [BUILDING_MAC.md:5-33](file://docs/BUILDING_MAC.md#L5-L33)
-- [create_dmg.sh:33-37](file://create_dmg.sh#L33-L37)
+- [BUILDING_MAC.md:5-33](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/BUILDING_MAC.md#L5-L33)
+- [create_dmg.sh:33-37](https://github.com/Mcloud136/Mcloud-Browser/blob/main/create_dmg.sh#L33-L37)

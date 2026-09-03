@@ -1,14 +1,15 @@
 # GPU 渲染管线
 
-<cite>
-**本文引用的文件**
-- [gpu_pre_sandbox_hook_linux.cc](file://src/content/common/gpu_pre_sandbox_hook_linux.cc)
-- [性能优化设计文档.md](file://docs/superpowers/specs/2026-06-19-performance-optimization-design.md)
-- [win_args.list](file://infra/win_args.list)
-- [CMDLINE_FLAGS_LIST.md](file://infra/CMDLINE_FLAGS_LIST.md)
-- [BUILD.gn（content/gpu）](file://src/content/gpu/BUILD.gn)
-- [mcloud_flag_entries.h](file://src/chrome/browser/mcloud_flag_entries.h)
-</cite>
+<details><summary>本文引用的文件</summary>
+
+- [gpu_pre_sandbox_hook_linux.cc](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/content/common/gpu_pre_sandbox_hook_linux.cc)
+- [性能优化设计文档.md](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/superpowers/specs/2026-06-19-performance-optimization-design.md)
+- [win_args.list](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/win_args.list)
+- [CMDLINE_FLAGS_LIST.md](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/CMDLINE_FLAGS_LIST.md)
+- [BUILD.gn（content/gpu）](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/content/gpu/BUILD.gn)
+- [mcloud_flag_entries.h](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/mcloud_flag_entries.h)
+
+</details>
 
 ## 目录
 1. [简介](#简介)
@@ -45,11 +46,11 @@ B --- F
 ```
 
 图表来源
-- [BUILD.gn（content/gpu）:43-87](file://src/content/gpu/BUILD.gn#L43-L87)
-- [gpu_pre_sandbox_hook_linux.cc:612-715](file://src/content/common/gpu_pre_sandbox_hook_linux.cc#L612-L715)
+- [BUILD.gn（content/gpu）:43-87](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/content/gpu/BUILD.gn#L43-L87)
+- [gpu_pre_sandbox_hook_linux.cc:612-715](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/content/common/gpu_pre_sandbox_hook_linux.cc#L612-L715)
 
 章节来源
-- [BUILD.gn（content/gpu）:43-87](file://src/content/gpu/BUILD.gn#L43-L87)
+- [BUILD.gn（content/gpu）:43-87](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/content/gpu/BUILD.gn#L43-L87)
 
 ## 核心组件
 - GPU 进程与依赖装配：通过 content/gpu 的构建目标引入 viz/service、skia、angle、media/gpu 等，形成渲染与合成的基础栈
@@ -58,10 +59,10 @@ B --- F
 - 调试与追踪开关：提供 GPU 客户端/服务端日志、命令日志、服务追踪等能力，便于定位卡顿与异常
 
 章节来源
-- [BUILD.gn（content/gpu）:43-87](file://src/content/gpu/BUILD.gn#L43-L87)
-- [gpu_pre_sandbox_hook_linux.cc:612-715](file://src/content/common/gpu_pre_sandbox_hook_linux.cc#L612-L715)
-- [性能优化设计文档.md:111-121](file://docs/superpowers/specs/2026-06-19-performance-optimization-design.md#L111-L121)
-- [CMDLINE_FLAGS_LIST.md:1156-1178](file://infra/CMDLINE_FLAGS_LIST.md#L1156-L1178)
+- [BUILD.gn（content/gpu）:43-87](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/content/gpu/BUILD.gn#L43-L87)
+- [gpu_pre_sandbox_hook_linux.cc:612-715](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/content/common/gpu_pre_sandbox_hook_linux.cc#L612-L715)
+- [性能优化设计文档.md:111-121](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/superpowers/specs/2026-06-19-performance-optimization-design.md#L111-L121)
+- [CMDLINE_FLAGS_LIST.md:1156-1178](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/CMDLINE_FLAGS_LIST.md#L1156-L1178)
 
 ## 架构总览
 下图展示从 CPU 侧发起绘制到 GPU 执行的端到端路径，并标注了关键优化点（预编译、命令缓冲、资源复用）。
@@ -84,8 +85,8 @@ Skia-->>CC : 合成并提交到显示
 ```
 
 图表来源
-- [性能优化设计文档.md:111-121](file://docs/superpowers/specs/2026-06-19-performance-optimization-design.md#L111-L121)
-- [win_args.list:211-239](file://infra/win_args.list#L211-L239)
+- [性能优化设计文档.md:111-121](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/superpowers/specs/2026-06-19-performance-optimization-design.md#L111-L121)
+- [win_args.list:211-239](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/win_args.list#L211-L239)
 
 ## 详细组件分析
 
@@ -115,14 +116,14 @@ Preload --> End(["进入沙箱后继续初始化"])
 ```
 
 图表来源
-- [gpu_pre_sandbox_hook_linux.cc:253-350](file://src/content/common/gpu_pre_sandbox_hook_linux.cc#L253-L350)
-- [gpu_pre_sandbox_hook_linux.cc:301-394](file://src/content/common/gpu_pre_sandbox_hook_linux.cc#L301-L394)
-- [gpu_pre_sandbox_hook_linux.cc:498-599](file://src/content/common/gpu_pre_sandbox_hook_linux.cc#L498-L599)
-- [gpu_pre_sandbox_hook_linux.cc:612-715](file://src/content/common/gpu_pre_sandbox_hook_linux.cc#L612-L715)
+- [gpu_pre_sandbox_hook_linux.cc:253-350](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/content/common/gpu_pre_sandbox_hook_linux.cc#L253-L350)
+- [gpu_pre_sandbox_hook_linux.cc:301-394](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/content/common/gpu_pre_sandbox_hook_linux.cc#L301-L394)
+- [gpu_pre_sandbox_hook_linux.cc:498-599](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/content/common/gpu_pre_sandbox_hook_linux.cc#L498-L599)
+- [gpu_pre_sandbox_hook_linux.cc:612-715](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/content/common/gpu_pre_sandbox_hook_linux.cc#L612-L715)
 
 章节来源
-- [gpu_pre_sandbox_hook_linux.cc:253-394](file://src/content/common/gpu_pre_sandbox_hook_linux.cc#L253-L394)
-- [gpu_pre_sandbox_hook_linux.cc:498-715](file://src/content/common/gpu_pre_sandbox_hook_linux.cc#L498-L715)
+- [gpu_pre_sandbox_hook_linux.cc:253-394](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/content/common/gpu_pre_sandbox_hook_linux.cc#L253-L394)
+- [gpu_pre_sandbox_hook_linux.cc:498-715](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/content/common/gpu_pre_sandbox_hook_linux.cc#L498-L715)
 
 ### 组件B：Skia Graphite 预编译与着色器缓存
 - 作用：通过“预编译渲染管线”和“更大着色器缓存”降低首次绘制与切换材质时的编译停顿
@@ -145,10 +146,10 @@ Store --> Use
 ```
 
 图表来源
-- [性能优化设计文档.md:111-121](file://docs/superpowers/specs/2026-06-19-performance-optimization-design.md#L111-L121)
+- [性能优化设计文档.md:111-121](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/superpowers/specs/2026-06-19-performance-optimization-design.md#L111-L121)
 
 章节来源
-- [性能优化设计文档.md:111-121](file://docs/superpowers/specs/2026-06-19-performance-optimization-design.md#L111-L121)
+- [性能优化设计文档.md:111-121](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/superpowers/specs/2026-06-19-performance-optimization-design.md#L111-L121)
 
 ### 组件C：GPU 命令缓冲区优化
 - 作用：增大命令缓冲区解析切片，降低频繁切分带来的 CPU 开销；在 ANGLE/Vulkan 路径中启用自定义二级命令缓冲，提高批量化与复用效率
@@ -169,12 +170,12 @@ ANGLE-->>Skia : 返回状态
 ```
 
 图表来源
-- [性能优化设计文档.md:111-121](file://docs/superpowers/specs/2026-06-19-performance-optimization-design.md#L111-L121)
-- [win_args.list:211-239](file://infra/win_args.list#L211-L239)
+- [性能优化设计文档.md:111-121](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/superpowers/specs/2026-06-19-performance-optimization-design.md#L111-L121)
+- [win_args.list:211-239](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/win_args.list#L211-L239)
 
 章节来源
-- [性能优化设计文档.md:111-121](file://docs/superpowers/specs/2026-06-19-performance-optimization-design.md#L111-L121)
-- [win_args.list:211-239](file://infra/win_args.list#L211-L239)
+- [性能优化设计文档.md:111-121](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/superpowers/specs/2026-06-19-performance-optimization-design.md#L111-L121)
+- [win_args.list:211-239](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/win_args.list#L211-L239)
 
 ### 组件D：GPU 资源池与内存管理
 - 作用：通过“精确大小资源复用”减少分配/释放抖动，降低碎片与峰值内存
@@ -191,10 +192,10 @@ Use --> Recycle["按需回收/清理旧条目"]
 ```
 
 图表来源
-- [性能优化设计文档.md:111-121](file://docs/superpowers/specs/2026-06-19-performance-optimization-design.md#L111-L121)
+- [性能优化设计文档.md:111-121](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/superpowers/specs/2026-06-19-performance-optimization-design.md#L111-L121)
 
 章节来源
-- [性能优化设计文档.md:111-121](file://docs/superpowers/specs/2026-06-19-performance-optimization-design.md#L111-L121)
+- [性能优化设计文档.md:111-121](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/superpowers/specs/2026-06-19-performance-optimization-design.md#L111-L121)
 
 ### 组件E：多厂商 GPU 兼容性与驱动适配
 - Linux 环境下，通过沙箱前钩子为不同厂商 GPU 开放必要设备节点与库路径，并预加载对应驱动库，保证图形栈顺利初始化
@@ -206,8 +207,8 @@ Use --> Recycle["按需回收/清理旧条目"]
   - ARM/Mali：libmali、renderD* 节点、V4L2 编解码设备（ChromeOS/Chromecast）
 
 章节来源
-- [gpu_pre_sandbox_hook_linux.cc:253-394](file://src/content/common/gpu_pre_sandbox_hook_linux.cc#L253-L394)
-- [gpu_pre_sandbox_hook_linux.cc:498-599](file://src/content/common/gpu_pre_sandbox_hook_linux.cc#L498-L599)
+- [gpu_pre_sandbox_hook_linux.cc:253-394](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/content/common/gpu_pre_sandbox_hook_linux.cc#L253-L394)
+- [gpu_pre_sandbox_hook_linux.cc:498-599](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/content/common/gpu_pre_sandbox_hook_linux.cc#L498-L599)
 
 ### 组件F：性能监控与调试开关
 - 可用命令行开关（示例）：
@@ -219,7 +220,7 @@ Use --> Recycle["按需回收/清理旧条目"]
 - 用途：定位卡顿、统计 GPU 利用率、观察命令提交频率与错误
 
 章节来源
-- [CMDLINE_FLAGS_LIST.md:1156-1178](file://infra/CMDLINE_FLAGS_LIST.md#L1156-L1178)
+- [CMDLINE_FLAGS_LIST.md:1156-1178](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/CMDLINE_FLAGS_LIST.md#L1156-L1178)
 
 ## 依赖关系分析
 - content/gpu 构建目标依赖 viz/service、skia、angle、media/gpu 等，构成渲染与合成的基础
@@ -237,12 +238,12 @@ HOOK --> SYS["系统设备/库路径"]
 ```
 
 图表来源
-- [BUILD.gn（content/gpu）:43-87](file://src/content/gpu/BUILD.gn#L43-L87)
-- [gpu_pre_sandbox_hook_linux.cc:612-715](file://src/content/common/gpu_pre_sandbox_hook_linux.cc#L612-L715)
+- [BUILD.gn（content/gpu）:43-87](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/content/gpu/BUILD.gn#L43-L87)
+- [gpu_pre_sandbox_hook_linux.cc:612-715](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/content/common/gpu_pre_sandbox_hook_linux.cc#L612-L715)
 
 章节来源
-- [BUILD.gn（content/gpu）:43-87](file://src/content/gpu/BUILD.gn#L43-L87)
-- [gpu_pre_sandbox_hook_linux.cc:612-715](file://src/content/common/gpu_pre_sandbox_hook_linux.cc#L612-L715)
+- [BUILD.gn（content/gpu）:43-87](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/content/gpu/BUILD.gn#L43-L87)
+- [gpu_pre_sandbox_hook_linux.cc:612-715](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/content/common/gpu_pre_sandbox_hook_linux.cc#L612-L715)
 
 ## 性能考量
 - 预编译与缓存：启用 Skia Graphite 预编译与更大着色器缓存，显著降低首帧与材质切换卡顿
@@ -253,8 +254,8 @@ HOOK --> SYS["系统设备/库路径"]
 - 构建优化：SIMD（AVX2/FMA）、ThinLTO、PGO、Polly 等编译期优化，提升整体吞吐
 
 章节来源
-- [性能优化设计文档.md:65-121](file://docs/superpowers/specs/2026-06-19-performance-optimization-design.md#L65-L121)
-- [性能优化设计文档.md:124-141](file://docs/superpowers/specs/2026-06-19-performance-optimization-design.md#L124-L141)
+- [性能优化设计文档.md:65-121](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/superpowers/specs/2026-06-19-performance-optimization-design.md#L65-L121)
+- [性能优化设计文档.md:124-141](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/superpowers/specs/2026-06-19-performance-optimization-design.md#L124-L141)
 
 ## 故障排查指南
 - 现象：黑屏/花屏/视频无法播放
@@ -270,9 +271,9 @@ HOOK --> SYS["系统设备/库路径"]
   - 使用 GPU 基准测试扩展与阻塞时间测量评估性能回归
 
 章节来源
-- [gpu_pre_sandbox_hook_linux.cc:556-599](file://src/content/common/gpu_pre_sandbox_hook_linux.cc#L556-L599)
-- [CMDLINE_FLAGS_LIST.md:1156-1178](file://infra/CMDLINE_FLAGS_LIST.md#L1156-L1178)
-- [性能优化设计文档.md:111-121](file://docs/superpowers/specs/2026-06-19-performance-optimization-design.md#L111-L121)
+- [gpu_pre_sandbox_hook_linux.cc:556-599](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/content/common/gpu_pre_sandbox_hook_linux.cc#L556-L599)
+- [CMDLINE_FLAGS_LIST.md:1156-1178](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/CMDLINE_FLAGS_LIST.md#L1156-L1178)
+- [性能优化设计文档.md:111-121](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/superpowers/specs/2026-06-19-performance-optimization-design.md#L111-L121)
 
 ## 结论
 MCloud Browser 在 GPU 渲染管线上通过“沙箱前驱动适配 + Skia Graphite 预编译 + 命令缓冲与资源池优化 + 丰富的调试开关”，实现了更稳定的首帧体验、更低的卡顿概率与更可控的内存占用。针对不同厂商 GPU，提供了细粒度的权限与库预加载策略；通过运行期特性开关，可在不重新编译的情况下灵活调优。建议在生产环境保持预编译与缓存开启，并结合日志与追踪持续验证性能收益。
@@ -284,6 +285,6 @@ MCloud Browser 在 GPU 渲染管线上通过“沙箱前驱动适配 + Skia Grap
   - 性能优化设计文档中的 Finch 特性列表
 
 章节来源
-- [win_args.list:211-239](file://infra/win_args.list#L211-L239)
-- [CMDLINE_FLAGS_LIST.md:1156-1178](file://infra/CMDLINE_FLAGS_LIST.md#L1156-L1178)
-- [性能优化设计文档.md:65-121](file://docs/superpowers/specs/2026-06-19-performance-optimization-design.md#L65-L121)
+- [win_args.list:211-239](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/win_args.list#L211-L239)
+- [CMDLINE_FLAGS_LIST.md:1156-1178](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/CMDLINE_FLAGS_LIST.md#L1156-L1178)
+- [性能优化设计文档.md:65-121](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/superpowers/specs/2026-06-19-performance-optimization-design.md#L65-L121)

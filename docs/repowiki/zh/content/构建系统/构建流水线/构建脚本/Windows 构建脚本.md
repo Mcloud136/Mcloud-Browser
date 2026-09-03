@@ -1,16 +1,17 @@
 # Windows 构建脚本
 
-<cite>
-**本文引用的文件**
-- [win_scripts/build_win.py](file://win_scripts/build_win.py)
-- [win_scripts/setup.py](file://win_scripts/setup.py)
-- [win_scripts/clean.py](file://win_scripts/clean.py)
-- [win_scripts/copy_essentials.py](file://win_scripts/copy_essentials.py)
-- [build_win.sh](file://build_win.sh)
-- [docs/BUILDING_WIN.md](file://docs/BUILDING_WIN.md)
-- [win_args.gn](file://win_args.gn)
-- [docs/ABOUT_GN_ARGS.md](file://docs/ABOUT_GN_ARGS.md)
-</cite>
+<details><summary>本文引用的文件</summary>
+
+- [win_scripts/build_win.py](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/build_win.py)
+- [win_scripts/setup.py](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/setup.py)
+- [win_scripts/clean.py](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/clean.py)
+- [win_scripts/copy_essentials.py](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/copy_essentials.py)
+- [build_win.sh](https://github.com/Mcloud136/Mcloud-Browser/blob/main/build_win.sh)
+- [docs/BUILDING_WIN.md](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/BUILDING_WIN.md)
+- [win_args.gn](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_args.gn)
+- [docs/ABOUT_GN_ARGS.md](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/ABOUT_GN_ARGS.md)
+
+</details>
 
 ## 目录
 1. [简介](#简介)
@@ -52,21 +53,21 @@ L["docs/BUILDING_WIN.md"] --> A
 ```
 
 图表来源
-- [win_scripts/build_win.py:34-50](file://win_scripts/build_win.py#L34-L50)
-- [win_scripts/setup.py:66-122](file://win_scripts/setup.py#L66-L122)
-- [win_scripts/setup.py:134-267](file://win_scripts/setup.py#L134-L267)
-- [win_scripts/setup.py:287-403](file://win_scripts/setup.py#L287-L403)
-- [win_scripts/clean.py:60-96](file://win_scripts/clean.py#L60-L96)
-- [win_args.gn:1-87](file://win_args.gn#L1-L87)
-- [docs/BUILDING_WIN.md:203-242](file://docs/BUILDING_WIN.md#L203-L242)
+- [win_scripts/build_win.py:34-50](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/build_win.py#L34-L50)
+- [win_scripts/setup.py:66-122](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/setup.py#L66-L122)
+- [win_scripts/setup.py:134-267](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/setup.py#L134-L267)
+- [win_scripts/setup.py:287-403](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/setup.py#L287-L403)
+- [win_scripts/clean.py:60-96](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/clean.py#L60-L96)
+- [win_args.gn:1-87](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_args.gn#L1-L87)
+- [docs/BUILDING_WIN.md:203-242](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/BUILDING_WIN.md#L203-L242)
 
 章节来源
-- [win_scripts/build_win.py:1-51](file://win_scripts/build_win.py#L1-L51)
-- [win_scripts/setup.py:1-412](file://win_scripts/setup.py#L1-L412)
-- [win_scripts/clean.py:1-97](file://win_scripts/clean.py#L1-L97)
-- [win_scripts/copy_essentials.py:1-50](file://win_scripts/copy_essentials.py#L1-L50)
-- [win_args.gn:1-87](file://win_args.gn#L1-L87)
-- [docs/BUILDING_WIN.md:1-288](file://docs/BUILDING_WIN.md#L1-L288)
+- [win_scripts/build_win.py:1-51](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/build_win.py#L1-L51)
+- [win_scripts/setup.py:1-412](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/setup.py#L1-L412)
+- [win_scripts/clean.py:1-97](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/clean.py#L1-L97)
+- [win_scripts/copy_essentials.py:1-50](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/copy_essentials.py#L1-L50)
+- [win_args.gn:1-87](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_args.gn#L1-L87)
+- [docs/BUILDING_WIN.md:1-288](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/BUILDING_WIN.md#L1-L288)
 
 ## 核心组件
 - build_win.py：Windows 端构建入口，负责解析 CR_DIR、计算 jobs、调用 autoninja 构建浏览器与安装器。
@@ -78,13 +79,13 @@ L["docs/BUILDING_WIN.md"] --> A
 - ABOUT_GN_ARGS.md：GN 参数详细说明，解释各开关对构建与性能的影响。
 
 章节来源
-- [win_scripts/build_win.py:1-51](file://win_scripts/build_win.py#L1-L51)
-- [win_scripts/setup.py:1-412](file://win_scripts/setup.py#L1-L412)
-- [win_scripts/clean.py:1-97](file://win_scripts/clean.py#L1-L97)
-- [win_scripts/copy_essentials.py:1-50](file://win_scripts/copy_essentials.py#L1-L50)
-- [win_args.gn:1-87](file://win_args.gn#L1-L87)
-- [docs/BUILDING_WIN.md:1-288](file://docs/BUILDING_WIN.md#L1-L288)
-- [docs/ABOUT_GN_ARGS.md:1-174](file://docs/ABOUT_GN_ARGS.md#L1-L174)
+- [win_scripts/build_win.py:1-51](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/build_win.py#L1-L51)
+- [win_scripts/setup.py:1-412](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/setup.py#L1-L412)
+- [win_scripts/clean.py:1-97](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/clean.py#L1-L97)
+- [win_scripts/copy_essentials.py:1-50](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/copy_essentials.py#L1-L50)
+- [win_args.gn:1-87](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_args.gn#L1-L87)
+- [docs/BUILDING_WIN.md:1-288](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/BUILDING_WIN.md#L1-L288)
+- [docs/ABOUT_GN_ARGS.md:1-174](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/ABOUT_GN_ARGS.md#L1-L174)
 
 ## 架构总览
 Windows 构建的整体流程如下：
@@ -111,11 +112,11 @@ Out-->>Dev : 输出可执行与安装器
 ```
 
 图表来源
-- [win_scripts/setup.py:66-122](file://win_scripts/setup.py#L66-L122)
-- [win_scripts/setup.py:134-267](file://win_scripts/setup.py#L134-L267)
-- [win_scripts/setup.py:287-403](file://win_scripts/setup.py#L287-L403)
-- [win_scripts/build_win.py:34-50](file://win_scripts/build_win.py#L34-L50)
-- [docs/BUILDING_WIN.md:203-242](file://docs/BUILDING_WIN.md#L203-L242)
+- [win_scripts/setup.py:66-122](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/setup.py#L66-L122)
+- [win_scripts/setup.py:134-267](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/setup.py#L134-L267)
+- [win_scripts/setup.py:287-403](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/setup.py#L287-L403)
+- [win_scripts/build_win.py:34-50](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/build_win.py#L34-L50)
+- [docs/BUILDING_WIN.md:203-242](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/BUILDING_WIN.md#L203-L242)
 
 ## 详细组件分析
 
@@ -143,10 +144,10 @@ Installer --> Done(["完成并输出安装器路径"])
 ```
 
 图表来源
-- [win_scripts/build_win.py:34-50](file://win_scripts/build_win.py#L34-L50)
+- [win_scripts/build_win.py:34-50](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/build_win.py#L34-L50)
 
 章节来源
-- [win_scripts/build_win.py:1-51](file://win_scripts/build_win.py#L1-L51)
+- [win_scripts/build_win.py:1-51](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/build_win.py#L1-L51)
 
 ### setup.py 源码准备与补丁
 - 源码目录：CR_DIR 指向 Chromium 源码；THOR_DIR 指向 Mcloud 源码，默认 %USERPROFILE%/mcloud。
@@ -171,12 +172,12 @@ VariantPGO --> End
 ```
 
 图表来源
-- [win_scripts/setup.py:66-122](file://win_scripts/setup.py#L66-L122)
-- [win_scripts/setup.py:134-267](file://win_scripts/setup.py#L134-L267)
-- [win_scripts/setup.py:287-403](file://win_scripts/setup.py#L287-L403)
+- [win_scripts/setup.py:66-122](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/setup.py#L66-L122)
+- [win_scripts/setup.py:134-267](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/setup.py#L134-L267)
+- [win_scripts/setup.py:287-403](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/setup.py#L287-L403)
 
 章节来源
-- [win_scripts/setup.py:1-412](file://win_scripts/setup.py#L1-L412)
+- [win_scripts/setup.py:1-412](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/setup.py#L1-L412)
 
 ### clean.py 清理逻辑
 - 清理范围：删除 chrome/build/pgo_profiles 中的 PGO 缓存文件与 out/mcloud 目录。
@@ -198,10 +199,10 @@ SkipOut --> CEnd
 ```
 
 图表来源
-- [win_scripts/clean.py:60-96](file://win_scripts/clean.py#L60-L96)
+- [win_scripts/clean.py:60-96](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/clean.py#L60-L96)
 
 章节来源
-- [win_scripts/clean.py:1-97](file://win_scripts/clean.py#L1-L97)
+- [win_scripts/clean.py:1-97](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/clean.py#L1-L97)
 
 ### copy_essentials.py 选择性拷贝
 - 目的：仅拷贝必要的构建优化声明文件与标志文件，避免整体覆盖导致上游漂移。
@@ -209,7 +210,7 @@ SkipOut --> CEnd
 - 优势：幂等、最小化变更，降低构建不稳定风险。
 
 章节来源
-- [win_scripts/copy_essentials.py:1-50](file://win_scripts/copy_essentials.py#L1-L50)
+- [win_scripts/copy_essentials.py:1-50](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/copy_essentials.py#L1-L50)
 
 ### win_args.gn 构建参数
 - 目标平台与 CPU：target_os=win，target_cpu=x64。
@@ -220,8 +221,8 @@ SkipOut --> CEnd
 - 其他：enable_rust=true，v8_* 系列优化开关启用。
 
 章节来源
-- [win_args.gn:1-87](file://win_args.gn#L1-L87)
-- [docs/ABOUT_GN_ARGS.md:1-174](file://docs/ABOUT_GN_ARGS.md#L1-L174)
+- [win_args.gn:1-87](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_args.gn#L1-L87)
+- [docs/ABOUT_GN_ARGS.md:1-174](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/ABOUT_GN_ARGS.md#L1-L174)
 
 ## 依赖关系分析
 - build_win.py 依赖：
@@ -253,17 +254,17 @@ J["win_args.gn"] --> C
 ```
 
 图表来源
-- [win_scripts/build_win.py:34-50](file://win_scripts/build_win.py#L34-L50)
-- [win_scripts/setup.py:66-122](file://win_scripts/setup.py#L66-L122)
-- [win_scripts/setup.py:287-403](file://win_scripts/setup.py#L287-L403)
-- [win_scripts/clean.py:60-96](file://win_scripts/clean.py#L60-L96)
-- [win_args.gn:1-87](file://win_args.gn#L1-L87)
+- [win_scripts/build_win.py:34-50](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/build_win.py#L34-L50)
+- [win_scripts/setup.py:66-122](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/setup.py#L66-L122)
+- [win_scripts/setup.py:287-403](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/setup.py#L287-L403)
+- [win_scripts/clean.py:60-96](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/clean.py#L60-L96)
+- [win_args.gn:1-87](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_args.gn#L1-L87)
 
 章节来源
-- [win_scripts/build_win.py:1-51](file://win_scripts/build_win.py#L1-L51)
-- [win_scripts/setup.py:1-412](file://win_scripts/setup.py#L1-L412)
-- [win_scripts/clean.py:1-97](file://win_scripts/clean.py#L1-L97)
-- [win_args.gn:1-87](file://win_args.gn#L1-L87)
+- [win_scripts/build_win.py:1-51](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/build_win.py#L1-L51)
+- [win_scripts/setup.py:1-412](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/setup.py#L1-L412)
+- [win_scripts/clean.py:1-97](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/clean.py#L1-L97)
+- [win_args.gn:1-87](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_args.gn#L1-L87)
 
 ## 性能考虑
 - 并行度调优（jobs）：
@@ -298,10 +299,10 @@ J["win_args.gn"] --> C
   - 参考 docs/BUILDING_WIN.md 的调试与性能分析建议。
 
 章节来源
-- [win_scripts/build_win.py:12-21](file://win_scripts/build_win.py#L12-L21)
-- [win_scripts/setup.py:134-267](file://win_scripts/setup.py#L134-L267)
-- [docs/BUILDING_WIN.md:103-115](file://docs/BUILDING_WIN.md#L103-L115)
-- [docs/BUILDING_WIN.md:275-283](file://docs/BUILDING_WIN.md#L275-L283)
+- [win_scripts/build_win.py:12-21](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/build_win.py#L12-L21)
+- [win_scripts/setup.py:134-267](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/setup.py#L134-L267)
+- [docs/BUILDING_WIN.md:103-115](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/BUILDING_WIN.md#L103-L115)
+- [docs/BUILDING_WIN.md:275-283](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/BUILDING_WIN.md#L275-L283)
 
 ## 结论
 win_scripts/build_win.py 提供了简洁可靠的 Windows 构建入口，配合 setup.py 的源码准备与补丁应用、clean.py 的清理能力、以及 win_args.gn 的构建参数，形成完整的本地构建闭环。通过合理设置 CR_DIR、jobs 与 GN 参数，并结合 PGO/ThinLTO 等优化手段，可在保证构建稳定性的前提下获得高性能产物。遇到问题时，依据本文的故障排查指南逐步定位与解决。
@@ -328,9 +329,9 @@ win_scripts/build_win.py 提供了简洁可靠的 Windows 构建入口，配合 
   - 如遇 Defender 扫描影响构建速度，可参考 docs/BUILDING_WIN.md 的性能分析建议。
 
 章节来源
-- [docs/BUILDING_WIN.md:203-242](file://docs/BUILDING_WIN.md#L203-L242)
-- [win_scripts/build_win.py:24-50](file://win_scripts/build_win.py#L24-L50)
-- [win_scripts/setup.py:51-70](file://win_scripts/setup.py#L51-L70)
-- [win_scripts/setup.py:287-403](file://win_scripts/setup.py#L287-L403)
-- [win_scripts/clean.py:51-96](file://win_scripts/clean.py#L51-L96)
-- [win_args.gn:1-87](file://win_args.gn#L1-L87)
+- [docs/BUILDING_WIN.md:203-242](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/BUILDING_WIN.md#L203-L242)
+- [win_scripts/build_win.py:24-50](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/build_win.py#L24-L50)
+- [win_scripts/setup.py:51-70](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/setup.py#L51-L70)
+- [win_scripts/setup.py:287-403](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/setup.py#L287-L403)
+- [win_scripts/clean.py:51-96](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/clean.py#L51-L96)
+- [win_args.gn:1-87](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_args.gn#L1-L87)

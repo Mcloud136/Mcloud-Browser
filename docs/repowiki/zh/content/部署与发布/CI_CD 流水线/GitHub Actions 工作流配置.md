@@ -1,13 +1,14 @@
 # GitHub Actions 工作流配置
 
-<cite>
-**本文引用的文件**
-- [release.yml](file://.github/workflows/release.yml)
-- [verify.yml](file://.github/workflows/verify.yml)
-- [verify_sources.py](file://win_scripts/verify_sources.py)
-- [README.md](file://README.md)
-- [ABOUT_RELEASES.md](file://docs/ABOUT_RELEASES.md)
-</cite>
+<details><summary>本文引用的文件</summary>
+
+- [release.yml](https://github.com/Mcloud136/Mcloud-Browser/blob/main/.github/workflows/release.yml)
+- [verify.yml](https://github.com/Mcloud136/Mcloud-Browser/blob/main/.github/workflows/verify.yml)
+- [verify_sources.py](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/verify_sources.py)
+- [README.md](https://github.com/Mcloud136/Mcloud-Browser/blob/main/README.md)
+- [ABOUT_RELEASES.md](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/ABOUT_RELEASES.md)
+
+</details>
 
 ## 目录
 1. [简介](#简介)
@@ -44,16 +45,16 @@ G["docs/ABOUT_RELEASES.md"] --> H["SIMD 与版本选择说明"]
 ```
 
 图表来源
-- [release.yml:1-79](file://.github/workflows/release.yml#L1-L79)
-- [verify.yml:1-26](file://.github/workflows/verify.yml#L1-L26)
-- [verify_sources.py:1-144](file://win_scripts/verify_sources.py#L1-L144)
-- [README.md:265-301](file://README.md#L265-L301)
-- [ABOUT_RELEASES.md:1-59](file://docs/ABOUT_RELEASES.md#L1-L59)
+- [release.yml:1-79](https://github.com/Mcloud136/Mcloud-Browser/blob/main/.github/workflows/release.yml#L1-L79)
+- [verify.yml:1-26](https://github.com/Mcloud136/Mcloud-Browser/blob/main/.github/workflows/verify.yml#L1-L26)
+- [verify_sources.py:1-144](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/verify_sources.py#L1-L144)
+- [README.md:265-301](https://github.com/Mcloud136/Mcloud-Browser/blob/main/README.md#L265-L301)
+- [ABOUT_RELEASES.md:1-59](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/ABOUT_RELEASES.md#L1-L59)
 
 章节来源
-- [release.yml:1-79](file://.github/workflows/release.yml#L1-L79)
-- [verify.yml:1-26](file://.github/workflows/verify.yml#L1-L26)
-- [README.md:265-301](file://README.md#L265-L301)
+- [release.yml:1-79](https://github.com/Mcloud136/Mcloud-Browser/blob/main/.github/workflows/release.yml#L1-L79)
+- [verify.yml:1-26](https://github.com/Mcloud136/Mcloud-Browser/blob/main/.github/workflows/verify.yml#L1-L26)
+- [README.md:265-301](https://github.com/Mcloud136/Mcloud-Browser/blob/main/README.md#L265-L301)
 
 ## 核心组件
 - release.yml
@@ -69,9 +70,9 @@ G["docs/ABOUT_RELEASES.md"] --> H["SIMD 与版本选择说明"]
   - 目的：确保关键构建脚本存在且语法正确，pak_src 源文件完整并可进行可选的 C 语法检查。
 
 章节来源
-- [release.yml:1-79](file://.github/workflows/release.yml#L1-L79)
-- [verify.yml:1-26](file://.github/workflows/verify.yml#L1-L26)
-- [verify_sources.py:1-144](file://win_scripts/verify_sources.py#L1-L144)
+- [release.yml:1-79](https://github.com/Mcloud136/Mcloud-Browser/blob/main/.github/workflows/release.yml#L1-L79)
+- [verify.yml:1-26](https://github.com/Mcloud136/Mcloud-Browser/blob/main/.github/workflows/verify.yml#L1-L26)
+- [verify_sources.py:1-144](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/verify_sources.py#L1-L144)
 
 ## 架构总览
 下图展示了两个工作流的触发事件、执行环境与输出产物之间的关系。
@@ -98,9 +99,9 @@ WF2-->>Dev : 工作流结果通知
 ```
 
 图表来源
-- [release.yml:1-79](file://.github/workflows/release.yml#L1-L79)
-- [verify.yml:1-26](file://.github/workflows/verify.yml#L1-L26)
-- [verify_sources.py:1-144](file://win_scripts/verify_sources.py#L1-L144)
+- [release.yml:1-79](https://github.com/Mcloud136/Mcloud-Browser/blob/main/.github/workflows/release.yml#L1-L79)
+- [verify.yml:1-26](https://github.com/Mcloud136/Mcloud-Browser/blob/main/.github/workflows/verify.yml#L1-L26)
+- [verify_sources.py:1-144](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/verify_sources.py#L1-L144)
 
 ## 详细组件分析
 
@@ -136,11 +137,11 @@ CreateRelease --> End(["结束"])
 ```
 
 图表来源
-- [release.yml:1-79](file://.github/workflows/release.yml#L1-L79)
+- [release.yml:1-79](https://github.com/Mcloud136/Mcloud-Browser/blob/main/.github/workflows/release.yml#L1-L79)
 
 章节来源
-- [release.yml:1-79](file://.github/workflows/release.yml#L1-L79)
-- [README.md:265-301](file://README.md#L265-L301)
+- [release.yml:1-79](https://github.com/Mcloud136/Mcloud-Browser/blob/main/.github/workflows/release.yml#L1-L79)
+- [README.md:265-301](https://github.com/Mcloud136/Mcloud-Browser/blob/main/README.md#L265-L301)
 
 ### verify.yml 工作流
 - 触发条件
@@ -171,12 +172,12 @@ WF-->>GH : 记录工作流状态
 ```
 
 图表来源
-- [verify.yml:1-26](file://.github/workflows/verify.yml#L1-L26)
-- [verify_sources.py:1-144](file://win_scripts/verify_sources.py#L1-L144)
+- [verify.yml:1-26](https://github.com/Mcloud136/Mcloud-Browser/blob/main/.github/workflows/verify.yml#L1-L26)
+- [verify_sources.py:1-144](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/verify_sources.py#L1-L144)
 
 章节来源
-- [verify.yml:1-26](file://.github/workflows/verify.yml#L1-L26)
-- [verify_sources.py:1-144](file://win_scripts/verify_sources.py#L1-L144)
+- [verify.yml:1-26](https://github.com/Mcloud136/Mcloud-Browser/blob/main/.github/workflows/verify.yml#L1-L26)
+- [verify_sources.py:1-144](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/verify_sources.py#L1-L144)
 
 ## 依赖关系分析
 - release.yml 依赖
@@ -198,14 +199,14 @@ V --> S["win_scripts/verify_sources.py"]
 ```
 
 图表来源
-- [release.yml:1-79](file://.github/workflows/release.yml#L1-L79)
-- [verify.yml:1-26](file://.github/workflows/verify.yml#L1-L26)
-- [verify_sources.py:1-144](file://win_scripts/verify_sources.py#L1-L144)
+- [release.yml:1-79](https://github.com/Mcloud136/Mcloud-Browser/blob/main/.github/workflows/release.yml#L1-L79)
+- [verify.yml:1-26](https://github.com/Mcloud136/Mcloud-Browser/blob/main/.github/workflows/verify.yml#L1-L26)
+- [verify_sources.py:1-144](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/verify_sources.py#L1-L144)
 
 章节来源
-- [release.yml:1-79](file://.github/workflows/release.yml#L1-L79)
-- [verify.yml:1-26](file://.github/workflows/verify.yml#L1-L26)
-- [verify_sources.py:1-144](file://win_scripts/verify_sources.py#L1-L144)
+- [release.yml:1-79](https://github.com/Mcloud136/Mcloud-Browser/blob/main/.github/workflows/release.yml#L1-L79)
+- [verify.yml:1-26](https://github.com/Mcloud136/Mcloud-Browser/blob/main/.github/workflows/verify.yml#L1-L26)
+- [verify_sources.py:1-144](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/verify_sources.py#L1-L144)
 
 ## 性能与缓存建议
 当前工作流未显式配置缓存，但可基于以下策略提升效率：
@@ -240,9 +241,9 @@ V --> S["win_scripts/verify_sources.py"]
   - 逐步启用缓存：先禁用缓存定位问题，再逐步恢复以确认是否由缓存导致。
 
 章节来源
-- [release.yml:1-79](file://.github/workflows/release.yml#L1-L79)
-- [verify.yml:1-26](file://.github/workflows/verify.yml#L1-L26)
-- [verify_sources.py:1-144](file://win_scripts/verify_sources.py#L1-L144)
+- [release.yml:1-79](https://github.com/Mcloud136/Mcloud-Browser/blob/main/.github/workflows/release.yml#L1-L79)
+- [verify.yml:1-26](https://github.com/Mcloud136/Mcloud-Browser/blob/main/.github/workflows/verify.yml#L1-L26)
+- [verify_sources.py:1-144](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/verify_sources.py#L1-L144)
 
 ## 结论
 - release.yml 专注于标签驱动的发布流程，负责生成发布说明与校验和，并将安装包上传至 GitHub Releases。
@@ -258,5 +259,5 @@ V --> S["win_scripts/verify_sources.py"]
   - ABOUT_RELEASES.md 解释了不同 SIMD 指令集与 CPU 兼容性，有助于选择合适的发布版本。
 
 章节来源
-- [README.md:265-301](file://README.md#L265-L301)
-- [ABOUT_RELEASES.md:1-59](file://docs/ABOUT_RELEASES.md#L1-L59)
+- [README.md:265-301](https://github.com/Mcloud136/Mcloud-Browser/blob/main/README.md#L265-L301)
+- [ABOUT_RELEASES.md:1-59](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/ABOUT_RELEASES.md#L1-L59)

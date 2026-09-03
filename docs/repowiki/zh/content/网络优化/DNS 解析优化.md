@@ -1,12 +1,13 @@
 # DNS 解析优化
 
-<cite>
-**本文引用的文件**
-- [dns_client.cc](file://src/net/dns/dns_client.cc)
-- [dns_transaction.cc](file://src/net/dns/dns_transaction.cc)
-- [default_dns_over_https_config_source.cc](file://src/chrome/browser/net/default_dns_over_https_config_source.cc)
-- [stub_resolver_config_reader.cc](file://src/chrome/browser/net/stub_resolver_config_reader.cc)
-</cite>
+<details><summary>本文引用的文件</summary>
+
+- [dns_client.cc](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/net/dns/dns_client.cc)
+- [dns_transaction.cc](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/net/dns/dns_transaction.cc)
+- [default_dns_over_https_config_source.cc](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/net/default_dns_over_https_config_source.cc)
+- [stub_resolver_config_reader.cc](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/net/stub_resolver_config_reader.cc)
+
+</details>
 
 ## 目录
 1. [简介](#简介)
@@ -60,16 +61,16 @@ G --> E
 ```
 
 图表来源
-- [stub_resolver_config_reader.cc:146-196](file://src/chrome/browser/net/stub_resolver_config_reader.cc#L146-L196)
-- [default_dns_over_https_config_source.cc:15-75](file://src/chrome/browser/net/default_dns_over_https_config_source.cc#L15-L75)
-- [dns_client.cc:148-385](file://src/net/dns/dns_client.cc#L148-L385)
-- [dns_transaction.cc:1182-1762](file://src/net/dns/dns_transaction.cc#L1182-L1762)
+- [stub_resolver_config_reader.cc:146-196](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/net/stub_resolver_config_reader.cc#L146-L196)
+- [default_dns_over_https_config_source.cc:15-75](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/net/default_dns_over_https_config_source.cc#L15-L75)
+- [dns_client.cc:148-385](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/net/dns/dns_client.cc#L148-L385)
+- [dns_transaction.cc:1182-1762](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/net/dns/dns_transaction.cc#L1182-L1762)
 
 章节来源
-- [stub_resolver_config_reader.cc:146-196](file://src/chrome/browser/net/stub_resolver_config_reader.cc#L146-L196)
-- [default_dns_over_https_config_source.cc:15-75](file://src/chrome/browser/net/default_dns_over_https_config_source.cc#L15-L75)
-- [dns_client.cc:148-385](file://src/net/dns/dns_client.cc#L148-L385)
-- [dns_transaction.cc:1182-1762](file://src/net/dns/dns_transaction.cc#L1182-L1762)
+- [stub_resolver_config_reader.cc:146-196](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/net/stub_resolver_config_reader.cc#L146-L196)
+- [default_dns_over_https_config_source.cc:15-75](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/net/default_dns_over_https_config_source.cc#L15-L75)
+- [dns_client.cc:148-385](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/net/dns/dns_client.cc#L148-L385)
+- [dns_transaction.cc:1182-1762](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/net/dns/dns_transaction.cc#L1182-L1762)
 
 ## 核心组件
 - StubResolverConfigReader：负责读取用户/策略偏好，计算 Secure DNS 模式与 DoH 模板，并将配置下发到 NetworkService，从而启用或禁用内置 DNS 客户端（AsyncDns）。
@@ -79,10 +80,10 @@ G --> E
 - Prefetch DNS Prober：在导航前主动探测目标域名的可达性与解析结果，减少首屏 DNS 延迟。
 
 章节来源
-- [stub_resolver_config_reader.cc:146-196](file://src/chrome/browser/net/stub_resolver_config_reader.cc#L146-L196)
-- [default_dns_over_https_config_source.cc:15-75](file://src/chrome/browser/net/default_dns_over_https_config_source.cc#L15-L75)
-- [dns_client.cc:148-385](file://src/net/dns/dns_client.cc#L148-L385)
-- [dns_transaction.cc:1182-1762](file://src/net/dns/dns_transaction.cc#L1182-L1762)
+- [stub_resolver_config_reader.cc:146-196](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/net/stub_resolver_config_reader.cc#L146-L196)
+- [default_dns_over_https_config_source.cc:15-75](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/net/default_dns_over_https_config_source.cc#L15-L75)
+- [dns_client.cc:148-385](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/net/dns/dns_client.cc#L148-L385)
+- [dns_transaction.cc:1182-1762](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/net/dns/dns_transaction.cc#L1182-L1762)
 
 ## 架构总览
 下图展示了从浏览器偏好到实际 DNS 请求的完整链路，以及 DoH 升级与回退流程。
@@ -106,9 +107,9 @@ Tx->>User : 返回解析结果或错误
 ```
 
 图表来源
-- [stub_resolver_config_reader.cc:273-399](file://src/chrome/browser/net/stub_resolver_config_reader.cc#L273-L399)
-- [dns_client.cc:313-385](file://src/net/dns/dns_client.cc#L313-L385)
-- [dns_transaction.cc:1182-1762](file://src/net/dns/dns_transaction.cc#L1182-L1762)
+- [stub_resolver_config_reader.cc:273-399](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/net/stub_resolver_config_reader.cc#L273-L399)
+- [dns_client.cc:313-385](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/net/dns/dns_client.cc#L313-L385)
+- [dns_transaction.cc:1182-1762](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/net/dns/dns_transaction.cc#L1182-L1762)
 
 ## 详细组件分析
 
@@ -128,14 +129,14 @@ CreateSession --> Ready["就绪，可发起解析"]
 ```
 
 图表来源
-- [stub_resolver_config_reader.cc:113-134](file://src/chrome/browser/net/stub_resolver_config_reader.cc#L113-L134)
-- [stub_resolver_config_reader.cc:273-399](file://src/chrome/browser/net/stub_resolver_config_reader.cc#L273-L399)
-- [dns_client.cc:313-385](file://src/net/dns/dns_client.cc#L313-L385)
+- [stub_resolver_config_reader.cc:113-134](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/net/stub_resolver_config_reader.cc#L113-L134)
+- [stub_resolver_config_reader.cc:273-399](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/net/stub_resolver_config_reader.cc#L273-L399)
+- [dns_client.cc:313-385](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/net/dns/dns_client.cc#L313-L385)
 
 章节来源
-- [stub_resolver_config_reader.cc:113-134](file://src/chrome/browser/net/stub_resolver_config_reader.cc#L113-L134)
-- [stub_resolver_config_reader.cc:273-399](file://src/chrome/browser/net/stub_resolver_config_reader.cc#L273-L399)
-- [dns_client.cc:313-385](file://src/net/dns/dns_client.cc#L313-L385)
+- [stub_resolver_config_reader.cc:113-134](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/net/stub_resolver_config_reader.cc#L113-L134)
+- [stub_resolver_config_reader.cc:273-399](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/net/stub_resolver_config_reader.cc#L273-L399)
+- [dns_client.cc:313-385](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/net/dns/dns_client.cc#L313-L385)
 
 ### DNS 查询的并行化、缓存策略与超时处理
 - 并行化：DnsTransactionImpl 同时维护多个 DnsAttempt（UDP/TCP/DoH），按 RTT 与可用性动态选择最快路径；DoH 与经典 DNS 分别有独立的回退周期。
@@ -162,10 +163,10 @@ DnsTransactionImpl --> DnsHTTPAttempt : "并发尝试"
 ```
 
 图表来源
-- [dns_transaction.cc:1182-1762](file://src/net/dns/dns_transaction.cc#L1182-L1762)
+- [dns_transaction.cc:1182-1762](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/net/dns/dns_transaction.cc#L1182-L1762)
 
 章节来源
-- [dns_transaction.cc:1182-1762](file://src/net/dns/dns_transaction.cc#L1182-L1762)
+- [dns_transaction.cc:1182-1762](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/net/dns/dns_transaction.cc#L1182-L1762)
 
 ### DNS 预取机制（Prefetch）
 - 目的：在用户交互或导航前，提前解析常用域名并建立连接，降低首屏 DNS 查找延迟。
@@ -184,12 +185,12 @@ Prefetch-->>Page : 结果入库/上报指标
 ```
 
 图表来源
-- [content/browser/BUILD.gn:1596-1630](file://src/content/browser/BUILD.gn#L1596-L1630)
-- [dns_transaction.cc:1182-1762](file://src/net/dns/dns_transaction.cc#L1182-L1762)
+- [content/browser/BUILD.gn:1596-1630](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/content/browser/BUILD.gn#L1596-L1630)
+- [dns_transaction.cc:1182-1762](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/net/dns/dns_transaction.cc#L1182-L1762)
 
 章节来源
-- [content/browser/BUILD.gn:1596-1630](file://src/content/browser/BUILD.gn#L1596-L1630)
-- [dns_transaction.cc:1182-1762](file://src/net/dns/dns_transaction.cc#L1182-L1762)
+- [content/browser/BUILD.gn:1596-1630](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/content/browser/BUILD.gn#L1596-L1630)
+- [dns_transaction.cc:1182-1762](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/net/dns/dns_transaction.cc#L1182-L1762)
 
 ### DNS-over-HTTPS（DoH）支持与配置
 - 默认模式：DoH 模式默认为“自动”，可通过偏好切换为“关闭”或“仅安全”。
@@ -210,14 +211,14 @@ UseSystem --> End
 ```
 
 图表来源
-- [default_dns_over_https_config_source.cc:15-75](file://src/chrome/browser/net/default_dns_over_https_config_source.cc#L15-L75)
-- [dns_client.cc:70-146](file://src/net/dns/dns_client.cc#L70-L146)
-- [stub_resolver_config_reader.cc:273-399](file://src/chrome/browser/net/stub_resolver_config_reader.cc#L273-L399)
+- [default_dns_over_https_config_source.cc:15-75](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/net/default_dns_over_https_config_source.cc#L15-L75)
+- [dns_client.cc:70-146](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/net/dns/dns_client.cc#L70-L146)
+- [stub_resolver_config_reader.cc:273-399](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/net/stub_resolver_config_reader.cc#L273-L399)
 
 章节来源
-- [default_dns_over_https_config_source.cc:15-75](file://src/chrome/browser/net/default_dns_over_https_config_source.cc#L15-L75)
-- [dns_client.cc:70-146](file://src/net/dns/dns_client.cc#L70-L146)
-- [stub_resolver_config_reader.cc:273-399](file://src/chrome/browser/net/stub_resolver_config_reader.cc#L273-L399)
+- [default_dns_over_https_config_source.cc:15-75](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/net/default_dns_over_https_config_source.cc#L15-L75)
+- [dns_client.cc:70-146](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/net/dns/dns_client.cc#L70-L146)
+- [stub_resolver_config_reader.cc:273-399](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/net/stub_resolver_config_reader.cc#L273-L399)
 
 ### 重试机制与故障转移
 - UDP 转 TCP：当 UDP 响应指示需要 TCP（TC 位）时，自动切换到 TCP 重试。
@@ -240,14 +241,14 @@ Done --> End(["结束"])
 ```
 
 图表来源
-- [dns_transaction.cc:1472-1485](file://src/net/dns/dns_transaction.cc#L1472-L1485)
-- [dns_transaction.cc:1648-1682](file://src/net/dns/dns_transaction.cc#L1648-L1682)
-- [dns_transaction.cc:1729-1750](file://src/net/dns/dns_transaction.cc#L1729-L1750)
+- [dns_transaction.cc:1472-1485](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/net/dns/dns_transaction.cc#L1472-L1485)
+- [dns_transaction.cc:1648-1682](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/net/dns/dns_transaction.cc#L1648-L1682)
+- [dns_transaction.cc:1729-1750](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/net/dns/dns_transaction.cc#L1729-L1750)
 
 章节来源
-- [dns_transaction.cc:1472-1485](file://src/net/dns/dns_transaction.cc#L1472-L1485)
-- [dns_transaction.cc:1648-1682](file://src/net/dns/dns_transaction.cc#L1648-L1682)
-- [dns_transaction.cc:1729-1750](file://src/net/dns/dns_transaction.cc#L1729-L1750)
+- [dns_transaction.cc:1472-1485](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/net/dns/dns_transaction.cc#L1472-L1485)
+- [dns_transaction.cc:1648-1682](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/net/dns/dns_transaction.cc#L1648-L1682)
+- [dns_transaction.cc:1729-1750](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/net/dns/dns_transaction.cc#L1729-L1750)
 
 ## 依赖关系分析
 - StubResolverConfigReader 依赖 DefaultDnsOverHttpsConfigSource 获取 DoH 配置源，并通过 NetworkService 将配置下发。
@@ -263,14 +264,14 @@ Session --> Tx["DnsTransactionImpl"]
 ```
 
 图表来源
-- [stub_resolver_config_reader.cc:146-196](file://src/chrome/browser/net/stub_resolver_config_reader.cc#L146-L196)
-- [dns_client.cc:148-385](file://src/net/dns/dns_client.cc#L148-L385)
-- [dns_transaction.cc:1182-1762](file://src/net/dns/dns_transaction.cc#L1182-L1762)
+- [stub_resolver_config_reader.cc:146-196](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/net/stub_resolver_config_reader.cc#L146-L196)
+- [dns_client.cc:148-385](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/net/dns/dns_client.cc#L148-L385)
+- [dns_transaction.cc:1182-1762](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/net/dns/dns_transaction.cc#L1182-L1762)
 
 章节来源
-- [stub_resolver_config_reader.cc:146-196](file://src/chrome/browser/net/stub_resolver_config_reader.cc#L146-L196)
-- [dns_client.cc:148-385](file://src/net/dns/dns_client.cc#L148-L385)
-- [dns_transaction.cc:1182-1762](file://src/net/dns/dns_transaction.cc#L1182-L1762)
+- [stub_resolver_config_reader.cc:146-196](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/net/stub_resolver_config_reader.cc#L146-L196)
+- [dns_client.cc:148-385](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/net/dns/dns_client.cc#L148-L385)
+- [dns_transaction.cc:1182-1762](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/net/dns/dns_transaction.cc#L1182-L1762)
 
 ## 性能考量
 - 并行与 RTT 选择：通过并发尝试 UDP/TCP/DoH 并结合 RTT 统计，优先选择低延迟路径，显著降低解析耗时。
@@ -290,8 +291,8 @@ Session --> Tx["DnsTransactionImpl"]
   - 父控/策略限制：在某些模式下需检查家长控制或企业策略是否禁用了 DoH。
 
 章节来源
-- [dns_transaction.cc:1182-1762](file://src/net/dns/dns_transaction.cc#L1182-L1762)
-- [stub_resolver_config_reader.cc:273-399](file://src/chrome/browser/net/stub_resolver_config_reader.cc#L273-L399)
+- [dns_transaction.cc:1182-1762](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/net/dns/dns_transaction.cc#L1182-L1762)
+- [stub_resolver_config_reader.cc:273-399](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/net/stub_resolver_config_reader.cc#L273-L399)
 
 ## 结论
 MCloud Browser 通过内置异步 DNS 解析（AsyncDns）、DoH 支持与预取机制，实现了高效、可靠且安全的域名解析体验。其核心优势在于：
@@ -313,12 +314,12 @@ MCloud Browser 通过内置异步 DNS 解析（AsyncDns）、DoH 支持与预取
 - 自动模式回退到 DoH：kDnsOverHttpsAutomaticModeFallbackToDoh
 
 章节来源
-- [stub_resolver_config_reader.cc:186-196](file://src/chrome/browser/net/stub_resolver_config_reader.cc#L186-L196)
-- [default_dns_over_https_config_source.cc:35-69](file://src/chrome/browser/net/default_dns_over_https_config_source.cc#L35-L69)
+- [stub_resolver_config_reader.cc:186-196](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/net/stub_resolver_config_reader.cc#L186-L196)
+- [default_dns_over_https_config_source.cc:35-69](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/net/default_dns_over_https_config_source.cc#L35-L69)
 
 ### 代码示例路径（便于进一步阅读）
-- 异步 DNS 启用与配置注入：[stub_resolver_config_reader.cc:113-134](file://src/chrome/browser/net/stub_resolver_config_reader.cc#L113-L134)、[stub_resolver_config_reader.cc:273-399](file://src/chrome/browser/net/stub_resolver_config_reader.cc#L273-L399)
-- DoH 配置源与偏好监听：[default_dns_over_https_config_source.cc:15-75](file://src/chrome/browser/net/default_dns_over_https_config_source.cc#L15-L75)
-- 有效配置构建与 DoH 升级：[dns_client.cc:70-146](file://src/net/dns/dns_client.cc#L70-L146)、[dns_client.cc:313-385](file://src/net/dns/dns_client.cc#L313-L385)
-- DNS 事务与重试/超时：[dns_transaction.cc:1182-1762](file://src/net/dns/dns_transaction.cc#L1182-L1762)
-- 预取子系统（含 DNS 探测）：[content/browser/BUILD.gn:1596-1630](file://src/content/browser/BUILD.gn#L1596-L1630)
+- 异步 DNS 启用与配置注入：[stub_resolver_config_reader.cc:113-134](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/net/stub_resolver_config_reader.cc#L113-L134)、[stub_resolver_config_reader.cc:273-399](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/net/stub_resolver_config_reader.cc#L273-L399)
+- DoH 配置源与偏好监听：[default_dns_over_https_config_source.cc:15-75](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/net/default_dns_over_https_config_source.cc#L15-L75)
+- 有效配置构建与 DoH 升级：[dns_client.cc:70-146](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/net/dns/dns_client.cc#L70-L146)、[dns_client.cc:313-385](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/net/dns/dns_client.cc#L313-L385)
+- DNS 事务与重试/超时：[dns_transaction.cc:1182-1762](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/net/dns/dns_transaction.cc#L1182-L1762)
+- 预取子系统（含 DNS 探测）：[content/browser/BUILD.gn:1596-1630](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/content/browser/BUILD.gn#L1596-L1630)

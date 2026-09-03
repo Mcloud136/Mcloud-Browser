@@ -1,16 +1,17 @@
 # CPU 性能分析
 
-<cite>
-**本文引用的文件**
-- [README.md](file://README.md)
-- [mcloud_flags.txt](file://mcloud_flags.txt)
-- [win_args_mcloud.gn](file://win_args_mcloud.gn)
-- [other/AVX2/AVX2_args.gn](file://other/AVX2/AVX2_args.gn)
-- [check_simd.sh](file://check_simd.sh)
-- [benchmark/run_baseline.ps1](file://benchmark/run_baseline.ps1)
-- [benchmark/bench_startup.ps1](file://benchmark/bench_startup.ps1)
-- [docs/dev-logs/M151-opt-benchmark.md](file://docs/dev-logs/M151-opt-benchmark.md)
-</cite>
+<details><summary>本文引用的文件</summary>
+
+- [README.md](https://github.com/Mcloud136/Mcloud-Browser/blob/main/README.md)
+- [mcloud_flags.txt](https://github.com/Mcloud136/Mcloud-Browser/blob/main/mcloud_flags.txt)
+- [win_args_mcloud.gn](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_args_mcloud.gn)
+- [other/AVX2/AVX2_args.gn](https://github.com/Mcloud136/Mcloud-Browser/blob/main/other/AVX2/AVX2_args.gn)
+- [check_simd.sh](https://github.com/Mcloud136/Mcloud-Browser/blob/main/check_simd.sh)
+- [benchmark/run_baseline.ps1](https://github.com/Mcloud136/Mcloud-Browser/blob/main/benchmark/run_baseline.ps1)
+- [benchmark/bench_startup.ps1](https://github.com/Mcloud136/Mcloud-Browser/blob/main/benchmark/bench_startup.ps1)
+- [docs/dev-logs/M151-opt-benchmark.md](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/dev-logs/M151-opt-benchmark.md)
+
+</details>
 
 ## 目录
 1. [简介](#简介)
@@ -49,23 +50,23 @@ G --> I
 ```
 
 图表来源
-- [win_args_mcloud.gn:9-18](file://win_args_mcloud.gn#L9-L18)
-- [other/AVX2/AVX2_args.gn:1-8](file://other/AVX2/AVX2_args.gn#L1-L8)
-- [mcloud_flags.txt:8-112](file://mcloud_flags.txt#L8-L112)
-- [check_simd.sh:31-107](file://check_simd.sh#L31-L107)
-- [benchmark/run_baseline.ps1:1-78](file://benchmark/run_baseline.ps1#L1-L78)
-- [benchmark/bench_startup.ps1:1-70](file://benchmark/bench_startup.ps1#L1-L70)
-- [docs/dev-logs/M151-opt-benchmark.md:1-78](file://docs/dev-logs/M151-opt-benchmark.md#L1-L78)
+- [win_args_mcloud.gn:9-18](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_args_mcloud.gn#L9-L18)
+- [other/AVX2/AVX2_args.gn:1-8](https://github.com/Mcloud136/Mcloud-Browser/blob/main/other/AVX2/AVX2_args.gn#L1-L8)
+- [mcloud_flags.txt:8-112](https://github.com/Mcloud136/Mcloud-Browser/blob/main/mcloud_flags.txt#L8-L112)
+- [check_simd.sh:31-107](https://github.com/Mcloud136/Mcloud-Browser/blob/main/check_simd.sh#L31-L107)
+- [benchmark/run_baseline.ps1:1-78](https://github.com/Mcloud136/Mcloud-Browser/blob/main/benchmark/run_baseline.ps1#L1-L78)
+- [benchmark/bench_startup.ps1:1-70](https://github.com/Mcloud136/Mcloud-Browser/blob/main/benchmark/bench_startup.ps1#L1-L70)
+- [docs/dev-logs/M151-opt-benchmark.md:1-78](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/dev-logs/M151-opt-benchmark.md#L1-L78)
 
 章节来源
-- [README.md:61-177](file://README.md#L61-L177)
-- [win_args_mcloud.gn:9-18](file://win_args_mcloud.gn#L9-L18)
-- [other/AVX2/AVX2_args.gn:1-8](file://other/AVX2/AVX2_args.gn#L1-L8)
-- [mcloud_flags.txt:8-112](file://mcloud_flags.txt#L8-L112)
-- [check_simd.sh:31-107](file://check_simd.sh#L31-L107)
-- [benchmark/run_baseline.ps1:1-78](file://benchmark/run_baseline.ps1#L1-L78)
-- [benchmark/bench_startup.ps1:1-70](file://benchmark/bench_startup.ps1#L1-L70)
-- [docs/dev-logs/M151-opt-benchmark.md:1-78](file://docs/dev-logs/M151-opt-benchmark.md#L1-L78)
+- [README.md:61-177](https://github.com/Mcloud136/Mcloud-Browser/blob/main/README.md#L61-L177)
+- [win_args_mcloud.gn:9-18](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_args_mcloud.gn#L9-L18)
+- [other/AVX2/AVX2_args.gn:1-8](https://github.com/Mcloud136/Mcloud-Browser/blob/main/other/AVX2/AVX2_args.gn#L1-L8)
+- [mcloud_flags.txt:8-112](https://github.com/Mcloud136/Mcloud-Browser/blob/main/mcloud_flags.txt#L8-L112)
+- [check_simd.sh:31-107](https://github.com/Mcloud136/Mcloud-Browser/blob/main/check_simd.sh#L31-L107)
+- [benchmark/run_baseline.ps1:1-78](https://github.com/Mcloud136/Mcloud-Browser/blob/main/benchmark/run_baseline.ps1#L1-L78)
+- [benchmark/bench_startup.ps1:1-70](https://github.com/Mcloud136/Mcloud-Browser/blob/main/benchmark/bench_startup.ps1#L1-L70)
+- [docs/dev-logs/M151-opt-benchmark.md:1-78](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/dev-logs/M151-opt-benchmark.md#L1-L78)
 
 ## 核心组件
 - AVX2 原生编译与 SIMD 栈：通过 GN 参数启用 SSE3/4.1/4.2、AVX、AVX2、FMA，并关闭 AVX-512 以匹配目标平台与兼容性策略。
@@ -74,11 +75,11 @@ G --> I
 - 硬件能力检测：检查 CPU 是否具备 AVX/AVX2 等扩展，避免在不支持的平台上运行或构建。
 
 章节来源
-- [win_args_mcloud.gn:9-18](file://win_args_mcloud.gn#L9-L18)
-- [other/AVX2/AVX2_args.gn:1-8](file://other/AVX2/AVX2_args.gn#L1-L8)
-- [mcloud_flags.txt:8-112](file://mcloud_flags.txt#L8-L112)
-- [check_simd.sh:31-107](file://check_simd.sh#L31-L107)
-- [benchmark/run_baseline.ps1:1-78](file://benchmark/run_baseline.ps1#L1-L78)
+- [win_args_mcloud.gn:9-18](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_args_mcloud.gn#L9-L18)
+- [other/AVX2/AVX2_args.gn:1-8](https://github.com/Mcloud136/Mcloud-Browser/blob/main/other/AVX2/AVX2_args.gn#L1-L8)
+- [mcloud_flags.txt:8-112](https://github.com/Mcloud136/Mcloud-Browser/blob/main/mcloud_flags.txt#L8-L112)
+- [check_simd.sh:31-107](https://github.com/Mcloud136/Mcloud-Browser/blob/main/check_simd.sh#L31-L107)
+- [benchmark/run_baseline.ps1:1-78](https://github.com/Mcloud136/Mcloud-Browser/blob/main/benchmark/run_baseline.ps1#L1-L78)
 
 ## 架构总览
 下图展示从“构建期 SIMD 配置 + 运行时标志注入”到“基准采集与报告”的端到端流程，体现 CPU 性能优化的关键节点与数据流。
@@ -101,10 +102,10 @@ Bench-->>Report : 输出结果与差异分析
 ```
 
 图表来源
-- [win_args_mcloud.gn:9-18](file://win_args_mcloud.gn#L9-L18)
-- [mcloud_flags.txt:8-112](file://mcloud_flags.txt#L8-L112)
-- [benchmark/run_baseline.ps1:1-78](file://benchmark/run_baseline.ps1#L1-L78)
-- [benchmark/bench_startup.ps1:1-70](file://benchmark/bench_startup.ps1#L1-L70)
+- [win_args_mcloud.gn:9-18](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_args_mcloud.gn#L9-L18)
+- [mcloud_flags.txt:8-112](https://github.com/Mcloud136/Mcloud-Browser/blob/main/mcloud_flags.txt#L8-L112)
+- [benchmark/run_baseline.ps1:1-78](https://github.com/Mcloud136/Mcloud-Browser/blob/main/benchmark/run_baseline.ps1#L1-L78)
+- [benchmark/bench_startup.ps1:1-70](https://github.com/Mcloud136/Mcloud-Browser/blob/main/benchmark/bench_startup.ps1#L1-L70)
 
 ## 详细组件分析
 
@@ -124,14 +125,14 @@ Measure --> End(["结束"])
 ```
 
 图表来源
-- [check_simd.sh:31-107](file://check_simd.sh#L31-L107)
-- [win_args_mcloud.gn:9-18](file://win_args_mcloud.gn#L9-L18)
-- [other/AVX2/AVX2_args.gn:1-8](file://other/AVX2/AVX2_args.gn#L1-L8)
+- [check_simd.sh:31-107](https://github.com/Mcloud136/Mcloud-Browser/blob/main/check_simd.sh#L31-L107)
+- [win_args_mcloud.gn:9-18](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_args_mcloud.gn#L9-L18)
+- [other/AVX2/AVX2_args.gn:1-8](https://github.com/Mcloud136/Mcloud-Browser/blob/main/other/AVX2/AVX2_args.gn#L1-L8)
 
 章节来源
-- [win_args_mcloud.gn:9-18](file://win_args_mcloud.gn#L9-L18)
-- [other/AVX2/AVX2_args.gn:1-8](file://other/AVX2/AVX2_args.gn#L1-L8)
-- [check_simd.sh:31-107](file://check_simd.sh#L31-L107)
+- [win_args_mcloud.gn:9-18](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_args_mcloud.gn#L9-L18)
+- [other/AVX2/AVX2_args.gn:1-8](https://github.com/Mcloud136/Mcloud-Browser/blob/main/other/AVX2/AVX2_args.gn#L1-L8)
+- [check_simd.sh:31-107](https://github.com/Mcloud136/Mcloud-Browser/blob/main/check_simd.sh#L31-L107)
 
 ### 运行时标志对 CPU 热点路径的影响
 - 启动阶段：提前 GPU 通道、减少启动阻塞、预热合成器，降低首帧时间。
@@ -155,10 +156,10 @@ Workload --> Metrics["采集 K1/K2/K7 指标"]
 ```
 
 图表来源
-- [mcloud_flags.txt:8-112](file://mcloud_flags.txt#L8-L112)
+- [mcloud_flags.txt:8-112](https://github.com/Mcloud136/Mcloud-Browser/blob/main/mcloud_flags.txt#L8-L112)
 
 章节来源
-- [mcloud_flags.txt:8-112](file://mcloud_flags.txt#L8-L112)
+- [mcloud_flags.txt:8-112](https://github.com/Mcloud136/Mcloud-Browser/blob/main/mcloud_flags.txt#L8-L112)
 
 ### 基准采集与热点识别流程
 - K1 冷启动：使用全新用户数据目录，测量首次启动到 UI 可交互的时间，反映启动路径上的 CPU 热点（如初始化、JIT 预热）。
@@ -180,12 +181,12 @@ Script-->>User : 输出报告
 ```
 
 图表来源
-- [benchmark/run_baseline.ps1:1-78](file://benchmark/run_baseline.ps1#L1-L78)
-- [benchmark/bench_startup.ps1:1-70](file://benchmark/bench_startup.ps1#L1-L70)
+- [benchmark/run_baseline.ps1:1-78](https://github.com/Mcloud136/Mcloud-Browser/blob/main/benchmark/run_baseline.ps1#L1-L78)
+- [benchmark/bench_startup.ps1:1-70](https://github.com/Mcloud136/Mcloud-Browser/blob/main/benchmark/bench_startup.ps1#L1-L70)
 
 章节来源
-- [benchmark/run_baseline.ps1:1-78](file://benchmark/run_baseline.ps1#L1-L78)
-- [benchmark/bench_startup.ps1:1-70](file://benchmark/bench_startup.ps1#L1-L70)
+- [benchmark/run_baseline.ps1:1-78](https://github.com/Mcloud136/Mcloud-Browser/blob/main/benchmark/run_baseline.ps1#L1-L78)
+- [benchmark/bench_startup.ps1:1-70](https://github.com/Mcloud136/Mcloud-Browser/blob/main/benchmark/bench_startup.ps1#L1-L70)
 
 ### 多线程性能分析与并行计算优化建议
 - IO 线程与 Mojo 隔离：减少 IPC 阻塞，提高响应性。
@@ -197,7 +198,7 @@ Script-->>User : 输出报告
   - 监控线程同步热点，必要时引入无锁数据结构或批量处理。
 
 章节来源
-- [mcloud_flags.txt:107-112](file://mcloud_flags.txt#L107-L112)
+- [mcloud_flags.txt:107-112](https://github.com/Mcloud136/Mcloud-Browser/blob/main/mcloud_flags.txt#L107-L112)
 
 ## 依赖关系分析
 - 构建配置依赖 GN 参数控制 SIMD 与优化级别，直接影响最终二进制的指令集与热路径。
@@ -215,18 +216,18 @@ REPORT["M151-opt-benchmark.md"] --> BENCH
 ```
 
 图表来源
-- [win_args_mcloud.gn:9-18](file://win_args_mcloud.gn#L9-L18)
-- [mcloud_flags.txt:8-112](file://mcloud_flags.txt#L8-L112)
-- [check_simd.sh:31-107](file://check_simd.sh#L31-L107)
-- [benchmark/run_baseline.ps1:1-78](file://benchmark/run_baseline.ps1#L1-L78)
-- [docs/dev-logs/M151-opt-benchmark.md:1-78](file://docs/dev-logs/M151-opt-benchmark.md#L1-L78)
+- [win_args_mcloud.gn:9-18](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_args_mcloud.gn#L9-L18)
+- [mcloud_flags.txt:8-112](https://github.com/Mcloud136/Mcloud-Browser/blob/main/mcloud_flags.txt#L8-L112)
+- [check_simd.sh:31-107](https://github.com/Mcloud136/Mcloud-Browser/blob/main/check_simd.sh#L31-L107)
+- [benchmark/run_baseline.ps1:1-78](https://github.com/Mcloud136/Mcloud-Browser/blob/main/benchmark/run_baseline.ps1#L1-L78)
+- [docs/dev-logs/M151-opt-benchmark.md:1-78](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/dev-logs/M151-opt-benchmark.md#L1-L78)
 
 章节来源
-- [win_args_mcloud.gn:9-18](file://win_args_mcloud.gn#L9-L18)
-- [mcloud_flags.txt:8-112](file://mcloud_flags.txt#L8-L112)
-- [check_simd.sh:31-107](file://check_simd.sh#L31-L107)
-- [benchmark/run_baseline.ps1:1-78](file://benchmark/run_baseline.ps1#L1-L78)
-- [docs/dev-logs/M151-opt-benchmark.md:1-78](file://docs/dev-logs/M151-opt-benchmark.md#L1-L78)
+- [win_args_mcloud.gn:9-18](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_args_mcloud.gn#L9-L18)
+- [mcloud_flags.txt:8-112](https://github.com/Mcloud136/Mcloud-Browser/blob/main/mcloud_flags.txt#L8-L112)
+- [check_simd.sh:31-107](https://github.com/Mcloud136/Mcloud-Browser/blob/main/check_simd.sh#L31-L107)
+- [benchmark/run_baseline.ps1:1-78](https://github.com/Mcloud136/Mcloud-Browser/blob/main/benchmark/run_baseline.ps1#L1-L78)
+- [docs/dev-logs/M151-opt-benchmark.md:1-78](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/dev-logs/M151-opt-benchmark.md#L1-L78)
 
 ## 性能考量
 - 编译期优化：AVX2+FMA 开启后，数值计算与多媒体路径通常能获得显著吞吐提升；ThinLTO/PGO 进一步改善热点路径分支预测与代码布局。
@@ -235,8 +236,8 @@ REPORT["M151-opt-benchmark.md"] --> BENCH
 - 平台差异：不同 CPU/GPU 组合表现不同，建议在目标硬件上复测。
 
 章节来源
-- [README.md:61-177](file://README.md#L61-L177)
-- [docs/dev-logs/M151-opt-benchmark.md:19-78](file://docs/dev-logs/M151-opt-benchmark.md#L19-L78)
+- [README.md:61-177](https://github.com/Mcloud136/Mcloud-Browser/blob/main/README.md#L61-L177)
+- [docs/dev-logs/M151-opt-benchmark.md:19-78](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/dev-logs/M151-opt-benchmark.md#L19-L78)
 
 ## 故障排查指南
 - 无法运行 AVX2 版本：使用 check_simd.sh 检测 CPU 是否支持 AVX/AVX2；若不满足，需回退至通用指令集构建。
@@ -244,9 +245,9 @@ REPORT["M151-opt-benchmark.md"] --> BENCH
 - 基准不稳定：确保电源模式为高性能、关闭其他干扰进程、使用全新用户数据目录进行冷启动测试。
 
 章节来源
-- [check_simd.sh:31-107](file://check_simd.sh#L31-L107)
-- [mcloud_flags.txt:83-88](file://mcloud_flags.txt#L83-L88)
-- [benchmark/bench_startup.ps1:32-58](file://benchmark/bench_startup.ps1#L32-L58)
+- [check_simd.sh:31-107](https://github.com/Mcloud136/Mcloud-Browser/blob/main/check_simd.sh#L31-L107)
+- [mcloud_flags.txt:83-88](https://github.com/Mcloud136/Mcloud-Browser/blob/main/mcloud_flags.txt#L83-L88)
+- [benchmark/bench_startup.ps1:32-58](https://github.com/Mcloud136/Mcloud-Browser/blob/main/benchmark/bench_startup.ps1#L32-L58)
 
 ## 结论
 本项目通过 AVX2 原生编译、丰富的运行时优化标志与完善的基准体系，形成了从构建到运行的完整 CPU 性能优化闭环。借助基准脚本与报告，可在真实工作负载下定位热点、验证优化收益并进行数据驱动的取舍。对于 CPU 密集型场景，建议优先启用 AVX2 路径、调优 V8 JIT 阈值、合理划分线程并利用媒体/GPU 加速，同时关注内存与速度的平衡。
@@ -260,7 +261,7 @@ REPORT["M151-opt-benchmark.md"] --> BENCH
   - M151-opt 基准报告展示了新增/修正项的效果与取舍
 
 章节来源
-- [win_args_mcloud.gn:9-18](file://win_args_mcloud.gn#L9-L18)
-- [mcloud_flags.txt:8-112](file://mcloud_flags.txt#L8-L112)
-- [benchmark/run_baseline.ps1:1-78](file://benchmark/run_baseline.ps1#L1-L78)
-- [docs/dev-logs/M151-opt-benchmark.md:1-78](file://docs/dev-logs/M151-opt-benchmark.md#L1-L78)
+- [win_args_mcloud.gn:9-18](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_args_mcloud.gn#L9-L18)
+- [mcloud_flags.txt:8-112](https://github.com/Mcloud136/Mcloud-Browser/blob/main/mcloud_flags.txt#L8-L112)
+- [benchmark/run_baseline.ps1:1-78](https://github.com/Mcloud136/Mcloud-Browser/blob/main/benchmark/run_baseline.ps1#L1-L78)
+- [docs/dev-logs/M151-opt-benchmark.md:1-78](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/dev-logs/M151-opt-benchmark.md#L1-L78)

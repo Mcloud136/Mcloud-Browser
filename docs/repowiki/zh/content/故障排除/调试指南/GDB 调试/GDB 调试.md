@@ -1,15 +1,16 @@
 # GDB 调试
 
-<cite>
-**本文引用的文件**
-- [DEBUGGING.md](file://infra/DEBUG/DEBUGGING.md)
-- [debug_args.gn](file://infra/DEBUG/debug_args.gn)
-- [build_debug_linux.sh](file://infra/DEBUG/build_debug_linux.sh)
-- [Thorium_Debug_Shell.sh](file://infra/DEBUG/Thorium_Debug_Shell.sh)
-- [args.gn](file://args.gn)
-- [win_args.gn](file://win_args.gn)
-- [CMDLINE_FLAGS_LIST.md](file://infra/CMDLINE_FLAGS_LIST.md)
-</cite>
+<details><summary>本文引用的文件</summary>
+
+- [DEBUGGING.md](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/DEBUG/DEBUGGING.md)
+- [debug_args.gn](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/DEBUG/debug_args.gn)
+- [build_debug_linux.sh](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/DEBUG/build_debug_linux.sh)
+- [Thorium_Debug_Shell.sh](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/DEBUG/Thorium_Debug_Shell.sh)
+- [args.gn](https://github.com/Mcloud136/Mcloud-Browser/blob/main/args.gn)
+- [win_args.gn](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_args.gn)
+- [CMDLINE_FLAGS_LIST.md](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/CMDLINE_FLAGS_LIST.md)
+
+</details>
 
 ## 目录
 1. [简介](#简介)
@@ -54,19 +55,19 @@ end
 ```
 
 图表来源
-- [DEBUGGING.md:23-87](file://infra/DEBUG/DEBUGGING.md#L23-L87)
-- [CMDLINE_FLAGS_LIST.md:1618-1618](file://infra/CMDLINE_FLAGS_LIST.md#L1618-L1618)
-- [CMDLINE_FLAGS_LIST.md:2242-2242](file://infra/CMDLINE_FLAGS_LIST.md#L2242-L2242)
+- [DEBUGGING.md:23-87](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/DEBUG/DEBUGGING.md#L23-L87)
+- [CMDLINE_FLAGS_LIST.md:1618-1618](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/CMDLINE_FLAGS_LIST.md#L1618-L1618)
+- [CMDLINE_FLAGS_LIST.md:2242-2242](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/CMDLINE_FLAGS_LIST.md#L2242-L2242)
 
 章节来源
-- [DEBUGGING.md:1-120](file://infra/DEBUG/DEBUGGING.md#L1-L120)
-- [debug_args.gn:1-87](file://infra/DEBUG/debug_args.gn#L1-L87)
-- [build_debug_linux.sh:1-90](file://infra/DEBUG/build_debug_linux.sh#L1-L90)
-- [Thorium_Debug_Shell.sh:1-10](file://infra/DEBUG/Thorium_Debug_Shell.sh#L1-L10)
-- [args.gn:1-87](file://args.gn#L1-L87)
-- [win_args.gn:1-87](file://win_args.gn#L1-L87)
-- [CMDLINE_FLAGS_LIST.md:1618-1618](file://infra/CMDLINE_FLAGS_LIST.md#L1618-L1618)
-- [CMDLINE_FLAGS_LIST.md:2242-2242](file://infra/CMDLINE_FLAGS_LIST.md#L2242-L2242)
+- [DEBUGGING.md:1-120](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/DEBUG/DEBUGGING.md#L1-L120)
+- [debug_args.gn:1-87](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/DEBUG/debug_args.gn#L1-L87)
+- [build_debug_linux.sh:1-90](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/DEBUG/build_debug_linux.sh#L1-L90)
+- [Thorium_Debug_Shell.sh:1-10](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/DEBUG/Thorium_Debug_Shell.sh#L1-L10)
+- [args.gn:1-87](https://github.com/Mcloud136/Mcloud-Browser/blob/main/args.gn#L1-L87)
+- [win_args.gn:1-87](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_args.gn#L1-L87)
+- [CMDLINE_FLAGS_LIST.md:1618-1618](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/CMDLINE_FLAGS_LIST.md#L1618-L1618)
+- [CMDLINE_FLAGS_LIST.md:2242-2242](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/CMDLINE_FLAGS_LIST.md#L2242-L2242)
 
 ## 核心组件
 - 调试入口与运行方式
@@ -80,11 +81,11 @@ end
   - 支持 rr 时间旅行调试、Breakpad minidump、Core dump 等崩溃后分析手段。
 
 章节来源
-- [DEBUGGING.md:23-87](file://infra/DEBUG/DEBUGGING.md#L23-L87)
-- [debug_args.gn:15-27](file://infra/DEBUG/debug_args.gn#L15-L27)
-- [build_debug_linux.sh:42-89](file://infra/DEBUG/build_debug_linux.sh#L42-L89)
-- [Thorium_Debug_Shell.sh:5-9](file://infra/DEBUG/Thorium_Debug_Shell.sh#L5-L9)
-- [args.gn:15-27](file://args.gn#L15-L27)
+- [DEBUGGING.md:23-87](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/DEBUG/DEBUGGING.md#L23-L87)
+- [debug_args.gn:15-27](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/DEBUG/debug_args.gn#L15-L27)
+- [build_debug_linux.sh:42-89](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/DEBUG/build_debug_linux.sh#L42-L89)
+- [Thorium_Debug_Shell.sh:5-9](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/DEBUG/Thorium_Debug_Shell.sh#L5-L9)
+- [args.gn:15-27](https://github.com/Mcloud136/Mcloud-Browser/blob/main/args.gn#L15-L27)
 
 ## 架构总览
 MCloud Browser 采用多进程架构：主进程负责 UI 与调度，渲染器进程负责页面渲染，GPU 进程处理图形加速，插件进程承载外部插件。GDB 调试需分别针对这些进程进行启动、附加或注入。
@@ -106,10 +107,10 @@ Note over GDB,Main : 也可在运行时通过 PID 附加到任意子进程
 ```
 
 图表来源
-- [DEBUGGING.md:45-87](file://infra/DEBUG/DEBUGGING.md#L45-L87)
-- [DEBUGGING.md:163-184](file://infra/DEBUG/DEBUGGING.md#L163-L184)
-- [CMDLINE_FLAGS_LIST.md:1618-1618](file://infra/CMDLINE_FLAGS_LIST.md#L1618-L1618)
-- [CMDLINE_FLAGS_LIST.md:2242-2242](file://infra/CMDLINE_FLAGS_LIST.md#L2242-L2242)
+- [DEBUGGING.md:45-87](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/DEBUG/DEBUGGING.md#L45-L87)
+- [DEBUGGING.md:163-184](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/DEBUG/DEBUGGING.md#L163-L184)
+- [CMDLINE_FLAGS_LIST.md:1618-1618](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/CMDLINE_FLAGS_LIST.md#L1618-L1618)
+- [CMDLINE_FLAGS_LIST.md:2242-2242](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/CMDLINE_FLAGS_LIST.md#L2242-L2242)
 
 ## 详细组件分析
 
@@ -122,8 +123,8 @@ Note over GDB,Main : 也可在运行时通过 PID 附加到任意子进程
   - 通过进程树或内置任务管理器查找目标 PID，然后使用 gdb -p 附加。若进程受沙箱保护，需启用允许沙箱调试的参数。
 
 章节来源
-- [DEBUGGING.md:23-41](file://infra/DEBUG/DEBUGGING.md#L23-L41)
-- [DEBUGGING.md:123-161](file://infra/DEBUG/DEBUGGING.md#L123-L161)
+- [DEBUGGING.md:23-41](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/DEBUG/DEBUGGING.md#L23-L41)
+- [DEBUGGING.md:123-161](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/DEBUG/DEBUGGING.md#L123-L161)
 
 ### 多进程调试：渲染器、GPU、插件
 - 渲染器进程
@@ -137,10 +138,10 @@ Note over GDB,Main : 也可在运行时通过 PID 附加到任意子进程
   - 使用 --single-process 将渲染器线程并入主进程，便于统一调试（需注意相关限制）。
 
 章节来源
-- [DEBUGGING.md:45-121](file://infra/DEBUG/DEBUGGING.md#L45-L121)
-- [DEBUGGING.md:163-207](file://infra/DEBUG/DEBUGGING.md#L163-L207)
-- [CMDLINE_FLAGS_LIST.md:1618-1618](file://infra/CMDLINE_FLAGS_LIST.md#L1618-L1618)
-- [CMDLINE_FLAGS_LIST.md:2242-2242](file://infra/CMDLINE_FLAGS_LIST.md#L2242-L2242)
+- [DEBUGGING.md:45-121](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/DEBUG/DEBUGGING.md#L45-L121)
+- [DEBUGGING.md:163-207](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/DEBUG/DEBUGGING.md#L163-L207)
+- [CMDLINE_FLAGS_LIST.md:1618-1618](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/CMDLINE_FLAGS_LIST.md#L1618-L1618)
+- [CMDLINE_FLAGS_LIST.md:2242-2242](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/CMDLINE_FLAGS_LIST.md#L2242-L2242)
 
 ### 常用 GDB 命令与脚本化配置
 - 常用命令
@@ -157,8 +158,8 @@ Note over GDB,Main : 也可在运行时通过 PID 附加到任意子进程
   - 使用 shell 脚本包装子进程启动，交互式决定是否进入 GDB。
 
 章节来源
-- [DEBUGGING.md:106-121](file://infra/DEBUG/DEBUGGING.md#L106-L121)
-- [DEBUGGING.md:88-104](file://infra/DEBUG/DEBUGGING.md#L88-L104)
+- [DEBUGGING.md:106-121](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/DEBUG/DEBUGGING.md#L106-L121)
+- [DEBUGGING.md:88-104](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/DEBUG/DEBUGGING.md#L88-L104)
 
 ### 进程间通信（IPC）调试
 - 启用 IPC 日志
@@ -168,7 +169,7 @@ Note over GDB,Main : 也可在运行时通过 PID 附加到任意子进程
   - 使用 --vmodule 或 --v 控制模块日志级别，配合导航事件等关键路径日志定位问题。
 
 章节来源
-- [DEBUGGING.md:463-486](file://infra/DEBUG/DEBUGGING.md#L463-L486)
+- [DEBUGGING.md:463-486](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/DEBUG/DEBUGGING.md#L463-L486)
 
 ### 内存查看与变量检查
 - 打印 Chromium 类型
@@ -179,7 +180,7 @@ Note over GDB,Main : 也可在运行时通过 PID 附加到任意子进程
   - 对于复杂对象，可编写自定义 GDB 宏或脚本提升可读性。
 
 章节来源
-- [DEBUGGING.md:209-242](file://infra/DEBUG/DEBUGGING.md#L209-L242)
+- [DEBUGGING.md:209-242](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/DEBUG/DEBUGGING.md#L209-L242)
 
 ### 崩溃分析与 Core/Breakpad
 - Core dump
@@ -189,7 +190,7 @@ Note over GDB,Main : 也可在运行时通过 PID 附加到任意子进程
   - 参考仓库中的 minidump_to_core 说明，将 minidump 转换为 core 进行分析。
 
 章节来源
-- [DEBUGGING.md:351-366](file://infra/DEBUG/DEBUGGING.md#L351-L366)
+- [DEBUGGING.md:351-366](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/DEBUG/DEBUGGING.md#L351-L366)
 
 ### 时间旅行调试（rr）
 - 录制与回放
@@ -199,7 +200,7 @@ Note over GDB,Main : 也可在运行时通过 PID 附加到任意子进程
   - 通过日志或 rr ps 找到目标进程 ID，再回放指定进程。
 
 章节来源
-- [DEBUGGING.md:256-312](file://infra/DEBUG/DEBUGGING.md#L256-L312)
+- [DEBUGGING.md:256-312](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/DEBUG/DEBUGGING.md#L256-L312)
 
 ### 构建与符号配置
 - Debug 构建参数
@@ -210,9 +211,9 @@ Note over GDB,Main : 也可在运行时通过 PID 附加到任意子进程
   - 与 Linux 类似，关注 symbol_level、is_debug、enable_stripping 等选项。
 
 章节来源
-- [debug_args.gn:15-27](file://infra/DEBUG/debug_args.gn#L15-L27)
-- [args.gn:15-27](file://args.gn#L15-L27)
-- [win_args.gn:13-27](file://win_args.gn#L13-L27)
+- [debug_args.gn:15-27](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/DEBUG/debug_args.gn#L15-L27)
+- [args.gn:15-27](https://github.com/Mcloud136/Mcloud-Browser/blob/main/args.gn#L15-L27)
+- [win_args.gn:13-27](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_args.gn#L13-L27)
 
 ## 依赖关系分析
 - 调试流程依赖
@@ -239,16 +240,16 @@ ContinueDebug --> End(["结束"])
 ```
 
 图表来源
-- [DEBUGGING.md:15-41](file://infra/DEBUG/DEBUGGING.md#L15-L41)
-- [DEBUGGING.md:45-207](file://infra/DEBUG/DEBUGGING.md#L45-L207)
-- [debug_args.gn:15-27](file://infra/DEBUG/debug_args.gn#L15-L27)
-- [args.gn:15-27](file://args.gn#L15-L27)
+- [DEBUGGING.md:15-41](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/DEBUG/DEBUGGING.md#L15-L41)
+- [DEBUGGING.md:45-207](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/DEBUG/DEBUGGING.md#L45-L207)
+- [debug_args.gn:15-27](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/DEBUG/debug_args.gn#L15-L27)
+- [args.gn:15-27](https://github.com/Mcloud136/Mcloud-Browser/blob/main/args.gn#L15-L27)
 
 章节来源
-- [DEBUGGING.md:15-41](file://infra/DEBUG/DEBUGGING.md#L15-L41)
-- [DEBUGGING.md:45-207](file://infra/DEBUG/DEBUGGING.md#L45-L207)
-- [debug_args.gn:15-27](file://infra/DEBUG/debug_args.gn#L15-L27)
-- [args.gn:15-27](file://args.gn#L15-L27)
+- [DEBUGGING.md:15-41](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/DEBUG/DEBUGGING.md#L15-L41)
+- [DEBUGGING.md:45-207](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/DEBUG/DEBUGGING.md#L45-L207)
+- [debug_args.gn:15-27](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/DEBUG/debug_args.gn#L15-L27)
+- [args.gn:15-27](https://github.com/Mcloud136/Mcloud-Browser/blob/main/args.gn#L15-L27)
 
 ## 性能注意事项
 - 调试开销
@@ -261,8 +262,8 @@ ContinueDebug --> End(["结束"])
   - rr 录制会产生较大磁盘占用，按需使用。
 
 章节来源
-- [DEBUGGING.md:327-349](file://infra/DEBUG/DEBUGGING.md#L327-L349)
-- [DEBUGGING.md:463-486](file://infra/DEBUG/DEBUGGING.md#L463-L486)
+- [DEBUGGING.md:327-349](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/DEBUG/DEBUGGING.md#L327-L349)
+- [DEBUGGING.md:463-486](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/DEBUG/DEBUGGING.md#L463-L486)
 
 ## 故障排查指南
 - 无法附加到进程
@@ -280,10 +281,10 @@ ContinueDebug --> End(["结束"])
   - 使用脚本选择性地仅调试特定渲染器；或通过任务管理器获取 PID 后附加。
 
 章节来源
-- [DEBUGGING.md:28-41](file://infra/DEBUG/DEBUGGING.md#L28-L41)
-- [DEBUGGING.md:123-161](file://infra/DEBUG/DEBUGGING.md#L123-L161)
-- [DEBUGGING.md:351-366](file://infra/DEBUG/DEBUGGING.md#L351-L366)
-- [DEBUGGING.md:463-486](file://infra/DEBUG/DEBUGGING.md#L463-L486)
+- [DEBUGGING.md:28-41](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/DEBUG/DEBUGGING.md#L28-L41)
+- [DEBUGGING.md:123-161](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/DEBUG/DEBUGGING.md#L123-L161)
+- [DEBUGGING.md:351-366](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/DEBUG/DEBUGGING.md#L351-L366)
+- [DEBUGGING.md:463-486](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/DEBUG/DEBUGGING.md#L463-L486)
 
 ## 结论
 通过合理的构建配置（Debug 符号）、正确的 GDB 使用方式（启动/附加/注入）、以及对多进程架构的理解（渲染器/GPU/插件），可以高效定位 MCloud Browser 的问题。结合 IPC 日志、Core/Breakdump、rr 时间旅行调试等手段，能够覆盖从运行期到崩溃后的全链路调试场景。建议在日常工作中沉淀常用的 GDB 命令文件与脚本，提升调试效率。
@@ -303,9 +304,9 @@ ContinueDebug --> End(["结束"])
   - UI Debug Shell 启动：Thorium_Debug_Shell.sh
 
 章节来源
-- [DEBUGGING.md:23-87](file://infra/DEBUG/DEBUGGING.md#L23-L87)
-- [DEBUGGING.md:163-207](file://infra/DEBUG/DEBUGGING.md#L163-L207)
-- [DEBUGGING.md:463-486](file://infra/DEBUG/DEBUGGING.md#L463-L486)
-- [debug_args.gn:15-27](file://infra/DEBUG/debug_args.gn#L15-L27)
-- [build_debug_linux.sh:42-89](file://infra/DEBUG/build_debug_linux.sh#L42-L89)
-- [Thorium_Debug_Shell.sh:5-9](file://infra/DEBUG/Thorium_Debug_Shell.sh#L5-L9)
+- [DEBUGGING.md:23-87](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/DEBUG/DEBUGGING.md#L23-L87)
+- [DEBUGGING.md:163-207](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/DEBUG/DEBUGGING.md#L163-L207)
+- [DEBUGGING.md:463-486](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/DEBUG/DEBUGGING.md#L463-L486)
+- [debug_args.gn:15-27](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/DEBUG/debug_args.gn#L15-L27)
+- [build_debug_linux.sh:42-89](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/DEBUG/build_debug_linux.sh#L42-L89)
+- [Thorium_Debug_Shell.sh:5-9](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/DEBUG/Thorium_Debug_Shell.sh#L5-L9)

@@ -1,16 +1,17 @@
 # MSE优化
 
-<cite>
-**本文引用的文件**
-- [mcloud_flags.txt](file://mcloud_flags.txt)
-- [README.md](file://README.md)
-- [media_switches.cc](file://src/media/base/media_switches.cc)
-- [ffmpeg_common.cc](file://src/media/ffmpeg/ffmpeg_common.cc)
-- [ffmpeg_video_decoder.cc](file://src/media/filters/ffmpeg_video_decoder.cc)
-- [2026-06-08-mcloud-browser-m149-upgrade-design.md](file://docs/superpowers/specs/2026-06-08-mcloud-browser-m149-upgrade-design.md)
-- [2026-06-20-release-notes-m150.md](file://docs/superpowers/specs/2026-06-20-release-notes-m150.md)
-- [CMDLINE_FLAGS_LIST.md](file://infra/CMDLINE_FLAGS_LIST.md)
-</cite>
+<details><summary>本文引用的文件</summary>
+
+- [mcloud_flags.txt](https://github.com/Mcloud136/Mcloud-Browser/blob/main/mcloud_flags.txt)
+- [README.md](https://github.com/Mcloud136/Mcloud-Browser/blob/main/README.md)
+- [media_switches.cc](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/media/base/media_switches.cc)
+- [ffmpeg_common.cc](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/media/ffmpeg/ffmpeg_common.cc)
+- [ffmpeg_video_decoder.cc](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/media/filters/ffmpeg_video_decoder.cc)
+- [2026-06-08-mcloud-browser-m149-upgrade-design.md](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/superpowers/specs/2026-06-08-mcloud-browser-m149-upgrade-design.md)
+- [2026-06-20-release-notes-m150.md](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/superpowers/specs/2026-06-20-release-notes-m150.md)
+- [CMDLINE_FLAGS_LIST.md](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/CMDLINE_FLAGS_LIST.md)
+
+</details>
 
 ## 目录
 1. [简介](#简介)
@@ -45,16 +46,16 @@ C --> E
 ```
 
 **图表来源**
-- [mcloud_flags.txt:78-105](file://mcloud_flags.txt#L78-L105)
-- [media_switches.cc:600-635](file://src/media/base/media_switches.cc#L600-L635)
-- [ffmpeg_common.cc:818-851](file://src/media/ffmpeg/ffmpeg_common.cc#L818-L851)
-- [2026-06-08-mcloud-browser-m149-upgrade-design.md:302-372](file://docs/superpowers/specs/2026-06-08-mcloud-browser-m149-upgrade-design.md#L302-L372)
+- [mcloud_flags.txt:78-105](https://github.com/Mcloud136/Mcloud-Browser/blob/main/mcloud_flags.txt#L78-L105)
+- [media_switches.cc:600-635](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/media/base/media_switches.cc#L600-L635)
+- [ffmpeg_common.cc:818-851](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/media/ffmpeg/ffmpeg_common.cc#L818-L851)
+- [2026-06-08-mcloud-browser-m149-upgrade-design.md:302-372](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/superpowers/specs/2026-06-08-mcloud-browser-m149-upgrade-design.md#L302-L372)
 
 **章节来源**
-- [mcloud_flags.txt:78-105](file://mcloud_flags.txt#L78-L105)
-- [media_switches.cc:600-635](file://src/media/base/media_switches.cc#L600-L635)
-- [ffmpeg_common.cc:818-851](file://src/media/ffmpeg/ffmpeg_common.cc#L818-L851)
-- [2026-06-08-mcloud-browser-m149-upgrade-design.md:302-372](file://docs/superpowers/specs/2026-06-08-mcloud-browser-m149-upgrade-design.md#L302-L372)
+- [mcloud_flags.txt:78-105](https://github.com/Mcloud136/Mcloud-Browser/blob/main/mcloud_flags.txt#L78-L105)
+- [media_switches.cc:600-635](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/media/base/media_switches.cc#L600-L635)
+- [ffmpeg_common.cc:818-851](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/media/ffmpeg/ffmpeg_common.cc#L818-L851)
+- [2026-06-08-mcloud-browser-m149-upgrade-design.md:302-372](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/superpowers/specs/2026-06-08-mcloud-browser-m149-upgrade-design.md#L302-L372)
 
 ## 核心组件
 - MSE ObjectURL 回收与内存优化：通过特性开关在附加 HTMLMediaElement 时及时撤销 MediaSource ObjectURL，降低内存占用，适用于长视频与多标签页场景。
@@ -67,10 +68,10 @@ C --> E
 上述能力由启动标志与媒体特性共同驱动，并在 FFmpeg 适配层完成解码与 HDR 元数据传递。
 
 **章节来源**
-- [media_switches.cc:600-635](file://src/media/base/media_switches.cc#L600-L635)
-- [media_switches.cc:1445-1451](file://src/media/base/media_switches.cc#L1445-L1451)
-- [2026-06-20-release-notes-m150.md:156-165](file://docs/superpowers/specs/2026-06-20-release-notes-m150.md#L156-L165)
-- [mcloud_flags.txt:78-105](file://mcloud_flags.txt#L78-L105)
+- [media_switches.cc:600-635](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/media/base/media_switches.cc#L600-L635)
+- [media_switches.cc:1445-1451](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/media/base/media_switches.cc#L1445-L1451)
+- [2026-06-20-release-notes-m150.md:156-165](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/superpowers/specs/2026-06-20-release-notes-m150.md#L156-L165)
+- [mcloud_flags.txt:78-105](https://github.com/Mcloud136/Mcloud-Browser/blob/main/mcloud_flags.txt#L78-L105)
 
 ## 架构总览
 下图展示从 MSE 到解码再到合成的整体流程，以及各优化点的作用位置。
@@ -98,10 +99,10 @@ Note over MSE,Comp : "MSE缓冲回收/硬解缓冲减少/批处理读取"
 ```
 
 **图表来源**
-- [media_switches.cc:600-635](file://src/media/base/media_switches.cc#L600-L635)
-- [media_switches.cc:1445-1451](file://src/media/base/media_switches.cc#L1445-L1451)
-- [ffmpeg_common.cc:818-851](file://src/media/ffmpeg/ffmpeg_common.cc#L818-L851)
-- [2026-06-20-release-notes-m150.md:156-165](file://docs/superpowers/specs/2026-06-20-release-notes-m150.md#L156-L165)
+- [media_switches.cc:600-635](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/media/base/media_switches.cc#L600-L635)
+- [media_switches.cc:1445-1451](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/media/base/media_switches.cc#L1445-L1451)
+- [ffmpeg_common.cc:818-851](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/media/ffmpeg/ffmpeg_common.cc#L818-L851)
+- [2026-06-20-release-notes-m150.md:156-165](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/superpowers/specs/2026-06-20-release-notes-m150.md#L156-L165)
 
 ## 详细组件分析
 
@@ -126,13 +127,13 @@ ReduceHWBuf --> End(["结束"])
 ```
 
 **图表来源**
-- [media_switches.cc:600-635](file://src/media/base/media_switches.cc#L600-L635)
-- [media_switches.cc:1445-1451](file://src/media/base/media_switches.cc#L1445-L1451)
+- [media_switches.cc:600-635](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/media/base/media_switches.cc#L600-L635)
+- [media_switches.cc:1445-1451](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/media/base/media_switches.cc#L1445-L1451)
 
 **章节来源**
-- [media_switches.cc:600-635](file://src/media/base/media_switches.cc#L600-L635)
-- [media_switches.cc:1445-1451](file://src/media/base/media_switches.cc#L1445-L1451)
-- [2026-06-08-mcloud-browser-m149-upgrade-design.md:318-323](file://docs/superpowers/specs/2026-06-08-mcloud-browser-m149-upgrade-design.md#L318-L323)
+- [media_switches.cc:600-635](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/media/base/media_switches.cc#L600-L635)
+- [media_switches.cc:1445-1451](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/media/base/media_switches.cc#L1445-L1451)
+- [2026-06-08-mcloud-browser-m149-upgrade-design.md:318-323](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/superpowers/specs/2026-06-08-mcloud-browser-m149-upgrade-design.md#L318-L323)
 
 ### 流式传输优化（Bilibili/YouTube）
 - Bilibili：
@@ -157,12 +158,12 @@ end
 ```
 
 **图表来源**
-- [2026-06-08-mcloud-browser-m149-upgrade-design.md:337-357](file://docs/superpowers/specs/2026-06-08-mcloud-browser-m149-upgrade-design.md#L337-L357)
-- [2026-06-20-release-notes-m150.md:156-165](file://docs/superpowers/specs/2026-06-20-release-notes-m150.md#L156-L165)
+- [2026-06-08-mcloud-browser-m149-upgrade-design.md:337-357](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/superpowers/specs/2026-06-08-mcloud-browser-m149-upgrade-design.md#L337-L357)
+- [2026-06-20-release-notes-m150.md:156-165](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/superpowers/specs/2026-06-20-release-notes-m150.md#L156-L165)
 
 **章节来源**
-- [2026-06-08-mcloud-browser-m149-upgrade-design.md:337-357](file://docs/superpowers/specs/2026-06-08-mcloud-browser-m149-upgrade-design.md#L337-L357)
-- [2026-06-20-release-notes-m150.md:156-165](file://docs/superpowers/specs/2026-06-20-release-notes-m150.md#L156-L165)
+- [2026-06-08-mcloud-browser-m149-upgrade-design.md:337-357](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/superpowers/specs/2026-06-08-mcloud-browser-m149-upgrade-design.md#L337-L357)
+- [2026-06-20-release-notes-m150.md:156-165](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/superpowers/specs/2026-06-20-release-notes-m150.md#L156-L165)
 
 ### MSE 音视频缓冲区大小配置与调优
 - 命令行参数：
@@ -177,9 +178,9 @@ end
   - 通过 chrome://tracing 记录 appendBuffer/decode/flush 事件，定位瓶颈。
 
 **章节来源**
-- [CMDLINE_FLAGS_LIST.md:1894-1896](file://infra/CMDLINE_FLAGS_LIST.md#L1894-L1896)
-- [media_switches.cc:600-635](file://src/media/base/media_switches.cc#L600-L635)
-- [media_switches.cc:1445-1451](file://src/media/base/media_switches.cc#L1445-L1451)
+- [CMDLINE_FLAGS_LIST.md:1894-1896](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/CMDLINE_FLAGS_LIST.md#L1894-L1896)
+- [media_switches.cc:600-635](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/media/base/media_switches.cc#L600-L635)
+- [media_switches.cc:1445-1451](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/media/base/media_switches.cc#L1445-L1451)
 
 ### 与硬件解码的协同工作机制
 - 平台支持：
@@ -216,14 +217,14 @@ SoftwareDecoder --> Compositor : "输出帧"
 ```
 
 **图表来源**
-- [media_switches.cc:600-635](file://src/media/base/media_switches.cc#L600-L635)
-- [media_switches.cc:1445-1451](file://src/media/base/media_switches.cc#L1445-L1451)
-- [ffmpeg_common.cc:818-851](file://src/media/ffmpeg/ffmpeg_common.cc#L818-L851)
-- [2026-06-20-release-notes-m150.md:156-165](file://docs/superpowers/specs/2026-06-20-release-notes-m150.md#L156-L165)
+- [media_switches.cc:600-635](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/media/base/media_switches.cc#L600-L635)
+- [media_switches.cc:1445-1451](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/media/base/media_switches.cc#L1445-L1451)
+- [ffmpeg_common.cc:818-851](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/media/ffmpeg/ffmpeg_common.cc#L818-L851)
+- [2026-06-20-release-notes-m150.md:156-165](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/superpowers/specs/2026-06-20-release-notes-m150.md#L156-L165)
 
 **章节来源**
-- [2026-06-08-mcloud-browser-m149-upgrade-design.md:302-316](file://docs/superpowers/specs/2026-06-08-mcloud-browser-m149-upgrade-design.md#L302-L316)
-- [2026-06-20-release-notes-m150.md:156-165](file://docs/superpowers/specs/2026-06-20-release-notes-m150.md#L156-L165)
+- [2026-06-08-mcloud-browser-m149-upgrade-design.md:302-316](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/superpowers/specs/2026-06-08-mcloud-browser-m149-upgrade-design.md#L302-L316)
+- [2026-06-20-release-notes-m150.md:156-165](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/superpowers/specs/2026-06-20-release-notes-m150.md#L156-L165)
 
 ### 性能分析与故障排除
 - 性能分析：
@@ -237,9 +238,9 @@ SoftwareDecoder --> Compositor : "输出帧"
   - 绿屏/花屏（特定 GPU）：根据已知问题关闭有缺陷的特性（如 D3D12VideoDecoder），回退到稳定路径。
 
 **章节来源**
-- [mcloud_flags.txt:83-88](file://mcloud_flags.txt#L83-L88)
-- [media_switches.cc:600-635](file://src/media/base/media_switches.cc#L600-L635)
-- [media_switches.cc:1445-1451](file://src/media/base/media_switches.cc#L1445-L1451)
+- [mcloud_flags.txt:83-88](https://github.com/Mcloud136/Mcloud-Browser/blob/main/mcloud_flags.txt#L83-L88)
+- [media_switches.cc:600-635](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/media/base/media_switches.cc#L600-L635)
+- [media_switches.cc:1445-1451](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/media/base/media_switches.cc#L1445-L1451)
 
 ## 依赖关系分析
 - 启动标志与特性开关：
@@ -259,16 +260,16 @@ Docs["网站优化策略<br/>设计文档"] --> Flags
 ```
 
 **图表来源**
-- [mcloud_flags.txt:78-105](file://mcloud_flags.txt#L78-L105)
-- [media_switches.cc:600-635](file://src/media/base/media_switches.cc#L600-L635)
-- [ffmpeg_common.cc:818-851](file://src/media/ffmpeg/ffmpeg_common.cc#L818-L851)
-- [2026-06-08-mcloud-browser-m149-upgrade-design.md:302-372](file://docs/superpowers/specs/2026-06-08-mcloud-browser-m149-upgrade-design.md#L302-L372)
+- [mcloud_flags.txt:78-105](https://github.com/Mcloud136/Mcloud-Browser/blob/main/mcloud_flags.txt#L78-L105)
+- [media_switches.cc:600-635](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/media/base/media_switches.cc#L600-L635)
+- [ffmpeg_common.cc:818-851](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/media/ffmpeg/ffmpeg_common.cc#L818-L851)
+- [2026-06-08-mcloud-browser-m149-upgrade-design.md:302-372](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/superpowers/specs/2026-06-08-mcloud-browser-m149-upgrade-design.md#L302-L372)
 
 **章节来源**
-- [mcloud_flags.txt:78-105](file://mcloud_flags.txt#L78-L105)
-- [media_switches.cc:600-635](file://src/media/base/media_switches.cc#L600-L635)
-- [ffmpeg_common.cc:818-851](file://src/media/ffmpeg/ffmpeg_common.cc#L818-L851)
-- [2026-06-08-mcloud-browser-m149-upgrade-design.md:302-372](file://docs/superpowers/specs/2026-06-08-mcloud-browser-m149-upgrade-design.md#L302-L372)
+- [mcloud_flags.txt:78-105](https://github.com/Mcloud136/Mcloud-Browser/blob/main/mcloud_flags.txt#L78-L105)
+- [media_switches.cc:600-635](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/media/base/media_switches.cc#L600-L635)
+- [ffmpeg_common.cc:818-851](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/media/ffmpeg/ffmpeg_common.cc#L818-L851)
+- [2026-06-08-mcloud-browser-m149-upgrade-design.md:302-372](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/superpowers/specs/2026-06-08-mcloud-browser-m149-upgrade-design.md#L302-L372)
 
 ## 性能考量
 - 缓冲与延迟的权衡：
@@ -297,9 +298,9 @@ Docs["网站优化策略<br/>设计文档"] --> Flags
   - 解决：启用相关特性，监控长视频内存曲线。
 
 **章节来源**
-- [mcloud_flags.txt:83-88](file://mcloud_flags.txt#L83-L88)
-- [media_switches.cc:600-635](file://src/media/base/media_switches.cc#L600-L635)
-- [media_switches.cc:1445-1451](file://src/media/base/media_switches.cc#L1445-L1451)
+- [mcloud_flags.txt:83-88](https://github.com/Mcloud136/Mcloud-Browser/blob/main/mcloud_flags.txt#L83-L88)
+- [media_switches.cc:600-635](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/media/base/media_switches.cc#L600-L635)
+- [media_switches.cc:1445-1451](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/media/base/media_switches.cc#L1445-L1451)
 
 ## 结论
 通过对 MSE 缓冲管理、预加载机制、流式传输优化、硬件解码协同与性能分析的全面优化，MCloud Browser 在 Bilibili 与 YouTube 等主流视频站点上能够提供更流畅、稳定的播放体验。建议在真实场景中结合 chrome://tracing 与开发者工具持续观测与调优，并根据设备能力与网络条件动态调整缓冲与解码策略。
@@ -315,6 +316,6 @@ Docs["网站优化策略<br/>设计文档"] --> Flags
   - --mse-audio-buffer-size-limit-mb、--mse-video-buffer-size-limit-mb：按需调整 MSE 音视频缓冲大小。
 
 **章节来源**
-- [mcloud_flags.txt:78-105](file://mcloud_flags.txt#L78-L105)
-- [README.md:109-116](file://README.md#L109-L116)
-- [CMDLINE_FLAGS_LIST.md:1894-1896](file://infra/CMDLINE_FLAGS_LIST.md#L1894-L1896)
+- [mcloud_flags.txt:78-105](https://github.com/Mcloud136/Mcloud-Browser/blob/main/mcloud_flags.txt#L78-L105)
+- [README.md:109-116](https://github.com/Mcloud136/Mcloud-Browser/blob/main/README.md#L109-L116)
+- [CMDLINE_FLAGS_LIST.md:1894-1896](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/CMDLINE_FLAGS_LIST.md#L1894-L1896)

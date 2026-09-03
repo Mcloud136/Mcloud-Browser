@@ -1,19 +1,20 @@
 # Windows 自动化构建流程
 
-<cite>
-**本文引用的文件**
-- [win_scripts/build_win.py](file://win_scripts/build_win.py)
-- [win_scripts/setup.py](file://win_scripts/setup.py)
-- [win_scripts/deploy_mcloud.py](file://win_scripts/deploy_mcloud.py)
-- [win_scripts/copy_essentials.py](file://win_scripts/copy_essentials.py)
-- [win_scripts/apply_polly_wiring.py](file://win_scripts/apply_polly_wiring.py)
-- [win_scripts/inject_flags_loader.py](file://win_scripts/inject_flags_loader.py)
-- [win_args.gn](file://win_args.gn)
-- [win_args_mcloud.gn](file://win_args_mcloud.gn)
-- [mcloud_flags.txt](file://mcloud_flags.txt)
-- [docs/BUILDING_WIN.md](file://docs/BUILDING_WIN.md)
-- [README.md](file://README.md)
-</cite>
+<details><summary>本文引用的文件</summary>
+
+- [win_scripts/build_win.py](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/build_win.py)
+- [win_scripts/setup.py](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/setup.py)
+- [win_scripts/deploy_mcloud.py](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/deploy_mcloud.py)
+- [win_scripts/copy_essentials.py](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/copy_essentials.py)
+- [win_scripts/apply_polly_wiring.py](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/apply_polly_wiring.py)
+- [win_scripts/inject_flags_loader.py](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/inject_flags_loader.py)
+- [win_args.gn](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_args.gn)
+- [win_args_mcloud.gn](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_args_mcloud.gn)
+- [mcloud_flags.txt](https://github.com/Mcloud136/Mcloud-Browser/blob/main/mcloud_flags.txt)
+- [docs/BUILDING_WIN.md](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/BUILDING_WIN.md)
+- [README.md](https://github.com/Mcloud136/Mcloud-Browser/blob/main/README.md)
+
+</details>
 
 ## 目录
 1. [简介](#简介)
@@ -60,13 +61,13 @@ F --> G["mcloud.exe / mini_installer.exe"]
 ```
 
 图表来源
-- [win_scripts/deploy_mcloud.py:1-51](file://win_scripts/deploy_mcloud.py#L1-L51)
-- [win_scripts/setup.py:1-412](file://win_scripts/setup.py#L1-L412)
-- [win_scripts/build_win.py:1-51](file://win_scripts/build_win.py#L1-L51)
+- [win_scripts/deploy_mcloud.py:1-51](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/deploy_mcloud.py#L1-L51)
+- [win_scripts/setup.py:1-412](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/setup.py#L1-L412)
+- [win_scripts/build_win.py:1-51](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/build_win.py#L1-L51)
 
 章节来源
-- [docs/BUILDING_WIN.md:1-288](file://docs/BUILDING_WIN.md#L1-L288)
-- [README.md:1-408](file://README.md#L1-L408)
+- [docs/BUILDING_WIN.md:1-288](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/BUILDING_WIN.md#L1-L288)
+- [README.md:1-408](https://github.com/Mcloud136/Mcloud-Browser/blob/main/README.md#L1-L408)
 
 ## 核心组件
 - 构建编排器 deploy_mcloud.py
@@ -85,12 +86,12 @@ F --> G["mcloud.exe / mini_installer.exe"]
   - inject_flags_loader.py 向 chrome_main_delegate.cc 注入加载器，启动时读取 out/mcloud/mcloud_flags.txt 并合并到命令行。
 
 章节来源
-- [win_scripts/deploy_mcloud.py:1-51](file://win_scripts/deploy_mcloud.py#L1-L51)
-- [win_scripts/setup.py:1-412](file://win_scripts/setup.py#L1-L412)
-- [win_scripts/build_win.py:1-51](file://win_scripts/build_win.py#L1-L51)
-- [win_args.gn:1-87](file://win_args.gn#L1-L87)
-- [win_args_mcloud.gn:1-126](file://win_args_mcloud.gn#L1-L126)
-- [win_scripts/inject_flags_loader.py:1-125](file://win_scripts/inject_flags_loader.py#L1-L125)
+- [win_scripts/deploy_mcloud.py:1-51](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/deploy_mcloud.py#L1-L51)
+- [win_scripts/setup.py:1-412](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/setup.py#L1-L412)
+- [win_scripts/build_win.py:1-51](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/build_win.py#L1-L51)
+- [win_args.gn:1-87](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_args.gn#L1-L87)
+- [win_args_mcloud.gn:1-126](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_args_mcloud.gn#L1-L126)
+- [win_scripts/inject_flags_loader.py:1-125](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/inject_flags_loader.py#L1-L125)
 
 ## 架构总览
 下图展示了 Windows 自动化构建的整体流程与关键交互点：
@@ -115,9 +116,9 @@ Out-->>Dev : 产物 readymcloud.exe / mini_installer.exe
 ```
 
 图表来源
-- [win_scripts/deploy_mcloud.py:1-51](file://win_scripts/deploy_mcloud.py#L1-L51)
-- [win_scripts/setup.py:1-412](file://win_scripts/setup.py#L1-L412)
-- [win_scripts/build_win.py:1-51](file://win_scripts/build_win.py#L1-L51)
+- [win_scripts/deploy_mcloud.py:1-51](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/deploy_mcloud.py#L1-L51)
+- [win_scripts/setup.py:1-412](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/setup.py#L1-L412)
+- [win_scripts/build_win.py:1-51](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/build_win.py#L1-L51)
 
 ## 详细组件分析
 
@@ -144,10 +145,10 @@ CopyFlags --> End(["结束"])
 ```
 
 图表来源
-- [win_scripts/deploy_mcloud.py:1-51](file://win_scripts/deploy_mcloud.py#L1-L51)
+- [win_scripts/deploy_mcloud.py:1-51](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/deploy_mcloud.py#L1-L51)
 
 章节来源
-- [win_scripts/deploy_mcloud.py:1-51](file://win_scripts/deploy_mcloud.py#L1-L51)
+- [win_scripts/deploy_mcloud.py:1-51](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/deploy_mcloud.py#L1-L51)
 
 ### 组件 B：setup.py（环境初始化与补丁）
 - 主要功能
@@ -175,10 +176,10 @@ DownloadPGO --> Done(["完成"])
 ```
 
 图表来源
-- [win_scripts/setup.py:1-412](file://win_scripts/setup.py#L1-L412)
+- [win_scripts/setup.py:1-412](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/setup.py#L1-L412)
 
 章节来源
-- [win_scripts/setup.py:1-412](file://win_scripts/setup.py#L1-L412)
+- [win_scripts/setup.py:1-412](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/setup.py#L1-L412)
 
 ### 组件 C：build_win.py（主构建脚本）
 - 执行流程
@@ -204,10 +205,10 @@ Script-->>User : 输出产物路径
 ```
 
 图表来源
-- [win_scripts/build_win.py:1-51](file://win_scripts/build_win.py#L1-L51)
+- [win_scripts/build_win.py:1-51](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/build_win.py#L1-L51)
 
 章节来源
-- [win_scripts/build_win.py:1-51](file://win_scripts/build_win.py#L1-L51)
+- [win_scripts/build_win.py:1-51](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/build_win.py#L1-L51)
 
 ### 组件 D：GN 构建参数与优化配置
 - win_args.gn
@@ -244,14 +245,14 @@ GNArgs <.. RuntimeFlags : "构建期影响运行期行为"
 ```
 
 图表来源
-- [win_args.gn:1-87](file://win_args.gn#L1-L87)
-- [win_args_mcloud.gn:1-126](file://win_args_mcloud.gn#L1-L126)
-- [mcloud_flags.txt:1-120](file://mcloud_flags.txt#L1-L120)
+- [win_args.gn:1-87](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_args.gn#L1-L87)
+- [win_args_mcloud.gn:1-126](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_args_mcloud.gn#L1-L126)
+- [mcloud_flags.txt:1-120](https://github.com/Mcloud136/Mcloud-Browser/blob/main/mcloud_flags.txt#L1-L120)
 
 章节来源
-- [win_args.gn:1-87](file://win_args.gn#L1-L87)
-- [win_args_mcloud.gn:1-126](file://win_args_mcloud.gn#L1-L126)
-- [mcloud_flags.txt:1-120](file://mcloud_flags.txt#L1-L120)
+- [win_args.gn:1-87](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_args.gn#L1-L87)
+- [win_args_mcloud.gn:1-126](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_args_mcloud.gn#L1-L126)
+- [mcloud_flags.txt:1-120](https://github.com/Mcloud136/Mcloud-Browser/blob/main/mcloud_flags.txt#L1-L120)
 
 ### 组件 E：flags 加载器注入（inject_flags_loader.py）
 - 功能
@@ -275,10 +276,10 @@ Next --> Exit(["进入后续初始化"])
 ```
 
 图表来源
-- [win_scripts/inject_flags_loader.py:1-125](file://win_scripts/inject_flags_loader.py#L1-L125)
+- [win_scripts/inject_flags_loader.py:1-125](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/inject_flags_loader.py#L1-L125)
 
 章节来源
-- [win_scripts/inject_flags_loader.py:1-125](file://win_scripts/inject_flags_loader.py#L1-L125)
+- [win_scripts/inject_flags_loader.py:1-125](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/inject_flags_loader.py#L1-L125)
 
 ## 依赖关系分析
 - 脚本间依赖
@@ -306,16 +307,16 @@ N["PGO 下载"] --> O["profdata"]
 ```
 
 图表来源
-- [win_scripts/deploy_mcloud.py:1-51](file://win_scripts/deploy_mcloud.py#L1-L51)
-- [win_scripts/setup.py:1-412](file://win_scripts/setup.py#L1-L412)
-- [win_scripts/build_win.py:1-51](file://win_scripts/build_win.py#L1-L51)
-- [win_args_mcloud.gn:1-126](file://win_args_mcloud.gn#L1-L126)
+- [win_scripts/deploy_mcloud.py:1-51](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/deploy_mcloud.py#L1-L51)
+- [win_scripts/setup.py:1-412](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/setup.py#L1-L412)
+- [win_scripts/build_win.py:1-51](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/build_win.py#L1-L51)
+- [win_args_mcloud.gn:1-126](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_args_mcloud.gn#L1-L126)
 
 章节来源
-- [win_scripts/deploy_mcloud.py:1-51](file://win_scripts/deploy_mcloud.py#L1-L51)
-- [win_scripts/setup.py:1-412](file://win_scripts/setup.py#L1-L412)
-- [win_scripts/build_win.py:1-51](file://win_scripts/build_win.py#L1-L51)
-- [win_args_mcloud.gn:1-126](file://win_args_mcloud.gn#L1-L126)
+- [win_scripts/deploy_mcloud.py:1-51](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/deploy_mcloud.py#L1-L51)
+- [win_scripts/setup.py:1-412](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/setup.py#L1-L412)
+- [win_scripts/build_win.py:1-51](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/build_win.py#L1-L51)
+- [win_args_mcloud.gn:1-126](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_args_mcloud.gn#L1-L126)
 
 ## 性能考虑
 - 编译器优化栈
@@ -332,9 +333,9 @@ N["PGO 下载"] --> O["profdata"]
   - 当前 use_polly/use_bolt=false（受限于工具链与后链接流程），待 infra/build_polly.sh 与后链接流程就绪后再启用。
 
 章节来源
-- [win_args_mcloud.gn:1-126](file://win_args_mcloud.gn#L1-L126)
-- [mcloud_flags.txt:1-120](file://mcloud_flags.txt#L1-L120)
-- [win_scripts/build_win.py:1-51](file://win_scripts/build_win.py#L1-L51)
+- [win_args_mcloud.gn:1-126](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_args_mcloud.gn#L1-L126)
+- [mcloud_flags.txt:1-120](https://github.com/Mcloud136/Mcloud-Browser/blob/main/mcloud_flags.txt#L1-L120)
+- [win_scripts/build_win.py:1-51](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/build_win.py#L1-L51)
 
 ## 故障排查指南
 - 环境未正确配置
@@ -353,10 +354,10 @@ N["PGO 下载"] --> O["profdata"]
   - 处理：增大 -j 参数（build_win.py 默认使用 CPU 核数），关闭不必要的调试符号与组件构建，确保 SSD 与磁盘空间充足。
 
 章节来源
-- [docs/BUILDING_WIN.md:1-288](file://docs/BUILDING_WIN.md#L1-L288)
-- [win_scripts/setup.py:1-412](file://win_scripts/setup.py#L1-L412)
-- [win_scripts/deploy_mcloud.py:1-51](file://win_scripts/deploy_mcloud.py#L1-L51)
-- [win_scripts/inject_flags_loader.py:1-125](file://win_scripts/inject_flags_loader.py#L1-L125)
+- [docs/BUILDING_WIN.md:1-288](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/BUILDING_WIN.md#L1-L288)
+- [win_scripts/setup.py:1-412](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/setup.py#L1-L412)
+- [win_scripts/deploy_mcloud.py:1-51](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/deploy_mcloud.py#L1-L51)
+- [win_scripts/inject_flags_loader.py:1-125](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/inject_flags_loader.py#L1-L125)
 
 ## 结论
 本流程通过 deploy_mcloud.py 统一编排部署步骤，setup.py 完成源码与补丁准备，build_win.py 调用 autoninja 执行构建与打包，结合 win_args_mcloud.gn 与 mcloud_flags.txt 实现 AVX2+FMA3 原生编译、ThinLTO+PGO 三重优化与 66 项运行时标志注入。该方案适用于本地开发与 CI 环境，具备幂等性、可重复性与良好的可观测性。
@@ -375,5 +376,5 @@ N["PGO 下载"] --> O["profdata"]
   - 合理配置 mcloud_flags.txt 中的运行时标志。
 
 章节来源
-- [README.md:1-408](file://README.md#L1-L408)
-- [docs/BUILDING_WIN.md:1-288](file://docs/BUILDING_WIN.md#L1-L288)
+- [README.md:1-408](https://github.com/Mcloud136/Mcloud-Browser/blob/main/README.md#L1-L408)
+- [docs/BUILDING_WIN.md:1-288](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/BUILDING_WIN.md#L1-L288)

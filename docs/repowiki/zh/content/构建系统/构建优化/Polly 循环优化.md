@@ -1,15 +1,16 @@
 # Polly 循环优化
 
-<cite>
-**本文引用的文件**
-- [apply_polly_wiring.py](file://win_scripts/apply_polly_wiring.py)
-- [append_polly_configs.py](file://win_scripts/append_polly_configs.py)
-- [build_polly.sh](file://infra/build_polly.sh)
-- [args.gn](file://args.gn)
-- [build.py（Clang 构建脚本）](file://src/tools/clang/scripts/build.py)
-- [性能优化设计文档 v2.0](file://docs/superpowers/specs/2026-06-19-performance-optimization-design.md)
-- [M150 发布说明（节选）](file://docs/superpowers/specs/2026-06-20-release-notes-m150.md)
-</cite>
+<details><summary>本文引用的文件</summary>
+
+- [apply_polly_wiring.py](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/apply_polly_wiring.py)
+- [append_polly_configs.py](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/append_polly_configs.py)
+- [build_polly.sh](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/build_polly.sh)
+- [args.gn](https://github.com/Mcloud136/Mcloud-Browser/blob/main/args.gn)
+- [build.py（Clang 构建脚本）](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/tools/clang/scripts/build.py)
+- [性能优化设计文档 v2.0](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/superpowers/specs/2026-06-19-performance-optimization-design.md)
+- [M150 发布说明（节选）](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/superpowers/specs/2026-06-20-release-notes-m150.md)
+
+</details>
 
 ## 目录
 1. [简介](#简介)
@@ -52,16 +53,16 @@ H --> E
 ```
 
 图表来源
-- [apply_polly_wiring.py:1-47](file://win_scripts/apply_polly_wiring.py#L1-L47)
-- [append_polly_configs.py:1-72](file://win_scripts/append_polly_configs.py#L1-L72)
-- [build_polly.sh:1-97](file://infra/build_polly.sh#L1-L97)
-- [args.gn:1-87](file://args.gn#L1-L87)
+- [apply_polly_wiring.py:1-47](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/apply_polly_wiring.py#L1-L47)
+- [append_polly_configs.py:1-72](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/append_polly_configs.py#L1-L72)
+- [build_polly.sh:1-97](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/build_polly.sh#L1-L97)
+- [args.gn:1-87](https://github.com/Mcloud136/Mcloud-Browser/blob/main/args.gn#L1-L87)
 
 章节来源
-- [apply_polly_wiring.py:1-47](file://win_scripts/apply_polly_wiring.py#L1-L47)
-- [append_polly_configs.py:1-72](file://win_scripts/append_polly_configs.py#L1-L72)
-- [build_polly.sh:1-97](file://infra/build_polly.sh#L1-L97)
-- [args.gn:1-87](file://args.gn#L1-L87)
+- [apply_polly_wiring.py:1-47](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/apply_polly_wiring.py#L1-L47)
+- [append_polly_configs.py:1-72](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/append_polly_configs.py#L1-L72)
+- [build_polly.sh:1-97](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/build_polly.sh#L1-L97)
+- [args.gn:1-87](https://github.com/Mcloud136/Mcloud-Browser/blob/main/args.gn#L1-L87)
 
 ## 核心组件
 - 构建开关与配置
@@ -74,11 +75,11 @@ H --> E
   - src/tools/clang/scripts/build.py 在多个路径中为 Clang/Polly 构建与训练注入 -mllvm -polly 等参数，确保最终产物能正确启用 Polly 优化
 
 章节来源
-- [args.gn:1-87](file://args.gn#L1-L87)
-- [append_polly_configs.py:1-72](file://win_scripts/append_polly_configs.py#L1-L72)
-- [apply_polly_wiring.py:1-47](file://win_scripts/apply_polly_wiring.py#L1-L47)
-- [build_polly.sh:1-97](file://infra/build_polly.sh#L1-L97)
-- [build.py（Clang 构建脚本）:1180-1379](file://src/tools/clang/scripts/build.py#L1180-L1379)
+- [args.gn:1-87](https://github.com/Mcloud136/Mcloud-Browser/blob/main/args.gn#L1-L87)
+- [append_polly_configs.py:1-72](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/append_polly_configs.py#L1-L72)
+- [apply_polly_wiring.py:1-47](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/apply_polly_wiring.py#L1-L47)
+- [build_polly.sh:1-97](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/build_polly.sh#L1-L97)
+- [build.py（Clang 构建脚本）:1180-1379](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/tools/clang/scripts/build.py#L1180-L1379)
 
 ## 架构总览
 下图展示了从构建入口到 Polly 优化生效的整体链路：
@@ -100,9 +101,9 @@ Link-->>Dev : 产出可执行/库
 ```
 
 图表来源
-- [apply_polly_wiring.py:1-47](file://win_scripts/apply_polly_wiring.py#L1-L47)
-- [append_polly_configs.py:1-72](file://win_scripts/append_polly_configs.py#L1-L72)
-- [build.py（Clang 构建脚本）:1180-1379](file://src/tools/clang/scripts/build.py#L1180-L1379)
+- [apply_polly_wiring.py:1-47](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/apply_polly_wiring.py#L1-L47)
+- [append_polly_configs.py:1-72](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/append_polly_configs.py#L1-L72)
+- [build.py（Clang 构建脚本）:1180-1379](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/tools/clang/scripts/build.py#L1180-L1379)
 
 ## 详细组件分析
 
@@ -128,10 +129,10 @@ Write --> End(["结束"])
 ```
 
 图表来源
-- [apply_polly_wiring.py:1-47](file://win_scripts/apply_polly_wiring.py#L1-L47)
+- [apply_polly_wiring.py:1-47](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/apply_polly_wiring.py#L1-L47)
 
 章节来源
-- [apply_polly_wiring.py:1-47](file://win_scripts/apply_polly_wiring.py#L1-L47)
+- [apply_polly_wiring.py:1-47](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/apply_polly_wiring.py#L1-L47)
 
 ### 组件二：append_polly_configs.py（compiler/BUILD.gn 追加配置）
 - 作用
@@ -155,10 +156,10 @@ W --> E(["结束"])
 ```
 
 图表来源
-- [append_polly_configs.py:1-72](file://win_scripts/append_polly_configs.py#L1-L72)
+- [append_polly_configs.py:1-72](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/append_polly_configs.py#L1-L72)
 
 章节来源
-- [append_polly_configs.py:1-72](file://win_scripts/append_polly_configs.py#L1-L72)
+- [append_polly_configs.py:1-72](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/append_polly_configs.py#L1-L72)
 
 ### 组件三：build_polly.sh（构建带 Polly 的本地 Clang）
 - 作用
@@ -179,12 +180,12 @@ BP-->>U : 输出构建日志与结果
 ```
 
 图表来源
-- [build_polly.sh:1-97](file://infra/build_polly.sh#L1-L97)
-- [build.py（Clang 构建脚本）:1180-1379](file://src/tools/clang/scripts/build.py#L1180-L1379)
+- [build_polly.sh:1-97](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/build_polly.sh#L1-L97)
+- [build.py（Clang 构建脚本）:1180-1379](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/tools/clang/scripts/build.py#L1180-L1379)
 
 章节来源
-- [build_polly.sh:1-97](file://infra/build_polly.sh#L1-L97)
-- [build.py（Clang 构建脚本）:1180-1379](file://src/tools/clang/scripts/build.py#L1180-L1379)
+- [build_polly.sh:1-97](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/build_polly.sh#L1-L97)
+- [build.py（Clang 构建脚本）:1180-1379](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/tools/clang/scripts/build.py#L1180-L1379)
 
 ### 组件四：args.gn（全局构建开关）
 - 作用
@@ -195,7 +196,7 @@ BP-->>U : 输出构建日志与结果
   - 与 ThinLTO/PGO/BOLT 协同工作，形成完整的编译优化栈
 
 章节来源
-- [args.gn:1-87](file://args.gn#L1-L87)
+- [args.gn:1-87](https://github.com/Mcloud136/Mcloud-Browser/blob/main/args.gn#L1-L87)
 
 ### 组件五：Clang 构建脚本中的 Polly 集成
 - 作用
@@ -207,7 +208,7 @@ BP-->>U : 输出构建日志与结果
   - 不同平台与 LTO/PGO 组合下的链接器参数注入
 
 章节来源
-- [build.py（Clang 构建脚本）:1180-1379](file://src/tools/clang/scripts/build.py#L1180-L1379)
+- [build.py（Clang 构建脚本）:1180-1379](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/tools/clang/scripts/build.py#L1180-L1379)
 
 ## 依赖关系分析
 - 构建脚本依赖
@@ -232,18 +233,18 @@ H --> F
 ```
 
 图表来源
-- [args.gn:1-87](file://args.gn#L1-L87)
-- [append_polly_configs.py:1-72](file://win_scripts/append_polly_configs.py#L1-L72)
-- [apply_polly_wiring.py:1-47](file://win_scripts/apply_polly_wiring.py#L1-L47)
-- [build_polly.sh:1-97](file://infra/build_polly.sh#L1-L97)
-- [build.py（Clang 构建脚本）:1180-1379](file://src/tools/clang/scripts/build.py#L1180-L1379)
+- [args.gn:1-87](https://github.com/Mcloud136/Mcloud-Browser/blob/main/args.gn#L1-L87)
+- [append_polly_configs.py:1-72](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/append_polly_configs.py#L1-L72)
+- [apply_polly_wiring.py:1-47](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/apply_polly_wiring.py#L1-L47)
+- [build_polly.sh:1-97](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/build_polly.sh#L1-L97)
+- [build.py（Clang 构建脚本）:1180-1379](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/tools/clang/scripts/build.py#L1180-L1379)
 
 章节来源
-- [args.gn:1-87](file://args.gn#L1-L87)
-- [append_polly_configs.py:1-72](file://win_scripts/append_polly_configs.py#L1-L72)
-- [apply_polly_wiring.py:1-47](file://win_scripts/apply_polly_wiring.py#L1-L47)
-- [build_polly.sh:1-97](file://infra/build_polly.sh#L1-L97)
-- [build.py（Clang 构建脚本）:1180-1379](file://src/tools/clang/scripts/build.py#L1180-L1379)
+- [args.gn:1-87](https://github.com/Mcloud136/Mcloud-Browser/blob/main/args.gn#L1-L87)
+- [append_polly_configs.py:1-72](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/append_polly_configs.py#L1-L72)
+- [apply_polly_wiring.py:1-47](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/apply_polly_wiring.py#L1-L47)
+- [build_polly.sh:1-97](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/build_polly.sh#L1-L97)
+- [build.py（Clang 构建脚本）:1180-1379](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/tools/clang/scripts/build.py#L1180-L1379)
 
 ## 性能考量
 - 优化策略
@@ -259,9 +260,9 @@ H --> F
   - 根据项目文档，Polly 作为编译期优化之一，预期带来约 5-10% 的性能提升（具体因场景而异）
 
 章节来源
-- [append_polly_configs.py:25-65](file://win_scripts/append_polly_configs.py#L25-L65)
-- [性能优化设计文档 v2.0:107-118](file://docs/superpowers/specs/2026-06-19-performance-optimization-design.md#L107-L118)
-- [M150 发布说明（节选）:107-118](file://docs/superpowers/specs/2026-06-20-release-notes-m150.md#L107-L118)
+- [append_polly_configs.py:25-65](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/append_polly_configs.py#L25-L65)
+- [性能优化设计文档 v2.0:107-118](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/superpowers/specs/2026-06-19-performance-optimization-design.md#L107-L118)
+- [M150 发布说明（节选）:107-118](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/superpowers/specs/2026-06-20-release-notes-m150.md#L107-L118)
 
 ## 故障排查指南
 - 常见问题
@@ -274,9 +275,9 @@ H --> F
   - 逐步禁用其他优化：隔离问题（如 ThinLTO/PGO/BOLT）
 
 章节来源
-- [append_polly_configs.py:25-65](file://win_scripts/append_polly_configs.py#L25-L65)
-- [apply_polly_wiring.py:1-47](file://win_scripts/apply_polly_wiring.py#L1-L47)
-- [build_polly.sh:1-97](file://infra/build_polly.sh#L1-L97)
+- [append_polly_configs.py:25-65](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/append_polly_configs.py#L25-L65)
+- [apply_polly_wiring.py:1-47](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/apply_polly_wiring.py#L1-L47)
+- [build_polly.sh:1-97](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/build_polly.sh#L1-L97)
 
 ## 结论
 MCloud Browser 通过一系列脚本与 GN 配置，将 LLVM Polly 循环优化无缝集成到 Chromium 构建管线中。借助自构建的带 Polly 的 Clang 工具链，结合 Stripmine 向量化、循环展开、并行化与缓存友好布局等策略，可在多种计算密集型场景中取得显著性能提升。配合 ThinLTO、PGO 与 BOLT，可进一步放大整体收益。建议在启用 Polly 的同时，结合业务场景进行基准测试与参数调优，以获得最佳效果。

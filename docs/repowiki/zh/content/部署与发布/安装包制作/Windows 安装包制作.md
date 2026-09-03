@@ -1,16 +1,17 @@
 # Windows 安装包制作
 
-<cite>
-**本文引用的文件**
-- [other/mini_installer.patch](file://other/mini_installer.patch)
-- [win_scripts/build_win.py](file://win_scripts/build_win.py)
-- [win_args.gn](file://win_args.gn)
-- [win_args_mcloud.gn](file://win_args_mcloud.gn)
-- [src/chrome/installer/mini_installer/failed.ico](file://src/chrome/installer/mini_installer/failed.ico)
-- [src/chrome/installer/mini_installer/mini_installer.ico](file://src/chrome/installer/mini_installer/mini_installer.ico)
-- [src/chrome/installer/mini_installer/success.ico](file://src/chrome/installer/mini_installer/success.ico)
-- [other/win_updater.patch](file://other/win_updater.patch)
-</cite>
+<details><summary>本文引用的文件</summary>
+
+- [other/mini_installer.patch](https://github.com/Mcloud136/Mcloud-Browser/blob/main/other/mini_installer.patch)
+- [win_scripts/build_win.py](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/build_win.py)
+- [win_args.gn](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_args.gn)
+- [win_args_mcloud.gn](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_args_mcloud.gn)
+- [src/chrome/installer/mini_installer/failed.ico](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/installer/mini_installer/failed.ico)
+- [src/chrome/installer/mini_installer/mini_installer.ico](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/installer/mini_installer/mini_installer.ico)
+- [src/chrome/installer/mini_installer/success.ico](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/installer/mini_installer/success.ico)
+- [other/win_updater.patch](https://github.com/Mcloud136/Mcloud-Browser/blob/main/other/win_updater.patch)
+
+</details>
 
 ## 目录
 1. [简介](#简介)
@@ -46,16 +47,16 @@ G["更新器补丁<br/>other/win_updater.patch"] --> F
 ```
 
 **图表来源**
-- [win_scripts/build_win.py:34-50](file://win_scripts/build_win.py#L34-L50)
-- [win_args.gn:1-87](file://win_args.gn#L1-L87)
-- [win_args_mcloud.gn:1-126](file://win_args_mcloud.gn#L1-L126)
-- [other/mini_installer.patch:1-224](file://other/mini_installer.patch#L1-L224)
+- [win_scripts/build_win.py:34-50](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/build_win.py#L34-L50)
+- [win_args.gn:1-87](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_args.gn#L1-L87)
+- [win_args_mcloud.gn:1-126](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_args_mcloud.gn#L1-L126)
+- [other/mini_installer.patch:1-224](https://github.com/Mcloud136/Mcloud-Browser/blob/main/other/mini_installer.patch#L1-L224)
 
 **章节来源**
-- [win_scripts/build_win.py:34-50](file://win_scripts/build_win.py#L34-L50)
-- [win_args.gn:1-87](file://win_args.gn#L1-L87)
-- [win_args_mcloud.gn:1-126](file://win_args_mcloud.gn#L1-L126)
-- [other/mini_installer.patch:1-224](file://other/mini_installer.patch#L1-L224)
+- [win_scripts/build_win.py:34-50](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/build_win.py#L34-L50)
+- [win_args.gn:1-87](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_args.gn#L1-L87)
+- [win_args_mcloud.gn:1-126](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_args_mcloud.gn#L1-L126)
+- [other/mini_installer.patch:1-224](https://github.com/Mcloud136/Mcloud-Browser/blob/main/other/mini_installer.patch#L1-L224)
 
 ## 核心组件
 - mini_installer 构建与打包：通过 GN 模板生成多 SIMD 目标的 mini_installer 可执行体，并将 chrome.dll、chrome_elf.dll、mcloud.exe、mcloud_flags.txt、locales、setup.exe 等资源打包进压缩包，最终由 makecab.py 生成 CAB。
@@ -66,11 +67,11 @@ G["更新器补丁<br/>other/win_updater.patch"] --> F
 - 增量更新：BUILD.gn 中预留了 last_chrome_installer、setup_exe_format=DIFF、diff_algorithm=ZUCCHINI 等参数以生成差分安装包（当前注释掉，按需启用）。
 
 **章节来源**
-- [other/mini_installer.patch:1-224](file://other/mini_installer.patch#L1-L224)
-- [other/mini_installer.patch:224-301](file://other/mini_installer.patch#L224-L301)
-- [other/mini_installer.patch:301-638](file://other/mini_installer.patch#L301-L638)
-- [other/mini_installer.patch:638-796](file://other/mini_installer.patch#L638-L796)
-- [other/win_updater.patch:65-121](file://other/win_updater.patch#L65-L121)
+- [other/mini_installer.patch:1-224](https://github.com/Mcloud136/Mcloud-Browser/blob/main/other/mini_installer.patch#L1-L224)
+- [other/mini_installer.patch:224-301](https://github.com/Mcloud136/Mcloud-Browser/blob/main/other/mini_installer.patch#L224-L301)
+- [other/mini_installer.patch:301-638](https://github.com/Mcloud136/Mcloud-Browser/blob/main/other/mini_installer.patch#L301-L638)
+- [other/mini_installer.patch:638-796](https://github.com/Mcloud136/Mcloud-Browser/blob/main/other/mini_installer.patch#L638-L796)
+- [other/win_updater.patch:65-121](https://github.com/Mcloud136/Mcloud-Browser/blob/main/other/win_updater.patch#L65-L121)
 
 ## 架构总览
 下图展示 Windows 安装包从构建到产物的关键流程，包括 mini_installer 的资源打包、可选的差分生成、签名与版本信息嵌入。
@@ -92,8 +93,8 @@ Note over Mini,Pack : 可选：启用差分更新参数生成 DIFF 安装包
 ```
 
 **图表来源**
-- [win_scripts/build_win.py:34-50](file://win_scripts/build_win.py#L34-L50)
-- [other/mini_installer.patch:147-224](file://other/mini_installer.patch#L147-L224)
+- [win_scripts/build_win.py:34-50](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/build_win.py#L34-L50)
+- [other/mini_installer.patch:147-224](https://github.com/Mcloud136/Mcloud-Browser/blob/main/other/mini_installer.patch#L147-L224)
 
 ## 详细组件分析
 
@@ -116,28 +117,28 @@ DoSign --> Done
 ```
 
 **图表来源**
-- [other/mini_installer.patch:16-47](file://other/mini_installer.patch#L16-L47)
-- [other/mini_installer.patch:147-224](file://other/mini_installer.patch#L147-L224)
-- [other/mini_installer.patch:66-77](file://other/mini_installer.patch#L66-L77)
+- [other/mini_installer.patch:16-47](https://github.com/Mcloud136/Mcloud-Browser/blob/main/other/mini_installer.patch#L16-L47)
+- [other/mini_installer.patch:147-224](https://github.com/Mcloud136/Mcloud-Browser/blob/main/other/mini_installer.patch#L147-L224)
+- [other/mini_installer.patch:66-77](https://github.com/Mcloud136/Mcloud-Browser/blob/main/other/mini_installer.patch#L66-L77)
 
 **章节来源**
-- [other/mini_installer.patch:16-47](file://other/mini_installer.patch#L16-L47)
-- [other/mini_installer.patch:147-224](file://other/mini_installer.patch#L147-L224)
-- [other/mini_installer.patch:66-77](file://other/mini_installer.patch#L66-L77)
+- [other/mini_installer.patch:16-47](https://github.com/Mcloud136/Mcloud-Browser/blob/main/other/mini_installer.patch#L16-L47)
+- [other/mini_installer.patch:147-224](https://github.com/Mcloud136/Mcloud-Browser/blob/main/other/mini_installer.patch#L147-L224)
+- [other/mini_installer.patch:66-77](https://github.com/Mcloud136/Mcloud-Browser/blob/main/other/mini_installer.patch#L66-L77)
 
 ### 数字签名验证
 - 默认行为：win_updater.patch 移除了签名与时间戳重试逻辑，使本地构建无需证书即可产出产物。
 - 生产建议：如需恢复签名，可在 sign.py 中恢复 signtool 调用链，并配置证书与时间戳服务器；或在 CI 中引入独立签名步骤。
 
 **章节来源**
-- [other/win_updater.patch:65-121](file://other/win_updater.patch#L65-L121)
+- [other/win_updater.patch:65-121](https://github.com/Mcloud136/Mcloud-Browser/blob/main/other/win_updater.patch#L65-L121)
 
 ### 版本信息嵌入
 - 通过 process_version("mini_installer_version") 将 //chrome/VERSION 转换为 mini_installer_version.h，供 mini_installer 在运行时读取版本号与产品名。
 - 资源 RC 模板用于生成 exe 版本资源，确保系统属性中可见版本信息。
 
 **章节来源**
-- [other/mini_installer.patch:66-77](file://other/mini_installer.patch#L66-L77)
+- [other/mini_installer.patch:66-77](https://github.com/Mcloud136/Mcloud-Browser/blob/main/other/mini_installer.patch#L66-L77)
 
 ### 安装程序定制（界面、选项、权限）
 - 命令行参数：
@@ -174,12 +175,12 @@ Installer-->>User : 显示结果成功/失败
 ```
 
 **图表来源**
-- [other/mini_installer.patch:224-301](file://other/mini_installer.patch#L224-L301)
-- [other/mini_installer.patch:301-638](file://other/mini_installer.patch#L301-L638)
+- [other/mini_installer.patch:224-301](https://github.com/Mcloud136/Mcloud-Browser/blob/main/other/mini_installer.patch#L224-L301)
+- [other/mini_installer.patch:301-638](https://github.com/Mcloud136/Mcloud-Browser/blob/main/other/mini_installer.patch#L301-L638)
 
 **章节来源**
-- [other/mini_installer.patch:224-301](file://other/mini_installer.patch#L224-L301)
-- [other/mini_installer.patch:301-638](file://other/mini_installer.patch#L301-L638)
+- [other/mini_installer.patch:224-301](https://github.com/Mcloud136/Mcloud-Browser/blob/main/other/mini_installer.patch#L224-L301)
+- [other/mini_installer.patch:301-638](https://github.com/Mcloud136/Mcloud-Browser/blob/main/other/mini_installer.patch#L301-L638)
 
 ### 补丁文件的应用流程
 - 应用顺序：先应用 mini_installer.patch 以增强 mini_installer；再根据需要应用 win_updater.patch 以调整更新器签名流程。
@@ -197,19 +198,19 @@ E --> F["产出安装包"]
 ```
 
 **图表来源**
-- [other/mini_installer.patch:1-224](file://other/mini_installer.patch#L1-L224)
-- [other/win_updater.patch:1-121](file://other/win_updater.patch#L1-L121)
+- [other/mini_installer.patch:1-224](https://github.com/Mcloud136/Mcloud-Browser/blob/main/other/mini_installer.patch#L1-L224)
+- [other/win_updater.patch:1-121](https://github.com/Mcloud136/Mcloud-Browser/blob/main/other/win_updater.patch#L1-L121)
 
 **章节来源**
-- [other/mini_installer.patch:1-224](file://other/mini_installer.patch#L1-L224)
-- [other/win_updater.patch:1-121](file://other/win_updater.patch#L1-L121)
+- [other/mini_installer.patch:1-224](https://github.com/Mcloud136/Mcloud-Browser/blob/main/other/mini_installer.patch#L1-L224)
+- [other/win_updater.patch:1-121](https://github.com/Mcloud136/Mcloud-Browser/blob/main/other/win_updater.patch#L1-L121)
 
 ### 增量更新机制
 - 构建参数：在 mini_installer_archive action 中预留 last_chrome_installer、setup_exe_format=DIFF、diff_algorithm=ZUCCHINI 等参数，用于生成差分安装包。
 - 使用方式：取消注释并传入相应参数，构建时将基于上一个安装器生成差分包，减少下载体积。
 
 **章节来源**
-- [other/mini_installer.patch:177-224](file://other/mini_installer.patch#L177-L224)
+- [other/mini_installer.patch:177-224](https://github.com/Mcloud136/Mcloud-Browser/blob/main/other/mini_installer.patch#L177-L224)
 
 ## 依赖关系分析
 - 构建脚本依赖 GN 参数决定编译目标与优化策略。
@@ -226,16 +227,16 @@ M --> O["输出产物<br/>setup.exe / mini_installer.exe"]
 ```
 
 **图表来源**
-- [other/mini_installer.patch:147-224](file://other/mini_installer.patch#L147-L224)
-- [other/win_updater.patch:65-121](file://other/win_updater.patch#L65-L121)
-- [win_args.gn:1-87](file://win_args.gn#L1-L87)
-- [win_args_mcloud.gn:1-126](file://win_args_mcloud.gn#L1-L126)
+- [other/mini_installer.patch:147-224](https://github.com/Mcloud136/Mcloud-Browser/blob/main/other/mini_installer.patch#L147-L224)
+- [other/win_updater.patch:65-121](https://github.com/Mcloud136/Mcloud-Browser/blob/main/other/win_updater.patch#L65-L121)
+- [win_args.gn:1-87](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_args.gn#L1-L87)
+- [win_args_mcloud.gn:1-126](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_args_mcloud.gn#L1-L126)
 
 **章节来源**
-- [other/mini_installer.patch:147-224](file://other/mini_installer.patch#L147-L224)
-- [other/win_updater.patch:65-121](file://other/win_updater.patch#L65-L121)
-- [win_args.gn:1-87](file://win_args.gn#L1-L87)
-- [win_args_mcloud.gn:1-126](file://win_args_mcloud.gn#L1-L126)
+- [other/mini_installer.patch:147-224](https://github.com/Mcloud136/Mcloud-Browser/blob/main/other/mini_installer.patch#L147-L224)
+- [other/win_updater.patch:65-121](https://github.com/Mcloud136/Mcloud-Browser/blob/main/other/win_updater.patch#L65-L121)
+- [win_args.gn:1-87](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_args.gn#L1-L87)
+- [win_args_mcloud.gn:1-126](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_args_mcloud.gn#L1-L126)
 
 ## 性能与体积优化
 - SIMD 指令集：通过 win_args.gn / win_args_mcloud.gn 启用 SSE/AVX/AVX2/FMA，提升运行时性能；mini_installer 编译时按目标 CPU 自动选择最优指令集。
@@ -246,10 +247,10 @@ M --> O["输出产物<br/>setup.exe / mini_installer.exe"]
 - 增量更新：启用差分算法可减少安装包体积与下载时间。
 
 **章节来源**
-- [win_args.gn:1-87](file://win_args.gn#L1-L87)
-- [win_args_mcloud.gn:1-126](file://win_args_mcloud.gn#L1-L126)
-- [other/mini_installer.patch:16-47](file://other/mini_installer.patch#L16-L47)
-- [other/mini_installer.patch:177-224](file://other/mini_installer.patch#L177-L224)
+- [win_args.gn:1-87](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_args.gn#L1-L87)
+- [win_args_mcloud.gn:1-126](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_args_mcloud.gn#L1-L126)
+- [other/mini_installer.patch:16-47](https://github.com/Mcloud136/Mcloud-Browser/blob/main/other/mini_installer.patch#L16-L47)
+- [other/mini_installer.patch:177-224](https://github.com/Mcloud136/Mcloud-Browser/blob/main/other/mini_installer.patch#L177-L224)
 
 ## 故障排查指南
 - 构建失败：检查 GN 参数是否正确（SIMD、target_os/target_cpu）、Python 脚本路径与 autoninja 可用。
@@ -259,9 +260,9 @@ M --> O["输出产物<br/>setup.exe / mini_installer.exe"]
 - 增量更新失败：核对 last_chrome_installer 路径与差分算法参数；确保上一版本安装器存在且兼容。
 
 **章节来源**
-- [other/mini_installer.patch:224-301](file://other/mini_installer.patch#L224-L301)
-- [other/mini_installer.patch:301-638](file://other/mini_installer.patch#L301-L638)
-- [other/win_updater.patch:65-121](file://other/win_updater.patch#L65-L121)
+- [other/mini_installer.patch:224-301](https://github.com/Mcloud136/Mcloud-Browser/blob/main/other/mini_installer.patch#L224-L301)
+- [other/mini_installer.patch:301-638](https://github.com/Mcloud136/Mcloud-Browser/blob/main/other/mini_installer.patch#L301-L638)
+- [other/win_updater.patch:65-121](https://github.com/Mcloud136/Mcloud-Browser/blob/main/other/win_updater.patch#L65-L121)
 
 ## 结论
 本项目通过补丁与 GN 参数对 Chromium 的 mini_installer 进行了深度定制，实现了多 SIMD 目标构建、资源打包、版本信息嵌入、静默安装与日志输出、注册表键名隔离、可选差分更新与简化签名流程。配合 win_args*.gn 的性能与体积优化，能够在 Windows 平台上高效产出高质量安装包。生产环境可根据需要恢复签名流程并完善 CI 质量门禁。
@@ -272,7 +273,7 @@ M --> O["输出产物<br/>setup.exe / mini_installer.exe"]
 - 图标资源：src/chrome/installer/mini_installer/mini_installer.ico、success.ico、failed.ico
 
 **章节来源**
-- [win_scripts/build_win.py:34-50](file://win_scripts/build_win.py#L34-L50)
-- [src/chrome/installer/mini_installer/mini_installer.ico](file://src/chrome/installer/mini_installer/mini_installer.ico)
-- [src/chrome/installer/mini_installer/success.ico](file://src/chrome/installer/mini_installer/success.ico)
-- [src/chrome/installer/mini_installer/failed.ico](file://src/chrome/installer/mini_installer/failed.ico)
+- [win_scripts/build_win.py:34-50](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/build_win.py#L34-L50)
+- [src/chrome/installer/mini_installer/mini_installer.ico](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/installer/mini_installer/mini_installer.ico)
+- [src/chrome/installer/mini_installer/success.ico](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/installer/mini_installer/success.ico)
+- [src/chrome/installer/mini_installer/failed.ico](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/installer/mini_installer/failed.ico)

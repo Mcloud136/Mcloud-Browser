@@ -1,17 +1,18 @@
 # GPU 内存管理
 
-<cite>
-**本文引用的文件**
-- [src/content/common/gpu_pre_sandbox_hook_linux.cc](file://src/content/common/gpu_pre_sandbox_hook_linux.cc)
-- [src/chrome/browser/memory_details_linux.cc](file://src/chrome/browser/memory_details_linux.cc)
-- [mcloud_flags.txt](file://mcloud_flags.txt)
-- [infra/CMDLINE_FLAGS_LIST.md](file://infra/CMDLINE_FLAGS_LIST.md)
-- [src/media/base/media_switches.cc](file://src/media/base/media_switches.cc)
-- [docs/superpowers/specs/2026-06-19-performance-optimization-design.md](file://docs/superpowers/specs/2026-06-19-performance-optimization-design.md)
-- [docs/superpowers/specs/2026-06-20-release-notes-m150.md](file://docs/superpowers/specs/2026-06-20-release-notes-m150.md)
-- [README.md](file://README.md)
-- [infra/Flatpak/.../Revert-Reland-Linux-Ozone-Wayland-Support-fractional-scale.patch](file://infra/Flatpak/com.mcloud.browser/patches/chromium/Revert-Reland-Linux-Ozone-Wayland-Support-fractional-scale.patch)
-</cite>
+<details><summary>本文引用的文件</summary>
+
+- [src/content/common/gpu_pre_sandbox_hook_linux.cc](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/content/common/gpu_pre_sandbox_hook_linux.cc)
+- [src/chrome/browser/memory_details_linux.cc](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/memory_details_linux.cc)
+- [mcloud_flags.txt](https://github.com/Mcloud136/Mcloud-Browser/blob/main/mcloud_flags.txt)
+- [infra/CMDLINE_FLAGS_LIST.md](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/CMDLINE_FLAGS_LIST.md)
+- [src/media/base/media_switches.cc](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/media/base/media_switches.cc)
+- [docs/superpowers/specs/2026-06-19-performance-optimization-design.md](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/superpowers/specs/2026-06-19-performance-optimization-design.md)
+- [docs/superpowers/specs/2026-06-20-release-notes-m150.md](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/superpowers/specs/2026-06-20-release-notes-m150.md)
+- [README.md](https://github.com/Mcloud136/Mcloud-Browser/blob/main/README.md)
+- [infra/Flatpak/.../Revert-Reland-Linux-Ozone-Wayland-Support-fractional-scale.patch](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/Flatpak/com.mcloud.browser/patches/chromium/Revert-Reland-Linux-Ozone-Wayland-Support-fractional-scale.patch)
+
+</details>
 
 ## 目录
 1. [简介](#简介)
@@ -52,12 +53,12 @@ B --> F["媒体加速栈<br/>VA-API/V4L2/GL"]
 ```
 
 图表来源
-- [src/content/common/gpu_pre_sandbox_hook_linux.cc:628-702](file://src/content/common/gpu_pre_sandbox_hook_linux.cc#L628-L702)
-- [src/media/base/media_switches.cc:742-777](file://src/media/base/media_switches.cc#L742-L777)
+- [src/content/common/gpu_pre_sandbox_hook_linux.cc:628-702](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/content/common/gpu_pre_sandbox_hook_linux.cc#L628-L702)
+- [src/media/base/media_switches.cc:742-777](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/media/base/media_switches.cc#L742-L777)
 
 章节来源
-- [src/content/common/gpu_pre_sandbox_hook_linux.cc:628-702](file://src/content/common/gpu_pre_sandbox_hook_linux.cc#L628-L702)
-- [src/media/base/media_switches.cc:742-777](file://src/media/base/media_switches.cc#L742-L777)
+- [src/content/common/gpu_pre_sandbox_hook_linux.cc:628-702](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/content/common/gpu_pre_sandbox_hook_linux.cc#L628-L702)
+- [src/media/base/media_switches.cc:742-777](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/media/base/media_switches.cc#L742-L777)
 
 ## 核心组件
 - GPU 沙箱与设备权限管理
@@ -71,11 +72,11 @@ B --> F["媒体加速栈<br/>VA-API/V4L2/GL"]
   - 收集浏览器进程及子进程内存信息，结合基准脚本与日志，辅助发现内存泄漏与峰值占用问题。
 
 章节来源
-- [src/content/common/gpu_pre_sandbox_hook_linux.cc:628-702](file://src/content/common/gpu_pre_sandbox_hook_linux.cc#L628-L702)
-- [src/media/base/media_switches.cc:742-777](file://src/media/base/media_switches.cc#L742-L777)
-- [infra/CMDLINE_FLAGS_LIST.md:1616-1646](file://infra/CMDLINE_FLAGS_LIST.md#L1616-L1646)
-- [docs/superpowers/specs/2026-06-19-performance-optimization-design.md:100-126](file://docs/superpowers/specs/2026-06-19-performance-optimization-design.md#L100-L126)
-- [src/chrome/browser/memory_details_linux.cc:110-146](file://src/chrome/browser/memory_details_linux.cc#L110-L146)
+- [src/content/common/gpu_pre_sandbox_hook_linux.cc:628-702](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/content/common/gpu_pre_sandbox_hook_linux.cc#L628-L702)
+- [src/media/base/media_switches.cc:742-777](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/media/base/media_switches.cc#L742-L777)
+- [infra/CMDLINE_FLAGS_LIST.md:1616-1646](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/CMDLINE_FLAGS_LIST.md#L1616-L1646)
+- [docs/superpowers/specs/2026-06-19-performance-optimization-design.md:100-126](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/superpowers/specs/2026-06-19-performance-optimization-design.md#L100-L126)
+- [src/chrome/browser/memory_details_linux.cc:110-146](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/memory_details_linux.cc#L110-L146)
 
 ## 架构总览
 下图展示从浏览器到 GPU 驱动的调用链路与关键优化点：
@@ -97,8 +98,8 @@ GPUProc-->>App : 提交绘制/呈现
 ```
 
 图表来源
-- [src/content/common/gpu_pre_sandbox_hook_linux.cc:628-702](file://src/content/common/gpu_pre_sandbox_hook_linux.cc#L628-L702)
-- [src/media/base/media_switches.cc:742-777](file://src/media/base/media_switches.cc#L742-L777)
+- [src/content/common/gpu_pre_sandbox_hook_linux.cc:628-702](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/content/common/gpu_pre_sandbox_hook_linux.cc#L628-L702)
+- [src/media/base/media_switches.cc:742-777](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/media/base/media_switches.cc#L742-L777)
 
 ## 详细组件分析
 
@@ -130,10 +131,10 @@ Preload --> Done(["完成沙箱初始化"])
 ```
 
 图表来源
-- [src/content/common/gpu_pre_sandbox_hook_linux.cc:628-702](file://src/content/common/gpu_pre_sandbox_hook_linux.cc#L628-L702)
+- [src/content/common/gpu_pre_sandbox_hook_linux.cc:628-702](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/content/common/gpu_pre_sandbox_hook_linux.cc#L628-L702)
 
 章节来源
-- [src/content/common/gpu_pre_sandbox_hook_linux.cc:628-702](file://src/content/common/gpu_pre_sandbox_hook_linux.cc#L628-L702)
+- [src/content/common/gpu_pre_sandbox_hook_linux.cc:628-702](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/content/common/gpu_pre_sandbox_hook_linux.cc#L628-L702)
 
 ### 媒体加速与 GPU 路径（VA-API/V4L2/GL）
 - 功能要点
@@ -160,10 +161,10 @@ GPU-->>Med : 提交帧至合成器
 ```
 
 图表来源
-- [src/media/base/media_switches.cc:742-777](file://src/media/base/media_switches.cc#L742-L777)
+- [src/media/base/media_switches.cc:742-777](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/media/base/media_switches.cc#L742-L777)
 
 章节来源
-- [src/media/base/media_switches.cc:742-777](file://src/media/base/media_switches.cc#L742-L777)
+- [src/media/base/media_switches.cc:742-777](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/media/base/media_switches.cc#L742-L777)
 
 ### 运行期优化与资源池策略
 - 关键开关与效果
@@ -188,12 +189,12 @@ Monitor --> End(["结束"])
 ```
 
 图表来源
-- [infra/CMDLINE_FLAGS_LIST.md:1616-1646](file://infra/CMDLINE_FLAGS_LIST.md#L1616-L1646)
-- [docs/superpowers/specs/2026-06-19-performance-optimization-design.md:100-126](file://docs/superpowers/specs/2026-06-19-performance-optimization-design.md#L100-L126)
+- [infra/CMDLINE_FLAGS_LIST.md:1616-1646](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/CMDLINE_FLAGS_LIST.md#L1616-L1646)
+- [docs/superpowers/specs/2026-06-19-performance-optimization-design.md:100-126](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/superpowers/specs/2026-06-19-performance-optimization-design.md#L100-L126)
 
 章节来源
-- [infra/CMDLINE_FLAGS_LIST.md:1616-1646](file://infra/CMDLINE_FLAGS_LIST.md#L1616-L1646)
-- [docs/superpowers/specs/2026-06-19-performance-optimization-design.md:100-126](file://docs/superpowers/specs/2026-06-19-performance-optimization-design.md#L100-L126)
+- [infra/CMDLINE_FLAGS_LIST.md:1616-1646](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/CMDLINE_FLAGS_LIST.md#L1616-L1646)
+- [docs/superpowers/specs/2026-06-19-performance-optimization-design.md:100-126](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/superpowers/specs/2026-06-19-performance-optimization-design.md#L100-L126)
 
 ### Wayland 缓冲区管理与零拷贝
 - 功能要点
@@ -215,10 +216,10 @@ Server-->>Client : 显示/合成
 ```
 
 图表来源
-- [infra/Flatpak/.../Revert-Reland-Linux-Ozone-Wayland-Support-fractional-scale.patch:892-1008](file://infra/Flatpak/com.mcloud.browser/patches/chromium/Revert-Reland-Linux-Ozone-Wayland-Support-fractional-scale.patch#L892-L1008)
+- [infra/Flatpak/.../Revert-Reland-Linux-Ozone-Wayland-Support-fractional-scale.patch:892-1008](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/Flatpak/com.mcloud.browser/patches/chromium/Revert-Reland-Linux-Ozone-Wayland-Support-fractional-scale.patch#L892-L1008)
 
 章节来源
-- [infra/Flatpak/.../Revert-Reland-Linux-Ozone-Wayland-Support-fractional-scale.patch:892-1008](file://infra/Flatpak/com.mcloud.browser/patches/chromium/Revert-Reland-Linux-Ozone-Wayland-Support-fractional-scale.patch#L892-L1008)
+- [infra/Flatpak/.../Revert-Reland-Linux-Ozone-Wayland-Support-fractional-scale.patch:892-1008](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/Flatpak/com.mcloud.browser/patches/chromium/Revert-Reland-Linux-Ozone-Wayland-Support-fractional-scale.patch#L892-L1008)
 
 ### 内存监控与诊断
 - 功能要点
@@ -238,10 +239,10 @@ Report --> MEnd(["结束"])
 ```
 
 图表来源
-- [src/chrome/browser/memory_details_linux.cc:110-146](file://src/chrome/browser/memory_details_linux.cc#L110-L146)
+- [src/chrome/browser/memory_details_linux.cc:110-146](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/memory_details_linux.cc#L110-L146)
 
 章节来源
-- [src/chrome/browser/memory_details_linux.cc:110-146](file://src/chrome/browser/memory_details_linux.cc#L110-L146)
+- [src/chrome/browser/memory_details_linux.cc:110-146](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/memory_details_linux.cc#L110-L146)
 
 ## 依赖关系分析
 - 组件耦合
@@ -261,14 +262,14 @@ OptFlags --> Media
 ```
 
 图表来源
-- [src/content/common/gpu_pre_sandbox_hook_linux.cc:628-702](file://src/content/common/gpu_pre_sandbox_hook_linux.cc#L628-L702)
-- [src/media/base/media_switches.cc:742-777](file://src/media/base/media_switches.cc#L742-L777)
-- [infra/CMDLINE_FLAGS_LIST.md:1616-1646](file://infra/CMDLINE_FLAGS_LIST.md#L1616-L1646)
+- [src/content/common/gpu_pre_sandbox_hook_linux.cc:628-702](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/content/common/gpu_pre_sandbox_hook_linux.cc#L628-L702)
+- [src/media/base/media_switches.cc:742-777](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/media/base/media_switches.cc#L742-L777)
+- [infra/CMDLINE_FLAGS_LIST.md:1616-1646](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/CMDLINE_FLAGS_LIST.md#L1616-L1646)
 
 章节来源
-- [src/content/common/gpu_pre_sandbox_hook_linux.cc:628-702](file://src/content/common/gpu_pre_sandbox_hook_linux.cc#L628-L702)
-- [src/media/base/media_switches.cc:742-777](file://src/media/base/media_switches.cc#L742-L777)
-- [infra/CMDLINE_FLAGS_LIST.md:1616-1646](file://infra/CMDLINE_FLAGS_LIST.md#L1616-L1646)
+- [src/content/common/gpu_pre_sandbox_hook_linux.cc:628-702](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/content/common/gpu_pre_sandbox_hook_linux.cc#L628-L702)
+- [src/media/base/media_switches.cc:742-777](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/media/base/media_switches.cc#L742-L777)
+- [infra/CMDLINE_FLAGS_LIST.md:1616-1646](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/CMDLINE_FLAGS_LIST.md#L1616-L1646)
 
 ## 性能考量
 - 显存对齐与分页
@@ -298,9 +299,9 @@ OptFlags --> Media
   - 检查 Wayland 能力协商与 dma_buf/overlay 支持情况。
 
 章节来源
-- [infra/CMDLINE_FLAGS_LIST.md:1616-1646](file://infra/CMDLINE_FLAGS_LIST.md#L1616-L1646)
-- [src/chrome/browser/memory_details_linux.cc:110-146](file://src/chrome/browser/memory_details_linux.cc#L110-L146)
-- [infra/Flatpak/.../Revert-Reland-Linux-Ozone-Wayland-Support-fractional-scale.patch:892-1008](file://infra/Flatpak/com.mcloud.browser/patches/chromium/Revert-Reland-Linux-Ozone-Wayland-Support-fractional-scale.patch#L892-L1008)
+- [infra/CMDLINE_FLAGS_LIST.md:1616-1646](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/CMDLINE_FLAGS_LIST.md#L1616-L1646)
+- [src/chrome/browser/memory_details_linux.cc:110-146](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/memory_details_linux.cc#L110-L146)
+- [infra/Flatpak/.../Revert-Reland-Linux-Ozone-Wayland-Support-fractional-scale.patch:892-1008](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/Flatpak/com.mcloud.browser/patches/chromium/Revert-Reland-Linux-Ozone-Wayland-Support-fractional-scale.patch#L892-L1008)
 
 ## 结论
 本项目通过沙箱权限管理、媒体加速开关与运行期优化参数，构建了面向 Linux 的 GPU 内存管理与优化体系。关键在于：
@@ -320,7 +321,7 @@ OptFlags --> Media
   - mcloud_flags.txt、docs/superpowers/specs/2026-06-19-performance-optimization-design.md、docs/superpowers/specs/2026-06-20-release-notes-m150.md、README.md
 
 章节来源
-- [mcloud_flags.txt:27-57](file://mcloud_flags.txt#L27-L57)
-- [docs/superpowers/specs/2026-06-19-performance-optimization-design.md:78-126](file://docs/superpowers/specs/2026-06-19-performance-optimization-design.md#L78-L126)
-- [docs/superpowers/specs/2026-06-20-release-notes-m150.md:156-173](file://docs/superpowers/specs/2026-06-20-release-notes-m150.md#L156-L173)
-- [README.md:98-133](file://README.md#L98-L133)
+- [mcloud_flags.txt:27-57](https://github.com/Mcloud136/Mcloud-Browser/blob/main/mcloud_flags.txt#L27-L57)
+- [docs/superpowers/specs/2026-06-19-performance-optimization-design.md:78-126](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/superpowers/specs/2026-06-19-performance-optimization-design.md#L78-L126)
+- [docs/superpowers/specs/2026-06-20-release-notes-m150.md:156-173](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/superpowers/specs/2026-06-20-release-notes-m150.md#L156-L173)
+- [README.md:98-133](https://github.com/Mcloud136/Mcloud-Browser/blob/main/README.md#L98-L133)

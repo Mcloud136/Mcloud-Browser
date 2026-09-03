@@ -1,20 +1,21 @@
 # FFmpeg 集成
 
-<cite>
-**本文引用的文件**
-- [args.gn](file://args.gn)
-- [ffmpeg_options.gni](file://src/third_party/ffmpeg/ffmpeg_options.gni)
-- [ffmpeg_common.cc](file://src/media/ffmpeg/ffmpeg_common.cc)
-- [ffmpeg_glue.cc](file://src/media/filters/ffmpeg_glue.cc)
-- [ffmpeg_video_decoder.cc](file://src/media/filters/ffmpeg_video_decoder.cc)
-- [build_ffmpeg.sh](file://infra/build_ffmpeg.sh)
-- [build_ffmpeg.py](file://other/build_ffmpeg.py)
-- [add-hevc-ffmpeg-decoder-parser.patch](file://other/add-hevc-ffmpeg-decoder-parser.patch)
-- [ffmpeg_hevc_ac3.patch](file://other/ffmpeg_hevc_ac3.patch)
-- [Enable-support-for-libfdk-aac-and-OpenH264.patch](file://infra/Flatpak/com.mcloud.browser/patches/ffmpeg/Enable-support-for-libfdk-aac-and-OpenH264.patch)
-- [Update-build-configuration.patch](file://infra/Flatpak/com.mcloud.browser/patches/ffmpeg/Update-build-configuration.patch)
-- [setup.sh](file://setup.sh)
-</cite>
+<details><summary>本文引用的文件</summary>
+
+- [args.gn](https://github.com/Mcloud136/Mcloud-Browser/blob/main/args.gn)
+- [ffmpeg_options.gni](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/third_party/ffmpeg/ffmpeg_options.gni)
+- [ffmpeg_common.cc](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/media/ffmpeg/ffmpeg_common.cc)
+- [ffmpeg_glue.cc](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/media/filters/ffmpeg_glue.cc)
+- [ffmpeg_video_decoder.cc](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/media/filters/ffmpeg_video_decoder.cc)
+- [build_ffmpeg.sh](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/build_ffmpeg.sh)
+- [build_ffmpeg.py](https://github.com/Mcloud136/Mcloud-Browser/blob/main/other/build_ffmpeg.py)
+- [add-hevc-ffmpeg-decoder-parser.patch](https://github.com/Mcloud136/Mcloud-Browser/blob/main/other/add-hevc-ffmpeg-decoder-parser.patch)
+- [ffmpeg_hevc_ac3.patch](https://github.com/Mcloud136/Mcloud-Browser/blob/main/other/ffmpeg_hevc_ac3.patch)
+- [Enable-support-for-libfdk-aac-and-OpenH264.patch](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/Flatpak/com.mcloud.browser/patches/ffmpeg/Enable-support-for-libfdk-aac-and-OpenH264.patch)
+- [Update-build-configuration.patch](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/Flatpak/com.mcloud.browser/patches/ffmpeg/Update-build-configuration.patch)
+- [setup.sh](https://github.com/Mcloud136/Mcloud-Browser/blob/main/setup.sh)
+
+</details>
 
 ## 目录
 1. [简介](#简介)
@@ -54,16 +55,16 @@ C --> G["补丁注入<br/>HEVC/AC3/libfdk-aac/OpenH264"]
 ```
 
 **图示来源**
-- [args.gn:45-87](file://args.gn#L45-L87)
-- [ffmpeg_options.gni:30-81](file://src/third_party/ffmpeg/ffmpeg_options.gni#L30-L81)
-- [build_ffmpeg.sh:42-50](file://infra/build_ffmpeg.sh#L42-L50)
-- [build_ffmpeg.py:664-727](file://other/build_ffmpeg.py#L664-L727)
+- [args.gn:45-87](https://github.com/Mcloud136/Mcloud-Browser/blob/main/args.gn#L45-L87)
+- [ffmpeg_options.gni:30-81](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/third_party/ffmpeg/ffmpeg_options.gni#L30-L81)
+- [build_ffmpeg.sh:42-50](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/build_ffmpeg.sh#L42-L50)
+- [build_ffmpeg.py:664-727](https://github.com/Mcloud136/Mcloud-Browser/blob/main/other/build_ffmpeg.py#L664-L727)
 
 **章节来源**
-- [args.gn:45-87](file://args.gn#L45-L87)
-- [ffmpeg_options.gni:30-81](file://src/third_party/ffmpeg/ffmpeg_options.gni#L30-L81)
-- [build_ffmpeg.sh:42-50](file://infra/build_ffmpeg.sh#L42-L50)
-- [build_ffmpeg.py:664-727](file://other/build_ffmpeg.py#L664-L727)
+- [args.gn:45-87](https://github.com/Mcloud136/Mcloud-Browser/blob/main/args.gn#L45-L87)
+- [ffmpeg_options.gni:30-81](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/third_party/ffmpeg/ffmpeg_options.gni#L30-L81)
+- [build_ffmpeg.sh:42-50](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/build_ffmpeg.sh#L42-L50)
+- [build_ffmpeg.py:664-727](https://github.com/Mcloud136/Mcloud-Browser/blob/main/other/build_ffmpeg.py#L664-L727)
 
 ## 核心组件
 - 构建配置与开关
@@ -80,15 +81,15 @@ C --> G["补丁注入<br/>HEVC/AC3/libfdk-aac/OpenH264"]
   - Update-build-configuration.patch：统一版本信息与构建配置
 
 **章节来源**
-- [args.gn:45-87](file://args.gn#L45-L87)
-- [ffmpeg_options.gni:30-81](file://src/third_party/ffmpeg/ffmpeg_options.gni#L30-L81)
-- [ffmpeg_glue.cc:84-147](file://src/media/filters/ffmpeg_glue.cc#L84-L147)
-- [ffmpeg_common.cc:64-89](file://src/media/ffmpeg/ffmpeg_common.cc#L64-L89)
-- [ffmpeg_video_decoder.cc:118-123](file://src/media/filters/ffmpeg_video_decoder.cc#L118-L123)
-- [add-hevc-ffmpeg-decoder-parser.patch:1-200](file://other/add-hevc-ffmpeg-decoder-parser.patch#L1-L200)
-- [ffmpeg_hevc_ac3.patch:1-120](file://other/ffmpeg_hevc_ac3.patch#L1-L120)
-- [Enable-support-for-libfdk-aac-and-OpenH264.patch:1-78](file://infra/Flatpak/com.mcloud.browser/patches/ffmpeg/Enable-support-for-libfdk-aac-and-OpenH264.patch#L1-L78)
-- [Update-build-configuration.patch:434-713](file://infra/Flatpak/com.mcloud.browser/patches/ffmpeg/Update-build-configuration.patch#L434-L713)
+- [args.gn:45-87](https://github.com/Mcloud136/Mcloud-Browser/blob/main/args.gn#L45-L87)
+- [ffmpeg_options.gni:30-81](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/third_party/ffmpeg/ffmpeg_options.gni#L30-L81)
+- [ffmpeg_glue.cc:84-147](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/media/filters/ffmpeg_glue.cc#L84-L147)
+- [ffmpeg_common.cc:64-89](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/media/ffmpeg/ffmpeg_common.cc#L64-L89)
+- [ffmpeg_video_decoder.cc:118-123](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/media/filters/ffmpeg_video_decoder.cc#L118-L123)
+- [add-hevc-ffmpeg-decoder-parser.patch:1-200](https://github.com/Mcloud136/Mcloud-Browser/blob/main/other/add-hevc-ffmpeg-decoder-parser.patch#L1-L200)
+- [ffmpeg_hevc_ac3.patch:1-120](https://github.com/Mcloud136/Mcloud-Browser/blob/main/other/ffmpeg_hevc_ac3.patch#L1-L120)
+- [Enable-support-for-libfdk-aac-and-OpenH264.patch:1-78](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/Flatpak/com.mcloud.browser/patches/ffmpeg/Enable-support-for-libfdk-aac-and-OpenH264.patch#L1-L78)
+- [Update-build-configuration.patch:434-713](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/Flatpak/com.mcloud.browser/patches/ffmpeg/Update-build-configuration.patch#L434-L713)
 
 ## 架构总览
 下图展示从媒体数据到解码输出的关键调用链，以及 FFmpeg 与 Chromium 媒体框架的交互点。
@@ -119,10 +120,10 @@ end
 ```
 
 **图示来源**
-- [ffmpeg_glue.cc:99-147](file://src/media/filters/ffmpeg_glue.cc#L99-L147)
-- [ffmpeg_common.cc:511-533](file://src/media/ffmpeg/ffmpeg_common.cc#L511-L533)
-- [ffmpeg_video_decoder.cc:227-263](file://src/media/filters/ffmpeg_video_decoder.cc#L227-L263)
-- [ffmpeg_video_decoder.cc:347-389](file://src/media/filters/ffmpeg_video_decoder.cc#L347-L389)
+- [ffmpeg_glue.cc:99-147](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/media/filters/ffmpeg_glue.cc#L99-L147)
+- [ffmpeg_common.cc:511-533](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/media/ffmpeg/ffmpeg_common.cc#L511-L533)
+- [ffmpeg_video_decoder.cc:227-263](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/media/filters/ffmpeg_video_decoder.cc#L227-L263)
+- [ffmpeg_video_decoder.cc:347-389](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/media/filters/ffmpeg_video_decoder.cc#L347-L389)
 
 ## 详细组件分析
 
@@ -141,10 +142,10 @@ end
   - other/build_ffmpeg.py：跨平台 configure 与 make，统一禁用无关功能，按平台追加工具链与优化选项
 
 **章节来源**
-- [args.gn:45-87](file://args.gn#L45-L87)
-- [ffmpeg_options.gni:30-81](file://src/third_party/ffmpeg/ffmpeg_options.gni#L30-L81)
-- [build_ffmpeg.sh:42-50](file://infra/build_ffmpeg.sh#L42-L50)
-- [build_ffmpeg.py:664-727](file://other/build_ffmpeg.py#L664-L727)
+- [args.gn:45-87](https://github.com/Mcloud136/Mcloud-Browser/blob/main/args.gn#L45-L87)
+- [ffmpeg_options.gni:30-81](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/third_party/ffmpeg/ffmpeg_options.gni#L30-L81)
+- [build_ffmpeg.sh:42-50](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/build_ffmpeg.sh#L42-L50)
+- [build_ffmpeg.py:664-727](https://github.com/Mcloud136/Mcloud-Browser/blob/main/other/build_ffmpeg.py#L664-L727)
 
 ### 媒体胶水层（解复用与白名单）
 - 自定义 AVIO 回调：Read/Seek，适配流式与非流式资源
@@ -164,12 +165,12 @@ Detect -- 是 --> Done["完成"]
 ```
 
 **图示来源**
-- [ffmpeg_glue.cc:99-147](file://src/media/filters/ffmpeg_glue.cc#L99-L147)
-- [ffmpeg_glue.cc:149-224](file://src/media/filters/ffmpeg_glue.cc#L149-L224)
+- [ffmpeg_glue.cc:99-147](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/media/filters/ffmpeg_glue.cc#L99-L147)
+- [ffmpeg_glue.cc:149-224](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/media/filters/ffmpeg_glue.cc#L149-L224)
 
 **章节来源**
-- [ffmpeg_glue.cc:84-147](file://src/media/filters/ffmpeg_glue.cc#L84-L147)
-- [ffmpeg_glue.cc:149-224](file://src/media/filters/ffmpeg_glue.cc#L149-L224)
+- [ffmpeg_glue.cc:84-147](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/media/filters/ffmpeg_glue.cc#L84-L147)
+- [ffmpeg_glue.cc:149-224](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/media/filters/ffmpeg_glue.cc#L149-L224)
 
 ### 通用转换与安全设置
 - 时间基转换：AVRational 与 base::TimeDelta 互转
@@ -180,10 +181,10 @@ Detect -- 是 --> Done["完成"]
   - 复制 extra_data 时遵循 FFmpeg 内存对齐与填充要求
 
 **章节来源**
-- [ffmpeg_common.cc:152-161](file://src/media/ffmpeg/ffmpeg_common.cc#L152-L161)
-- [ffmpeg_common.cc:163-309](file://src/media/ffmpeg/ffmpeg_common.cc#L163-L309)
-- [ffmpeg_common.cc:407-509](file://src/media/ffmpeg/ffmpeg_common.cc#L407-L509)
-- [ffmpeg_common.cc:511-533](file://src/media/ffmpeg/ffmpeg_common.cc#L511-L533)
+- [ffmpeg_common.cc:152-161](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/media/ffmpeg/ffmpeg_common.cc#L152-L161)
+- [ffmpeg_common.cc:163-309](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/media/ffmpeg/ffmpeg_common.cc#L163-L309)
+- [ffmpeg_common.cc:407-509](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/media/ffmpeg/ffmpeg_common.cc#L407-L509)
+- [ffmpeg_common.cc:511-533](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/media/ffmpeg/ffmpeg_common.cc#L511-L533)
 
 ### 视频解码器（初始化、缓冲、解码循环）
 - 初始化流程
@@ -220,20 +221,20 @@ FFmpegVideoDecoder --> OpaqueData : "管理帧缓冲"
 ```
 
 **图示来源**
-- [ffmpeg_video_decoder.cc:118-123](file://src/media/filters/ffmpeg_video_decoder.cc#L118-L123)
-- [ffmpeg_video_decoder.cc:131-221](file://src/media/filters/ffmpeg_video_decoder.cc#L131-L221)
-- [ffmpeg_video_decoder.cc:227-263](file://src/media/filters/ffmpeg_video_decoder.cc#L227-L263)
-- [ffmpeg_video_decoder.cc:347-389](file://src/media/filters/ffmpeg_video_decoder.cc#L347-L389)
-- [ffmpeg_video_decoder.cc:391-465](file://src/media/filters/ffmpeg_video_decoder.cc#L391-L465)
-- [ffmpeg_video_decoder.cc:472-508](file://src/media/filters/ffmpeg_video_decoder.cc#L472-L508)
+- [ffmpeg_video_decoder.cc:118-123](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/media/filters/ffmpeg_video_decoder.cc#L118-L123)
+- [ffmpeg_video_decoder.cc:131-221](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/media/filters/ffmpeg_video_decoder.cc#L131-L221)
+- [ffmpeg_video_decoder.cc:227-263](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/media/filters/ffmpeg_video_decoder.cc#L227-L263)
+- [ffmpeg_video_decoder.cc:347-389](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/media/filters/ffmpeg_video_decoder.cc#L347-L389)
+- [ffmpeg_video_decoder.cc:391-465](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/media/filters/ffmpeg_video_decoder.cc#L391-L465)
+- [ffmpeg_video_decoder.cc:472-508](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/media/filters/ffmpeg_video_decoder.cc#L472-L508)
 
 **章节来源**
-- [ffmpeg_video_decoder.cc:118-123](file://src/media/filters/ffmpeg_video_decoder.cc#L118-L123)
-- [ffmpeg_video_decoder.cc:131-221](file://src/media/filters/ffmpeg_video_decoder.cc#L131-L221)
-- [ffmpeg_video_decoder.cc:227-263](file://src/media/filters/ffmpeg_video_decoder.cc#L227-L263)
-- [ffmpeg_video_decoder.cc:347-389](file://src/media/filters/ffmpeg_video_decoder.cc#L347-L389)
-- [ffmpeg_video_decoder.cc:391-465](file://src/media/filters/ffmpeg_video_decoder.cc#L391-L465)
-- [ffmpeg_video_decoder.cc:472-508](file://src/media/filters/ffmpeg_video_decoder.cc#L472-L508)
+- [ffmpeg_video_decoder.cc:118-123](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/media/filters/ffmpeg_video_decoder.cc#L118-L123)
+- [ffmpeg_video_decoder.cc:131-221](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/media/filters/ffmpeg_video_decoder.cc#L131-L221)
+- [ffmpeg_video_decoder.cc:227-263](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/media/filters/ffmpeg_video_decoder.cc#L227-L263)
+- [ffmpeg_video_decoder.cc:347-389](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/media/filters/ffmpeg_video_decoder.cc#L347-L389)
+- [ffmpeg_video_decoder.cc:391-465](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/media/filters/ffmpeg_video_decoder.cc#L391-L465)
+- [ffmpeg_video_decoder.cc:472-508](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/media/filters/ffmpeg_video_decoder.cc#L472-L508)
 
 ### 扩展新编解码格式（以 HEVC 为例）
 - 补丁要点
@@ -255,14 +256,14 @@ B1 --> R1["生成含 HEVC 能力的 FFmpeg"]
 ```
 
 **图示来源**
-- [add-hevc-ffmpeg-decoder-parser.patch:1-200](file://other/add-hevc-ffmpeg-decoder-parser.patch#L1-L200)
-- [setup.sh:91-135](file://setup.sh#L91-L135)
-- [args.gn:69-72](file://args.gn#L69-L72)
+- [add-hevc-ffmpeg-decoder-parser.patch:1-200](https://github.com/Mcloud136/Mcloud-Browser/blob/main/other/add-hevc-ffmpeg-decoder-parser.patch#L1-L200)
+- [setup.sh:91-135](https://github.com/Mcloud136/Mcloud-Browser/blob/main/setup.sh#L91-L135)
+- [args.gn:69-72](https://github.com/Mcloud136/Mcloud-Browser/blob/main/args.gn#L69-L72)
 
 **章节来源**
-- [add-hevc-ffmpeg-decoder-parser.patch:1-200](file://other/add-hevc-ffmpeg-decoder-parser.patch#L1-L200)
-- [setup.sh:91-135](file://setup.sh#L91-L135)
-- [args.gn:69-72](file://args.gn#L69-L72)
+- [add-hevc-ffmpeg-decoder-parser.patch:1-200](https://github.com/Mcloud136/Mcloud-Browser/blob/main/other/add-hevc-ffmpeg-decoder-parser.patch#L1-L200)
+- [setup.sh:91-135](https://github.com/Mcloud136/Mcloud-Browser/blob/main/setup.sh#L91-L135)
+- [args.gn:69-72](https://github.com/Mcloud136/Mcloud-Browser/blob/main/args.gn#L69-L72)
 
 ### 其他编解码扩展（AC3/EAC3、libfdk-aac、OpenH264）
 - AC3/EAC3
@@ -272,9 +273,9 @@ B1 --> R1["生成含 HEVC 能力的 FFmpeg"]
   - Update-build-configuration.patch：统一版本信息与部分构建配置
 
 **章节来源**
-- [ffmpeg_hevc_ac3.patch:1-120](file://other/ffmpeg_hevc_ac3.patch#L1-L120)
-- [Enable-support-for-libfdk-aac-and-OpenH264.patch:1-78](file://infra/Flatpak/com.mcloud.browser/patches/ffmpeg/Enable-support-for-libfdk-aac-and-OpenH264.patch#L1-L78)
-- [Update-build-configuration.patch:434-713](file://infra/Flatpak/com.mcloud.browser/patches/ffmpeg/Update-build-configuration.patch#L434-L713)
+- [ffmpeg_hevc_ac3.patch:1-120](https://github.com/Mcloud136/Mcloud-Browser/blob/main/other/ffmpeg_hevc_ac3.patch#L1-L120)
+- [Enable-support-for-libfdk-aac-and-OpenH264.patch:1-78](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/Flatpak/com.mcloud.browser/patches/ffmpeg/Enable-support-for-libfdk-aac-and-OpenH264.patch#L1-L78)
+- [Update-build-configuration.patch:434-713](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/Flatpak/com.mcloud.browser/patches/ffmpeg/Update-build-configuration.patch#L434-L713)
 
 ## 依赖关系分析
 - 构建期依赖
@@ -296,16 +297,16 @@ Patch["补丁"] --> FF
 ```
 
 **图示来源**
-- [ffmpeg_options.gni:30-81](file://src/third_party/ffmpeg/ffmpeg_options.gni#L30-L81)
-- [build_ffmpeg.py:664-727](file://other/build_ffmpeg.py#L664-L727)
-- [ffmpeg_glue.cc:99-147](file://src/media/filters/ffmpeg_glue.cc#L99-L147)
-- [ffmpeg_video_decoder.cc:227-263](file://src/media/filters/ffmpeg_video_decoder.cc#L227-L263)
+- [ffmpeg_options.gni:30-81](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/third_party/ffmpeg/ffmpeg_options.gni#L30-L81)
+- [build_ffmpeg.py:664-727](https://github.com/Mcloud136/Mcloud-Browser/blob/main/other/build_ffmpeg.py#L664-L727)
+- [ffmpeg_glue.cc:99-147](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/media/filters/ffmpeg_glue.cc#L99-L147)
+- [ffmpeg_video_decoder.cc:227-263](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/media/filters/ffmpeg_video_decoder.cc#L227-L263)
 
 **章节来源**
-- [ffmpeg_options.gni:30-81](file://src/third_party/ffmpeg/ffmpeg_options.gni#L30-L81)
-- [build_ffmpeg.py:664-727](file://other/build_ffmpeg.py#L664-L727)
-- [ffmpeg_glue.cc:99-147](file://src/media/filters/ffmpeg_glue.cc#L99-L147)
-- [ffmpeg_video_decoder.cc:227-263](file://src/media/filters/ffmpeg_video_decoder.cc#L227-L263)
+- [ffmpeg_options.gni:30-81](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/third_party/ffmpeg/ffmpeg_options.gni#L30-L81)
+- [build_ffmpeg.py:664-727](https://github.com/Mcloud136/Mcloud-Browser/blob/main/other/build_ffmpeg.py#L664-L727)
+- [ffmpeg_glue.cc:99-147](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/media/filters/ffmpeg_glue.cc#L99-L147)
+- [ffmpeg_video_decoder.cc:227-263](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/media/filters/ffmpeg_video_decoder.cc#L227-L263)
 
 ## 性能考量
 - 线程数策略：根据分辨率与编码类型动态计算线程数，平衡吞吐与延迟
@@ -332,10 +333,10 @@ Patch["补丁"] --> FF
   - 处理：检查 ffmpeg_common.cc 的颜色空间推断与特殊处理分支
 
 **章节来源**
-- [ffmpeg_glue.cc:149-224](file://src/media/filters/ffmpeg_glue.cc#L149-L224)
-- [ffmpeg_video_decoder.cc:227-263](file://src/media/filters/ffmpeg_video_decoder.cc#L227-L263)
-- [ffmpeg_video_decoder.cc:347-389](file://src/media/filters/ffmpeg_video_decoder.cc#L347-L389)
-- [ffmpeg_common.cc:593-779](file://src/media/ffmpeg/ffmpeg_common.cc#L593-L779)
+- [ffmpeg_glue.cc:149-224](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/media/filters/ffmpeg_glue.cc#L149-L224)
+- [ffmpeg_video_decoder.cc:227-263](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/media/filters/ffmpeg_video_decoder.cc#L227-L263)
+- [ffmpeg_video_decoder.cc:347-389](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/media/filters/ffmpeg_video_decoder.cc#L347-L389)
+- [ffmpeg_common.cc:593-779](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/media/ffmpeg/ffmpeg_common.cc#L593-L779)
 
 ## 结论
 MCloud Browser 通过 GN/GNI 与脚本精细控制 FFmpeg 的构建与特性，结合媒体胶水层的安全白名单与缓冲管理，实现了稳定高效的媒体播放。通过补丁体系，可按需扩展 HEVC、AC3/EAC3、libfdk-aac、OpenH264 等编解码能力。建议在升级 FFmpeg 版本时同步评估补丁兼容性与 GN/GNI 配置变更，确保功能与性能稳定。

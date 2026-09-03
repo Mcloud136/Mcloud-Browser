@@ -1,21 +1,22 @@
 # CI/CD 流水线
 
-<cite>
-**本文引用的文件**
-- [release.yml](file://.github/workflows/release.yml)
-- [verify.yml](file://.github/workflows/verify.yml)
-- [build.sh](file://build.sh)
-- [build_win.sh](file://build_win.sh)
-- [build_mac.sh](file://build_mac.sh)
-- [setup.sh](file://setup.sh)
-- [args.gn](file://args.gn)
-- [win_args.gn](file://win_args.gn)
-- [README.md](file://README.md)
-- [BUILDING.md](file://docs/BUILDING.md)
-- [BUILDING_WIN.md](file://docs/BUILDING_WIN.md)
-- [2026-06-20-cicd-workflow-design.md](file://docs/superpowers/specs/2026-06-20-cicd-workflow-design.md)
-- [2026-06-20-cicd-workflow.md](file://docs/superpowers/plans/2026-06-20-cicd-workflow.md)
-</cite>
+<details><summary>本文引用的文件</summary>
+
+- [release.yml](https://github.com/Mcloud136/Mcloud-Browser/blob/main/.github/workflows/release.yml)
+- [verify.yml](https://github.com/Mcloud136/Mcloud-Browser/blob/main/.github/workflows/verify.yml)
+- [build.sh](https://github.com/Mcloud136/Mcloud-Browser/blob/main/build.sh)
+- [build_win.sh](https://github.com/Mcloud136/Mcloud-Browser/blob/main/build_win.sh)
+- [build_mac.sh](https://github.com/Mcloud136/Mcloud-Browser/blob/main/build_mac.sh)
+- [setup.sh](https://github.com/Mcloud136/Mcloud-Browser/blob/main/setup.sh)
+- [args.gn](https://github.com/Mcloud136/Mcloud-Browser/blob/main/args.gn)
+- [win_args.gn](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_args.gn)
+- [README.md](https://github.com/Mcloud136/Mcloud-Browser/blob/main/README.md)
+- [BUILDING.md](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/BUILDING.md)
+- [BUILDING_WIN.md](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/BUILDING_WIN.md)
+- [2026-06-20-cicd-workflow-design.md](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/superpowers/specs/2026-06-20-cicd-workflow-design.md)
+- [2026-06-20-cicd-workflow.md](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/superpowers/plans/2026-06-20-cicd-workflow.md)
+
+</details>
 
 ## 目录
 1. [简介](#简介)
@@ -62,26 +63,26 @@ G["verify.yml"] --> H["Python 源验证<br/>win_scripts/verify_sources.py"]
 ```
 
 **图示来源**
-- [release.yml:1-79](file://.github/workflows/release.yml#L1-L79)
-- [verify.yml:1-26](file://.github/workflows/verify.yml#L1-L26)
-- [build.sh:1-59](file://build.sh#L1-L59)
-- [build_win.sh:1-59](file://build_win.sh#L1-L59)
-- [build_mac.sh:1-84](file://build_mac.sh#L1-L84)
+- [release.yml:1-79](https://github.com/Mcloud136/Mcloud-Browser/blob/main/.github/workflows/release.yml#L1-L79)
+- [verify.yml:1-26](https://github.com/Mcloud136/Mcloud-Browser/blob/main/.github/workflows/verify.yml#L1-L26)
+- [build.sh:1-59](https://github.com/Mcloud136/Mcloud-Browser/blob/main/build.sh#L1-L59)
+- [build_win.sh:1-59](https://github.com/Mcloud136/Mcloud-Browser/blob/main/build_win.sh#L1-L59)
+- [build_mac.sh:1-84](https://github.com/Mcloud136/Mcloud-Browser/blob/main/build_mac.sh#L1-L84)
 
 **章节来源**
-- [release.yml:1-79](file://.github/workflows/release.yml#L1-L79)
-- [verify.yml:1-26](file://.github/workflows/verify.yml#L1-L26)
-- [build.sh:1-59](file://build.sh#L1-L59)
-- [build_win.sh:1-59](file://build_win.sh#L1-L59)
-- [build_mac.sh:1-84](file://build_mac.sh#L1-L84)
-- [setup.sh:1-408](file://setup.sh#L1-L408)
-- [args.gn:1-87](file://args.gn#L1-L87)
-- [win_args.gn:1-87](file://win_args.gn#L1-L87)
-- [README.md:265-301](file://README.md#L265-L301)
-- [BUILDING.md:1-352](file://docs/BUILDING.md#L1-L352)
-- [BUILDING_WIN.md:1-288](file://docs/BUILDING_WIN.md#L1-L288)
-- [2026-06-20-cicd-workflow-design.md:1-144](file://docs/superpowers/specs/2026-06-20-cicd-workflow-design.md#L1-L144)
-- [2026-06-20-cicd-workflow.md:1-271](file://docs/superpowers/plans/2026-06-20-cicd-workflow.md#L1-L271)
+- [release.yml:1-79](https://github.com/Mcloud136/Mcloud-Browser/blob/main/.github/workflows/release.yml#L1-L79)
+- [verify.yml:1-26](https://github.com/Mcloud136/Mcloud-Browser/blob/main/.github/workflows/verify.yml#L1-L26)
+- [build.sh:1-59](https://github.com/Mcloud136/Mcloud-Browser/blob/main/build.sh#L1-L59)
+- [build_win.sh:1-59](https://github.com/Mcloud136/Mcloud-Browser/blob/main/build_win.sh#L1-L59)
+- [build_mac.sh:1-84](https://github.com/Mcloud136/Mcloud-Browser/blob/main/build_mac.sh#L1-L84)
+- [setup.sh:1-408](https://github.com/Mcloud136/Mcloud-Browser/blob/main/setup.sh#L1-L408)
+- [args.gn:1-87](https://github.com/Mcloud136/Mcloud-Browser/blob/main/args.gn#L1-L87)
+- [win_args.gn:1-87](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_args.gn#L1-L87)
+- [README.md:265-301](https://github.com/Mcloud136/Mcloud-Browser/blob/main/README.md#L265-L301)
+- [BUILDING.md:1-352](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/BUILDING.md#L1-L352)
+- [BUILDING_WIN.md:1-288](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/BUILDING_WIN.md#L1-L288)
+- [2026-06-20-cicd-workflow-design.md:1-144](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/superpowers/specs/2026-06-20-cicd-workflow-design.md#L1-L144)
+- [2026-06-20-cicd-workflow.md:1-271](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/superpowers/plans/2026-06-20-cicd-workflow.md#L1-L271)
 
 ## 核心组件
 - GitHub Actions 工作流
@@ -97,14 +98,14 @@ G["verify.yml"] --> H["Python 源验证<br/>win_scripts/verify_sources.py"]
   - args.gn / win_args.gn：定义目标 OS/CPU、是否官方构建、调试开关、符号级别、LTO、V8 优化、媒体解码、Widevine、PGO 数据路径等。
 
 **章节来源**
-- [release.yml:1-79](file://.github/workflows/release.yml#L1-L79)
-- [verify.yml:1-26](file://.github/workflows/verify.yml#L1-L26)
-- [build.sh:1-59](file://build.sh#L1-L59)
-- [build_win.sh:1-59](file://build_win.sh#L1-L59)
-- [build_mac.sh:1-84](file://build_mac.sh#L1-L84)
-- [setup.sh:1-408](file://setup.sh#L1-L408)
-- [args.gn:1-87](file://args.gn#L1-L87)
-- [win_args.gn:1-87](file://win_args.gn#L1-L87)
+- [release.yml:1-79](https://github.com/Mcloud136/Mcloud-Browser/blob/main/.github/workflows/release.yml#L1-L79)
+- [verify.yml:1-26](https://github.com/Mcloud136/Mcloud-Browser/blob/main/.github/workflows/verify.yml#L1-L26)
+- [build.sh:1-59](https://github.com/Mcloud136/Mcloud-Browser/blob/main/build.sh#L1-L59)
+- [build_win.sh:1-59](https://github.com/Mcloud136/Mcloud-Browser/blob/main/build_win.sh#L1-L59)
+- [build_mac.sh:1-84](https://github.com/Mcloud136/Mcloud-Browser/blob/main/build_mac.sh#L1-L84)
+- [setup.sh:1-408](https://github.com/Mcloud136/Mcloud-Browser/blob/main/setup.sh#L1-L408)
+- [args.gn:1-87](https://github.com/Mcloud136/Mcloud-Browser/blob/main/args.gn#L1-L87)
+- [win_args.gn:1-87](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_args.gn#L1-L87)
 
 ## 架构总览
 当前 CI/CD 采用“本地编译 + CI 发布”的简化架构，避免在云端进行耗时且昂贵的 Chromium 全量编译。本地完成构建后，推送 v* 标签触发 release.yml，自动创建 Release 并上传安装包与校验和。verify.yml 作为轻量级验证任务，保证脚本与源码一致性。
@@ -125,11 +126,11 @@ GH->>Rel : 创建 Release 并上传产物
 ```
 
 **图示来源**
-- [release.yml:1-79](file://.github/workflows/release.yml#L1-L79)
-- [build.sh:1-59](file://build.sh#L1-L59)
-- [build_win.sh:1-59](file://build_win.sh#L1-L59)
-- [build_mac.sh:1-84](file://build_mac.sh#L1-L84)
-- [README.md:265-301](file://README.md#L265-L301)
+- [release.yml:1-79](https://github.com/Mcloud136/Mcloud-Browser/blob/main/.github/workflows/release.yml#L1-L79)
+- [build.sh:1-59](https://github.com/Mcloud136/Mcloud-Browser/blob/main/build.sh#L1-L59)
+- [build_win.sh:1-59](https://github.com/Mcloud136/Mcloud-Browser/blob/main/build_win.sh#L1-L59)
+- [build_mac.sh:1-84](https://github.com/Mcloud136/Mcloud-Browser/blob/main/build_mac.sh#L1-L84)
+- [README.md:265-301](https://github.com/Mcloud136/Mcloud-Browser/blob/main/README.md#L265-L301)
 
 ## 详细组件分析
 
@@ -158,10 +159,10 @@ CreateRelease --> End(["结束"])
 ```
 
 **图示来源**
-- [release.yml:1-79](file://.github/workflows/release.yml#L1-L79)
+- [release.yml:1-79](https://github.com/Mcloud136/Mcloud-Browser/blob/main/.github/workflows/release.yml#L1-L79)
 
 **章节来源**
-- [release.yml:1-79](file://.github/workflows/release.yml#L1-L79)
+- [release.yml:1-79](https://github.com/Mcloud136/Mcloud-Browser/blob/main/.github/workflows/release.yml#L1-L79)
 
 ### 验证工作流（verify.yml）
 - 触发条件：push main、pull_request、workflow_dispatch。
@@ -181,10 +182,10 @@ VS-->>GH : 返回验证结果
 ```
 
 **图示来源**
-- [verify.yml:1-26](file://.github/workflows/verify.yml#L1-L26)
+- [verify.yml:1-26](https://github.com/Mcloud136/Mcloud-Browser/blob/main/.github/workflows/verify.yml#L1-L26)
 
 **章节来源**
-- [verify.yml:1-26](file://.github/workflows/verify.yml#L1-L26)
+- [verify.yml:1-26](https://github.com/Mcloud136/Mcloud-Browser/blob/main/.github/workflows/verify.yml#L1-L26)
 
 ### Linux 构建流程（build.sh）
 - 环境变量：CR_DIR 指定 Chromium 源码目录，默认 ~/chromium/src。
@@ -200,10 +201,10 @@ PackDebRpm --> Done["完成"]
 ```
 
 **图示来源**
-- [build.sh:1-59](file://build.sh#L1-L59)
+- [build.sh:1-59](https://github.com/Mcloud136/Mcloud-Browser/blob/main/build.sh#L1-L59)
 
 **章节来源**
-- [build.sh:1-59](file://build.sh#L1-L59)
+- [build.sh:1-59](https://github.com/Mcloud136/Mcloud-Browser/blob/main/build.sh#L1-L59)
 
 ### Windows 构建流程（build_win.sh）
 - 环境变量：CR_DIR 指定 Chromium 源码目录，默认 ~/chromium/src。
@@ -219,10 +220,10 @@ Installer --> Done["完成"]
 ```
 
 **图示来源**
-- [build_win.sh:1-59](file://build_win.sh#L1-L59)
+- [build_win.sh:1-59](https://github.com/Mcloud136/Mcloud-Browser/blob/main/build_win.sh#L1-L59)
 
 **章节来源**
-- [build_win.sh:1-59](file://build_win.sh#L1-L59)
+- [build_win.sh:1-59](https://github.com/Mcloud136/Mcloud-Browser/blob/main/build_win.sh#L1-L59)
 
 ### macOS 构建流程（build_mac.sh）
 - 构建目标：mcloud_all，随后构建 chrome/installer/mac 与 minidump_stackwalk。
@@ -238,10 +239,10 @@ DMG --> Done["完成"]
 ```
 
 **图示来源**
-- [build_mac.sh:1-84](file://build_mac.sh#L1-L84)
+- [build_mac.sh:1-84](https://github.com/Mcloud136/Mcloud-Browser/blob/main/build_mac.sh#L1-L84)
 
 **章节来源**
-- [build_mac.sh:1-84](file://build_mac.sh#L1-L84)
+- [build_mac.sh:1-84](https://github.com/Mcloud136/Mcloud-Browser/blob/main/build_mac.sh#L1-L84)
 
 ### 源码准备与补丁（setup.sh）
 - 复制 MCloud 覆盖源码至 Chromium 树。
@@ -274,10 +275,10 @@ CrosCfg --> Done
 ```
 
 **图示来源**
-- [setup.sh:1-408](file://setup.sh#L1-L408)
+- [setup.sh:1-408](https://github.com/Mcloud136/Mcloud-Browser/blob/main/setup.sh#L1-L408)
 
 **章节来源**
-- [setup.sh:1-408](file://setup.sh#L1-L408)
+- [setup.sh:1-408](https://github.com/Mcloud136/Mcloud-Browser/blob/main/setup.sh#L1-L408)
 
 ### GN 构建参数（args.gn / win_args.gn）
 - 公共优化：is_official_build=true、symbol_level=0、use_lld=true、use_icf=true、thin_lto_enable_optimizations=true、v8_* 优化、media_use_ffmpeg/libvpx、enable_widevine/bundle_widevine_cdm。
@@ -286,8 +287,8 @@ CrosCfg --> Done
 - PGO：chrome_pgo_phase=2，pgo_data_path 指向下载的 profdata 文件。
 
 **章节来源**
-- [args.gn:1-87](file://args.gn#L1-L87)
-- [win_args.gn:1-87](file://win_args.gn#L1-L87)
+- [args.gn:1-87](https://github.com/Mcloud136/Mcloud-Browser/blob/main/args.gn#L1-L87)
+- [win_args.gn:1-87](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_args.gn#L1-L87)
 
 ## 依赖关系分析
 - 工作流与脚本依赖：
@@ -314,20 +315,20 @@ G --> L["平台产物"]
 ```
 
 **图示来源**
-- [release.yml:1-79](file://.github/workflows/release.yml#L1-L79)
-- [verify.yml:1-26](file://.github/workflows/verify.yml#L1-L26)
-- [build.sh:1-59](file://build.sh#L1-L59)
-- [build_win.sh:1-59](file://build_win.sh#L1-L59)
-- [build_mac.sh:1-84](file://build_mac.sh#L1-L84)
-- [setup.sh:1-408](file://setup.sh#L1-L408)
+- [release.yml:1-79](https://github.com/Mcloud136/Mcloud-Browser/blob/main/.github/workflows/release.yml#L1-L79)
+- [verify.yml:1-26](https://github.com/Mcloud136/Mcloud-Browser/blob/main/.github/workflows/verify.yml#L1-L26)
+- [build.sh:1-59](https://github.com/Mcloud136/Mcloud-Browser/blob/main/build.sh#L1-L59)
+- [build_win.sh:1-59](https://github.com/Mcloud136/Mcloud-Browser/blob/main/build_win.sh#L1-L59)
+- [build_mac.sh:1-84](https://github.com/Mcloud136/Mcloud-Browser/blob/main/build_mac.sh#L1-L84)
+- [setup.sh:1-408](https://github.com/Mcloud136/Mcloud-Browser/blob/main/setup.sh#L1-L408)
 
 **章节来源**
-- [release.yml:1-79](file://.github/workflows/release.yml#L1-L79)
-- [verify.yml:1-26](file://.github/workflows/verify.yml#L1-L26)
-- [build.sh:1-59](file://build.sh#L1-L59)
-- [build_win.sh:1-59](file://build_win.sh#L1-L59)
-- [build_mac.sh:1-84](file://build_mac.sh#L1-L84)
-- [setup.sh:1-408](file://setup.sh#L1-L408)
+- [release.yml:1-79](https://github.com/Mcloud136/Mcloud-Browser/blob/main/.github/workflows/release.yml#L1-L79)
+- [verify.yml:1-26](https://github.com/Mcloud136/Mcloud-Browser/blob/main/.github/workflows/verify.yml#L1-L26)
+- [build.sh:1-59](https://github.com/Mcloud136/Mcloud-Browser/blob/main/build.sh#L1-L59)
+- [build_win.sh:1-59](https://github.com/Mcloud136/Mcloud-Browser/blob/main/build_win.sh#L1-L59)
+- [build_mac.sh:1-84](https://github.com/Mcloud136/Mcloud-Browser/blob/main/build_mac.sh#L1-L84)
+- [setup.sh:1-408](https://github.com/Mcloud136/Mcloud-Browser/blob/main/setup.sh#L1-L408)
 
 ## 性能考量
 - 并行构建：通过 autoninja -jN 利用多核加速，Ninja 输出摘要与状态便于监控进度。
@@ -355,10 +356,10 @@ G --> L["平台产物"]
   - verify.yml 运行 Python 脚本失败：检查 Python 版本与脚本路径。
 
 **章节来源**
-- [BUILDING.md:1-352](file://docs/BUILDING.md#L1-L352)
-- [BUILDING_WIN.md:1-288](file://docs/BUILDING_WIN.md#L1-L288)
-- [release.yml:1-79](file://.github/workflows/release.yml#L1-L79)
-- [verify.yml:1-26](file://.github/workflows/verify.yml#L1-L26)
+- [BUILDING.md:1-352](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/BUILDING.md#L1-L352)
+- [BUILDING_WIN.md:1-288](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/BUILDING_WIN.md#L1-L288)
+- [release.yml:1-79](https://github.com/Mcloud136/Mcloud-Browser/blob/main/.github/workflows/release.yml#L1-L79)
+- [verify.yml:1-26](https://github.com/Mcloud136/Mcloud-Browser/blob/main/.github/workflows/verify.yml#L1-L26)
 
 ## 结论
 MCloud Browser 的 CI/CD 采用“本地编译 + CI 发布”的简化架构，显著降低云端构建成本与超时风险。release.yml 专注于在推送 v* 标签时创建 Release 并上传安装包与校验和；verify.yml 提供轻量级源码验证。构建脚本与 GN 参数为跨平台构建提供统一入口与优化选项。建议在本地完善构建与验证后再推送标签，以确保发布流程稳定高效。
@@ -373,6 +374,6 @@ MCloud Browser 的 CI/CD 采用“本地编译 + CI 发布”的简化架构，�
 - 发布流程参考 README.md 中的说明，包括本地构建、打 tag、生成校验和与上传 Release。
 
 **章节来源**
-- [README.md:265-301](file://README.md#L265-L301)
-- [2026-06-20-cicd-workflow-design.md:1-144](file://docs/superpowers/specs/2026-06-20-cicd-workflow-design.md#L1-L144)
-- [2026-06-20-cicd-workflow.md:1-271](file://docs/superpowers/plans/2026-06-20-cicd-workflow.md#L1-L271)
+- [README.md:265-301](https://github.com/Mcloud136/Mcloud-Browser/blob/main/README.md#L265-L301)
+- [2026-06-20-cicd-workflow-design.md:1-144](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/superpowers/specs/2026-06-20-cicd-workflow-design.md#L1-L144)
+- [2026-06-20-cicd-workflow.md:1-271](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/superpowers/plans/2026-06-20-cicd-workflow.md#L1-L271)

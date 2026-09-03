@@ -1,17 +1,18 @@
 # GPU 渲染优化
 
-<cite>
-**本文引用的文件**
-- [about_flags.cc](file://src/chrome/browser/about_flags.cc)
-- [features.cc](file://src/third_party/blink/common/features.cc)
-- [mcloud_flag_entries.h](file://src/chrome/browser/mcloud_flag_entries.h)
-- [mcloud_flag_choices.h](file://src/chrome/browser/mcloud_flag_choices.h)
-- [CMDLINE_FLAGS_LIST.md](file://docs/CMDLINE_FLAGS_LIST.md)
-- [2026-06-20-release-notes-m150.md](file://docs/superpowers/specs/2026-06-20-release-notes-m150.md)
-- [2026-06-19-performance-optimization-design.md](file://docs/superpowers/specs/2026-06-19-performance-optimization-design.md)
-- [DEBUGGING.md](file://infra/DEBUG/DEBUGGING.md)
-- [diag_igpu_green_screen.ps1](file://benchmark/tools/diag_igpu_green_screen.ps1)
-</cite>
+<details><summary>本文引用的文件</summary>
+
+- [about_flags.cc](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/about_flags.cc)
+- [features.cc](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/third_party/blink/common/features.cc)
+- [mcloud_flag_entries.h](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/mcloud_flag_entries.h)
+- [mcloud_flag_choices.h](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/mcloud_flag_choices.h)
+- [CMDLINE_FLAGS_LIST.md](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/CMDLINE_FLAGS_LIST.md)
+- [2026-06-20-release-notes-m150.md](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/superpowers/specs/2026-06-20-release-notes-m150.md)
+- [2026-06-19-performance-optimization-design.md](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/superpowers/specs/2026-06-19-performance-optimization-design.md)
+- [DEBUGGING.md](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/DEBUG/DEBUGGING.md)
+- [diag_igpu_green_screen.ps1](https://github.com/Mcloud136/Mcloud-Browser/blob/main/benchmark/tools/diag_igpu_green_screen.ps1)
+
+</details>
 
 ## 目录
 1. [简介](#简介)
@@ -52,12 +53,12 @@ E --> F["驱动/显示后端<br/>D3D12/Vulkan/系统合成器"]
 ```
 
 图表来源
-- [about_flags.cc:9962-9971](file://src/chrome/browser/about_flags.cc#L9962-L9971)
-- [features.cc:1870-1873](file://src/third_party/blink/common/features.cc#L1870-L1873)
+- [about_flags.cc:9962-9971](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/about_flags.cc#L9962-L9971)
+- [features.cc:1870-1873](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/third_party/blink/common/features.cc#L1870-L1873)
 
 章节来源
-- [about_flags.cc:9962-9971](file://src/chrome/browser/about_flags.cc#L9962-L9971)
-- [features.cc:1870-1873](file://src/third_party/blink/common/features.cc#L1870-L1873)
+- [about_flags.cc:9962-9971](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/about_flags.cc#L9962-L9971)
+- [features.cc:1870-1873](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/third_party/blink/common/features.cc#L1870-L1873)
 
 ## 核心组件
 - GPU 光栅化开关：通过命令行参数 enable-gpu-rasterization 控制是否允许使用 GPU 后端绘制图层瓦片；该开关仅在启用 GPU 加速合成的前提下有效。
@@ -69,10 +70,10 @@ E --> F["驱动/显示后端<br/>D3D12/Vulkan/系统合成器"]
 - Windows DirectComposition：在 Windows 上通过系统合成器提升合成效率，减少拷贝与同步开销。
 
 章节来源
-- [CMDLINE_FLAGS_LIST.md:1156-1178](file://docs/CMDLINE_FLAGS_LIST.md#L1156-L1178)
-- [features.cc:1870-1873](file://src/third_party/blink/common/features.cc#L1870-L1873)
-- [about_flags.cc:9962-9971](file://src/chrome/browser/about_flags.cc#L9962-L9971)
-- [2026-06-20-release-notes-m150.md:167-173](file://docs/superpowers/specs/2026-06-20-release-notes-m150.md#L167-L173)
+- [CMDLINE_FLAGS_LIST.md:1156-1178](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/CMDLINE_FLAGS_LIST.md#L1156-L1178)
+- [features.cc:1870-1873](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/third_party/blink/common/features.cc#L1870-L1873)
+- [about_flags.cc:9962-9971](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/about_flags.cc#L9962-L9971)
+- [2026-06-20-release-notes-m150.md:167-173](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/superpowers/specs/2026-06-20-release-notes-m150.md#L167-L173)
 
 ## 架构总览
 下图展示了 GPU 渲染优化的关键路径：从命令行参数到特性注册，再到 Blink/GPU 后端的启用与执行。
@@ -95,9 +96,9 @@ GPU-->>U : 呈现帧
 ```
 
 图表来源
-- [about_flags.cc:9962-9971](file://src/chrome/browser/about_flags.cc#L9962-L9971)
-- [features.cc:1870-1873](file://src/third_party/blink/common/features.cc#L1870-L1873)
-- [CMDLINE_FLAGS_LIST.md:1156-1178](file://docs/CMDLINE_FLAGS_LIST.md#L1156-L1178)
+- [about_flags.cc:9962-9971](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/about_flags.cc#L9962-L9971)
+- [features.cc:1870-1873](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/third_party/blink/common/features.cc#L1870-L1873)
+- [CMDLINE_FLAGS_LIST.md:1156-1178](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/CMDLINE_FLAGS_LIST.md#L1156-L1178)
 
 ## 详细组件分析
 
@@ -123,13 +124,13 @@ EndCPU --> End
 ```
 
 图表来源
-- [CMDLINE_FLAGS_LIST.md:1174-1174](file://docs/CMDLINE_FLAGS_LIST.md#L1174-L1174)
-- [mcloud_flag_choices.h:88-123](file://src/chrome/browser/mcloud_flag_choices.h#L88-L123)
+- [CMDLINE_FLAGS_LIST.md:1174-1174](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/CMDLINE_FLAGS_LIST.md#L1174-L1174)
+- [mcloud_flag_choices.h:88-123](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/mcloud_flag_choices.h#L88-L123)
 
 章节来源
-- [CMDLINE_FLAGS_LIST.md:1174-1174](file://docs/CMDLINE_FLAGS_LIST.md#L1174-L1174)
-- [mcloud_flag_entries.h:173-183](file://src/chrome/browser/mcloud_flag_entries.h#L173-L183)
-- [mcloud_flag_choices.h:88-123](file://src/chrome/browser/mcloud_flag_choices.h#L88-L123)
+- [CMDLINE_FLAGS_LIST.md:1174-1174](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/CMDLINE_FLAGS_LIST.md#L1174-L1174)
+- [mcloud_flag_entries.h:173-183](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/mcloud_flag_entries.h#L173-L183)
+- [mcloud_flag_choices.h:88-123](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/mcloud_flag_choices.h#L88-L123)
 
 ### 画布离屏光栅化（CanvasOopRasterization）
 - 作用：在 Blink 中，Path2D 等对象的 PaintCache 可在进程外光栅化，受 CanvasOopRasterization 特性控制。
@@ -150,10 +151,10 @@ BlinkFeatures --> GPUCompositor : "控制离屏光栅化路径"
 ```
 
 图表来源
-- [features.cc:1870-1873](file://src/third_party/blink/common/features.cc#L1870-L1873)
+- [features.cc:1870-1873](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/third_party/blink/common/features.cc#L1870-L1873)
 
 章节来源
-- [features.cc:1870-1873](file://src/third_party/blink/common/features.cc#L1870-L1873)
+- [features.cc:1870-1873](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/third_party/blink/common/features.cc#L1870-L1873)
 
 ### 着色器磁盘缓存（GpuShaderDiskCache）
 - 作用：启用或禁用 GPU 着色器的磁盘缓存，避免重复编译相同着色器带来的启动与首帧卡顿。
@@ -172,24 +173,24 @@ Compile --> Render
 ```
 
 图表来源
-- [CMDLINE_FLAGS_LIST.md:1160-1168](file://docs/CMDLINE_FLAGS_LIST.md#L1160-L1168)
+- [CMDLINE_FLAGS_LIST.md:1160-1168](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/CMDLINE_FLAGS_LIST.md#L1160-L1168)
 
 章节来源
-- [CMDLINE_FLAGS_LIST.md:1160-1168](file://docs/CMDLINE_FLAGS_LIST.md#L1160-L1168)
+- [CMDLINE_FLAGS_LIST.md:1160-1168](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/CMDLINE_FLAGS_LIST.md#L1160-L1168)
 
 ### 命令缓冲区解析切片增加（IncreasedCmdBufferParseSlice）
 - 作用：将每次解析的命令条数从默认值提升到更高数量（例如从 20 增加到 100），减少上下文切换与解析开销。
 - 影响：在高负载场景下可降低 GPU 主线程阻塞时间，提升整体吞吐。
 
 章节来源
-- [2026-06-20-release-notes-m150.md:167-173](file://docs/superpowers/specs/2026-06-20-release-notes-m150.md#L167-L173)
+- [2026-06-20-release-notes-m150.md:167-173](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/superpowers/specs/2026-06-20-release-notes-m150.md#L167-L173)
 
 ### 资源池精确大小重用（ResourcePoolPreferExactSizeReuse）
 - 作用：优先复用精确大小的 GPU 资源，减少分配与碎片，降低内存抖动。
 - 影响：在多标签页与高动态页面场景中，有助于稳定显存占用与帧时间。
 
 章节来源
-- [2026-06-20-release-notes-m150.md:167-173](file://docs/superpowers/specs/2026-06-20-release-notes-m150.md#L167-L173)
+- [2026-06-20-release-notes-m150.md:167-173](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/superpowers/specs/2026-06-20-release-notes-m150.md#L167-L173)
 
 ### Skia Graphite 预编译与启用（SkiaGraphitePrecompilation / SkiaGraphite）
 - 作用：
@@ -214,19 +215,19 @@ SK-->>App : 低延迟帧输出
 ```
 
 图表来源
-- [about_flags.cc:9962-9971](file://src/chrome/browser/about_flags.cc#L9962-L9971)
+- [about_flags.cc:9962-9971](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/about_flags.cc#L9962-L9971)
 
 章节来源
-- [about_flags.cc:9962-9971](file://src/chrome/browser/about_flags.cc#L9962-L9971)
-- [2026-06-20-release-notes-m150.md:167-173](file://docs/superpowers/specs/2026-06-20-release-notes-m150.md#L167-L173)
+- [about_flags.cc:9962-9971](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/about_flags.cc#L9962-L9971)
+- [2026-06-20-release-notes-m150.md:167-173](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/superpowers/specs/2026-06-20-release-notes-m150.md#L167-L173)
 
 ### Windows DirectComposition 渲染优化
 - 作用：在 Windows 平台上，DirectComposition 可将合成工作交由系统合成器处理，减少跨进程数据拷贝与同步，提升窗口/视频/全屏等场景的流畅度。
 - 建议：结合 --enable-hardware-overlays 与合适的驱动配置，以获得最佳效果；若出现花屏/绿屏，可通过二分法逐步隔离问题层级。
 
 章节来源
-- [2026-06-20-release-notes-m150.md:167-173](file://docs/superpowers/specs/2026-06-20-release-notes-m150.md#L167-L173)
-- [diag_igpu_green_screen.ps1:1-95](file://benchmark/tools/diag_igpu_green_screen.ps1#L1-L95)
+- [2026-06-20-release-notes-m150.md:167-173](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/superpowers/specs/2026-06-20-release-notes-m150.md#L167-L173)
+- [diag_igpu_green_screen.ps1:1-95](https://github.com/Mcloud136/Mcloud-Browser/blob/main/benchmark/tools/diag_igpu_green_screen.ps1#L1-L95)
 
 ## 依赖关系分析
 - 特性开关依赖：
@@ -247,14 +248,14 @@ GPU --> DR["驱动/显示后端"]
 ```
 
 图表来源
-- [about_flags.cc:9962-9971](file://src/chrome/browser/about_flags.cc#L9962-L9971)
-- [features.cc:1870-1873](file://src/third_party/blink/common/features.cc#L1870-L1873)
+- [about_flags.cc:9962-9971](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/about_flags.cc#L9962-L9971)
+- [features.cc:1870-1873](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/third_party/blink/common/features.cc#L1870-L1873)
 
 章节来源
-- [about_flags.cc:9962-9971](file://src/chrome/browser/about_flags.cc#L9962-L9971)
-- [features.cc:1870-1873](file://src/third_party/blink/common/features.cc#L1870-L1873)
-- [mcloud_flag_entries.h:173-220](file://src/chrome/browser/mcloud_flag_entries.h#L173-L220)
-- [mcloud_flag_choices.h:88-134](file://src/chrome/browser/mcloud_flag_choices.h#L88-L134)
+- [about_flags.cc:9962-9971](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/about_flags.cc#L9962-L9971)
+- [features.cc:1870-1873](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/third_party/blink/common/features.cc#L1870-L1873)
+- [mcloud_flag_entries.h:173-220](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/mcloud_flag_entries.h#L173-L220)
+- [mcloud_flag_choices.h:88-134](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/mcloud_flag_choices.h#L88-L134)
 
 ## 性能考量
 - 冷启动与首帧：启用 Skia Graphite 预编译可显著减少首次渲染卡顿；着色器磁盘缓存可减少重复编译。
@@ -263,8 +264,8 @@ GPU --> DR["驱动/显示后端"]
 - 预期收益：设计文档指出 GPU 渲染效率有 5-10% 的提升空间，配合其他优化可获得更全面的体验改善。
 
 章节来源
-- [2026-06-19-performance-optimization-design.md:179-188](file://docs/superpowers/specs/2026-06-19-performance-optimization-design.md#L179-L188)
-- [2026-06-20-release-notes-m150.md:167-173](file://docs/superpowers/specs/2026-06-20-release-notes-m150.md#L167-L173)
+- [2026-06-19-performance-optimization-design.md:179-188](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/superpowers/specs/2026-06-19-performance-optimization-design.md#L179-L188)
+- [2026-06-20-release-notes-m150.md:167-173](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/superpowers/specs/2026-06-20-release-notes-m150.md#L167-L173)
 
 ## 故障排除指南
 - 启用日志与追踪：
@@ -280,9 +281,9 @@ GPU --> DR["驱动/显示后端"]
   - 观察 chrome://gpu 与 chrome://media-internals 中的工作区与解码器信息
 
 章节来源
-- [CMDLINE_FLAGS_LIST.md:1156-1178](file://docs/CMDLINE_FLAGS_LIST.md#L1156-L1178)
-- [DEBUGGING.md:281-354](file://infra/DEBUG/DEBUGGING.md#L281-L354)
-- [diag_igpu_green_screen.ps1:1-95](file://benchmark/tools/diag_igpu_green_screen.ps1#L1-L95)
+- [CMDLINE_FLAGS_LIST.md:1156-1178](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/CMDLINE_FLAGS_LIST.md#L1156-L1178)
+- [DEBUGGING.md:281-354](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/DEBUG/DEBUGGING.md#L281-L354)
+- [diag_igpu_green_screen.ps1:1-95](https://github.com/Mcloud136/Mcloud-Browser/blob/main/benchmark/tools/diag_igpu_green_screen.ps1#L1-L95)
 
 ## 结论
 MCloud Browser 通过一系列 GPU 渲染优化（GPU 光栅化、离屏光栅化、着色器磁盘缓存、命令缓冲区解析切片、资源池复用、Skia Graphite 预编译与启用、DirectComposition 等）显著提升了渲染效率与用户体验。合理配置这些开关并结合日志与诊断工具，可以在不同平台与设备上获得稳定的高性能表现。
@@ -296,5 +297,5 @@ MCloud Browser 通过一系列 GPU 渲染优化（GPU 光栅化、离屏光栅�
   - --enable-hardware-overlays：尝试使用硬件叠加层优化合成
 
 章节来源
-- [CMDLINE_FLAGS_LIST.md:1156-1178](file://docs/CMDLINE_FLAGS_LIST.md#L1156-L1178)
-- [about_flags.cc:9962-9971](file://src/chrome/browser/about_flags.cc#L9962-L9971)
+- [CMDLINE_FLAGS_LIST.md:1156-1178](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/CMDLINE_FLAGS_LIST.md#L1156-L1178)
+- [about_flags.cc:9962-9971](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/about_flags.cc#L9962-L9971)

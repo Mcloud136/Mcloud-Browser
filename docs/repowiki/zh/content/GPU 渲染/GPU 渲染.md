@@ -1,17 +1,18 @@
 # GPU 渲染
 
-<cite>
-**本文引用的文件**
-- [about_flags.cc](file://src/chrome/browser/about_flags.cc)
-- [media_switches.cc](file://src/media/base/media_switches.cc)
-- [BUILD.gn](file://src/content/gpu/BUILD.gn)
-- [DEBUGGING.md](file://infra/DEBUG/DEBUGGING.md)
-- [CMDLINE_FLAGS_LIST.md](file://docs/CMDLINE_FLAGS_LIST.md)
-- [gn_args.list](file://infra/gn_args.list)
-- [win_gn_args.list](file://infra/win_gn_args.list)
-- [mac_args.list](file://other/Mac/mac_args.list)
-- [diag_igpu_green_screen.ps1](file://benchmark/tools/diag_igpu_green_screen.ps1)
-</cite>
+<details><summary>本文引用的文件</summary>
+
+- [about_flags.cc](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/about_flags.cc)
+- [media_switches.cc](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/media/base/media_switches.cc)
+- [BUILD.gn](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/content/gpu/BUILD.gn)
+- [DEBUGGING.md](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/DEBUG/DEBUGGING.md)
+- [CMDLINE_FLAGS_LIST.md](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/CMDLINE_FLAGS_LIST.md)
+- [gn_args.list](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/gn_args.list)
+- [win_gn_args.list](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/win_gn_args.list)
+- [mac_args.list](https://github.com/Mcloud136/Mcloud-Browser/blob/main/other/Mac/mac_args.list)
+- [diag_igpu_green_screen.ps1](https://github.com/Mcloud136/Mcloud-Browser/blob/main/benchmark/tools/diag_igpu_green_screen.ps1)
+
+</details>
 
 ## 目录
 1. [简介](#简介)
@@ -46,16 +47,16 @@ A --> F["诊断与调试<br/>命令行/脚本/日志"]
 ```
 
 图表来源
-- [BUILD.gn:43-87](file://src/content/gpu/BUILD.gn#L43-L87)
-- [gn_args.list:219-281](file://infra/gn_args.list#L219-L281)
-- [win_gn_args.list:206-239](file://infra/win_gn_args.list#L206-L239)
-- [mac_args.list:206-248](file://other/Mac/mac_args.list#L206-L248)
+- [BUILD.gn:43-87](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/content/gpu/BUILD.gn#L43-L87)
+- [gn_args.list:219-281](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/gn_args.list#L219-L281)
+- [win_gn_args.list:206-239](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/win_gn_args.list#L206-L239)
+- [mac_args.list:206-248](https://github.com/Mcloud136/Mcloud-Browser/blob/main/other/Mac/mac_args.list#L206-L248)
 
 章节来源
-- [BUILD.gn:43-87](file://src/content/gpu/BUILD.gn#L43-L87)
-- [gn_args.list:219-281](file://infra/gn_args.list#L219-L281)
-- [win_gn_args.list:206-239](file://infra/win_gn_args.list#L206-L239)
-- [mac_args.list:206-248](file://other/Mac/mac_args.list#L206-L248)
+- [BUILD.gn:43-87](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/content/gpu/BUILD.gn#L43-L87)
+- [gn_args.list:219-281](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/gn_args.list#L219-L281)
+- [win_gn_args.list:206-239](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/win_gn_args.list#L206-L239)
+- [mac_args.list:206-248](https://github.com/Mcloud136/Mcloud-Browser/blob/main/other/Mac/mac_args.list#L206-L248)
 
 ## 核心组件
 - Skia Graphite 与预编译
@@ -72,14 +73,14 @@ A --> F["诊断与调试<br/>命令行/脚本/日志"]
   - 通过图形后端同步机制（如 EGL 同步）与 compositor 合成路径，支持高刷新率显示；可通过命令行参数调节程序缓存大小、MSAA 采样数等影响帧率与稳定性。
 
 章节来源
-- [about_flags.cc:5568-5568](file://src/chrome/browser/about_flags.cc#L5568-L5568)
-- [about_flags.cc:9962-9971](file://src/chrome/browser/about_flags.cc#L9962-L9971)
-- [media_switches.cc:1133-1133](file://src/media/base/media_switches.cc#L1133-L1133)
-- [media_switches.cc:1314-1314](file://src/media/base/media_switches.cc#L1314-L1314)
-- [media_switches.cc:1708-1708](file://src/media/base/media_switches.cc#L1708-L1708)
-- [gn_args.list:219-281](file://infra/gn_args.list#L219-L281)
-- [win_gn_args.list:206-239](file://infra/win_gn_args.list#L206-L239)
-- [mac_args.list:206-248](file://other/Mac/mac_args.list#L206-L248)
+- [about_flags.cc:5568-5568](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/about_flags.cc#L5568-L5568)
+- [about_flags.cc:9962-9971](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/about_flags.cc#L9962-L9971)
+- [media_switches.cc:1133-1133](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/media/base/media_switches.cc#L1133-L1133)
+- [media_switches.cc:1314-1314](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/media/base/media_switches.cc#L1314-L1314)
+- [media_switches.cc:1708-1708](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/media/base/media_switches.cc#L1708-L1708)
+- [gn_args.list:219-281](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/gn_args.list#L219-L281)
+- [win_gn_args.list:206-239](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/win_gn_args.list#L206-L239)
+- [mac_args.list:206-248](https://github.com/Mcloud136/Mcloud-Browser/blob/main/other/Mac/mac_args.list#L206-L248)
 
 ## 架构总览
 下图展示了从浏览器进程到 GPU 进程的渲染路径，包含 Skia Graphite、零拷贝媒体、ANGLE 后端与命令缓冲区的关键交互。
@@ -101,9 +102,9 @@ VIZ-->>UI : 呈现结果
 ```
 
 图表来源
-- [BUILD.gn:43-87](file://src/content/gpu/BUILD.gn#L43-L87)
-- [gn_args.list:219-281](file://infra/gn_args.list#L219-L281)
-- [win_gn_args.list:206-239](file://infra/win_gn_args.list#L206-L239)
+- [BUILD.gn:43-87](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/content/gpu/BUILD.gn#L43-L87)
+- [gn_args.list:219-281](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/gn_args.list#L219-L281)
+- [win_gn_args.list:206-239](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/win_gn_args.list#L206-L239)
 
 ## 详细组件分析
 
@@ -128,10 +129,10 @@ FirstFrame --> Render["正常渲染循环"]
 ```
 
 图表来源
-- [about_flags.cc:9962-9971](file://src/chrome/browser/about_flags.cc#L9962-L9971)
+- [about_flags.cc:9962-9971](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/about_flags.cc#L9962-L9971)
 
 章节来源
-- [about_flags.cc:9962-9971](file://src/chrome/browser/about_flags.cc#L9962-L9971)
+- [about_flags.cc:9962-9971](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/about_flags.cc#L9962-L9971)
 
 ### GPU 光栅化与 Canvas GPU 加速
 - 作用
@@ -142,8 +143,8 @@ FirstFrame --> Render["正常渲染循环"]
   - 合理设置 MSAA 采样数与程序缓存大小，平衡画质与性能；在高刷新率显示器上关注帧时间抖动。
 
 章节来源
-- [about_flags.cc:5568-5568](file://src/chrome/browser/about_flags.cc#L5568-L5568)
-- [CMDLINE_FLAGS_LIST.md:1626-1628](file://docs/CMDLINE_FLAGS_LIST.md#L1626-L1628)
+- [about_flags.cc:5568-5568](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/about_flags.cc#L5568-L5568)
+- [CMDLINE_FLAGS_LIST.md:1626-1628](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/CMDLINE_FLAGS_LIST.md#L1626-L1628)
 
 ### 零拷贝渲染（视频采集/编码）
 - 作用
@@ -154,9 +155,9 @@ FirstFrame --> Render["正常渲染循环"]
   - 直播、视频会议、录屏等对延迟敏感的场景。
 
 章节来源
-- [media_switches.cc:1133-1133](file://src/media/base/media_switches.cc#L1133-L1133)
-- [media_switches.cc:1314-1314](file://src/media/base/media_switches.cc#L1314-L1314)
-- [media_switches.cc:1708-1708](file://src/media/base/media_switches.cc#L1708-L1708)
+- [media_switches.cc:1133-1133](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/media/base/media_switches.cc#L1133-L1133)
+- [media_switches.cc:1314-1314](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/media/base/media_switches.cc#L1314-L1314)
+- [media_switches.cc:1708-1708](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/media/base/media_switches.cc#L1708-L1708)
 
 ### 命令缓冲区优化与资源池管理
 - 作用
@@ -167,9 +168,9 @@ FirstFrame --> Render["正常渲染循环"]
   - Windows/Linux/Mac 均提供相应 gn 选项，可按平台选择最优后端（Vulkan/D3D/GL）。
 
 章节来源
-- [gn_args.list:219-281](file://infra/gn_args.list#L219-L281)
-- [win_gn_args.list:206-239](file://infra/win_gn_args.list#L206-L239)
-- [mac_args.list:206-248](file://other/Mac/mac_args.list#L206-L248)
+- [gn_args.list:219-281](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/gn_args.list#L219-L281)
+- [win_gn_args.list:206-239](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/win_gn_args.list#L206-L239)
+- [mac_args.list:206-248](https://github.com/Mcloud136/Mcloud-Browser/blob/main/other/Mac/mac_args.list#L206-L248)
 
 ### 高刷新率显示器支持与帧率控制
 - 作用
@@ -181,8 +182,8 @@ FirstFrame --> Render["正常渲染循环"]
   - 在高刷环境下优先使用 Vulkan/D3D11 后端，并开启必要的同步；根据设备能力调整 MSAA 与缓存大小。
 
 章节来源
-- [CMDLINE_FLAGS_LIST.md:1626-1628](file://docs/CMDLINE_FLAGS_LIST.md#L1626-L1628)
-- [gn_args.list:219-281](file://infra/gn_args.list#L219-L281)
+- [CMDLINE_FLAGS_LIST.md:1626-1628](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/CMDLINE_FLAGS_LIST.md#L1626-L1628)
+- [gn_args.list:219-281](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/gn_args.list#L219-L281)
 
 ## 依赖关系分析
 - content/gpu 模块依赖 Viz、Media GPU IPC、Skia、ANGLE、ui/gl 等，形成浏览器到 GPU 的完整链路。
@@ -201,12 +202,12 @@ Angle --> GL["OpenGL"]
 ```
 
 图表来源
-- [BUILD.gn:43-87](file://src/content/gpu/BUILD.gn#L43-L87)
-- [gn_args.list:219-281](file://infra/gn_args.list#L219-L281)
+- [BUILD.gn:43-87](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/content/gpu/BUILD.gn#L43-L87)
+- [gn_args.list:219-281](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/gn_args.list#L219-L281)
 
 章节来源
-- [BUILD.gn:43-87](file://src/content/gpu/BUILD.gn#L43-L87)
-- [gn_args.list:219-281](file://infra/gn_args.list#L219-L281)
+- [BUILD.gn:43-87](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/content/gpu/BUILD.gn#L43-L87)
+- [gn_args.list:219-281](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/gn_args.list#L219-L281)
 
 ## 性能考量
 - 首帧与卡顿
@@ -229,9 +230,9 @@ Angle --> GL["OpenGL"]
   - 使用 docs/CMDLINE_FLAGS_LIST.md 中的 GPU 相关参数（如 --gpu-program-cache-size-kb、--gpu-rasterization-msaa-sample-count）调整性能与稳定性。
 
 章节来源
-- [diag_igpu_green_screen.ps1:56-95](file://benchmark/tools/diag_igpu_green_screen.ps1#L56-L95)
-- [DEBUGGING.md:281-354](file://infra/DEBUG/DEBUGGING.md#L281-L354)
-- [CMDLINE_FLAGS_LIST.md:1616-1646](file://docs/CMDLINE_FLAGS_LIST.md#L1616-L1646)
+- [diag_igpu_green_screen.ps1:56-95](https://github.com/Mcloud136/Mcloud-Browser/blob/main/benchmark/tools/diag_igpu_green_screen.ps1#L56-L95)
+- [DEBUGGING.md:281-354](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/DEBUG/DEBUGGING.md#L281-L354)
+- [CMDLINE_FLAGS_LIST.md:1616-1646](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/CMDLINE_FLAGS_LIST.md#L1616-L1646)
 
 ## 结论
 MCloud Browser 的 GPU 渲染体系通过 Skia Graphite、零拷贝媒体、ANGLE 多后端与丰富的构建/运行开关，提供了高效且可定制的渲染路径。针对首帧卡顿、高刷显示、内存带宽与兼容性等关键问题，可通过预编译、零拷贝、命令缓冲优化与参数调优获得显著改善。结合诊断脚本与调试文档，可有效定位与解决 GPU 相关问题。

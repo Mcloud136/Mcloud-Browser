@@ -1,14 +1,15 @@
 # Service Worker 缓存
 
-<cite>
-**本文引用的文件**
-- [src/content/browser/BUILD.gn](file://src/content/browser/BUILD.gn)
-- [src/chrome/browser/net/profile_network_context_service.cc](file://src/chrome/browser/net/profile_network_context_service.cc)
-- [src/chrome/app/chrome_main_delegate.cc](file://src/chrome/app/chrome_main_delegate.cc)
-- [src/net/url_request/url_request_http_job.cc](file://src/net/url_request/url_request_http_job.cc)
-- [src/net/base/load_flags_list.h](file://src/net/base/load_flags_list.h)
-- [other/GPC.patch](file://other/GPC.patch)
-</cite>
+<details><summary>本文引用的文件</summary>
+
+- [src/content/browser/BUILD.gn](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/content/browser/BUILD.gn)
+- [src/chrome/browser/net/profile_network_context_service.cc](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/net/profile_network_context_service.cc)
+- [src/chrome/app/chrome_main_delegate.cc](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/app/chrome_main_delegate.cc)
+- [src/net/url_request/url_request_http_job.cc](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/net/url_request/url_request_http_job.cc)
+- [src/net/base/load_flags_list.h](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/net/base/load_flags_list.h)
+- [other/GPC.patch](https://github.com/Mcloud136/Mcloud-Browser/blob/main/other/GPC.patch)
+
+</details>
 
 ## 目录
 1. [简介](#简介)
@@ -40,16 +41,16 @@ D --> F["URL 请求处理<br/>url_request_http_job"]
 ```
 
 图表来源
-- [src/content/browser/BUILD.gn:2120-2203](file://src/content/browser/BUILD.gn#L2120-L2203)
-- [src/content/browser/BUILD.gn:774-795](file://src/content/browser/BUILD.gn#L774-L795)
-- [src/chrome/browser/net/profile_network_context_service.cc:1350-1378](file://src/chrome/browser/net/profile_network_context_service.cc#L1350-L1378)
-- [src/net/url_request/url_request_http_job.cc:1622-1658](file://src/net/url_request/url_request_http_job.cc#L1622-L1658)
+- [src/content/browser/BUILD.gn:2120-2203](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/content/browser/BUILD.gn#L2120-L2203)
+- [src/content/browser/BUILD.gn:774-795](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/content/browser/BUILD.gn#L774-L795)
+- [src/chrome/browser/net/profile_network_context_service.cc:1350-1378](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/net/profile_network_context_service.cc#L1350-L1378)
+- [src/net/url_request/url_request_http_job.cc:1622-1658](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/net/url_request/url_request_http_job.cc#L1622-L1658)
 
 章节来源
-- [src/content/browser/BUILD.gn:2120-2203](file://src/content/browser/BUILD.gn#L2120-L2203)
-- [src/content/browser/BUILD.gn:774-795](file://src/content/browser/BUILD.gn#L774-L795)
-- [src/chrome/browser/net/profile_network_context_service.cc:1350-1378](file://src/chrome/browser/net/profile_network_context_service.cc#L1350-L1378)
-- [src/net/url_request/url_request_http_job.cc:1622-1658](file://src/net/url_request/url_request_http_job.cc#L1622-L1658)
+- [src/content/browser/BUILD.gn:2120-2203](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/content/browser/BUILD.gn#L2120-L2203)
+- [src/content/browser/BUILD.gn:774-795](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/content/browser/BUILD.gn#L774-L795)
+- [src/chrome/browser/net/profile_network_context_service.cc:1350-1378](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/net/profile_network_context_service.cc#L1350-L1378)
+- [src/net/url_request/url_request_http_job.cc:1622-1658](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/net/url_request/url_request_http_job.cc#L1622-L1658)
 
 ## 核心组件
 - Service Worker 运行时与注册管理：负责 SW 生命周期、事件分发、与页面通信、以及通过 Fetch 事件拦截请求。
@@ -59,11 +60,11 @@ D --> F["URL 请求处理<br/>url_request_http_job"]
 - 请求标志位与重试逻辑：如仅从缓存、绕过缓存、跳过校验等；以及存储访问重试、代理/服务器认证重试。
 
 章节来源
-- [src/content/browser/BUILD.gn:2120-2203](file://src/content/browser/BUILD.gn#L2120-L2203)
-- [src/content/browser/BUILD.gn:774-795](file://src/content/browser/BUILD.gn#L774-L795)
-- [src/chrome/browser/net/profile_network_context_service.cc:1350-1378](file://src/chrome/browser/net/profile_network_context_service.cc#L1350-L1378)
-- [src/net/base/load_flags_list.h:30-62](file://src/net/base/load_flags_list.h#L30-L62)
-- [src/net/url_request/url_request_http_job.cc:1622-1658](file://src/net/url_request/url_request_http_job.cc#L1622-L1658)
+- [src/content/browser/BUILD.gn:2120-2203](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/content/browser/BUILD.gn#L2120-L2203)
+- [src/content/browser/BUILD.gn:774-795](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/content/browser/BUILD.gn#L774-L795)
+- [src/chrome/browser/net/profile_network_context_service.cc:1350-1378](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/net/profile_network_context_service.cc#L1350-L1378)
+- [src/net/base/load_flags_list.h:30-62](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/net/base/load_flags_list.h#L30-L62)
+- [src/net/url_request/url_request_http_job.cc:1622-1658](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/net/url_request/url_request_http_job.cc#L1622-L1658)
 
 ## 架构总览
 下图展示了 Service Worker 拦截请求后，如何在 Cache API 与 HTTP 缓存之间选择数据源，并结合网络状态与策略返回响应。
@@ -96,9 +97,9 @@ end
 ```
 
 图表来源
-- [src/content/browser/BUILD.gn:2120-2203](file://src/content/browser/BUILD.gn#L2120-L2203)
-- [src/content/browser/BUILD.gn:774-795](file://src/content/browser/BUILD.gn#L774-L795)
-- [src/chrome/browser/net/profile_network_context_service.cc:1350-1378](file://src/chrome/browser/net/profile_network_context_service.cc#L1350-L1378)
+- [src/content/browser/BUILD.gn:2120-2203](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/content/browser/BUILD.gn#L2120-L2203)
+- [src/content/browser/BUILD.gn:774-795](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/content/browser/BUILD.gn#L774-L795)
+- [src/chrome/browser/net/profile_network_context_service.cc:1350-1378](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/net/profile_network_context_service.cc#L1350-L1378)
 
 ## 详细组件分析
 
@@ -123,12 +124,12 @@ ReturnNet --> End
 ```
 
 图表来源
-- [src/content/browser/BUILD.gn:2120-2203](file://src/content/browser/BUILD.gn#L2120-L2203)
-- [src/content/browser/BUILD.gn:774-795](file://src/content/browser/BUILD.gn#L774-L795)
+- [src/content/browser/BUILD.gn:2120-2203](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/content/browser/BUILD.gn#L2120-L2203)
+- [src/content/browser/BUILD.gn:774-795](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/content/browser/BUILD.gn#L774-L795)
 
 章节来源
-- [src/content/browser/BUILD.gn:2120-2203](file://src/content/browser/BUILD.gn#L2120-L2203)
-- [src/content/browser/BUILD.gn:774-795](file://src/content/browser/BUILD.gn#L774-L795)
+- [src/content/browser/BUILD.gn:2120-2203](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/content/browser/BUILD.gn#L2120-L2203)
+- [src/content/browser/BUILD.gn:774-795](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/content/browser/BUILD.gn#L774-L795)
 
 ### HTTP 缓存与请求标志位
 - 请求标志位影响缓存行为：
@@ -149,10 +150,10 @@ PreferCached --> Validate["尝试本地验证"] --> Result
 ```
 
 图表来源
-- [src/net/base/load_flags_list.h:30-62](file://src/net/base/load_flags_list.h#L30-L62)
+- [src/net/base/load_flags_list.h:30-62](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/net/base/load_flags_list.h#L30-L62)
 
 章节来源
-- [src/net/base/load_flags_list.h:30-62](file://src/net/base/load_flags_list.h#L30-L62)
+- [src/net/base/load_flags_list.h:30-62](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/net/base/load_flags_list.h#L30-L62)
 
 ### 网络上下文与磁盘缓存配置
 - 默认启用 HTTP 缓存，并为非 OTR 配置磁盘缓存路径与大小。
@@ -166,12 +167,12 @@ P --> S["Split Cache 特性"]
 ```
 
 图表来源
-- [src/chrome/browser/net/profile_network_context_service.cc:1350-1378](file://src/chrome/browser/net/profile_network_context_service.cc#L1350-L1378)
-- [src/chrome/app/chrome_main_delegate.cc:1007-1013](file://src/chrome/app/chrome_main_delegate.cc#L1007-L1013)
+- [src/chrome/browser/net/profile_network_context_service.cc:1350-1378](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/net/profile_network_context_service.cc#L1350-L1378)
+- [src/chrome/app/chrome_main_delegate.cc:1007-1013](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/app/chrome_main_delegate.cc#L1007-L1013)
 
 章节来源
-- [src/chrome/browser/net/profile_network_context_service.cc:1350-1378](file://src/chrome/browser/net/profile_network_context_service.cc#L1350-L1378)
-- [src/chrome/app/chrome_main_delegate.cc:1007-1013](file://src/chrome/app/chrome_main_delegate.cc#L1007-L1013)
+- [src/chrome/browser/net/profile_network_context_service.cc:1350-1378](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/net/profile_network_context_service.cc#L1350-L1378)
+- [src/chrome/app/chrome_main_delegate.cc:1007-1013](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/app/chrome_main_delegate.cc#L1007-L1013)
 
 ### 存储访问重试与认证流程
 - 当服务端要求存储访问授权时，网络层根据响应头触发重试流程。
@@ -192,17 +193,17 @@ Note over U,N : 认证失败时进入 AUTH_STATE_NEED_AUTH
 ```
 
 图表来源
-- [src/net/url_request/url_request_http_job.cc:1622-1658](file://src/net/url_request/url_request_http_job.cc#L1622-L1658)
+- [src/net/url_request/url_request_http_job.cc:1622-1658](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/net/url_request/url_request_http_job.cc#L1622-L1658)
 
 章节来源
-- [src/net/url_request/url_request_http_job.cc:1622-1658](file://src/net/url_request/url_request_http_job.cc#L1622-L1658)
+- [src/net/url_request/url_request_http_job.cc:1622-1658](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/net/url_request/url_request_http_job.cc#L1622-L1658)
 
 ### GPC（全球隐私控制）与 SW 请求头
 - 在 SW 上下文中，若启用 GPC，会在请求中附加相应头部，便于后端识别用户隐私偏好。
 - 该行为通过 Blink 层注入，属于 SW 请求增强的一部分。
 
 章节来源
-- [other/GPC.patch:822-837](file://other/GPC.patch#L822-L837)
+- [other/GPC.patch:822-837](https://github.com/Mcloud136/Mcloud-Browser/blob/main/other/GPC.patch#L822-L837)
 
 ## 依赖关系分析
 - Service Worker 模块依赖 content 层的缓存存储与调度器，用于读写 Cache Storage。
@@ -219,14 +220,14 @@ URJ --> FLAGS["请求标志位"]
 ```
 
 图表来源
-- [src/content/browser/BUILD.gn:2120-2203](file://src/content/browser/BUILD.gn#L2120-L2203)
-- [src/content/browser/BUILD.gn:774-795](file://src/content/browser/BUILD.gn#L774-L795)
-- [src/net/base/load_flags_list.h:30-62](file://src/net/base/load_flags_list.h#L30-L62)
+- [src/content/browser/BUILD.gn:2120-2203](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/content/browser/BUILD.gn#L2120-L2203)
+- [src/content/browser/BUILD.gn:774-795](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/content/browser/BUILD.gn#L774-L795)
+- [src/net/base/load_flags_list.h:30-62](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/net/base/load_flags_list.h#L30-L62)
 
 章节来源
-- [src/content/browser/BUILD.gn:2120-2203](file://src/content/browser/BUILD.gn#L2120-L2203)
-- [src/content/browser/BUILD.gn:774-795](file://src/content/browser/BUILD.gn#L774-L795)
-- [src/net/base/load_flags_list.h:30-62](file://src/net/base/load_flags_list.h#L30-L62)
+- [src/content/browser/BUILD.gn:2120-2203](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/content/browser/BUILD.gn#L2120-L2203)
+- [src/content/browser/BUILD.gn:774-795](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/content/browser/BUILD.gn#L774-L795)
+- [src/net/base/load_flags_list.h:30-62](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/net/base/load_flags_list.h#L30-L62)
 
 ## 性能考量
 - 合理选择策略：静态资源采用缓存优先，动态数据采用网络优先并异步写回缓存。
@@ -243,8 +244,8 @@ URJ --> FLAGS["请求标志位"]
 - 隐私控制影响：若启用 GPC，确认后端是否按预期处理隐私头。
 
 章节来源
-- [src/net/url_request/url_request_http_job.cc:1622-1658](file://src/net/url_request/url_request_http_job.cc#L1622-L1658)
-- [other/GPC.patch:822-837](file://other/GPC.patch#L822-L837)
+- [src/net/url_request/url_request_http_job.cc:1622-1658](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/net/url_request/url_request_http_job.cc#L1622-L1658)
+- [other/GPC.patch:822-837](https://github.com/Mcloud136/Mcloud-Browser/blob/main/other/GPC.patch#L822-L837)
 
 ## 结论
 Service Worker 缓存通过 Cache API 与 HTTP 缓存协同工作，结合请求标志位与网络上下文配置，实现了灵活高效的离线与缓存策略。通过合理的策略选择、版本控制与增量更新，可以显著提升用户体验与性能。建议在开发中使用 DevTools 调试 SW 与缓存，持续监控命中率与回源率，优化缓存策略。

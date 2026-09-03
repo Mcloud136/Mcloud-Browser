@@ -1,17 +1,18 @@
 # Canvas GPU 加速
 
-<cite>
-**本文引用的文件**
-- [features.cc](file://src/third_party/blink/common/features.cc)
-- [about_flags.cc](file://src/chrome/browser/about_flags.cc)
-- [mcloud_flag_entries.h](file://src/chrome/browser/mcloud_flag_entries.h)
-- [browser_root_view.cc](file://src/chrome/browser/ui/views/frame/browser_root_view.cc)
-- [native_theme_gtk.cc](file://src/ui/gtk/native_theme_gtk.cc)
-- [gpu_pre_sandbox_hook_linux.cc](file://src/content/common/gpu_pre_sandbox_hook_linux.cc)
-- [Revert-Reland-Linux-Ozone-Wayland-Support-fractional-scale.patch](file://infra/Flatpak/com.mcloud.browser/patches/chromium/Revert-Reland-Linux-Ozone-Wayland-Support-fractional-scale.patch)
-- [offline.ts](file://src/components/neterror/resources/dino_game/offline.ts)
-- [2026-06-19-performance-optimization-design.md](file://docs/superpowers/specs/2026-06-19-performance-optimization-design.md)
-</cite>
+<details><summary>本文引用的文件</summary>
+
+- [features.cc](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/third_party/blink/common/features.cc)
+- [about_flags.cc](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/about_flags.cc)
+- [mcloud_flag_entries.h](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/mcloud_flag_entries.h)
+- [browser_root_view.cc](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/ui/views/frame/browser_root_view.cc)
+- [native_theme_gtk.cc](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/ui/gtk/native_theme_gtk.cc)
+- [gpu_pre_sandbox_hook_linux.cc](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/content/common/gpu_pre_sandbox_hook_linux.cc)
+- [Revert-Reland-Linux-Ozone-Wayland-Support-fractional-scale.patch](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/Flatpak/com.mcloud.browser/patches/chromium/Revert-Reland-Linux-Ozone-Wayland-Support-fractional-scale.patch)
+- [offline.ts](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/components/neterror/resources/dino_game/offline.ts)
+- [2026-06-19-performance-optimization-design.md](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/superpowers/specs/2026-06-19-performance-optimization-design.md)
+
+</details>
 
 ## 目录
 1. [简介](#简介)
@@ -66,24 +67,24 @@ DINO --> BRV
 ```
 
 图表来源
-- [features.cc:363-373](file://src/third_party/blink/common/features.cc#L363-L373)
-- [about_flags.cc:5568-5568](file://src/chrome/browser/about_flags.cc#L5568-L5568)
-- [mcloud_flag_entries.h:170-203](file://src/chrome/browser/mcloud_flag_entries.h#L170-L203)
-- [browser_root_view.cc:441-466](file://src/chrome/browser/ui/views/frame/browser_root_view.cc#L441-L466)
-- [native_theme_gtk.cc:40-80](file://src/ui/gtk/native_theme_gtk.cc#L40-L80)
-- [Revert-Reland-Linux-Ozone-Wayland-Support-fractional-scale.patch:618-634](file://infra/Flatpak/com.mcloud.browser/patches/chromium/Revert-Reland-Linux-Ozone-Wayland-Support-fractional-scale.patch#L618-L634)
-- [gpu_pre_sandbox_hook_linux.cc:204-235](file://src/content/common/gpu_pre_sandbox_hook_linux.cc#L204-L235)
-- [offline.ts:1715-1749](file://src/components/neterror/resources/dino_game/offline.ts#L1715-L1749)
+- [features.cc:363-373](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/third_party/blink/common/features.cc#L363-L373)
+- [about_flags.cc:5568-5568](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/about_flags.cc#L5568-L5568)
+- [mcloud_flag_entries.h:170-203](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/mcloud_flag_entries.h#L170-L203)
+- [browser_root_view.cc:441-466](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/ui/views/frame/browser_root_view.cc#L441-L466)
+- [native_theme_gtk.cc:40-80](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/ui/gtk/native_theme_gtk.cc#L40-L80)
+- [Revert-Reland-Linux-Ozone-Wayland-Support-fractional-scale.patch:618-634](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/Flatpak/com.mcloud.browser/patches/chromium/Revert-Reland-Linux-Ozone-Wayland-Support-fractional-scale.patch#L618-L634)
+- [gpu_pre_sandbox_hook_linux.cc:204-235](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/content/common/gpu_pre_sandbox_hook_linux.cc#L204-L235)
+- [offline.ts:1715-1749](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/components/neterror/resources/dino_game/offline.ts#L1715-L1749)
 
 章节来源
-- [features.cc:363-373](file://src/third_party/blink/common/features.cc#L363-L373)
-- [about_flags.cc:5568-5568](file://src/chrome/browser/about_flags.cc#L5568-L5568)
-- [mcloud_flag_entries.h:170-203](file://src/chrome/browser/mcloud_flag_entries.h#L170-L203)
-- [browser_root_view.cc:441-466](file://src/chrome/browser/ui/views/frame/browser_root_view.cc#L441-L466)
-- [native_theme_gtk.cc:40-80](file://src/ui/gtk/native_theme_gtk.cc#L40-L80)
-- [Revert-Reland-Linux-Ozone-Wayland-Support-fractional-scale.patch:618-634](file://infra/Flatpak/com.mcloud.browser/patches/chromium/Revert-Reland-Linux-Ozone-Wayland-Support-fractional-scale.patch#L618-L634)
-- [gpu_pre_sandbox_hook_linux.cc:204-235](file://src/content/common/gpu_pre_sandbox_hook_linux.cc#L204-L235)
-- [offline.ts:1715-1749](file://src/components/neterror/resources/dino_game/offline.ts#L1715-L1749)
+- [features.cc:363-373](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/third_party/blink/common/features.cc#L363-L373)
+- [about_flags.cc:5568-5568](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/about_flags.cc#L5568-L5568)
+- [mcloud_flag_entries.h:170-203](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/mcloud_flag_entries.h#L170-L203)
+- [browser_root_view.cc:441-466](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/ui/views/frame/browser_root_view.cc#L441-L466)
+- [native_theme_gtk.cc:40-80](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/ui/gtk/native_theme_gtk.cc#L40-L80)
+- [Revert-Reland-Linux-Ozone-Wayland-Support-fractional-scale.patch:618-634](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/Flatpak/com.mcloud.browser/patches/chromium/Revert-Reland-Linux-Ozone-Wayland-Support-fractional-scale.patch#L618-L634)
+- [gpu_pre_sandbox_hook_linux.cc:204-235](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/content/common/gpu_pre_sandbox_hook_linux.cc#L204-L235)
+- [offline.ts:1715-1749](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/components/neterror/resources/dino_game/offline.ts#L1715-L1749)
 
 ## 核心组件
 - 特性开关（Blink）
@@ -103,15 +104,15 @@ DINO --> BRV
   - 离线游戏：展示 Canvas 尺寸适配、devicePixelRatio 处理与 requestAnimationFrame 的使用。
 
 章节来源
-- [features.cc:363-373](file://src/third_party/blink/common/features.cc#L363-L373)
-- [features.cc:1864-1873](file://src/third_party/blink/common/features.cc#L1864-L1873)
-- [about_flags.cc:5568-5568](file://src/chrome/browser/about_flags.cc#L5568-L5568)
-- [mcloud_flag_entries.h:170-203](file://src/chrome/browser/mcloud_flag_entries.h#L170-L203)
-- [browser_root_view.cc:441-466](file://src/chrome/browser/ui/views/frame/browser_root_view.cc#L441-L466)
-- [native_theme_gtk.cc:40-80](file://src/ui/gtk/native_theme_gtk.cc#L40-L80)
-- [Revert-Reland-Linux-Ozone-Wayland-Support-fractional-scale.patch:618-634](file://infra/Flatpak/com.mcloud.browser/patches/chromium/Revert-Reland-Linux-Ozone-Wayland-Support-fractional-scale.patch#L618-L634)
-- [gpu_pre_sandbox_hook_linux.cc:204-235](file://src/content/common/gpu_pre_sandbox_hook_linux.cc#L204-L235)
-- [offline.ts:1715-1749](file://src/components/neterror/resources/dino_game/offline.ts#L1715-L1749)
+- [features.cc:363-373](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/third_party/blink/common/features.cc#L363-L373)
+- [features.cc:1864-1873](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/third_party/blink/common/features.cc#L1864-L1873)
+- [about_flags.cc:5568-5568](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/about_flags.cc#L5568-L5568)
+- [mcloud_flag_entries.h:170-203](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/mcloud_flag_entries.h#L170-L203)
+- [browser_root_view.cc:441-466](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/ui/views/frame/browser_root_view.cc#L441-L466)
+- [native_theme_gtk.cc:40-80](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/ui/gtk/native_theme_gtk.cc#L40-L80)
+- [Revert-Reland-Linux-Ozone-Wayland-Support-fractional-scale.patch:618-634](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/Flatpak/com.mcloud.browser/patches/chromium/Revert-Reland-Linux-Ozone-Wayland-Support-fractional-scale.patch#L618-L634)
+- [gpu_pre_sandbox_hook_linux.cc:204-235](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/content/common/gpu_pre_sandbox_hook_linux.cc#L204-L235)
+- [offline.ts:1715-1749](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/components/neterror/resources/dino_game/offline.ts#L1715-L1749)
 
 ## 架构总览
 下图展示了从页面到最终显示的完整链路，包括 Canvas 绘制、GPU 栅格化、纹理合成与显示后端。
@@ -135,10 +136,10 @@ UI-->>Page : 显示更新
 ```
 
 图表来源
-- [features.cc:363-373](file://src/third_party/blink/common/features.cc#L363-L373)
-- [browser_root_view.cc:441-466](file://src/chrome/browser/ui/views/frame/browser_root_view.cc#L441-L466)
-- [Revert-Reland-Linux-Ozone-Wayland-Support-fractional-scale.patch:618-634](file://infra/Flatpak/com.mcloud.browser/patches/chromium/Revert-Reland-Linux-Ozone-Wayland-Support-fractional-scale.patch#L618-L634)
-- [gpu_pre_sandbox_hook_linux.cc:204-235](file://src/content/common/gpu_pre_sandbox_hook_linux.cc#L204-L235)
+- [features.cc:363-373](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/third_party/blink/common/features.cc#L363-L373)
+- [browser_root_view.cc:441-466](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/ui/views/frame/browser_root_view.cc#L441-L466)
+- [Revert-Reland-Linux-Ozone-Wayland-Support-fractional-scale.patch:618-634](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/Flatpak/com.mcloud.browser/patches/chromium/Revert-Reland-Linux-Ozone-Wayland-Support-fractional-scale.patch#L618-L634)
+- [gpu_pre_sandbox_hook_linux.cc:204-235](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/content/common/gpu_pre_sandbox_hook_linux.cc#L204-L235)
 
 ## 详细组件分析
 
@@ -169,16 +170,16 @@ Submit --> End(["结束: 帧显示"])
 ```
 
 图表来源
-- [features.cc:363-373](file://src/third_party/blink/common/features.cc#L363-L373)
-- [features.cc:1864-1873](file://src/third_party/blink/common/features.cc#L1864-L1873)
-- [browser_root_view.cc:441-466](file://src/chrome/browser/ui/views/frame/browser_root_view.cc#L441-L466)
-- [Revert-Reland-Linux-Ozone-Wayland-Support-fractional-scale.patch:618-634](file://infra/Flatpak/com.mcloud.browser/patches/chromium/Revert-Reland-Linux-Ozone-Wayland-Support-fractional-scale.patch#L618-L634)
+- [features.cc:363-373](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/third_party/blink/common/features.cc#L363-L373)
+- [features.cc:1864-1873](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/third_party/blink/common/features.cc#L1864-L1873)
+- [browser_root_view.cc:441-466](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/ui/views/frame/browser_root_view.cc#L441-L466)
+- [Revert-Reland-Linux-Ozone-Wayland-Support-fractional-scale.patch:618-634](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/Flatpak/com.mcloud.browser/patches/chromium/Revert-Reland-Linux-Ozone-Wayland-Support-fractional-scale.patch#L618-L634)
 
 章节来源
-- [features.cc:363-373](file://src/third_party/blink/common/features.cc#L363-L373)
-- [features.cc:1864-1873](file://src/third_party/blink/common/features.cc#L1864-L1873)
-- [browser_root_view.cc:441-466](file://src/chrome/browser/ui/views/frame/browser_root_view.cc#L441-L466)
-- [Revert-Reland-Linux-Ozone-Wayland-Support-fractional-scale.patch:618-634](file://infra/Flatpak/com.mcloud.browser/patches/chromium/Revert-Reland-Linux-Ozone-Wayland-Support-fractional-scale.patch#L618-L634)
+- [features.cc:363-373](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/third_party/blink/common/features.cc#L363-L373)
+- [features.cc:1864-1873](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/third_party/blink/common/features.cc#L1864-L1873)
+- [browser_root_view.cc:441-466](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/ui/views/frame/browser_root_view.cc#L441-L466)
+- [Revert-Reland-Linux-Ozone-Wayland-Support-fractional-scale.patch:618-634](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/Flatpak/com.mcloud.browser/patches/chromium/Revert-Reland-Linux-Ozone-Wayland-Support-fractional-scale.patch#L618-L634)
 
 ### GPU 纹理生成与复用
 - 纹理生命周期
@@ -191,8 +192,8 @@ Submit --> End(["结束: 帧显示"])
   - gpu_pre_sandbox_hook_linux.cc 预授权 render 节点，确保 GPU 进程能访问硬件设备。
 
 章节来源
-- [mcloud_flag_entries.h:170-203](file://src/chrome/browser/mcloud_flag_entries.h#L170-L203)
-- [gpu_pre_sandbox_hook_linux.cc:204-235](file://src/content/common/gpu_pre_sandbox_hook_linux.cc#L204-L235)
+- [mcloud_flag_entries.h:170-203](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/mcloud_flag_entries.h#L170-L203)
+- [gpu_pre_sandbox_hook_linux.cc:204-235](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/content/common/gpu_pre_sandbox_hook_linux.cc#L204-L235)
 
 ### 批量绘制与状态缓存
 - 批量绘制
@@ -203,9 +204,9 @@ Submit --> End(["结束: 帧显示"])
   - 主题绘制缓存：native_theme_gtk.cc 中将 GTK 主题元素转换为位图后复用，减少重复绘制。
 
 章节来源
-- [browser_root_view.cc:441-466](file://src/chrome/browser/ui/views/frame/browser_root_view.cc#L441-L466)
-- [features.cc:1864-1873](file://src/third_party/blink/common/features.cc#L1864-L1873)
-- [native_theme_gtk.cc:40-80](file://src/ui/gtk/native_theme_gtk.cc#L40-L80)
+- [browser_root_view.cc:441-466](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/ui/views/frame/browser_root_view.cc#L441-L466)
+- [features.cc:1864-1873](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/third_party/blink/common/features.cc#L1864-L1873)
+- [native_theme_gtk.cc:40-80](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/ui/gtk/native_theme_gtk.cc#L40-L80)
 
 ### 高刷新率显示器支持与帧率控制
 - 高分屏与分数缩放
@@ -215,9 +216,9 @@ Submit --> End(["结束: 帧显示"])
   - 通过浏览器开关 show-fps-counter 可在运行时查看帧率与 GPU 内存使用情况，辅助调优。
 
 章节来源
-- [Revert-Reland-Linux-Ozone-Wayland-Support-fractional-scale.patch:618-634](file://infra/Flatpak/com.mcloud.browser/patches/chromium/Revert-Reland-Linux-Ozone-Wayland-Support-fractional-scale.patch#L618-L634)
-- [offline.ts:1715-1749](file://src/components/neterror/resources/dino_game/offline.ts#L1715-L1749)
-- [mcloud_flag_entries.h:240-243](file://src/chrome/browser/mcloud_flag_entries.h#L240-L243)
+- [Revert-Reland-Linux-Ozone-Wayland-Support-fractional-scale.patch:618-634](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/Flatpak/com.mcloud.browser/patches/chromium/Revert-Reland-Linux-Ozone-Wayland-Support-fractional-scale.patch#L618-L634)
+- [offline.ts:1715-1749](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/components/neterror/resources/dino_game/offline.ts#L1715-L1749)
+- [mcloud_flag_entries.h:240-243](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/mcloud_flag_entries.h#L240-L243)
 
 ### Canvas 性能分析与调试工具
 - 运行时指标
@@ -230,8 +231,8 @@ Submit --> End(["结束: 帧显示"])
   - Linux 下检查 render 节点权限与 VAAPI/GL 后端配置，确保 GPU 资源可用。
 
 章节来源
-- [mcloud_flag_entries.h:240-243](file://src/chrome/browser/mcloud_flag_entries.h#L240-L243)
-- [gpu_pre_sandbox_hook_linux.cc:204-235](file://src/content/common/gpu_pre_sandbox_hook_linux.cc#L204-L235)
+- [mcloud_flag_entries.h:240-243](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/mcloud_flag_entries.h#L240-L243)
+- [gpu_pre_sandbox_hook_linux.cc:204-235](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/content/common/gpu_pre_sandbox_hook_linux.cc#L204-L235)
 
 ## 依赖关系分析
 - 特性开关依赖
@@ -251,14 +252,14 @@ P -.-> A["设备权限(gpu_pre_sandbox_hook)"]
 ```
 
 图表来源
-- [features.cc:363-373](file://src/third_party/blink/common/features.cc#L363-L373)
-- [about_flags.cc:5568-5568](file://src/chrome/browser/about_flags.cc#L5568-L5568)
-- [gpu_pre_sandbox_hook_linux.cc:204-235](file://src/content/common/gpu_pre_sandbox_hook_linux.cc#L204-L235)
+- [features.cc:363-373](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/third_party/blink/common/features.cc#L363-L373)
+- [about_flags.cc:5568-5568](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/about_flags.cc#L5568-L5568)
+- [gpu_pre_sandbox_hook_linux.cc:204-235](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/content/common/gpu_pre_sandbox_hook_linux.cc#L204-L235)
 
 章节来源
-- [features.cc:363-373](file://src/third_party/blink/common/features.cc#L363-L373)
-- [about_flags.cc:5568-5568](file://src/chrome/browser/about_flags.cc#L5568-L5568)
-- [gpu_pre_sandbox_hook_linux.cc:204-235](file://src/content/common/gpu_pre_sandbox_hook_linux.cc#L204-L235)
+- [features.cc:363-373](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/third_party/blink/common/features.cc#L363-L373)
+- [about_flags.cc:5568-5568](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/about_flags.cc#L5568-L5568)
+- [gpu_pre_sandbox_hook_linux.cc:204-235](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/content/common/gpu_pre_sandbox_hook_linux.cc#L204-L235)
 
 ## 性能考量
 - 冷启动与多标签页内存
@@ -269,7 +270,7 @@ P -.-> A["设备权限(gpu_pre_sandbox_hook)"]
   - 预期提升 10-15%，得益于更少的 CPU 阻塞与更高效的显示管线。
 
 章节来源
-- [2026-06-19-performance-optimization-design.md:179-188](file://docs/superpowers/specs/2026-06-19-performance-optimization-design.md#L179-L188)
+- [2026-06-19-performance-optimization-design.md:179-188](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/superpowers/specs/2026-06-19-performance-optimization-design.md#L179-L188)
 
 ## 故障排查指南
 - 绿屏/花屏问题
@@ -282,10 +283,10 @@ P -.-> A["设备权限(gpu_pre_sandbox_hook)"]
   - 开启 FPS 计数器观察帧率与 GPU 内存使用，结合 Path2D 缓存命中率分析瓶颈。
 
 章节来源
-- [diag_igpu_green_screen.ps1:1-23](file://benchmark/tools/diag_igpu_green_screen.ps1#L1-L23)
-- [Revert-Reland-Linux-Ozone-Wayland-Support-fractional-scale.patch:618-634](file://infra/Flatpak/com.mcloud.browser/patches/chromium/Revert-Reland-Linux-Ozone-Wayland-Support-fractional-scale.patch#L618-L634)
-- [gpu_pre_sandbox_hook_linux.cc:204-235](file://src/content/common/gpu_pre_sandbox_hook_linux.cc#L204-L235)
-- [mcloud_flag_entries.h:240-243](file://src/chrome/browser/mcloud_flag_entries.h#L240-L243)
+- [diag_igpu_green_screen.ps1:1-23](https://github.com/Mcloud136/Mcloud-Browser/blob/main/benchmark/tools/diag_igpu_green_screen.ps1#L1-L23)
+- [Revert-Reland-Linux-Ozone-Wayland-Support-fractional-scale.patch:618-634](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/Flatpak/com.mcloud.browser/patches/chromium/Revert-Reland-Linux-Ozone-Wayland-Support-fractional-scale.patch#L618-L634)
+- [gpu_pre_sandbox_hook_linux.cc:204-235](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/content/common/gpu_pre_sandbox_hook_linux.cc#L204-L235)
+- [mcloud_flag_entries.h:240-243](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/mcloud_flag_entries.h#L240-L243)
 
 ## 结论
 MCloud Browser 在 Canvas GPU 加速方面，依托 Blink 特性开关、Chrome 浏览器层开关与平台后端优化，实现了离屏栅格化、纹理复用与批量绘制等关键技术。通过 Wayland/Ozone 分数缩放补丁与 GPU 设备权限管理，确保了高分屏与复杂场景下的稳定显示。结合 FPS 计数器与诊断工具，开发者可有效定位性能瓶颈并进行针对性优化。建议在生产环境中合理启用 GPU 栅格化与 Path2D 缓存，并根据平台能力选择最佳的视频解码后端，以获得流畅的用户体验。
@@ -300,7 +301,7 @@ MCloud Browser 在 Canvas GPU 加速方面，依托 Blink 特性开关、Chrome 
   - vaapi-video-decode-linux-gl：Linux VAAPI GL 视频解码后端。
 
 章节来源
-- [about_flags.cc:5568-5568](file://src/chrome/browser/about_flags.cc#L5568-L5568)
-- [mcloud_flag_entries.h:170-203](file://src/chrome/browser/mcloud_flag_entries.h#L170-L203)
-- [features.cc:363-373](file://src/third_party/blink/common/features.cc#L363-L373)
-- [features.cc:1864-1873](file://src/third_party/blink/common/features.cc#L1864-L1873)
+- [about_flags.cc:5568-5568](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/about_flags.cc#L5568-L5568)
+- [mcloud_flag_entries.h:170-203](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/mcloud_flag_entries.h#L170-L203)
+- [features.cc:363-373](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/third_party/blink/common/features.cc#L363-L373)
+- [features.cc:1864-1873](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/third_party/blink/common/features.cc#L1864-L1873)

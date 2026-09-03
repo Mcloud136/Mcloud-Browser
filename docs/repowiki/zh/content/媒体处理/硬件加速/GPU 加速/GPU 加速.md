@@ -1,17 +1,18 @@
 # GPU 加速
 
-<cite>
-**本文引用的文件**
-- [win_args_mcloud.gn](file://win_args_mcloud.gn)
-- [args.gn](file://args.gn)
-- [mcloud_flags.txt](file://mcloud_flags.txt)
-- [media_switches.cc](file://src/media/base/media_switches.cc)
-- [gpu_pre_sandbox_hook_linux.cc](file://src/content/common/gpu_pre_sandbox_hook_linux.cc)
-- [BUILD.gn (content:gpu)](file://src/content/gpu/BUILD.gn)
-- [performance-optimization-design.md](file://docs/superpowers/specs/2026-06-19-performance-optimization-design.md)
-- [diag_igpu_green_screen.ps1](file://benchmark/tools/diag_igpu_green_screen.ps1)
-- [DEBUGGING.md](file://infra/DEBUG/DEBUGGING.md)
-</cite>
+<details><summary>本文引用的文件</summary>
+
+- [win_args_mcloud.gn](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_args_mcloud.gn)
+- [args.gn](https://github.com/Mcloud136/Mcloud-Browser/blob/main/args.gn)
+- [mcloud_flags.txt](https://github.com/Mcloud136/Mcloud-Browser/blob/main/mcloud_flags.txt)
+- [media_switches.cc](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/media/base/media_switches.cc)
+- [gpu_pre_sandbox_hook_linux.cc](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/content/common/gpu_pre_sandbox_hook_linux.cc)
+- [BUILD.gn (content:gpu)](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/content/gpu/BUILD.gn)
+- [performance-optimization-design.md](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/superpowers/specs/2026-06-19-performance-optimization-design.md)
+- [diag_igpu_green_screen.ps1](https://github.com/Mcloud136/Mcloud-Browser/blob/main/benchmark/tools/diag_igpu_green_screen.ps1)
+- [DEBUGGING.md](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/DEBUG/DEBUGGING.md)
+
+</details>
 
 ## 目录
 1. [简介](#简介)
@@ -55,16 +56,16 @@ C -.-> H
 ```
 
 图表来源
-- [win_args_mcloud.gn:112-114](file://win_args_mcloud.gn#L112-L114)
-- [media_switches.cc:1364-1391](file://src/media/base/media_switches.cc#L1364-L1391)
-- [gpu_pre_sandbox_hook_linux.cc:121-149](file://src/content/common/gpu_pre_sandbox_hook_linux.cc#L121-L149)
+- [win_args_mcloud.gn:112-114](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_args_mcloud.gn#L112-L114)
+- [media_switches.cc:1364-1391](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/media/base/media_switches.cc#L1364-L1391)
+- [gpu_pre_sandbox_hook_linux.cc:121-149](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/content/common/gpu_pre_sandbox_hook_linux.cc#L121-L149)
 
 章节来源
-- [win_args_mcloud.gn:1-126](file://win_args_mcloud.gn#L1-L126)
-- [args.gn:1-87](file://args.gn#L1-L87)
-- [mcloud_flags.txt:1-120](file://mcloud_flags.txt#L1-L120)
-- [media_switches.cc:742-764](file://src/media/base/media_switches.cc#L742-L764)
-- [gpu_pre_sandbox_hook_linux.cc:121-149](file://src/content/common/gpu_pre_sandbox_hook_linux.cc#L121-L149)
+- [win_args_mcloud.gn:1-126](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_args_mcloud.gn#L1-L126)
+- [args.gn:1-87](https://github.com/Mcloud136/Mcloud-Browser/blob/main/args.gn#L1-L87)
+- [mcloud_flags.txt:1-120](https://github.com/Mcloud136/Mcloud-Browser/blob/main/mcloud_flags.txt#L1-L120)
+- [media_switches.cc:742-764](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/media/base/media_switches.cc#L742-L764)
+- [gpu_pre_sandbox_hook_linux.cc:121-149](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/content/common/gpu_pre_sandbox_hook_linux.cc#L121-L149)
 
 ## 核心组件
 - 构建期 GPU/媒体开关
@@ -81,10 +82,10 @@ C -.-> H
   - 为 V4L2/VAAPI 解码设备节点授予读写权限，确保硬件解码可用。
 
 章节来源
-- [win_args_mcloud.gn:74-114](file://win_args_mcloud.gn#L74-L114)
-- [mcloud_flags.txt:83-105](file://mcloud_flags.txt#L83-L105)
-- [media_switches.cc:1364-1391](file://src/media/base/media_switches.cc#L1364-L1391)
-- [gpu_pre_sandbox_hook_linux.cc:121-149](file://src/content/common/gpu_pre_sandbox_hook_linux.cc#L121-L149)
+- [win_args_mcloud.gn:74-114](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_args_mcloud.gn#L74-L114)
+- [mcloud_flags.txt:83-105](https://github.com/Mcloud136/Mcloud-Browser/blob/main/mcloud_flags.txt#L83-L105)
+- [media_switches.cc:1364-1391](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/media/base/media_switches.cc#L1364-L1391)
+- [gpu_pre_sandbox_hook_linux.cc:121-149](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/content/common/gpu_pre_sandbox_hook_linux.cc#L121-L149)
 
 ## 架构总览
 下图展示从页面播放到 GPU 渲染的关键路径，包括 D3D11/D3D12 解码、零拷贝捕获与 GPU 进程协作。
@@ -106,8 +107,8 @@ G->>R : 合成与显示
 ```
 
 图表来源
-- [performance-optimization-design.md:124-142](file://docs/superpowers/specs/2026-06-19-performance-optimization-design.md#L124-L142)
-- [mcloud_flags.txt:98-105](file://mcloud_flags.txt#L98-L105)
+- [performance-optimization-design.md:124-142](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/superpowers/specs/2026-06-19-performance-optimization-design.md#L124-L142)
+- [mcloud_flags.txt:98-105](https://github.com/Mcloud136/Mcloud-Browser/blob/main/mcloud_flags.txt#L98-L105)
 
 ## 详细组件分析
 
@@ -134,12 +135,12 @@ Fallback --> End
 ```
 
 图表来源
-- [performance-optimization-design.md:124-142](file://docs/superpowers/specs/2026-06-19-performance-optimization-design.md#L124-L142)
-- [mcloud_flags.txt:83-88](file://mcloud_flags.txt#L83-L88)
+- [performance-optimization-design.md:124-142](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/superpowers/specs/2026-06-19-performance-optimization-design.md#L124-L142)
+- [mcloud_flags.txt:83-88](https://github.com/Mcloud136/Mcloud-Browser/blob/main/mcloud_flags.txt#L83-L88)
 
 章节来源
-- [performance-optimization-design.md:124-142](file://docs/superpowers/specs/2026-06-19-performance-optimization-design.md#L124-L142)
-- [mcloud_flags.txt:83-105](file://mcloud_flags.txt#L83-L105)
+- [performance-optimization-design.md:124-142](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/superpowers/specs/2026-06-19-performance-optimization-design.md#L124-L142)
+- [mcloud_flags.txt:83-105](https://github.com/Mcloud136/Mcloud-Browser/blob/main/mcloud_flags.txt#L83-L105)
 
 ### DXVA2 加速与 GPU 内存管理
 - DXVA2 角色
@@ -151,8 +152,8 @@ Fallback --> End
   - 视频捕获与解码路径尽量保持 GPU 内流转，减少 CPU 参与，降低延迟与带宽占用。
 
 章节来源
-- [mcloud_flags.txt:90-105](file://mcloud_flags.txt#L90-L105)
-- [performance-optimization-design.md:111-120](file://docs/superpowers/specs/2026-06-19-performance-optimization-design.md#L111-L120)
+- [mcloud_flags.txt:90-105](https://github.com/Mcloud136/Mcloud-Browser/blob/main/mcloud_flags.txt#L90-L105)
+- [performance-optimization-design.md:111-120](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/superpowers/specs/2026-06-19-performance-optimization-design.md#L111-L120)
 
 ### GPU 检测与启用流程
 - 构建期检测
@@ -164,9 +165,9 @@ Fallback --> End
   - 为 V4L2/VAAPI 设备节点授予必要权限，确保硬件解码可用。
 
 章节来源
-- [win_args_mcloud.gn:112-114](file://win_args_mcloud.gn#L112-L114)
-- [media_switches.cc:1364-1391](file://src/media/base/media_switches.cc#L1364-L1391)
-- [gpu_pre_sandbox_hook_linux.cc:121-149](file://src/content/common/gpu_pre_sandbox_hook_linux.cc#L121-L149)
+- [win_args_mcloud.gn:112-114](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_args_mcloud.gn#L112-L114)
+- [media_switches.cc:1364-1391](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/media/base/media_switches.cc#L1364-L1391)
+- [gpu_pre_sandbox_hook_linux.cc:121-149](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/content/common/gpu_pre_sandbox_hook_linux.cc#L121-L149)
 
 ### 不同 GPU 厂商优化策略
 - Intel 核显
@@ -177,8 +178,8 @@ Fallback --> End
   - 在 Linux 侧需确保 Vulkan/DRM 相关库与设备节点权限正确；Windows 下遵循通用 D3D11/D3D12 路径。
 
 章节来源
-- [mcloud_flags.txt:83-88](file://mcloud_flags.txt#L83-L88)
-- [gpu_pre_sandbox_hook_linux.cc:264-296](file://src/content/common/gpu_pre_sandbox_hook_linux.cc#L264-L296)
+- [mcloud_flags.txt:83-88](https://github.com/Mcloud136/Mcloud-Browser/blob/main/mcloud_flags.txt#L83-L88)
+- [gpu_pre_sandbox_hook_linux.cc:264-296](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/content/common/gpu_pre_sandbox_hook_linux.cc#L264-L296)
 
 ## 依赖关系分析
 - 构建依赖
@@ -201,18 +202,18 @@ B --> G["渲染/合成"]
 ```
 
 图表来源
-- [win_args_mcloud.gn:74-114](file://win_args_mcloud.gn#L74-L114)
-- [args.gn:45-87](file://args.gn#L45-L87)
-- [media_switches.cc:1364-1391](file://src/media/base/media_switches.cc#L1364-L1391)
-- [mcloud_flags.txt:90-105](file://mcloud_flags.txt#L90-L105)
-- [BUILD.gn (content:gpu):43-87](file://src/content/gpu/BUILD.gn#L43-L87)
+- [win_args_mcloud.gn:74-114](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_args_mcloud.gn#L74-L114)
+- [args.gn:45-87](https://github.com/Mcloud136/Mcloud-Browser/blob/main/args.gn#L45-L87)
+- [media_switches.cc:1364-1391](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/media/base/media_switches.cc#L1364-L1391)
+- [mcloud_flags.txt:90-105](https://github.com/Mcloud136/Mcloud-Browser/blob/main/mcloud_flags.txt#L90-L105)
+- [BUILD.gn (content:gpu):43-87](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/content/gpu/BUILD.gn#L43-L87)
 
 章节来源
-- [win_args_mcloud.gn:74-114](file://win_args_mcloud.gn#L74-L114)
-- [args.gn:45-87](file://args.gn#L45-L87)
-- [media_switches.cc:1364-1391](file://src/media/base/media_switches.cc#L1364-L1391)
-- [mcloud_flags.txt:90-105](file://mcloud_flags.txt#L90-L105)
-- [BUILD.gn (content:gpu):43-87](file://src/content/gpu/BUILD.gn#L43-L87)
+- [win_args_mcloud.gn:74-114](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_args_mcloud.gn#L74-L114)
+- [args.gn:45-87](https://github.com/Mcloud136/Mcloud-Browser/blob/main/args.gn#L45-L87)
+- [media_switches.cc:1364-1391](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/media/base/media_switches.cc#L1364-L1391)
+- [mcloud_flags.txt:90-105](https://github.com/Mcloud136/Mcloud-Browser/blob/main/mcloud_flags.txt#L90-L105)
+- [BUILD.gn (content:gpu):43-87](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/content/gpu/BUILD.gn#L43-L87)
 
 ## 性能考量
 - 命令缓冲与资源池
@@ -226,8 +227,8 @@ B --> G["渲染/合成"]
   - 视频捕获与解码尽量保持 GPU 内流转，降低延迟与带宽压力。
 
 章节来源
-- [mcloud_flags.txt:90-105](file://mcloud_flags.txt#L90-L105)
-- [performance-optimization-design.md:111-120](file://docs/superpowers/specs/2026-06-19-performance-optimization-design.md#L111-L120)
+- [mcloud_flags.txt:90-105](https://github.com/Mcloud136/Mcloud-Browser/blob/main/mcloud_flags.txt#L90-L105)
+- [performance-optimization-design.md:111-120](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/superpowers/specs/2026-06-19-performance-optimization-design.md#L111-L120)
 
 ## 故障排查指南
 - 核显绿屏/花屏定位
@@ -239,31 +240,31 @@ B --> G["渲染/合成"]
   - 通过 about_flags 中的“无 GPU 上下文丢失”开关缓解休眠/屏保导致的黑屏/粉屏问题。
 
 章节来源
-- [diag_igpu_green_screen.ps1:1-95](file://benchmark/tools/diag_igpu_green_screen.ps1#L1-L95)
-- [DEBUGGING.md:281-354](file://infra/DEBUG/DEBUGGING.md#L281-L354)
-- [mcloud_flag_entries.h:205-210](file://src/chrome/browser/mcloud_flag_entries.h#L205-L210)
+- [diag_igpu_green_screen.ps1:1-95](https://github.com/Mcloud136/Mcloud-Browser/blob/main/benchmark/tools/diag_igpu_green_screen.ps1#L1-L95)
+- [DEBUGGING.md:281-354](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/DEBUG/DEBUGGING.md#L281-L354)
+- [mcloud_flag_entries.h:205-210](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/mcloud_flag_entries.h#L205-L210)
 
 ## 结论
 MCloud Browser 在 Windows 平台上采用 D3D11/D3D12 硬件解码路径，并通过 Media Foundation 与 DXVA2 对接系统解码器。当前针对 Intel 核显的 D3D12 不稳定问题，仓库显式关闭该特性以确保稳定性。配合零拷贝捕获、命令缓冲与资源池优化、渲染管线预编译等手段，整体视频播放与渲染性能得到显著提升。针对不同 GPU 厂商，建议按实际驱动与平台能力调整特性开关，并结合诊断工具持续验证。
 
 ## 附录：配置参数与优化建议
 - 构建期参数（GN）
-  - Windows 禁用 Vulkan，使用 D3D12：见 [win_args_mcloud.gn:112-114](file://win_args_mcloud.gn#L112-L114)。
-  - 启用 HEVC 平台解码与可选编码：见 [win_args_mcloud.gn:99-109](file://win_args_mcloud.gn#L99-L109)。
-  - 启用 FFmpeg 视频解码器：见 [win_args_mcloud.gn:74-81](file://win_args_mcloud.gn#L74-L81)。
+  - Windows 禁用 Vulkan，使用 D3D12：见 [win_args_mcloud.gn:112-114](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_args_mcloud.gn#L112-L114)。
+  - 启用 HEVC 平台解码与可选编码：见 [win_args_mcloud.gn:99-109](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_args_mcloud.gn#L99-L109)。
+  - 启用 FFmpeg 视频解码器：见 [win_args_mcloud.gn:74-81](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_args_mcloud.gn#L74-L81)。
 - 运行期特性标志
-  - 关闭 D3D12VideoDecoder 以规避 Intel 核显绿屏：见 [mcloud_flags.txt:83-88](file://mcloud_flags.txt#L83-L88)。
-  - 启用 MediaFoundationD3D11VideoCaptureZeroCopy 实现零拷贝捕获：见 [mcloud_flags.txt:98-105](file://mcloud_flags.txt#L98-L105)。
-  - 启用 GPU/渲染优化特性（着色器缓存、命令缓冲切片、Skia Graphite 等）：见 [mcloud_flags.txt:90-96](file://mcloud_flags.txt#L90-L96)。
+  - 关闭 D3D12VideoDecoder 以规避 Intel 核显绿屏：见 [mcloud_flags.txt:83-88](https://github.com/Mcloud136/Mcloud-Browser/blob/main/mcloud_flags.txt#L83-L88)。
+  - 启用 MediaFoundationD3D11VideoCaptureZeroCopy 实现零拷贝捕获：见 [mcloud_flags.txt:98-105](https://github.com/Mcloud136/Mcloud-Browser/blob/main/mcloud_flags.txt#L98-L105)。
+  - 启用 GPU/渲染优化特性（着色器缓存、命令缓冲切片、Skia Graphite 等）：见 [mcloud_flags.txt:90-96](https://github.com/Mcloud136/Mcloud-Browser/blob/main/mcloud_flags.txt#L90-L96)。
 - 媒体特性开关
-  - OOP 解码与共享图像接口：见 [media_switches.cc:1364-1391](file://src/media/base/media_switches.cc#L1364-L1391)。
+  - OOP 解码与共享图像接口：见 [media_switches.cc:1364-1391](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/media/base/media_switches.cc#L1364-L1391)。
 - Linux 沙箱与设备权限
-  - 为 V4L2/VAAPI 解码设备节点授予读写权限：见 [gpu_pre_sandbox_hook_linux.cc:121-149](file://src/content/common/gpu_pre_sandbox_hook_linux.cc#L121-L149)。
-  - 允许 Vulkan/DRM 相关库与设备节点访问：见 [gpu_pre_sandbox_hook_linux.cc:264-296](file://src/content/common/gpu_pre_sandbox_hook_linux.cc#L264-L296)。
+  - 为 V4L2/VAAPI 解码设备节点授予读写权限：见 [gpu_pre_sandbox_hook_linux.cc:121-149](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/content/common/gpu_pre_sandbox_hook_linux.cc#L121-L149)。
+  - 允许 Vulkan/DRM 相关库与设备节点访问：见 [gpu_pre_sandbox_hook_linux.cc:264-296](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/content/common/gpu_pre_sandbox_hook_linux.cc#L264-L296)。
 
 章节来源
-- [win_args_mcloud.gn:74-114](file://win_args_mcloud.gn#L74-L114)
-- [mcloud_flags.txt:83-105](file://mcloud_flags.txt#L83-L105)
-- [media_switches.cc:1364-1391](file://src/media/base/media_switches.cc#L1364-L1391)
-- [gpu_pre_sandbox_hook_linux.cc:121-149](file://src/content/common/gpu_pre_sandbox_hook_linux.cc#L121-L149)
-- [gpu_pre_sandbox_hook_linux.cc:264-296](file://src/content/common/gpu_pre_sandbox_hook_linux.cc#L264-L296)
+- [win_args_mcloud.gn:74-114](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_args_mcloud.gn#L74-L114)
+- [mcloud_flags.txt:83-105](https://github.com/Mcloud136/Mcloud-Browser/blob/main/mcloud_flags.txt#L83-L105)
+- [media_switches.cc:1364-1391](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/media/base/media_switches.cc#L1364-L1391)
+- [gpu_pre_sandbox_hook_linux.cc:121-149](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/content/common/gpu_pre_sandbox_hook_linux.cc#L121-L149)
+- [gpu_pre_sandbox_hook_linux.cc:264-296](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/content/common/gpu_pre_sandbox_hook_linux.cc#L264-L296)

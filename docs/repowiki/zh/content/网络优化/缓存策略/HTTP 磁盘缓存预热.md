@@ -1,10 +1,11 @@
 # HTTP 磁盘缓存预热
 
-<cite>
-**本文引用的文件**
-- [features.cc](file://src/third_party/blink/common/features.cc)
-- [mcloud_flags.txt](file://mcloud_flags.txt)
-</cite>
+<details><summary>本文引用的文件</summary>
+
+- [features.cc](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/third_party/blink/common/features.cc)
+- [mcloud_flags.txt](https://github.com/Mcloud136/Mcloud-Browser/blob/main/mcloud_flags.txt)
+
+</details>
 
 ## 目录
 1. [简介](#简介)
@@ -34,12 +35,12 @@ C --> D["预热策略与触发逻辑"]
 ```
 
 **图表来源**
-- [features.cc:1440-1496](file://src/third_party/blink/common/features.cc#L1440-L1496)
-- [mcloud_flags.txt:75](file://mcloud_flags.txt#L75)
+- [features.cc:1440-1496](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/third_party/blink/common/features.cc#L1440-L1496)
+- [mcloud_flags.txt:75](https://github.com/Mcloud136/Mcloud-Browser/blob/main/mcloud_flags.txt#L75)
 
 **章节来源**
-- [features.cc:1440-1496](file://src/third_party/blink/common/features.cc#L1440-L1496)
-- [mcloud_flags.txt:75](file://mcloud_flags.txt#L75)
+- [features.cc:1440-1496](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/third_party/blink/common/features.cc#L1440-L1496)
+- [mcloud_flags.txt:75](https://github.com/Mcloud136/Mcloud-Browser/blob/main/mcloud_flags.txt#L75)
 
 ## 核心组件
 - 特性开关：kHttpDiskCachePrewarming
@@ -57,7 +58,7 @@ C --> D["预热策略与触发逻辑"]
 这些参数共同决定了预热的范围、时机、频率与资源消耗边界。
 
 **章节来源**
-- [features.cc:1440-1496](file://src/third_party/blink/common/features.cc#L1440-L1496)
+- [features.cc:1440-1496](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/third_party/blink/common/features.cc#L1440-L1496)
 
 ## 架构总览
 从特性开关到运行时的整体流程如下：
@@ -88,8 +89,8 @@ P-->>N : "反馈结果"
 ```
 
 **图表来源**
-- [features.cc:1440-1496](file://src/third_party/blink/common/features.cc#L1440-L1496)
-- [mcloud_flags.txt:75](file://mcloud_flags.txt#L75)
+- [features.cc:1440-1496](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/third_party/blink/common/features.cc#L1440-L1496)
+- [mcloud_flags.txt:75](https://github.com/Mcloud136/Mcloud-Browser/blob/main/mcloud_flags.txt#L75)
 
 ## 详细组件分析
 
@@ -114,10 +115,10 @@ Skip --> End
 ```
 
 **图表来源**
-- [features.cc:1440-1496](file://src/third_party/blink/common/features.cc#L1440-L1496)
+- [features.cc:1440-1496](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/third_party/blink/common/features.cc#L1440-L1496)
 
 **章节来源**
-- [features.cc:1440-1496](file://src/third_party/blink/common/features.cc#L1440-L1496)
+- [features.cc:1440-1496](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/third_party/blink/common/features.cc#L1440-L1496)
 
 ### 触发机制：导航与指针交互
 - 导航触发：当 kHttpDiskCachePrewarmingTriggerOnNavigation 为真时，页面导航前后会触发预热，优先预热当前页及关联子资源。
@@ -136,10 +137,10 @@ W-->>U : "预热执行"
 ```
 
 **图表来源**
-- [features.cc:1440-1496](file://src/third_party/blink/common/features.cc#L1440-L1496)
+- [features.cc:1440-1496](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/third_party/blink/common/features.cc#L1440-L1496)
 
 **章节来源**
-- [features.cc:1440-1496](file://src/third_party/blink/common/features.cc#L1440-L1496)
+- [features.cc:1440-1496](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/third_party/blink/common/features.cc#L1440-L1496)
 
 ### 启动时跳过预热的优化策略
 - 开关：kHttpDiskCachePrewarmingSkipDuringBrowserStartup
@@ -156,10 +157,10 @@ DoWarm --> Ready
 ```
 
 **图表来源**
-- [features.cc:1440-1496](file://src/third_party/blink/common/features.cc#L1440-L1496)
+- [features.cc:1440-1496](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/third_party/blink/common/features.cc#L1440-L1496)
 
 **章节来源**
-- [features.cc:1440-1496](file://src/third_party/blink/common/features.cc#L1440-L1496)
+- [features.cc:1440-1496](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/third_party/blink/common/features.cc#L1440-L1496)
 
 ### 配置参数与调优方法
 - kHttpDiskCachePrewarmingMaxUrlLength
@@ -185,7 +186,7 @@ DoWarm --> Ready
   - 调优：通常保持默认即可，除非有特定分布需求。
 
 **章节来源**
-- [features.cc:1440-1496](file://src/third_party/blink/common/features.cc#L1440-L1496)
+- [features.cc:1440-1496](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/third_party/blink/common/features.cc#L1440-L1496)
 
 ## 依赖关系分析
 - 特性开关依赖：HttpDiskCachePrewarming 由 Blink 特性系统提供，并在浏览器启动参数中启用。
@@ -202,12 +203,12 @@ H --> C["磁盘缓存"]
 ```
 
 **图表来源**
-- [features.cc:1440-1496](file://src/third_party/blink/common/features.cc#L1440-L1496)
-- [mcloud_flags.txt:75](file://mcloud_flags.txt#L75)
+- [features.cc:1440-1496](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/third_party/blink/common/features.cc#L1440-L1496)
+- [mcloud_flags.txt:75](https://github.com/Mcloud136/Mcloud-Browser/blob/main/mcloud_flags.txt#L75)
 
 **章节来源**
-- [features.cc:1440-1496](file://src/third_party/blink/common/features.cc#L1440-L1496)
-- [mcloud_flags.txt:75](file://mcloud_flags.txt#L75)
+- [features.cc:1440-1496](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/third_party/blink/common/features.cc#L1440-L1496)
+- [mcloud_flags.txt:75](https://github.com/Mcloud136/Mcloud-Browser/blob/main/mcloud_flags.txt#L75)
 
 ## 性能考量
 - 内存与 I/O：历史记录与滑动窗口会占用内存；预热会产生额外 I/O。需平衡 HistorySize 与 SlidingWindowSize。
@@ -231,8 +232,8 @@ H --> C["磁盘缓存"]
   - 开启 UseReadAndDiscardBodyOption，仅预热头部。
 
 **章节来源**
-- [mcloud_flags.txt:75](file://mcloud_flags.txt#L75)
-- [features.cc:1440-1496](file://src/third_party/blink/common/features.cc#L1440-L1496)
+- [mcloud_flags.txt:75](https://github.com/Mcloud136/Mcloud-Browser/blob/main/mcloud_flags.txt#L75)
+- [features.cc:1440-1496](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/third_party/blink/common/features.cc#L1440-L1496)
 
 ## 结论
 HTTP 磁盘缓存预热通过滑动窗口与历史统计识别热点资源，在导航与指针交互时主动预热至磁盘缓存，显著提升后续加载性能。通过合理的参数调优与启动阶段跳过预热，可在用户体验与资源消耗之间取得良好平衡。建议在真实站点上进行 A/B 测试，结合指标验证收益。
@@ -246,5 +247,5 @@ HTTP 磁盘缓存预热通过滑动窗口与历史统计识别热点资源，在
   - 启用参数：mcloud_flags.txt
 
 **章节来源**
-- [mcloud_flags.txt:75](file://mcloud_flags.txt#L75)
-- [features.cc:1440-1496](file://src/third_party/blink/common/features.cc#L1440-L1496)
+- [mcloud_flags.txt:75](https://github.com/Mcloud136/Mcloud-Browser/blob/main/mcloud_flags.txt#L75)
+- [features.cc:1440-1496](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/third_party/blink/common/features.cc#L1440-L1496)

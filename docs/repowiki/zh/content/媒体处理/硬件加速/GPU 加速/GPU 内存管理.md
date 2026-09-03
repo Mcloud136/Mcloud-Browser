@@ -1,22 +1,23 @@
 # GPU 内存管理
 
-<cite>
-**本文引用的文件**
-- [mcloud_flags.txt](file://mcloud_flags.txt)
-- [README.md](file://README.md)
-- [2026-06-19-performance-optimization-design.md](file://docs/superpowers/specs/2026-06-19-performance-optimization-design.md)
-- [2026-06-20-m149-to-m150-upgrade-report.md](file://docs/superpowers/specs/2026-06-20-m149-to-m150-upgrade-report.md)
-- [2026-06-20-release-notes-m150.md](file://docs/superpowers/specs/2026-06-20-release-notes-m150.md)
-- [memory-Enable-the-tab-discards-feature.patch](file://infra/Flatpak/com.mcloud.browser/patches/chromium/memory-Enable-the-tab-discards-feature.patch)
-- [mcloud_flag_entries.h](file://src/chrome/browser/mcloud_flag_entries.h)
-- [mcloud_flag_choices.h](file://src/chrome/browser/mcloud_flag_choices.h)
-- [about_flags.cc](file://src/chrome/browser/about_flags.cc)
-- [bench_memory.ps1](file://benchmark/bench_memory.ps1)
-- [gpu_pre_sandbox_hook_linux.cc](file://src/content/common/gpu_pre_sandbox_hook_linux.cc)
-- [gn_args.list](file://infra/gn_args.list)
-- [win_gn_args.list](file://infra/win_gn_args.list)
-- [args.list](file://infra/args.list)
-</cite>
+<details><summary>本文引用的文件</summary>
+
+- [mcloud_flags.txt](https://github.com/Mcloud136/Mcloud-Browser/blob/main/mcloud_flags.txt)
+- [README.md](https://github.com/Mcloud136/Mcloud-Browser/blob/main/README.md)
+- [2026-06-19-performance-optimization-design.md](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/superpowers/specs/2026-06-19-performance-optimization-design.md)
+- [2026-06-20-m149-to-m150-upgrade-report.md](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/superpowers/specs/2026-06-20-m149-to-m150-upgrade-report.md)
+- [2026-06-20-release-notes-m150.md](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/superpowers/specs/2026-06-20-release-notes-m150.md)
+- [memory-Enable-the-tab-discards-feature.patch](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/Flatpak/com.mcloud.browser/patches/chromium/memory-Enable-the-tab-discards-feature.patch)
+- [mcloud_flag_entries.h](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/mcloud_flag_entries.h)
+- [mcloud_flag_choices.h](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/mcloud_flag_choices.h)
+- [about_flags.cc](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/about_flags.cc)
+- [bench_memory.ps1](https://github.com/Mcloud136/Mcloud-Browser/blob/main/benchmark/bench_memory.ps1)
+- [gpu_pre_sandbox_hook_linux.cc](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/content/common/gpu_pre_sandbox_hook_linux.cc)
+- [gn_args.list](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/gn_args.list)
+- [win_gn_args.list](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/win_gn_args.list)
+- [args.list](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/args.list)
+
+</details>
 
 ## 目录
 1. [简介](#简介)
@@ -54,14 +55,14 @@ G --> H["监控与诊断<br/>FPS 计数器/基准脚本"]
 ```
 
 图表来源
-- [mcloud_flag_entries.h:174-183](file://src/chrome/browser/mcloud_flag_entries.h#L174-L183)
-- [mcloud_flags.txt:27-38](file://mcloud_flags.txt#L27-L38)
-- [gpu_pre_sandbox_hook_linux.cc:460-478](file://src/content/common/gpu_pre_sandbox_hook_linux.cc#L460-L478)
+- [mcloud_flag_entries.h:174-183](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/mcloud_flag_entries.h#L174-L183)
+- [mcloud_flags.txt:27-38](https://github.com/Mcloud136/Mcloud-Browser/blob/main/mcloud_flags.txt#L27-L38)
+- [gpu_pre_sandbox_hook_linux.cc:460-478](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/content/common/gpu_pre_sandbox_hook_linux.cc#L460-L478)
 
 章节来源
-- [mcloud_flags.txt:27-38](file://mcloud_flags.txt#L27-L38)
-- [mcloud_flag_entries.h:174-183](file://src/chrome/browser/mcloud_flag_entries.h#L174-L183)
-- [gpu_pre_sandbox_hook_linux.cc:460-478](file://src/content/common/gpu_pre_sandbox_hook_linux.cc#L460-L478)
+- [mcloud_flags.txt:27-38](https://github.com/Mcloud136/Mcloud-Browser/blob/main/mcloud_flags.txt#L27-L38)
+- [mcloud_flag_entries.h:174-183](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/mcloud_flag_entries.h#L174-L183)
+- [gpu_pre_sandbox_hook_linux.cc:460-478](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/content/common/gpu_pre_sandbox_hook_linux.cc#L460-L478)
 
 ## 核心组件
 - 显存上限与可映射缓冲
@@ -76,12 +77,12 @@ G --> H["监控与诊断<br/>FPS 计数器/基准脚本"]
   - show-fps-counter 提供 FPS 与 GPU 内存使用叠加显示；历史模块与网络层对内存压力事件有监听与响应；Windows 基准脚本 bench_memory.ps1 可用于测量工作集峰值以评估回收策略效果。
 
 章节来源
-- [mcloud_flag_entries.h:174-183](file://src/chrome/browser/mcloud_flag_entries.h#L174-L183)
-- [mcloud_flags.txt:27-38](file://mcloud_flags.txt#L27-L38)
-- [2026-06-19-performance-optimization-design.md:78-88](file://docs/superpowers/specs/2026-06-19-performance-optimization-design.md#L78-L88)
-- [2026-06-20-m149-to-m150-upgrade-report.md:57-66](file://docs/superpowers/specs/2026-06-20-m149-to-m150-upgrade-report.md#L57-L66)
-- [2026-06-20-release-notes-m150.md:156-173](file://docs/superpowers/specs/2026-06-20-release-notes-m150.md#L156-L173)
-- [bench_memory.ps1:62-77](file://benchmark/bench_memory.ps1#L62-L77)
+- [mcloud_flag_entries.h:174-183](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/mcloud_flag_entries.h#L174-L183)
+- [mcloud_flags.txt:27-38](https://github.com/Mcloud136/Mcloud-Browser/blob/main/mcloud_flags.txt#L27-L38)
+- [2026-06-19-performance-optimization-design.md:78-88](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/superpowers/specs/2026-06-19-performance-optimization-design.md#L78-L88)
+- [2026-06-20-m149-to-m150-upgrade-report.md:57-66](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/superpowers/specs/2026-06-20-m149-to-m150-upgrade-report.md#L57-L66)
+- [2026-06-20-release-notes-m150.md:156-173](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/superpowers/specs/2026-06-20-release-notes-m150.md#L156-L173)
+- [bench_memory.ps1:62-77](https://github.com/Mcloud136/Mcloud-Browser/blob/main/benchmark/bench_memory.ps1#L62-L77)
 
 ## 架构总览
 MCloud Browser 的 GPU 内存管理由“标志驱动 + 平台适配 + 运行时回收”构成：
@@ -106,9 +107,9 @@ G-->>U : 通过 FPS 计数器反馈 GPU 内存使用
 ```
 
 图表来源
-- [mcloud_flags.txt:27-38](file://mcloud_flags.txt#L27-L38)
-- [mcloud_flag_entries.h:174-183](file://src/chrome/browser/mcloud_flag_entries.h#L174-L183)
-- [2026-06-19-performance-optimization-design.md:78-88](file://docs/superpowers/specs/2026-06-19-performance-optimization-design.md#L78-L88)
+- [mcloud_flags.txt:27-38](https://github.com/Mcloud136/Mcloud-Browser/blob/main/mcloud_flags.txt#L27-L38)
+- [mcloud_flag_entries.h:174-183](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/mcloud_flag_entries.h#L174-L183)
+- [2026-06-19-performance-optimization-design.md:78-88](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/superpowers/specs/2026-06-19-performance-optimization-design.md#L78-L88)
 
 ## 详细组件分析
 
@@ -134,13 +135,13 @@ CmdBuf --> FrameEnd(["完成帧提交"])
 ```
 
 图表来源
-- [2026-06-20-release-notes-m150.md:167-173](file://docs/superpowers/specs/2026-06-20-release-notes-m150.md#L167-L173)
-- [2026-06-19-performance-optimization-design.md:78-88](file://docs/superpowers/specs/2026-06-19-performance-optimization-design.md#L78-L88)
+- [2026-06-20-release-notes-m150.md:167-173](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/superpowers/specs/2026-06-20-release-notes-m150.md#L167-L173)
+- [2026-06-19-performance-optimization-design.md:78-88](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/superpowers/specs/2026-06-19-performance-optimization-design.md#L78-L88)
 
 章节来源
-- [mcloud_flag_entries.h:174-183](file://src/chrome/browser/mcloud_flag_entries.h#L174-L183)
-- [2026-06-20-release-notes-m150.md:167-173](file://docs/superpowers/specs/2026-06-20-release-notes-m150.md#L167-L173)
-- [2026-06-19-performance-optimization-design.md:78-88](file://docs/superpowers/specs/2026-06-19-performance-optimization-design.md#L78-L88)
+- [mcloud_flag_entries.h:174-183](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/mcloud_flag_entries.h#L174-L183)
+- [2026-06-20-release-notes-m150.md:167-173](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/superpowers/specs/2026-06-20-release-notes-m150.md#L167-L173)
+- [2026-06-19-performance-optimization-design.md:78-88](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/superpowers/specs/2026-06-19-performance-optimization-design.md#L78-L88)
 
 ### 内存池管理与垃圾回收联动
 - 分配器优化
@@ -172,12 +173,12 @@ class 媒体服务 {
 ```
 
 图表来源
-- [2026-06-19-performance-optimization-design.md:78-88](file://docs/superpowers/specs/2026-06-19-performance-optimization-design.md#L78-L88)
-- [2026-06-20-m149-to-m150-upgrade-report.md:57-84](file://docs/superpowers/specs/2026-06-20-m149-to-m150-upgrade-report.md#L57-L84)
+- [2026-06-19-performance-optimization-design.md:78-88](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/superpowers/specs/2026-06-19-performance-optimization-design.md#L78-L88)
+- [2026-06-20-m149-to-m150-upgrade-report.md:57-84](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/superpowers/specs/2026-06-20-m149-to-m150-upgrade-report.md#L57-L84)
 
 章节来源
-- [2026-06-19-performance-optimization-design.md:78-88](file://docs/superpowers/specs/2026-06-19-performance-optimization-design.md#L78-L88)
-- [2026-06-20-m149-to-m150-upgrade-report.md:57-84](file://docs/superpowers/specs/2026-06-20-m149-to-m150-upgrade-report.md#L57-L84)
+- [2026-06-19-performance-optimization-design.md:78-88](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/superpowers/specs/2026-06-19-performance-optimization-design.md#L78-L88)
+- [2026-06-20-m149-to-m150-upgrade-report.md:57-84](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/superpowers/specs/2026-06-20-m149-to-m150-upgrade-report.md#L57-L84)
 
 ### 不同 GPU 架构的内存模型差异与优化
 - Windows (ANGLE/D3D11/Vulkan)
@@ -188,10 +189,10 @@ class 媒体服务 {
   - 无论平台，均通过资源池复用、命令缓冲切片、传输缓存修剪与预绘制瓦片回收来降低碎片与显存占用。
 
 章节来源
-- [win_gn_args.list:276-399](file://infra/win_gn_args.list#L276-L399)
-- [args.list:3982-4000](file://infra/args.list#L3982-L4000)
-- [mcloud_flag_entries.h:179-203](file://src/chrome/browser/mcloud_flag_entries.h#L179-L203)
-- [2026-06-20-release-notes-m150.md:156-173](file://docs/superpowers/specs/2026-06-20-release-notes-m150.md#L156-L173)
+- [win_gn_args.list:276-399](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/win_gn_args.list#L276-L399)
+- [args.list:3982-4000](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/args.list#L3982-L4000)
+- [mcloud_flag_entries.h:179-203](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/mcloud_flag_entries.h#L179-L203)
+- [2026-06-20-release-notes-m150.md:156-173](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/superpowers/specs/2026-06-20-release-notes-m150.md#L156-L173)
 
 ### 显存使用监控、泄漏检测与调试方法
 - 监控
@@ -204,10 +205,10 @@ class 媒体服务 {
   - 针对特定平台后端（Vulkan/GL/D3D11）开启相应验证层或追踪事件，辅助定位驱动层问题。
 
 章节来源
-- [mcloud_flag_entries.h:240-243](file://src/chrome/browser/mcloud_flag_entries.h#L240-L243)
-- [memory-Enable-the-tab-discards-feature.patch:44-71](file://infra/Flatpak/com.mcloud.browser/patches/chromium/memory-Enable-the-tab-discards-feature.patch#L44-L71)
-- [bench_memory.ps1:62-77](file://benchmark/bench_memory.ps1#L62-L77)
-- [gpu_pre_sandbox_hook_linux.cc:460-478](file://src/content/common/gpu_pre_sandbox_hook_linux.cc#L460-L478)
+- [mcloud_flag_entries.h:240-243](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/mcloud_flag_entries.h#L240-L243)
+- [memory-Enable-the-tab-discards-feature.patch:44-71](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/Flatpak/com.mcloud.browser/patches/chromium/memory-Enable-the-tab-discards-feature.patch#L44-L71)
+- [bench_memory.ps1:62-77](https://github.com/Mcloud136/Mcloud-Browser/blob/main/benchmark/bench_memory.ps1#L62-L77)
+- [gpu_pre_sandbox_hook_linux.cc:460-478](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/content/common/gpu_pre_sandbox_hook_linux.cc#L460-L478)
 
 ## 依赖关系分析
 - 标志依赖
@@ -226,14 +227,14 @@ Build --> Runtime["运行时行为<br/>显存分配/回收"]
 ```
 
 图表来源
-- [mcloud_flags.txt:27-38](file://mcloud_flags.txt#L27-L38)
-- [mcloud_flag_entries.h:174-183](file://src/chrome/browser/mcloud_flag_entries.h#L174-L183)
-- [gn_args.list:5313-5354](file://infra/gn_args.list#L5313-L5354)
+- [mcloud_flags.txt:27-38](https://github.com/Mcloud136/Mcloud-Browser/blob/main/mcloud_flags.txt#L27-L38)
+- [mcloud_flag_entries.h:174-183](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/mcloud_flag_entries.h#L174-L183)
+- [gn_args.list:5313-5354](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/gn_args.list#L5313-L5354)
 
 章节来源
-- [mcloud_flags.txt:27-38](file://mcloud_flags.txt#L27-L38)
-- [mcloud_flag_entries.h:174-183](file://src/chrome/browser/mcloud_flag_entries.h#L174-L183)
-- [gn_args.list:5313-5354](file://infra/gn_args.list#L5313-L5354)
+- [mcloud_flags.txt:27-38](https://github.com/Mcloud136/Mcloud-Browser/blob/main/mcloud_flags.txt#L27-L38)
+- [mcloud_flag_entries.h:174-183](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/mcloud_flag_entries.h#L174-L183)
+- [gn_args.list:5313-5354](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/gn_args.list#L5313-L5354)
 
 ## 性能考量
 - 多标签场景
@@ -246,9 +247,9 @@ Build --> Runtime["运行时行为<br/>显存分配/回收"]
   - 使用 FPS 计数器与基准脚本持续观测，确保优化项在不同站点与硬件组合下稳定有效。
 
 章节来源
-- [2026-06-19-performance-optimization-design.md:78-98](file://docs/superpowers/specs/2026-06-19-performance-optimization-design.md#L78-L98)
-- [2026-06-20-m149-to-m150-upgrade-report.md:57-84](file://docs/superpowers/specs/2026-06-20-m149-to-m150-upgrade-report.md#L57-L84)
-- [README.md:119-164](file://README.md#L119-L164)
+- [2026-06-19-performance-optimization-design.md:78-98](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/superpowers/specs/2026-06-19-performance-optimization-design.md#L78-L98)
+- [2026-06-20-m149-to-m150-upgrade-report.md:57-84](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/superpowers/specs/2026-06-20-m149-to-m150-upgrade-report.md#L57-L84)
+- [README.md:119-164](https://github.com/Mcloud136/Mcloud-Browser/blob/main/README.md#L119-L164)
 
 ## 故障排查指南
 - 常见问题与对策
@@ -260,10 +261,10 @@ Build --> Runtime["运行时行为<br/>显存分配/回收"]
   - 打开 FPS 计数器观察 GPU 内存曲线；在内存压力事件中记录快照；使用 bench_memory.ps1 采集工作集峰值；对比不同后端（Vulkan/GL/D3D11）表现。
 
 章节来源
-- [mcloud_flag_entries.h:205-210](file://src/chrome/browser/mcloud_flag_entries.h#L205-L210)
-- [mcloud_flag_entries.h:240-247](file://src/chrome/browser/mcloud_flag_entries.h#L240-L247)
-- [gpu_pre_sandbox_hook_linux.cc:460-478](file://src/content/common/gpu_pre_sandbox_hook_linux.cc#L460-L478)
-- [bench_memory.ps1:62-77](file://benchmark/bench_memory.ps1#L62-L77)
+- [mcloud_flag_entries.h:205-210](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/mcloud_flag_entries.h#L205-L210)
+- [mcloud_flag_entries.h:240-247](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/mcloud_flag_entries.h#L240-L247)
+- [gpu_pre_sandbox_hook_linux.cc:460-478](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/content/common/gpu_pre_sandbox_hook_linux.cc#L460-L478)
+- [bench_memory.ps1:62-77](https://github.com/Mcloud136/Mcloud-Browser/blob/main/benchmark/bench_memory.ps1#L62-L77)
 
 ## 结论
 MCloud Browser 的 GPU 内存管理以“标志驱动 + 平台适配 + 运行时回收”为核心，通过显存上限控制、资源池复用、命令缓冲优化、传输缓存与预绘制瓦片回收、标签页冻结/丢弃等多维度手段，在多标签与多媒体场景下实现稳定的显存占用与流畅体验。配合 FPS 计数器与基准脚本，可在不同硬件与后端组合下进行持续监控与回归验证。建议在复杂场景中优先启用内存压力相关特性，并结合平台后端能力进行针对性调优。
@@ -276,6 +277,6 @@ MCloud Browser 的 GPU 内存管理以“标志驱动 + 平台适配 + 运行时
   - 监控：show-fps-counter
 
 章节来源
-- [mcloud_flags.txt:27-38](file://mcloud_flags.txt#L27-L38)
-- [mcloud_flag_entries.h:174-183](file://src/chrome/browser/mcloud_flag_entries.h#L174-L183)
-- [2026-06-20-release-notes-m150.md:156-173](file://docs/superpowers/specs/2026-06-20-release-notes-m150.md#L156-L173)
+- [mcloud_flags.txt:27-38](https://github.com/Mcloud136/Mcloud-Browser/blob/main/mcloud_flags.txt#L27-L38)
+- [mcloud_flag_entries.h:174-183](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/mcloud_flag_entries.h#L174-L183)
+- [2026-06-20-release-notes-m150.md:156-173](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/superpowers/specs/2026-06-20-release-notes-m150.md#L156-L173)

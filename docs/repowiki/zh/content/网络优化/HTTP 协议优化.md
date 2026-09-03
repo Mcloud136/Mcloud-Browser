@@ -1,14 +1,15 @@
 # HTTP 协议优化
 
-<cite>
-**本文引用的文件**
-- [about_flags.cc](file://src/chrome/browser/about_flags.cc)
-- [load_flags_list.h](file://src/net/base/load_flags_list.h)
-- [url_request_http_job.cc](file://src/net/url_request/url_request_http_job.cc)
-- [profile_network_context_service.cc](file://src/chrome/browser/net/profile_network_context_service.cc)
-- [dns_transaction.cc](file://src/net/dns/dns_transaction.cc)
-- [CMDLINE_FLAGS_LIST.md](file://docs/CMDLINE_FLAGS_LIST.md)
-</cite>
+<details><summary>本文引用的文件</summary>
+
+- [about_flags.cc](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/about_flags.cc)
+- [load_flags_list.h](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/net/base/load_flags_list.h)
+- [url_request_http_job.cc](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/net/url_request/url_request_http_job.cc)
+- [profile_network_context_service.cc](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/net/profile_network_context_service.cc)
+- [dns_transaction.cc](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/net/dns/dns_transaction.cc)
+- [CMDLINE_FLAGS_LIST.md](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/CMDLINE_FLAGS_LIST.md)
+
+</details>
 
 ## 目录
 1. [简介](#简介)
@@ -38,14 +39,14 @@ C --> F["DNS over HTTPS<br/>DnsTransaction"]
 ```
 
 图表来源
-- [profile_network_context_service.cc:1346-1378](file://src/chrome/browser/net/profile_network_context_service.cc#L1346-L1378)
-- [url_request_http_job.cc:1198-1230](file://src/net/url_request/url_request_http_job.cc#L1198-L1230)
-- [dns_transaction.cc:446-495](file://src/net/dns/dns_transaction.cc#L446-L495)
+- [profile_network_context_service.cc:1346-1378](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/net/profile_network_context_service.cc#L1346-L1378)
+- [url_request_http_job.cc:1198-1230](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/net/url_request/url_request_http_job.cc#L1198-L1230)
+- [dns_transaction.cc:446-495](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/net/dns/dns_transaction.cc#L446-L495)
 
 章节来源
-- [profile_network_context_service.cc:1346-1378](file://src/chrome/browser/net/profile_network_context_service.cc#L1346-L1378)
-- [url_request_http_job.cc:1198-1230](file://src/net/url_request/url_request_http_job.cc#L1198-L1230)
-- [dns_transaction.cc:446-495](file://src/net/dns/dns_transaction.cc#L446-L495)
+- [profile_network_context_service.cc:1346-1378](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/net/profile_network_context_service.cc#L1346-L1378)
+- [url_request_http_job.cc:1198-1230](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/net/url_request/url_request_http_job.cc#L1198-L1230)
+- [dns_transaction.cc:446-495](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/net/dns/dns_transaction.cc#L446-L495)
 
 ## 核心组件
 - TLS 1.3 早期数据（0-RTT）开关：通过 about_flags 暴露 enable-tls13-early-data，映射到 net::features::kEnableTLS13EarlyData。
@@ -55,11 +56,11 @@ C --> F["DNS over HTTPS<br/>DnsTransaction"]
 - DNS over HTTPS：dns_transaction.cc 使用 HTTPS 发起 DNS 查询，设置最小头、禁用缓存与代理，避免死锁并支持预配置地址。
 
 章节来源
-- [about_flags.cc:6606-6608](file://src/chrome/browser/about_flags.cc#L6606-L6608)
-- [load_flags_list.h:22-131](file://src/net/base/load_flags_list.h#L22-L131)
-- [url_request_http_job.cc:1212-1230](file://src/net/url_request/url_request_http_job.cc#L1212-L1230)
-- [profile_network_context_service.cc:1346-1378](file://src/chrome/browser/net/profile_network_context_service.cc#L1346-L1378)
-- [dns_transaction.cc:446-495](file://src/net/dns/dns_transaction.cc#L446-L495)
+- [about_flags.cc:6606-6608](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/about_flags.cc#L6606-L6608)
+- [load_flags_list.h:22-131](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/net/base/load_flags_list.h#L22-L131)
+- [url_request_http_job.cc:1212-1230](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/net/url_request/url_request_http_job.cc#L1212-L1230)
+- [profile_network_context_service.cc:1346-1378](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/net/profile_network_context_service.cc#L1346-L1378)
+- [dns_transaction.cc:446-495](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/net/dns/dns_transaction.cc#L446-L495)
 
 ## 架构总览
 下图展示一次典型 HTTPS 请求从浏览器到网络的流程，包含 HSTS 处理、DNS over HTTPS、以及可能的 0-RTT 能力。
@@ -85,10 +86,10 @@ Job-->>App : 返回结果
 ```
 
 图表来源
-- [profile_network_context_service.cc:1346-1378](file://src/chrome/browser/net/profile_network_context_service.cc#L1346-L1378)
-- [url_request_http_job.cc:1212-1230](file://src/net/url_request/url_request_http_job.cc#L1212-L1230)
-- [dns_transaction.cc:446-495](file://src/net/dns/dns_transaction.cc#L446-L495)
-- [about_flags.cc:6606-6608](file://src/chrome/browser/about_flags.cc#L6606-L6608)
+- [profile_network_context_service.cc:1346-1378](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/net/profile_network_context_service.cc#L1346-L1378)
+- [url_request_http_job.cc:1212-1230](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/net/url_request/url_request_http_job.cc#L1212-L1230)
+- [dns_transaction.cc:446-495](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/net/dns/dns_transaction.cc#L446-L495)
+- [about_flags.cc:6606-6608](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/about_flags.cc#L6606-L6608)
 
 ## 详细组件分析
 
@@ -106,7 +107,7 @@ Job-->>App : 返回结果
   - 在混合场景下保持降级兼容，避免强制 0-RTT 导致失败。
 
 章节来源
-- [about_flags.cc:6606-6608](file://src/chrome/browser/about_flags.cc#L6606-L6608)
+- [about_flags.cc:6606-6608](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/about_flags.cc#L6606-L6608)
 
 ### HTTP/2 多路复用与头部压缩
 - 多路复用
@@ -133,7 +134,7 @@ Job-->>App : 返回结果
   - 启用 HTTP 缓存可减少重复请求，提升整体吞吐。
 
 章节来源
-- [profile_network_context_service.cc:1346-1378](file://src/chrome/browser/net/profile_network_context_service.cc#L1346-L1378)
+- [profile_network_context_service.cc:1346-1378](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/net/profile_network_context_service.cc#L1346-L1378)
 
 ### 请求优先级调度与资源预连接（Preconnect）
 - 优先级调度
@@ -146,7 +147,7 @@ Job-->>App : 返回结果
   - MINIMAL_HEADERS 用于合规场景（如 DoH），减少不必要信息泄露。
 
 章节来源
-- [load_flags_list.h:69-131](file://src/net/base/load_flags_list.h#L69-L131)
+- [load_flags_list.h:69-131](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/net/base/load_flags_list.h#L69-L131)
 
 ### DNS over HTTPS（DoH）
 - 实现方式
@@ -157,7 +158,7 @@ Job-->>App : 返回结果
   - 可配置预解析与预连接，加速后续请求。
 
 章节来源
-- [dns_transaction.cc:446-495](file://src/net/dns/dns_transaction.cc#L446-L495)
+- [dns_transaction.cc:446-495](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/net/dns/dns_transaction.cc#L446-L495)
 
 ### HSTS 处理与安全策略
 - 处理逻辑
@@ -168,7 +169,7 @@ Job-->>App : 返回结果
   - 与 0-RTT 配合时需确保握手完整性。
 
 章节来源
-- [url_request_http_job.cc:1212-1230](file://src/net/url_request/url_request_http_job.cc#L1212-L1230)
+- [url_request_http_job.cc:1212-1230](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/net/url_request/url_request_http_job.cc#L1212-L1230)
 
 ## 依赖关系分析
 - about_flags 暴露 0-RTT 开关，驱动网络栈行为。
@@ -187,18 +188,18 @@ Job --> HSTS["HSTS 处理"]
 ```
 
 图表来源
-- [about_flags.cc:6606-6608](file://src/chrome/browser/about_flags.cc#L6606-L6608)
-- [load_flags_list.h:22-131](file://src/net/base/load_flags_list.h#L22-L131)
-- [profile_network_context_service.cc:1346-1378](file://src/chrome/browser/net/profile_network_context_service.cc#L1346-L1378)
-- [url_request_http_job.cc:1212-1230](file://src/net/url_request/url_request_http_job.cc#L1212-L1230)
-- [dns_transaction.cc:446-495](file://src/net/dns/dns_transaction.cc#L446-L495)
+- [about_flags.cc:6606-6608](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/about_flags.cc#L6606-L6608)
+- [load_flags_list.h:22-131](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/net/base/load_flags_list.h#L22-L131)
+- [profile_network_context_service.cc:1346-1378](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/net/profile_network_context_service.cc#L1346-L1378)
+- [url_request_http_job.cc:1212-1230](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/net/url_request/url_request_http_job.cc#L1212-L1230)
+- [dns_transaction.cc:446-495](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/net/dns/dns_transaction.cc#L446-L495)
 
 章节来源
-- [about_flags.cc:6606-6608](file://src/chrome/browser/about_flags.cc#L6606-L6608)
-- [load_flags_list.h:22-131](file://src/net/base/load_flags_list.h#L22-L131)
-- [profile_network_context_service.cc:1346-1378](file://src/chrome/browser/net/profile_network_context_service.cc#L1346-L1378)
-- [url_request_http_job.cc:1212-1230](file://src/net/url_request/url_request_http_job.cc#L1212-L1230)
-- [dns_transaction.cc:446-495](file://src/net/dns/dns_transaction.cc#L446-L495)
+- [about_flags.cc:6606-6608](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/about_flags.cc#L6606-L6608)
+- [load_flags_list.h:22-131](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/net/base/load_flags_list.h#L22-L131)
+- [profile_network_context_service.cc:1346-1378](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/net/profile_network_context_service.cc#L1346-L1378)
+- [url_request_http_job.cc:1212-1230](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/net/url_request/url_request_http_job.cc#L1212-L1230)
+- [dns_transaction.cc:446-495](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/net/dns/dns_transaction.cc#L446-L495)
 
 ## 性能考量
 - 启用 0-RTT 的场景选择：优先幂等 GET/HEAD，结合服务端策略与监控。
@@ -226,10 +227,10 @@ Job --> HSTS["HSTS 处理"]
   - 使用 LOAD_BYPASS_PROXY 排除代理干扰。
 
 章节来源
-- [about_flags.cc:6606-6608](file://src/chrome/browser/about_flags.cc#L6606-L6608)
-- [url_request_http_job.cc:1212-1230](file://src/net/url_request/url_request_http_job.cc#L1212-L1230)
-- [dns_transaction.cc:446-495](file://src/net/dns/dns_transaction.cc#L446-L495)
-- [load_flags_list.h:22-131](file://src/net/base/load_flags_list.h#L22-L131)
+- [about_flags.cc:6606-6608](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/about_flags.cc#L6606-L6608)
+- [url_request_http_job.cc:1212-1230](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/net/url_request/url_request_http_job.cc#L1212-L1230)
+- [dns_transaction.cc:446-495](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/net/dns/dns_transaction.cc#L446-L495)
+- [load_flags_list.h:22-131](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/net/base/load_flags_list.h#L22-L131)
 
 ## 结论
 MCloud Browser 在网络层提供了丰富的优化能力：TLS 1.3 0-RTT 降低首字节延迟，HTTP/2 多路复用与头部压缩提升吞吐，连接池与 Keep-Alive 优化资源利用，预连接与预取改善首屏性能，DoH 增强隐私与安全性。通过合理的开关配置与策略调优，可在保证安全的前提下获得显著的性能收益。
@@ -242,4 +243,4 @@ MCloud Browser 在网络层提供了丰富的优化能力：TLS 1.3 0-RTT 降低
   - 针对网络相关开关，结合业务场景启用或禁用。
 
 章节来源
-- [CMDLINE_FLAGS_LIST.md:1-200](file://docs/CMDLINE_FLAGS_LIST.md#L1-L200)
+- [CMDLINE_FLAGS_LIST.md:1-200](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/CMDLINE_FLAGS_LIST.md#L1-L200)

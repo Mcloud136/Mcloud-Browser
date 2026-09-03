@@ -1,14 +1,15 @@
 # Ninja 工具
 
-<cite>
-**本文引用的文件**
-- [README.md](file://README.md)
-- [docs/BUILDING.md](file://docs/BUILDING.md)
-- [build.sh](file://build.sh)
-- [win_scripts/build_win.py](file://win_scripts/build_win.py)
-- [args.gn](file://args.gn)
-- [arm/android/args.list](file://arm/android/args.list)
-</cite>
+<details><summary>本文引用的文件</summary>
+
+- [README.md](https://github.com/Mcloud136/Mcloud-Browser/blob/main/README.md)
+- [docs/BUILDING.md](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/BUILDING.md)
+- [build.sh](https://github.com/Mcloud136/Mcloud-Browser/blob/main/build.sh)
+- [win_scripts/build_win.py](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/build_win.py)
+- [args.gn](https://github.com/Mcloud136/Mcloud-Browser/blob/main/args.gn)
+- [arm/android/args.list](https://github.com/Mcloud136/Mcloud-Browser/blob/main/arm/android/args.list)
+
+</details>
 
 ## 目录
 1. [简介](#简介)
@@ -48,14 +49,14 @@ Ninja --> Artifacts["产物<br/>chrome / installer / shell 等"]
 ```
 
 图表来源
-- [build.sh:43-51](file://build.sh#L43-L51)
-- [win_scripts/build_win.py:44-46](file://win_scripts/build_win.py#L44-L46)
-- [docs/BUILDING.md:136-160](file://docs/BUILDING.md#L136-L160)
+- [build.sh:43-51](https://github.com/Mcloud136/Mcloud-Browser/blob/main/build.sh#L43-L51)
+- [win_scripts/build_win.py:44-46](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/build_win.py#L44-L46)
+- [docs/BUILDING.md:136-160](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/BUILDING.md#L136-L160)
 
 章节来源
-- [docs/BUILDING.md:136-160](file://docs/BUILDING.md#L136-L160)
-- [build.sh:43-51](file://build.sh#L43-L51)
-- [win_scripts/build_win.py:44-46](file://win_scripts/build_win.py#L44-L46)
+- [docs/BUILDING.md:136-160](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/BUILDING.md#L136-L160)
+- [build.sh:43-51](https://github.com/Mcloud136/Mcloud-Browser/blob/main/build.sh#L43-L51)
+- [win_scripts/build_win.py:44-46](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/build_win.py#L44-L46)
 
 ## 核心组件
 - autoninja：Chromium/depot_tools 提供的包装器，自动选择最优的并行度、状态输出、汇总统计等参数，屏蔽平台差异。
@@ -66,10 +67,10 @@ Ninja --> Artifacts["产物<br/>chrome / installer / shell 等"]
   - Windows: win_scripts/build_win.py 解析 CPU 核心数作为并行度，调用 autoninja。
 
 章节来源
-- [docs/BUILDING.md:136-160](file://docs/BUILDING.md#L136-L160)
-- [docs/BUILDING.md:194-212](file://docs/BUILDING.md#L194-L212)
-- [build.sh:43-51](file://build.sh#L43-L51)
-- [win_scripts/build_win.py:41-46](file://win_scripts/build_win.py#L41-L46)
+- [docs/BUILDING.md:136-160](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/BUILDING.md#L136-L160)
+- [docs/BUILDING.md:194-212](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/BUILDING.md#L194-L212)
+- [build.sh:43-51](https://github.com/Mcloud136/Mcloud-Browser/blob/main/build.sh#L43-L51)
+- [win_scripts/build_win.py:41-46](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/build_win.py#L41-L46)
 
 ## 架构总览
 下图展示了从开发者触发到最终产物的完整流程，包括并行度控制、增量构建与缓存策略。
@@ -94,9 +95,9 @@ N-->>U : 输出进度/汇总
 ```
 
 图表来源
-- [build.sh:43-51](file://build.sh#L43-L51)
-- [win_scripts/build_win.py:41-46](file://win_scripts/build_win.py#L41-L46)
-- [docs/BUILDING.md:162-190](file://docs/BUILDING.md#L162-L190)
+- [build.sh:43-51](https://github.com/Mcloud136/Mcloud-Browser/blob/main/build.sh#L43-L51)
+- [win_scripts/build_win.py:41-46](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/build_win.py#L41-L46)
+- [docs/BUILDING.md:162-190](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/BUILDING.md#L162-L190)
 
 ## 详细组件分析
 
@@ -114,11 +115,11 @@ N-->>U : 输出进度/汇总
     - docs/BUILDING.md 中给出 Linux 下构建 chrome_sandbox/chromedriver/mcloud_shell 的示例
 
 章节来源
-- [README.md:256-264](file://README.md#L256-L264)
-- [README.md:278-281](file://README.md#L278-L281)
-- [build.sh:43-51](file://build.sh#L43-L51)
-- [win_scripts/build_win.py:41-46](file://win_scripts/build_win.py#L41-L46)
-- [docs/BUILDING.md:194-212](file://docs/BUILDING.md#L194-L212)
+- [README.md:256-264](https://github.com/Mcloud136/Mcloud-Browser/blob/main/README.md#L256-L264)
+- [README.md:278-281](https://github.com/Mcloud136/Mcloud-Browser/blob/main/README.md#L278-L281)
+- [build.sh:43-51](https://github.com/Mcloud136/Mcloud-Browser/blob/main/build.sh#L43-L51)
+- [win_scripts/build_win.py:41-46](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/build_win.py#L41-L46)
+- [docs/BUILDING.md:194-212](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/BUILDING.md#L194-L212)
 
 ### 并行编译控制
 - 脚本层面
@@ -131,9 +132,9 @@ N-->>U : 输出进度/汇总
   - 可通过 GN 参数限制并发链接数量，避免 OOM（参考 args.list 中对 concurrent_links 的描述）。
 
 章节来源
-- [build.sh:43-51](file://build.sh#L43-L51)
-- [win_scripts/build_win.py:41-46](file://win_scripts/build_win.py#L41-L46)
-- [arm/android/args.list:1108-1115](file://arm/android/args.list#L1108-L1115)
+- [build.sh:43-51](https://github.com/Mcloud136/Mcloud-Browser/blob/main/build.sh#L43-L51)
+- [win_scripts/build_win.py:41-46](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/build_win.py#L41-L46)
+- [arm/android/args.list:1108-1115](https://github.com/Mcloud136/Mcloud-Browser/blob/main/arm/android/args.list#L1108-L1115)
 
 ### 增量构建
 - 原理
@@ -145,8 +146,8 @@ N-->>U : 输出进度/汇总
   - 使用 NINJA_SUMMARIZE_BUILD 查看是否触发了全量或增量构建。
 
 章节来源
-- [docs/BUILDING.md:136-160](file://docs/BUILDING.md#L136-L160)
-- [docs/BUILDING.md:194-212](file://docs/BUILDING.md#L194-L212)
+- [docs/BUILDING.md:136-160](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/BUILDING.md#L136-L160)
+- [docs/BUILDING.md:194-212](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/BUILDING.md#L194-L212)
 
 ### 缓存机制
 - 编译缓存（ccache）
@@ -158,9 +159,9 @@ N-->>U : 输出进度/汇总
   - 开启 ThinLTO 与 PGO 可减少二进制体积并提升运行时性能（见 args.gn）。
 
 章节来源
-- [docs/BUILDING.md:162-190](file://docs/BUILDING.md#L162-L190)
-- [args.gn:33-35](file://args.gn#L33-L35)
-- [args.gn:81-86](file://args.gn#L81-L86)
+- [docs/BUILDING.md:162-190](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/BUILDING.md#L162-L190)
+- [args.gn:33-35](https://github.com/Mcloud136/Mcloud-Browser/blob/main/args.gn#L33-L35)
+- [args.gn:81-86](https://github.com/Mcloud136/Mcloud-Browser/blob/main/args.gn#L81-L86)
 
 ### 构建流程时序（以 Linux 为例）
 ```mermaid
@@ -180,7 +181,7 @@ N-->>D : 构建完成/摘要
 ```
 
 图表来源
-- [build.sh:43-51](file://build.sh#L43-L51)
+- [build.sh:43-51](https://github.com/Mcloud136/Mcloud-Browser/blob/main/build.sh#L43-L51)
 
 ## 依赖关系分析
 - 脚本依赖
@@ -201,14 +202,14 @@ GN --> Ninja["Ninja 执行"]
 ```
 
 图表来源
-- [args.gn:1-86](file://args.gn#L1-L86)
-- [build.sh:43-51](file://build.sh#L43-L51)
-- [win_scripts/build_win.py:41-46](file://win_scripts/build_win.py#L41-L46)
+- [args.gn:1-86](https://github.com/Mcloud136/Mcloud-Browser/blob/main/args.gn#L1-L86)
+- [build.sh:43-51](https://github.com/Mcloud136/Mcloud-Browser/blob/main/build.sh#L43-L51)
+- [win_scripts/build_win.py:41-46](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/build_win.py#L41-L46)
 
 章节来源
-- [args.gn:1-86](file://args.gn#L1-L86)
-- [build.sh:43-51](file://build.sh#L43-L51)
-- [win_scripts/build_win.py:41-46](file://win_scripts/build_win.py#L41-L46)
+- [args.gn:1-86](https://github.com/Mcloud136/Mcloud-Browser/blob/main/args.gn#L1-L86)
+- [build.sh:43-51](https://github.com/Mcloud136/Mcloud-Browser/blob/main/build.sh#L43-L51)
+- [win_scripts/build_win.py:41-46](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/build_win.py#L41-L46)
 
 ## 性能考虑
 - 并行度设置
@@ -227,12 +228,12 @@ GN --> Ninja["Ninja 执行"]
   - 通过 concurrent_links 限制并发链接数量，防止 OOM。
 
 章节来源
-- [win_scripts/build_win.py:41-46](file://win_scripts/build_win.py#L41-L46)
-- [docs/BUILDING.md:162-190](file://docs/BUILDING.md#L162-L190)
-- [args.gn:16-20](file://args.gn#L16-L20)
-- [args.gn:33-35](file://args.gn#L33-L35)
-- [args.gn:81-86](file://args.gn#L81-L86)
-- [arm/android/args.list:1108-1115](file://arm/android/args.list#L1108-L1115)
+- [win_scripts/build_win.py:41-46](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/build_win.py#L41-L46)
+- [docs/BUILDING.md:162-190](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/BUILDING.md#L162-L190)
+- [args.gn:16-20](https://github.com/Mcloud136/Mcloud-Browser/blob/main/args.gn#L16-L20)
+- [args.gn:33-35](https://github.com/Mcloud136/Mcloud-Browser/blob/main/args.gn#L33-L35)
+- [args.gn:81-86](https://github.com/Mcloud136/Mcloud-Browser/blob/main/args.gn#L81-L86)
+- [arm/android/args.list:1108-1115](https://github.com/Mcloud136/Mcloud-Browser/blob/main/arm/android/args.list#L1108-L1115)
 
 ## 故障排查指南
 - 构建缓慢
@@ -251,9 +252,9 @@ GN --> Ninja["Ninja 执行"]
   - Android：通过 cr_build_jobs 控制并行度，注意交叉编译环境。
 
 章节来源
-- [docs/BUILDING.md:162-190](file://docs/BUILDING.md#L162-L190)
-- [arm/android/args.list:1108-1115](file://arm/android/args.list#L1108-L1115)
-- [win_scripts/build_win.py:34-46](file://win_scripts/build_win.py#L34-L46)
+- [docs/BUILDING.md:162-190](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/BUILDING.md#L162-L190)
+- [arm/android/args.list:1108-1115](https://github.com/Mcloud136/Mcloud-Browser/blob/main/arm/android/args.list#L1108-L1115)
+- [win_scripts/build_win.py:34-46](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/build_win.py#L34-L46)
 
 ## 结论
 - 本项目采用 GN+Ninja 的标准构建体系，autoninja 作为统一入口简化了跨平台构建。
@@ -272,7 +273,7 @@ GN --> Ninja["Ninja 执行"]
   - symbol_level=0：发布版关闭调试符号
 
 章节来源
-- [build.sh:43-51](file://build.sh#L43-L51)
-- [win_scripts/build_win.py:41-46](file://win_scripts/build_win.py#L41-L46)
-- [args.gn:33-35](file://args.gn#L33-L35)
-- [args.gn:81-86](file://args.gn#L81-L86)
+- [build.sh:43-51](https://github.com/Mcloud136/Mcloud-Browser/blob/main/build.sh#L43-L51)
+- [win_scripts/build_win.py:41-46](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_scripts/build_win.py#L41-L46)
+- [args.gn:33-35](https://github.com/Mcloud136/Mcloud-Browser/blob/main/args.gn#L33-L35)
+- [args.gn:81-86](https://github.com/Mcloud136/Mcloud-Browser/blob/main/args.gn#L81-L86)

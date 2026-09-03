@@ -1,20 +1,21 @@
 # UI 组件交互
 
-<cite>
-**本文引用的文件**
-- [browser.h](file://src/chrome/browser/ui/browser.h)
-- [browser.cc](file://src/chrome/browser/ui/browser.cc)
-- [browser_root_view.h](file://src/chrome/browser/ui/views/frame/browser_root_view.h)
-- [tab_strip_model.cc](file://src/chrome/browser/ui/tabs/tab_strip_model.cc)
-- [tab_strip.cc](file://src/chrome/browser/ui/views/tabs/tab_strip.cc)
-- [reload_button.h](file://src/chrome/browser/ui/views/toolbar/reload_button.h)
-- [reload_button.cc](file://src/chrome/browser/ui/views/toolbar/reload_button.cc)
-- [ui_features.cc](file://src/chrome/browser/ui/ui_features.cc)
-- [mcloud_flag_entries.h](file://src/chrome/browser/mcloud_flag_entries.h)
-- [mcloud_flag_choices.h](file://src/chrome/browser/mcloud_flag_choices.h)
-- [app_menu_model.cc](file://src/chrome/browser/ui/toolbar/app_menu_model.cc)
-- [chrome_location_bar_model_delegate.cc](file://src/chrome/browser/ui/toolbar/chrome_location_bar_model_delegate.cc)
-</cite>
+<details><summary>本文引用的文件</summary>
+
+- [browser.h](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/ui/browser.h)
+- [browser.cc](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/ui/browser.cc)
+- [browser_root_view.h](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/ui/views/frame/browser_root_view.h)
+- [tab_strip_model.cc](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/ui/tabs/tab_strip_model.cc)
+- [tab_strip.cc](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/ui/views/tabs/tab_strip.cc)
+- [reload_button.h](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/ui/views/toolbar/reload_button.h)
+- [reload_button.cc](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/ui/views/toolbar/reload_button.cc)
+- [ui_features.cc](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/ui/ui_features.cc)
+- [mcloud_flag_entries.h](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/mcloud_flag_entries.h)
+- [mcloud_flag_choices.h](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/mcloud_flag_choices.h)
+- [app_menu_model.cc](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/ui/toolbar/app_menu_model.cc)
+- [chrome_location_bar_model_delegate.cc](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/ui/toolbar/chrome_location_bar_model_delegate.cc)
+
+</details>
 
 ## 目录
 1. [简介](#简介)
@@ -53,16 +54,16 @@ A --> J["mcloud_flag_*<br/>MCloud 功能入口"]
 ```
 
 图表来源
-- [browser.h:117-130](file://src/chrome/browser/ui/browser.h#L117-L130)
-- [browser_root_view.h:25-90](file://src/chrome/browser/ui/views/frame/browser_root_view.h#L25-L90)
-- [tab_strip_model.cc:1-50](file://src/chrome/browser/ui/tabs/tab_strip_model.cc#L1-L50)
-- [reload_button.h:1-40](file://src/chrome/browser/ui/views/toolbar/reload_button.h#L1-L40)
-- [app_menu_model.cc:1-40](file://src/chrome/browser/ui/toolbar/app_menu_model.cc#L1-L40)
-- [chrome_location_bar_model_delegate.cc:1-40](file://src/chrome/browser/ui/toolbar/chrome_location_bar_model_delegate.cc#L1-L40)
+- [browser.h:117-130](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/ui/browser.h#L117-L130)
+- [browser_root_view.h:25-90](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/ui/views/frame/browser_root_view.h#L25-L90)
+- [tab_strip_model.cc:1-50](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/ui/tabs/tab_strip_model.cc#L1-L50)
+- [reload_button.h:1-40](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/ui/views/toolbar/reload_button.h#L1-L40)
+- [app_menu_model.cc:1-40](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/ui/toolbar/app_menu_model.cc#L1-L40)
+- [chrome_location_bar_model_delegate.cc:1-40](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/ui/toolbar/chrome_location_bar_model_delegate.cc#L1-L40)
 
 章节来源
-- [browser.h:117-130](file://src/chrome/browser/ui/browser.h#L117-L130)
-- [browser_root_view.h:25-90](file://src/chrome/browser/ui/views/frame/browser_root_view.h#L25-L90)
+- [browser.h:117-130](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/ui/browser.h#L117-L130)
+- [browser_root_view.h:25-90](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/ui/views/frame/browser_root_view.h#L25-L90)
 
 ## 核心组件
 - Browser：单窗口级控制器，持有窗口、标签页模型、工具栏、书签栏等特征，协调导航、关闭流程、全屏、焦点、键盘/手势事件等。
@@ -72,15 +73,15 @@ A --> J["mcloud_flag_*<br/>MCloud 功能入口"]
 - 特性与标志：ui_features 暴露平台/编译期特性；mcloud_flag_* 提供 MCloud 特有功能开关与条目。
 
 章节来源
-- [browser.h:117-130](file://src/chrome/browser/ui/browser.h#L117-L130)
-- [browser_root_view.h:25-90](file://src/chrome/browser/ui/views/frame/browser_root_view.h#L25-L90)
-- [tab_strip_model.cc:1-50](file://src/chrome/browser/ui/tabs/tab_strip_model.cc#L1-L50)
-- [reload_button.h:1-40](file://src/chrome/browser/ui/views/toolbar/reload_button.h#L1-L40)
-- [app_menu_model.cc:1-40](file://src/chrome/browser/ui/toolbar/app_menu_model.cc#L1-L40)
-- [chrome_location_bar_model_delegate.cc:1-40](file://src/chrome/browser/ui/toolbar/chrome_location_bar_model_delegate.cc#L1-L40)
-- [ui_features.cc:1-40](file://src/chrome/browser/ui/ui_features.cc#L1-L40)
-- [mcloud_flag_entries.h:1-40](file://src/chrome/browser/mcloud_flag_entries.h#L1-L40)
-- [mcloud_flag_choices.h:1-40](file://src/chrome/browser/mcloud_flag_choices.h#L1-L40)
+- [browser.h:117-130](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/ui/browser.h#L117-L130)
+- [browser_root_view.h:25-90](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/ui/views/frame/browser_root_view.h#L25-L90)
+- [tab_strip_model.cc:1-50](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/ui/tabs/tab_strip_model.cc#L1-L50)
+- [reload_button.h:1-40](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/ui/views/toolbar/reload_button.h#L1-L40)
+- [app_menu_model.cc:1-40](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/ui/toolbar/app_menu_model.cc#L1-L40)
+- [chrome_location_bar_model_delegate.cc:1-40](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/ui/toolbar/chrome_location_bar_model_delegate.cc#L1-L40)
+- [ui_features.cc:1-40](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/ui/ui_features.cc#L1-L40)
+- [mcloud_flag_entries.h:1-40](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/mcloud_flag_entries.h#L1-L40)
+- [mcloud_flag_choices.h:1-40](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/mcloud_flag_choices.h#L1-L40)
 
 ## 架构总览
 下图展示了从用户输入到 UI 更新的典型路径：事件进入 BrowserRootView，再分发给 TabStrip/Toolbar；Browser 作为中枢协调状态变化与 WebContents 操作；工具栏按钮通过命令或回调触发导航或页面动作。
@@ -108,10 +109,10 @@ BR-->>TV : 更新地址栏/按钮状态
 ```
 
 图表来源
-- [browser_root_view.h:73-90](file://src/chrome/browser/ui/views/frame/browser_root_view.h#L73-L90)
-- [reload_button.h:1-40](file://src/chrome/browser/ui/views/toolbar/reload_button.h#L1-L40)
-- [browser.h:658-711](file://src/chrome/browser/ui/browser.h#L658-L711)
-- [tab_strip_model.cc:1-50](file://src/chrome/browser/ui/tabs/tab_strip_model.cc#L1-L50)
+- [browser_root_view.h:73-90](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/ui/views/frame/browser_root_view.h#L73-L90)
+- [reload_button.h:1-40](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/ui/views/toolbar/reload_button.h#L1-L40)
+- [browser.h:658-711](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/ui/browser.h#L658-L711)
+- [tab_strip_model.cc:1-50](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/ui/tabs/tab_strip_model.cc#L1-L50)
 
 ## 详细组件分析
 
@@ -134,11 +135,11 @@ BR-->>TV : 更新地址栏/按钮状态
   - 通过 BrowserWindowInterface 抽象底层窗口差异，便于跨平台。
 
 章节来源
-- [browser.h:117-130](file://src/chrome/browser/ui/browser.h#L117-L130)
-- [browser.h:346-413](file://src/chrome/browser/ui/browser.h#L346-L413)
-- [browser.h:487-517](file://src/chrome/browser/ui/browser.h#L487-L517)
-- [browser.h:519-599](file://src/chrome/browser/ui/browser.h#L519-L599)
-- [browser.h:658-711](file://src/chrome/browser/ui/browser.h#L658-L711)
+- [browser.h:117-130](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/ui/browser.h#L117-L130)
+- [browser.h:346-413](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/ui/browser.h#L346-L413)
+- [browser.h:487-517](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/ui/browser.h#L487-L517)
+- [browser.h:519-599](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/ui/browser.h#L519-L599)
+- [browser.h:658-711](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/ui/browser.h#L658-L711)
 
 ### BrowserRootView：根视图与事件分发
 - 职责
@@ -154,8 +155,8 @@ BR-->>TV : 更新地址栏/按钮状态
   - 异步过滤 URL 后回调，避免阻塞主线程。
 
 章节来源
-- [browser_root_view.h:25-90](file://src/chrome/browser/ui/views/frame/browser_root_view.h#L25-L90)
-- [browser_root_view.h:104-154](file://src/chrome/browser/ui/views/frame/browser_root_view.h#L104-L154)
+- [browser_root_view.h:25-90](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/ui/views/frame/browser_root_view.h#L25-L90)
+- [browser_root_view.h:104-154](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/ui/views/frame/browser_root_view.h#L104-L154)
 
 ### 标签页：TabStripModel 与 TabStrip
 - TabStripModel
@@ -166,8 +167,8 @@ BR-->>TV : 更新地址栏/按钮状态
   - 与 BrowserRootView 协作，接收放置事件并决定插入位置。
 
 章节来源
-- [tab_strip_model.cc:1-50](file://src/chrome/browser/ui/tabs/tab_strip_model.cc#L1-L50)
-- [tab_strip.cc:1-50](file://src/chrome/browser/ui/views/tabs/tab_strip.cc#L1-L50)
+- [tab_strip_model.cc:1-50](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/ui/tabs/tab_strip_model.cc#L1-L50)
+- [tab_strip.cc:1-50](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/ui/views/tabs/tab_strip.cc#L1-L50)
 
 ### 工具栏：按钮、菜单与地址栏
 - ReloadButton
@@ -178,10 +179,10 @@ BR-->>TV : 更新地址栏/按钮状态
   - 地址栏输入、自动补全、导航委托，与 Browser 协同完成跳转。
 
 章节来源
-- [reload_button.h:1-40](file://src/chrome/browser/ui/views/toolbar/reload_button.h#L1-L40)
-- [reload_button.cc:1-50](file://src/chrome/browser/ui/views/toolbar/reload_button.cc#L1-L50)
-- [app_menu_model.cc:1-40](file://src/chrome/browser/ui/toolbar/app_menu_model.cc#L1-L40)
-- [chrome_location_bar_model_delegate.cc:1-40](file://src/chrome/browser/ui/toolbar/chrome_location_bar_model_delegate.cc#L1-L40)
+- [reload_button.h:1-40](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/ui/views/toolbar/reload_button.h#L1-L40)
+- [reload_button.cc:1-50](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/ui/views/toolbar/reload_button.cc#L1-L50)
+- [app_menu_model.cc:1-40](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/ui/toolbar/app_menu_model.cc#L1-L40)
+- [chrome_location_bar_model_delegate.cc:1-40](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/ui/toolbar/chrome_location_bar_model_delegate.cc#L1-L40)
 
 ### 事件处理流程（鼠标/键盘/拖拽）
 - 鼠标事件
@@ -207,12 +208,12 @@ Update --> End(["结束"])
 ```
 
 图表来源
-- [browser.h:707-711](file://src/chrome/browser/ui/browser.h#L707-L711)
-- [browser_root_view.h:73-90](file://src/chrome/browser/ui/views/frame/browser_root_view.h#L73-L90)
+- [browser.h:707-711](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/ui/browser.h#L707-L711)
+- [browser_root_view.h:73-90](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/ui/views/frame/browser_root_view.h#L73-L90)
 
 章节来源
-- [browser.h:707-711](file://src/chrome/browser/ui/browser.h#L707-L711)
-- [browser_root_view.h:73-90](file://src/chrome/browser/ui/views/frame/browser_root_view.h#L73-L90)
+- [browser.h:707-711](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/ui/browser.h#L707-L711)
+- [browser_root_view.h:73-90](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/ui/views/frame/browser_root_view.h#L73-L90)
 
 ### UI 状态管理与重绘优化
 - 状态来源
@@ -230,9 +231,9 @@ Update --> End(["结束"])
   - 关闭流程中清理 beforeunload、下载中断提示等临时状态。
 
 章节来源
-- [browser.h:487-517](file://src/chrome/browser/ui/browser.h#L487-L517)
-- [browser.h:519-599](file://src/chrome/browser/ui/browser.h#L519-L599)
-- [browser_root_view.h:104-154](file://src/chrome/browser/ui/views/frame/browser_root_view.h#L104-L154)
+- [browser.h:487-517](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/ui/browser.h#L487-L517)
+- [browser.h:519-599](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/ui/browser.h#L519-L599)
+- [browser_root_view.h:104-154](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/ui/views/frame/browser_root_view.h#L104-L154)
 
 ### Chrome/MCloud 特定扩展点
 - 自定义控件
@@ -246,9 +247,9 @@ Update --> End(["结束"])
   - ui_features 暴露平台/编译期特性；mcloud_flag_entries.h 与 mcloud_flag_choices.h 提供 MCloud 特有开关与选项。
 
 章节来源
-- [ui_features.cc:1-40](file://src/chrome/browser/ui/ui_features.cc#L1-L40)
-- [mcloud_flag_entries.h:1-40](file://src/chrome/browser/mcloud_flag_entries.h#L1-L40)
-- [mcloud_flag_choices.h:1-40](file://src/chrome/browser/mcloud_flag_choices.h#L1-L40)
+- [ui_features.cc:1-40](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/ui/ui_features.cc#L1-L40)
+- [mcloud_flag_entries.h:1-40](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/mcloud_flag_entries.h#L1-L40)
+- [mcloud_flag_choices.h:1-40](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/mcloud_flag_choices.h#L1-L40)
 
 ## 依赖关系分析
 - 松耦合设计
@@ -275,15 +276,15 @@ TV --> LBD["LocationBarModelDelegate"]
 ```
 
 图表来源
-- [browser.h:117-130](file://src/chrome/browser/ui/browser.h#L117-L130)
-- [browser_root_view.h:25-90](file://src/chrome/browser/ui/views/frame/browser_root_view.h#L25-L90)
-- [reload_button.h:1-40](file://src/chrome/browser/ui/views/toolbar/reload_button.h#L1-L40)
-- [app_menu_model.cc:1-40](file://src/chrome/browser/ui/toolbar/app_menu_model.cc#L1-L40)
-- [chrome_location_bar_model_delegate.cc:1-40](file://src/chrome/browser/ui/toolbar/chrome_location_bar_model_delegate.cc#L1-L40)
+- [browser.h:117-130](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/ui/browser.h#L117-L130)
+- [browser_root_view.h:25-90](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/ui/views/frame/browser_root_view.h#L25-L90)
+- [reload_button.h:1-40](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/ui/views/toolbar/reload_button.h#L1-L40)
+- [app_menu_model.cc:1-40](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/ui/toolbar/app_menu_model.cc#L1-L40)
+- [chrome_location_bar_model_delegate.cc:1-40](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/ui/toolbar/chrome_location_bar_model_delegate.cc#L1-L40)
 
 章节来源
-- [browser.h:117-130](file://src/chrome/browser/ui/browser.h#L117-L130)
-- [browser_root_view.h:25-90](file://src/chrome/browser/ui/views/frame/browser_root_view.h#L25-L90)
+- [browser.h:117-130](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/ui/browser.h#L117-L130)
+- [browser_root_view.h:25-90](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/ui/views/frame/browser_root_view.h#L25-L90)
 
 ## 性能考量
 - 事件处理
@@ -312,9 +313,9 @@ TV --> LBD["LocationBarModelDelegate"]
   - 通过单元测试验证关键路径（如标签页打开/关闭、导航流程）。
 
 章节来源
-- [browser_root_view.h:73-90](file://src/chrome/browser/ui/views/frame/browser_root_view.h#L73-L90)
-- [browser.h:707-711](file://src/chrome/browser/ui/browser.h#L707-L711)
-- [reload_button.h:1-40](file://src/chrome/browser/ui/views/toolbar/reload_button.h#L1-L40)
+- [browser_root_view.h:73-90](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/ui/views/frame/browser_root_view.h#L73-L90)
+- [browser.h:707-711](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/ui/browser.h#L707-L711)
+- [reload_button.h:1-40](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/ui/views/toolbar/reload_button.h#L1-L40)
 
 ## 结论
 MCloud Browser 的 UI 子系统以 Browser 为核心，结合 BrowserRootView 的事件分发、TabStripModel/TabStrip 的标签页管理、工具栏按钮与菜单的命令路由，形成清晰且可扩展的交互架构。通过 Views 框架的局部重绘与状态同步机制，保证了流畅的用户体验。借助 ui_features 与 mcloud_flag_* 提供的扩展点，开发者可以便捷地定制控件、主题与功能开关。配合 DevTools 与单元测试，可有效提升调试效率与质量保障。
@@ -323,10 +324,10 @@ MCloud Browser 的 UI 子系统以 Browser 为核心，结合 BrowserRootView �
 
 ## 附录
 - 扩展与定制示例路径
-  - 添加工具栏按钮：参考 [reload_button.h](file://src/chrome/browser/ui/views/toolbar/reload_button.h) 与 [reload_button.cc](file://src/chrome/browser/ui/views/toolbar/reload_button.cc)，在工具栏中注册新按钮并绑定命令。
-  - 自定义放置行为：参考 [browser_root_view.h](file://src/chrome/browser/ui/views/frame/browser_root_view.h) 中的 DropTarget 与 DropInfo，实现新的放置目标与索引计算。
-  - 功能开关集成：参考 [mcloud_flag_entries.h](file://src/chrome/browser/mcloud_flag_entries.h) 与 [mcloud_flag_choices.h](file://src/chrome/browser/mcloud_flag_choices.h)，新增 MCloud 特有开关并在 UI 中读取与响应。
-  - 地址栏与导航：参考 [chrome_location_bar_model_delegate.cc](file://src/chrome/browser/ui/toolbar/chrome_location_bar_model_delegate.cc)，扩展自动补全与导航逻辑。
-  - 应用菜单：参考 [app_menu_model.cc](file://src/chrome/browser/ui/toolbar/app_menu_model.cc)，添加菜单项与命令路由。
+  - 添加工具栏按钮：参考 [reload_button.h](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/ui/views/toolbar/reload_button.h) 与 [reload_button.cc](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/ui/views/toolbar/reload_button.cc)，在工具栏中注册新按钮并绑定命令。
+  - 自定义放置行为：参考 [browser_root_view.h](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/ui/views/frame/browser_root_view.h) 中的 DropTarget 与 DropInfo，实现新的放置目标与索引计算。
+  - 功能开关集成：参考 [mcloud_flag_entries.h](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/mcloud_flag_entries.h) 与 [mcloud_flag_choices.h](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/mcloud_flag_choices.h)，新增 MCloud 特有开关并在 UI 中读取与响应。
+  - 地址栏与导航：参考 [chrome_location_bar_model_delegate.cc](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/ui/toolbar/chrome_location_bar_model_delegate.cc)，扩展自动补全与导航逻辑。
+  - 应用菜单：参考 [app_menu_model.cc](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/browser/ui/toolbar/app_menu_model.cc)，添加菜单项与命令路由。
 
 [本节为指引，不直接分析具体文件]

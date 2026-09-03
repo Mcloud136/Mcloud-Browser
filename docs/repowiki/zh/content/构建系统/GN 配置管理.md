@@ -1,17 +1,18 @@
 # GN 配置管理
 
-<cite>
-**本文引用的文件**
-- [args.gn](file://args.gn)
-- [win_args.gn](file://win_args.gn)
-- [win_args_mcloud.gn](file://win_args_mcloud.gn)
-- [ABOUT_GN_ARGS.md](file://docs/ABOUT_GN_ARGS.md)
-- [BUILDING.md](file://docs/BUILDING.md)
-- [AVX2_args.gn](file://other/AVX2/AVX2_args.gn)
-- [AVX512_args.gn](file://other/AVX512/AVX512_args.gn)
-- [debug_args.gn](file://infra/DEBUG/debug_args.gn)
-- [mcloud_flags.txt](file://mcloud_flags.txt)
-</cite>
+<details><summary>本文引用的文件</summary>
+
+- [args.gn](https://github.com/Mcloud136/Mcloud-Browser/blob/main/args.gn)
+- [win_args.gn](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_args.gn)
+- [win_args_mcloud.gn](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_args_mcloud.gn)
+- [ABOUT_GN_ARGS.md](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/ABOUT_GN_ARGS.md)
+- [BUILDING.md](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/BUILDING.md)
+- [AVX2_args.gn](https://github.com/Mcloud136/Mcloud-Browser/blob/main/other/AVX2/AVX2_args.gn)
+- [AVX512_args.gn](https://github.com/Mcloud136/Mcloud-Browser/blob/main/other/AVX512/AVX512_args.gn)
+- [debug_args.gn](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/DEBUG/debug_args.gn)
+- [mcloud_flags.txt](https://github.com/Mcloud136/Mcloud-Browser/blob/main/mcloud_flags.txt)
+
+</details>
 
 ## 目录
 1. [简介](#简介)
@@ -56,22 +57,22 @@ L["docs/BUILDING.md"] --> M["构建流程与工具链"]
 ```
 
 图表来源
-- [args.gn:1-87](file://args.gn#L1-L87)
-- [win_args.gn:1-87](file://win_args.gn#L1-L87)
-- [win_args_mcloud.gn:1-126](file://win_args_mcloud.gn#L1-L126)
-- [AVX2_args.gn:1-87](file://other/AVX2/AVX2_args.gn#L1-L87)
-- [AVX512_args.gn:1-87](file://other/AVX512/AVX512_args.gn#L1-L87)
-- [debug_args.gn:1-87](file://infra/DEBUG/debug_args.gn#L1-L87)
-- [mcloud_flags.txt:83-119](file://mcloud_flags.txt#L83-L119)
-- [ABOUT_GN_ARGS.md:1-174](file://docs/ABOUT_GN_ARGS.md#L1-L174)
-- [BUILDING.md:122-156](file://docs/BUILDING.md#L122-L156)
+- [args.gn:1-87](https://github.com/Mcloud136/Mcloud-Browser/blob/main/args.gn#L1-L87)
+- [win_args.gn:1-87](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_args.gn#L1-L87)
+- [win_args_mcloud.gn:1-126](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_args_mcloud.gn#L1-L126)
+- [AVX2_args.gn:1-87](https://github.com/Mcloud136/Mcloud-Browser/blob/main/other/AVX2/AVX2_args.gn#L1-L87)
+- [AVX512_args.gn:1-87](https://github.com/Mcloud136/Mcloud-Browser/blob/main/other/AVX512/AVX512_args.gn#L1-L87)
+- [debug_args.gn:1-87](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/DEBUG/debug_args.gn#L1-L87)
+- [mcloud_flags.txt:83-119](https://github.com/Mcloud136/Mcloud-Browser/blob/main/mcloud_flags.txt#L83-L119)
+- [ABOUT_GN_ARGS.md:1-174](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/ABOUT_GN_ARGS.md#L1-L174)
+- [BUILDING.md:122-156](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/BUILDING.md#L122-L156)
 
 章节来源
-- [args.gn:1-87](file://args.gn#L1-L87)
-- [win_args.gn:1-87](file://win_args.gn#L1-L87)
-- [win_args_mcloud.gn:1-126](file://win_args_mcloud.gn#L1-L126)
-- [ABOUT_GN_ARGS.md:1-174](file://docs/ABOUT_GN_ARGS.md#L1-L174)
-- [BUILDING.md:122-156](file://docs/BUILDING.md#L122-L156)
+- [args.gn:1-87](https://github.com/Mcloud136/Mcloud-Browser/blob/main/args.gn#L1-L87)
+- [win_args.gn:1-87](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_args.gn#L1-L87)
+- [win_args_mcloud.gn:1-126](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_args_mcloud.gn#L1-L126)
+- [ABOUT_GN_ARGS.md:1-174](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/ABOUT_GN_ARGS.md#L1-L174)
+- [BUILDING.md:122-156](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/BUILDING.md#L122-L156)
 
 ## 核心组件
 - 目标平台与架构
@@ -101,10 +102,10 @@ L["docs/BUILDING.md"] --> M["构建流程与工具链"]
   - chrome_pgo_phase/pgo_data_path：PGO 阶段与 .profdata 路径
 
 章节来源
-- [args.gn:1-87](file://args.gn#L1-L87)
-- [win_args.gn:1-87](file://win_args.gn#L1-L87)
-- [win_args_mcloud.gn:1-126](file://win_args_mcloud.gn#L1-L126)
-- [ABOUT_GN_ARGS.md:35-174](file://docs/ABOUT_GN_ARGS.md#L35-L174)
+- [args.gn:1-87](https://github.com/Mcloud136/Mcloud-Browser/blob/main/args.gn#L1-L87)
+- [win_args.gn:1-87](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_args.gn#L1-L87)
+- [win_args_mcloud.gn:1-126](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_args_mcloud.gn#L1-L126)
+- [ABOUT_GN_ARGS.md:35-174](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/ABOUT_GN_ARGS.md#L35-L174)
 
 ## 架构总览
 GN 参数在生成 Ninja 构建脚本时生效，影响编译、链接、资源打包与运行时行为。MCloud 通过多份 *_args.gn 文件实现“按平台/用途”的参数组合，并通过 mcloud_flags.txt 注入运行时特性开关。
@@ -125,8 +126,8 @@ App-->>Dev : 根据运行时特性开关调整行为
 ```
 
 图表来源
-- [BUILDING.md:122-156](file://docs/BUILDING.md#L122-L156)
-- [mcloud_flags.txt:83-119](file://mcloud_flags.txt#L83-L119)
+- [BUILDING.md:122-156](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/BUILDING.md#L122-L156)
+- [mcloud_flags.txt:83-119](https://github.com/Mcloud136/Mcloud-Browser/blob/main/mcloud_flags.txt#L83-L119)
 
 ## 详细组件分析
 
@@ -140,11 +141,11 @@ App-->>Dev : 根据运行时特性开关调整行为
   - 若目标环境不确定，建议回退到 AVX 基线或仅启用 SSE4.x
 
 章节来源
-- [args.gn:1-7](file://args.gn#L1-L7)
-- [win_args.gn:1-7](file://win_args.gn#L1-L7)
-- [win_args_mcloud.gn:9-18](file://win_args_mcloud.gn#L9-L18)
-- [AVX2_args.gn:1-7](file://other/AVX2/AVX2_args.gn#L1-L7)
-- [AVX512_args.gn:1-7](file://other/AVX512/AVX512_args.gn#L1-L7)
+- [args.gn:1-7](https://github.com/Mcloud136/Mcloud-Browser/blob/main/args.gn#L1-L7)
+- [win_args.gn:1-7](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_args.gn#L1-L7)
+- [win_args_mcloud.gn:9-18](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_args_mcloud.gn#L9-L18)
+- [AVX2_args.gn:1-7](https://github.com/Mcloud136/Mcloud-Browser/blob/main/other/AVX2/AVX2_args.gn#L1-L7)
+- [AVX512_args.gn:1-7](https://github.com/Mcloud136/Mcloud-Browser/blob/main/other/AVX512/AVX512_args.gn#L1-L7)
 
 ### 目标平台与架构设置
 - target_os/target_cpu：决定生成的二进制与平台相关特性（如 Linux 的 VAAPI、Windows 的 CFG/Guard）
@@ -154,10 +155,10 @@ App-->>Dev : 根据运行时特性开关调整行为
   - Windows：win_enable_cfg_guards=true 启用控制流保护；enable_vulkan=false 使用 D3D12/D3D11
 
 章节来源
-- [args.gn:11-12](file://args.gn#L11-L12)
-- [win_args.gn:11-12](file://win_args.gn#L11-L12)
-- [win_args_mcloud.gn:20-22](file://win_args_mcloud.gn#L20-L22)
-- [ABOUT_GN_ARGS.md:19-25](file://docs/ABOUT_GN_ARGS.md#L19-L25)
+- [args.gn:11-12](https://github.com/Mcloud136/Mcloud-Browser/blob/main/args.gn#L11-L12)
+- [win_args.gn:11-12](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_args.gn#L11-L12)
+- [win_args_mcloud.gn:20-22](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_args_mcloud.gn#L20-L22)
+- [ABOUT_GN_ARGS.md:19-25](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/ABOUT_GN_ARGS.md#L19-L25)
 
 ### 调试与发布模式配置
 - 发布模式（Release）
@@ -177,16 +178,16 @@ Debug --> End
 ```
 
 图表来源
-- [args.gn:13-26](file://args.gn#L13-L26)
-- [win_args.gn:13-25](file://win_args.gn#L13-L25)
-- [debug_args.gn:13-27](file://infra/DEBUG/debug_args.gn#L13-L27)
-- [ABOUT_GN_ARGS.md:35-63](file://docs/ABOUT_GN_ARGS.md#L35-L63)
+- [args.gn:13-26](https://github.com/Mcloud136/Mcloud-Browser/blob/main/args.gn#L13-L26)
+- [win_args.gn:13-25](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_args.gn#L13-L25)
+- [debug_args.gn:13-27](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/DEBUG/debug_args.gn#L13-L27)
+- [ABOUT_GN_ARGS.md:35-63](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/ABOUT_GN_ARGS.md#L35-L63)
 
 章节来源
-- [args.gn:13-26](file://args.gn#L13-L26)
-- [win_args.gn:13-25](file://win_args.gn#L13-L25)
-- [debug_args.gn:13-27](file://infra/DEBUG/debug_args.gn#L13-L27)
-- [ABOUT_GN_ARGS.md:35-63](file://docs/ABOUT_GN_ARGS.md#L35-L63)
+- [args.gn:13-26](https://github.com/Mcloud136/Mcloud-Browser/blob/main/args.gn#L13-L26)
+- [win_args.gn:13-25](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_args.gn#L13-L25)
+- [debug_args.gn:13-27](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/DEBUG/debug_args.gn#L13-L27)
+- [ABOUT_GN_ARGS.md:35-63](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/ABOUT_GN_ARGS.md#L35-L63)
 
 ### MCloud 特定构建选项
 - 媒体编解码器
@@ -203,9 +204,9 @@ Debug --> End
   - rtc_use_h264/rtc_use_h265/rtc_enable_avx2 提升实时通信性能
 
 章节来源
-- [win_args_mcloud.gn:74-110](file://win_args_mcloud.gn#L74-L110)
-- [mcloud_flags.txt:83-119](file://mcloud_flags.txt#L83-L119)
-- [ABOUT_GN_ARGS.md:95-157](file://docs/ABOUT_GN_ARGS.md#L95-L157)
+- [win_args_mcloud.gn:74-110](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_args_mcloud.gn#L74-L110)
+- [mcloud_flags.txt:83-119](https://github.com/Mcloud136/Mcloud-Browser/blob/main/mcloud_flags.txt#L83-L119)
+- [ABOUT_GN_ARGS.md:95-157](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/ABOUT_GN_ARGS.md#L95-L157)
 
 ### 运行时特性开关（命令行）
 - 通过 mcloud_flags.txt 注入 --enable-features/--disable-features，例如：
@@ -215,7 +216,7 @@ Debug --> End
   - 启用 DedicatedMediaServiceThread、DirectOpusAudioDecoding 等媒体线程与解码优化
 
 章节来源
-- [mcloud_flags.txt:83-119](file://mcloud_flags.txt#L83-L119)
+- [mcloud_flags.txt:83-119](https://github.com/Mcloud136/Mcloud-Browser/blob/main/mcloud_flags.txt#L83-L119)
 
 ## 依赖关系分析
 - 参数耦合
@@ -240,14 +241,14 @@ G -.-> H
 ```
 
 图表来源
-- [win_args_mcloud.gn:59-65](file://win_args_mcloud.gn#L59-L65)
-- [win_args_mcloud.gn:74-110](file://win_args_mcloud.gn#L74-L110)
-- [win_args_mcloud.gn:84-90](file://win_args_mcloud.gn#L84-L90)
-- [win_args_mcloud.gn:52-57](file://win_args_mcloud.gn#L52-L57)
+- [win_args_mcloud.gn:59-65](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_args_mcloud.gn#L59-L65)
+- [win_args_mcloud.gn:74-110](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_args_mcloud.gn#L74-L110)
+- [win_args_mcloud.gn:84-90](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_args_mcloud.gn#L84-L90)
+- [win_args_mcloud.gn:52-57](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_args_mcloud.gn#L52-L57)
 
 章节来源
-- [win_args_mcloud.gn:52-110](file://win_args_mcloud.gn#L52-L110)
-- [ABOUT_GN_ARGS.md:161-174](file://docs/ABOUT_GN_ARGS.md#L161-L174)
+- [win_args_mcloud.gn:52-110](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_args_mcloud.gn#L52-L110)
+- [ABOUT_GN_ARGS.md:161-174](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/ABOUT_GN_ARGS.md#L161-L174)
 
 ## 性能考量
 - 发布构建
@@ -261,9 +262,9 @@ G -.-> H
   - 启用 GpuShaderDiskCache、SkiaGraphite、ResourcePool 优化等运行时特性
 
 章节来源
-- [win_args_mcloud.gn:33-65](file://win_args_mcloud.gn#L33-L65)
-- [mcloud_flags.txt:90-119](file://mcloud_flags.txt#L90-L119)
-- [ABOUT_GN_ARGS.md:161-174](file://docs/ABOUT_GN_ARGS.md#L161-L174)
+- [win_args_mcloud.gn:33-65](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_args_mcloud.gn#L33-L65)
+- [mcloud_flags.txt:90-119](https://github.com/Mcloud136/Mcloud-Browser/blob/main/mcloud_flags.txt#L90-L119)
+- [ABOUT_GN_ARGS.md:161-174](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/ABOUT_GN_ARGS.md#L161-L174)
 
 ## 故障排查指南
 - Widevine 无法播放 DRM 内容
@@ -277,9 +278,9 @@ G -.-> H
   - 启用 ThinLTO 与 ccache；减少不必要的组件构建；合理设置并行度
 
 章节来源
-- [mcloud_flags.txt:83-88](file://mcloud_flags.txt#L83-L88)
-- [win_args_mcloud.gn:52-57](file://win_args_mcloud.gn#L52-L57)
-- [ABOUT_GN_ARGS.md:161-174](file://docs/ABOUT_GN_ARGS.md#L161-L174)
+- [mcloud_flags.txt:83-88](https://github.com/Mcloud136/Mcloud-Browser/blob/main/mcloud_flags.txt#L83-L88)
+- [win_args_mcloud.gn:52-57](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_args_mcloud.gn#L52-L57)
+- [ABOUT_GN_ARGS.md:161-174](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/ABOUT_GN_ARGS.md#L161-L174)
 
 ## 结论
 - MCloud 的 GN 配置以“平台 + 用途”为核心，通过多份 *_args.gn 文件实现精细化控制
@@ -309,8 +310,8 @@ G -.-> H
   - PGO：chrome_pgo_phase/pgo_data_path
 
 章节来源
-- [args.gn:1-87](file://args.gn#L1-L87)
-- [win_args.gn:1-87](file://win_args.gn#L1-L87)
-- [win_args_mcloud.gn:1-126](file://win_args_mcloud.gn#L1-L126)
-- [ABOUT_GN_ARGS.md:95-174](file://docs/ABOUT_GN_ARGS.md#L95-L174)
-- [BUILDING.md:122-156](file://docs/BUILDING.md#L122-L156)
+- [args.gn:1-87](https://github.com/Mcloud136/Mcloud-Browser/blob/main/args.gn#L1-L87)
+- [win_args.gn:1-87](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_args.gn#L1-L87)
+- [win_args_mcloud.gn:1-126](https://github.com/Mcloud136/Mcloud-Browser/blob/main/win_args_mcloud.gn#L1-L126)
+- [ABOUT_GN_ARGS.md:95-174](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/ABOUT_GN_ARGS.md#L95-L174)
+- [BUILDING.md:122-156](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/BUILDING.md#L122-L156)

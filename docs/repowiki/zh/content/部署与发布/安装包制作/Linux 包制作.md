@@ -1,18 +1,19 @@
 # Linux 包制作
 
-<cite>
-**本文引用的文件**
-- [infra/APPIMAGE/README.md](file://infra/APPIMAGE/README.md)
-- [infra/APPIMAGE/make_appimage.sh](file://infra/APPIMAGE/make_appimage.sh)
-- [infra/APPIMAGE/Thorium.yml](file://infra/APPIMAGE/Thorium.yml)
-- [infra/Flatpak/com.mcloud.browser/README.md](file://infra/Flatpak/com.mcloud.browser/README.md)
-- [infra/Flatpak/com.mcloud.browser/org.chromium.Chromium.yaml](file://infra/Flatpak/com.mcloud.browser/org.chromium.Chromium.yaml)
-- [infra/Flatpak/com.mcloud.browser/build-aux/build.sh](file://infra/Flatpak/com.mcloud.browser/build-aux/build.sh)
-- [infra/Flatpak/com.mcloud.browser/org.chromium.Chromium.desktop](file://infra/Flatpak/com.mcloud.browser/org.chromium.Chromium.desktop)
-- [src/chrome/installer/linux/rpm/mcloud.spec.template](file://src/chrome/installer/linux/rpm/mcloud.spec.template)
-- [infra/Arch_Linux/.SRCINFO](file://infra/Arch_Linux/.SRCINFO)
-- [infra/Arch_Linux/mcloud-browser.sh](file://infra/Arch_Linux/mcloud-browser.sh)
-</cite>
+<details><summary>本文引用的文件</summary>
+
+- [infra/APPIMAGE/README.md](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/APPIMAGE/README.md)
+- [infra/APPIMAGE/make_appimage.sh](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/APPIMAGE/make_appimage.sh)
+- [infra/APPIMAGE/Thorium.yml](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/APPIMAGE/Thorium.yml)
+- [infra/Flatpak/com.mcloud.browser/README.md](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/Flatpak/com.mcloud.browser/README.md)
+- [infra/Flatpak/com.mcloud.browser/org.chromium.Chromium.yaml](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/Flatpak/com.mcloud.browser/org.chromium.Chromium.yaml)
+- [infra/Flatpak/com.mcloud.browser/build-aux/build.sh](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/Flatpak/com.mcloud.browser/build-aux/build.sh)
+- [infra/Flatpak/com.mcloud.browser/org.chromium.Chromium.desktop](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/Flatpak/com.mcloud.browser/org.chromium.Chromium.desktop)
+- [src/chrome/installer/linux/rpm/mcloud.spec.template](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/installer/linux/rpm/mcloud.spec.template)
+- [infra/Arch_Linux/.SRCINFO](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/Arch_Linux/.SRCINFO)
+- [infra/Arch_Linux/mcloud-browser.sh](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/Arch_Linux/mcloud-browser.sh)
+
+</details>
 
 ## 目录
 1. [简介](#简介)
@@ -75,16 +76,16 @@ L1 --> L2
 ```
 
 **图示来源**
-- [infra/APPIMAGE/make_appimage.sh:1-79](file://infra/APPIMAGE/make_appimage.sh#L1-L79)
-- [infra/APPIMAGE/Thorium.yml:1-77](file://infra/APPIMAGE/Thorium.yml#L1-L77)
-- [infra/Flatpak/com.mcloud.browser/org.chromium.Chromium.yaml:1-153](file://infra/Flatpak/com.mcloud.browser/org.chromium.Chromium.yaml#L1-L153)
-- [infra/Flatpak/com.mcloud.browser/build-aux/build.sh:1-16](file://infra/Flatpak/com.mcloud.browser/build-aux/build.sh#L1-L16)
-- [src/chrome/installer/linux/rpm/mcloud.spec.template:1-235](file://src/chrome/installer/linux/rpm/mcloud.spec.template#L1-L235)
-- [infra/Arch_Linux/.SRCINFO:1-29](file://infra/Arch_Linux/.SRCINFO#L1-L29)
+- [infra/APPIMAGE/make_appimage.sh:1-79](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/APPIMAGE/make_appimage.sh#L1-L79)
+- [infra/APPIMAGE/Thorium.yml:1-77](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/APPIMAGE/Thorium.yml#L1-L77)
+- [infra/Flatpak/com.mcloud.browser/org.chromium.Chromium.yaml:1-153](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/Flatpak/com.mcloud.browser/org.chromium.Chromium.yaml#L1-L153)
+- [infra/Flatpak/com.mcloud.browser/build-aux/build.sh:1-16](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/Flatpak/com.mcloud.browser/build-aux/build.sh#L1-L16)
+- [src/chrome/installer/linux/rpm/mcloud.spec.template:1-235](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/installer/linux/rpm/mcloud.spec.template#L1-L235)
+- [infra/Arch_Linux/.SRCINFO:1-29](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/Arch_Linux/.SRCINFO#L1-L29)
 
 **章节来源**
-- [infra/APPIMAGE/README.md:1-20](file://infra/APPIMAGE/README.md#L1-L20)
-- [infra/Flatpak/com.mcloud.browser/README.md:1-64](file://infra/Flatpak/com.mcloud.browser/README.md#L1-L64)
+- [infra/APPIMAGE/README.md:1-20](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/APPIMAGE/README.md#L1-L20)
+- [infra/Flatpak/com.mcloud.browser/README.md:1-64](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/Flatpak/com.mcloud.browser/README.md#L1-L64)
 
 ## 核心组件
 - AppImage 构建流水线：通过 make_appimage.sh 从 .deb 提取产物，使用 Thorium.yml 进行资源整理、图标注入、桌面条目生成与 AppRun 封装，最终由 pkg2appimage 生成可分发的 .AppImage。
@@ -94,13 +95,13 @@ L1 --> L2
 - Arch Linux AUR：.SRCINFO 声明二进制包来源与依赖；mcloud-browser.sh 作为启动包装器支持用户命令行参数覆盖。
 
 **章节来源**
-- [infra/APPIMAGE/make_appimage.sh:1-79](file://infra/APPIMAGE/make_appimage.sh#L1-L79)
-- [infra/APPIMAGE/Thorium.yml:1-77](file://infra/APPIMAGE/Thorium.yml#L1-L77)
-- [infra/Flatpak/com.mcloud.browser/org.chromium.Chromium.yaml:1-153](file://infra/Flatpak/com.mcloud.browser/org.chromium.Chromium.yaml#L1-L153)
-- [infra/Flatpak/com.mcloud.browser/build-aux/build.sh:1-16](file://infra/Flatpak/com.mcloud.browser/build-aux/build.sh#L1-L16)
-- [src/chrome/installer/linux/rpm/mcloud.spec.template:1-235](file://src/chrome/installer/linux/rpm/mcloud.spec.template#L1-L235)
-- [infra/Arch_Linux/.SRCINFO:1-29](file://infra/Arch_Linux/.SRCINFO#L1-L29)
-- [infra/Arch_Linux/mcloud-browser.sh:1-12](file://infra/Arch_Linux/mcloud-browser.sh#L1-L12)
+- [infra/APPIMAGE/make_appimage.sh:1-79](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/APPIMAGE/make_appimage.sh#L1-L79)
+- [infra/APPIMAGE/Thorium.yml:1-77](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/APPIMAGE/Thorium.yml#L1-L77)
+- [infra/Flatpak/com.mcloud.browser/org.chromium.Chromium.yaml:1-153](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/Flatpak/com.mcloud.browser/org.chromium.Chromium.yaml#L1-L153)
+- [infra/Flatpak/com.mcloud.browser/build-aux/build.sh:1-16](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/Flatpak/com.mcloud.browser/build-aux/build.sh#L1-L16)
+- [src/chrome/installer/linux/rpm/mcloud.spec.template:1-235](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/installer/linux/rpm/mcloud.spec.template#L1-L235)
+- [infra/Arch_Linux/.SRCINFO:1-29](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/Arch_Linux/.SRCINFO#L1-L29)
+- [infra/Arch_Linux/mcloud-browser.sh:1-12](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/Arch_Linux/mcloud-browser.sh#L1-L12)
 
 ## 架构总览
 下图展示三种主要打包产物的构建与集成关系：
@@ -122,10 +123,10 @@ Arch --> System
 ```
 
 **图示来源**
-- [infra/APPIMAGE/Thorium.yml:1-77](file://infra/APPIMAGE/Thorium.yml#L1-L77)
-- [infra/Flatpak/com.mcloud.browser/org.chromium.Chromium.yaml:1-153](file://infra/Flatpak/com.mcloud.browser/org.chromium.Chromium.yaml#L1-L153)
-- [src/chrome/installer/linux/rpm/mcloud.spec.template:1-235](file://src/chrome/installer/linux/rpm/mcloud.spec.template#L1-L235)
-- [infra/Arch_Linux/.SRCINFO:1-29](file://infra/Arch_Linux/.SRCINFO#L1-L29)
+- [infra/APPIMAGE/Thorium.yml:1-77](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/APPIMAGE/Thorium.yml#L1-L77)
+- [infra/Flatpak/com.mcloud.browser/org.chromium.Chromium.yaml:1-153](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/Flatpak/com.mcloud.browser/org.chromium.Chromium.yaml#L1-L153)
+- [src/chrome/installer/linux/rpm/mcloud.spec.template:1-235](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/installer/linux/rpm/mcloud.spec.template#L1-L235)
+- [infra/Arch_Linux/.SRCINFO:1-29](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/Arch_Linux/.SRCINFO#L1-L29)
 
 ## 详细组件分析
 
@@ -154,13 +155,13 @@ Dev->>Out : 安装或运行推荐 AppImageLauncher
 ```
 
 **图示来源**
-- [infra/APPIMAGE/make_appimage.sh:1-79](file://infra/APPIMAGE/make_appimage.sh#L1-L79)
-- [infra/APPIMAGE/Thorium.yml:1-77](file://infra/APPIMAGE/Thorium.yml#L1-L77)
+- [infra/APPIMAGE/make_appimage.sh:1-79](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/APPIMAGE/make_appimage.sh#L1-L79)
+- [infra/APPIMAGE/Thorium.yml:1-77](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/APPIMAGE/Thorium.yml#L1-L77)
 
 **章节来源**
-- [infra/APPIMAGE/README.md:1-20](file://infra/APPIMAGE/README.md#L1-L20)
-- [infra/APPIMAGE/make_appimage.sh:1-79](file://infra/APPIMAGE/make_appimage.sh#L1-L79)
-- [infra/APPIMAGE/Thorium.yml:1-77](file://infra/APPIMAGE/Thorium.yml#L1-L77)
+- [infra/APPIMAGE/README.md:1-20](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/APPIMAGE/README.md#L1-L20)
+- [infra/APPIMAGE/make_appimage.sh:1-79](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/APPIMAGE/make_appimage.sh#L1-L79)
+- [infra/APPIMAGE/Thorium.yml:1-77](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/APPIMAGE/Thorium.yml#L1-L77)
 
 ### Flatpak 包创建过程
 - 元数据配置：org.chromium.Chromium.yaml 定义 app-id、运行时版本、命令、finish-args 权限、扩展点与模块。
@@ -185,15 +186,15 @@ Package --> Publish["发布到 Flathub 或其他商店"]
 ```
 
 **图示来源**
-- [infra/Flatpak/com.mcloud.browser/org.chromium.Chromium.yaml:1-153](file://infra/Flatpak/com.mcloud.browser/org.chromium.Chromium.yaml#L1-L153)
-- [infra/Flatpak/com.mcloud.browser/build-aux/build.sh:1-16](file://infra/Flatpak/com.mcloud.browser/build-aux/build.sh#L1-L16)
-- [infra/Flatpak/com.mcloud.browser/org.chromium.Chromium.desktop:1-226](file://infra/Flatpak/com.mcloud.browser/org.chromium.Chromium.desktop#L1-L226)
+- [infra/Flatpak/com.mcloud.browser/org.chromium.Chromium.yaml:1-153](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/Flatpak/com.mcloud.browser/org.chromium.Chromium.yaml#L1-L153)
+- [infra/Flatpak/com.mcloud.browser/build-aux/build.sh:1-16](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/Flatpak/com.mcloud.browser/build-aux/build.sh#L1-L16)
+- [infra/Flatpak/com.mcloud.browser/org.chromium.Chromium.desktop:1-226](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/Flatpak/com.mcloud.browser/org.chromium.Chromium.desktop#L1-L226)
 
 **章节来源**
-- [infra/Flatpak/com.mcloud.browser/README.md:1-64](file://infra/Flatpak/com.mcloud.browser/README.md#L1-L64)
-- [infra/Flatpak/com.mcloud.browser/org.chromium.Chromium.yaml:1-153](file://infra/Flatpak/com.mcloud.browser/org.chromium.Chromium.yaml#L1-L153)
-- [infra/Flatpak/com.mcloud.browser/build-aux/build.sh:1-16](file://infra/Flatpak/com.mcloud.browser/build-aux/build.sh#L1-L16)
-- [infra/Flatpak/com.mcloud.browser/org.chromium.Chromium.desktop:1-226](file://infra/Flatpak/com.mcloud.browser/org.chromium.Chromium.desktop#L1-L226)
+- [infra/Flatpak/com.mcloud.browser/README.md:1-64](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/Flatpak/com.mcloud.browser/README.md#L1-L64)
+- [infra/Flatpak/com.mcloud.browser/org.chromium.Chromium.yaml:1-153](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/Flatpak/com.mcloud.browser/org.chromium.Chromium.yaml#L1-L153)
+- [infra/Flatpak/com.mcloud.browser/build-aux/build.sh:1-16](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/Flatpak/com.mcloud.browser/build-aux/build.sh#L1-L16)
+- [infra/Flatpak/com.mcloud.browser/org.chromium.Chromium.desktop:1-226](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/Flatpak/com.mcloud.browser/org.chromium.Chromium.desktop#L1-L226)
 
 ### 传统发行版打包（RPM/DEB/AUR）
 - RPM：
@@ -235,13 +236,13 @@ RPM_Spec --> Arch_SRCINFO : "统一依赖声明风格"
 ```
 
 **图示来源**
-- [src/chrome/installer/linux/rpm/mcloud.spec.template:1-235](file://src/chrome/installer/linux/rpm/mcloud.spec.template#L1-L235)
-- [infra/Arch_Linux/.SRCINFO:1-29](file://infra/Arch_Linux/.SRCINFO#L1-L29)
+- [src/chrome/installer/linux/rpm/mcloud.spec.template:1-235](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/installer/linux/rpm/mcloud.spec.template#L1-L235)
+- [infra/Arch_Linux/.SRCINFO:1-29](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/Arch_Linux/.SRCINFO#L1-L29)
 
 **章节来源**
-- [src/chrome/installer/linux/rpm/mcloud.spec.template:1-235](file://src/chrome/installer/linux/rpm/mcloud.spec.template#L1-L235)
-- [infra/Arch_Linux/.SRCINFO:1-29](file://infra/Arch_Linux/.SRCINFO#L1-L29)
-- [infra/Arch_Linux/mcloud-browser.sh:1-12](file://infra/Arch_Linux/mcloud-browser.sh#L1-L12)
+- [src/chrome/installer/linux/rpm/mcloud.spec.template:1-235](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/installer/linux/rpm/mcloud.spec.template#L1-L235)
+- [infra/Arch_Linux/.SRCINFO:1-29](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/Arch_Linux/.SRCINFO#L1-L29)
+- [infra/Arch_Linux/mcloud-browser.sh:1-12](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/Arch_Linux/mcloud-browser.sh#L1-L12)
 
 ## 依赖分析
 - AppImage：
@@ -266,16 +267,16 @@ Arch["AUR"] --> |系统| SysDeps
 ```
 
 **图示来源**
-- [infra/APPIMAGE/Thorium.yml:1-77](file://infra/APPIMAGE/Thorium.yml#L1-L77)
-- [infra/Flatpak/com.mcloud.browser/org.chromium.Chromium.yaml:1-153](file://infra/Flatpak/com.mcloud.browser/org.chromium.Chromium.yaml#L1-L153)
-- [src/chrome/installer/linux/rpm/mcloud.spec.template:1-235](file://src/chrome/installer/linux/rpm/mcloud.spec.template#L1-L235)
-- [infra/Arch_Linux/.SRCINFO:1-29](file://infra/Arch_Linux/.SRCINFO#L1-L29)
+- [infra/APPIMAGE/Thorium.yml:1-77](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/APPIMAGE/Thorium.yml#L1-L77)
+- [infra/Flatpak/com.mcloud.browser/org.chromium.Chromium.yaml:1-153](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/Flatpak/com.mcloud.browser/org.chromium.Chromium.yaml#L1-L153)
+- [src/chrome/installer/linux/rpm/mcloud.spec.template:1-235](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/installer/linux/rpm/mcloud.spec.template#L1-L235)
+- [infra/Arch_Linux/.SRCINFO:1-29](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/Arch_Linux/.SRCINFO#L1-L29)
 
 **章节来源**
-- [infra/APPIMAGE/Thorium.yml:1-77](file://infra/APPIMAGE/Thorium.yml#L1-L77)
-- [infra/Flatpak/com.mcloud.browser/org.chromium.Chromium.yaml:1-153](file://infra/Flatpak/com.mcloud.browser/org.chromium.Chromium.yaml#L1-L153)
-- [src/chrome/installer/linux/rpm/mcloud.spec.template:1-235](file://src/chrome/installer/linux/rpm/mcloud.spec.template#L1-L235)
-- [infra/Arch_Linux/.SRCINFO:1-29](file://infra/Arch_Linux/.SRCINFO#L1-L29)
+- [infra/APPIMAGE/Thorium.yml:1-77](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/APPIMAGE/Thorium.yml#L1-L77)
+- [infra/Flatpak/com.mcloud.browser/org.chromium.Chromium.yaml:1-153](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/Flatpak/com.mcloud.browser/org.chromium.Chromium.yaml#L1-L153)
+- [src/chrome/installer/linux/rpm/mcloud.spec.template:1-235](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/installer/linux/rpm/mcloud.spec.template#L1-L235)
+- [infra/Arch_Linux/.SRCINFO:1-29](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/Arch_Linux/.SRCINFO#L1-L29)
 
 ## 性能与体积优化
 - 依赖共享：
@@ -309,11 +310,11 @@ Arch["AUR"] --> |系统| SysDeps
   - 确认 .SRCINFO 中依赖已满足。
 
 **章节来源**
-- [infra/APPIMAGE/README.md:1-20](file://infra/APPIMAGE/README.md#L1-L20)
-- [infra/APPIMAGE/make_appimage.sh:1-79](file://infra/APPIMAGE/make_appimage.sh#L1-L79)
-- [infra/Flatpak/com.mcloud.browser/org.chromium.Chromium.yaml:1-153](file://infra/Flatpak/com.mcloud.browser/org.chromium.Chromium.yaml#L1-L153)
-- [src/chrome/installer/linux/rpm/mcloud.spec.template:1-235](file://src/chrome/installer/linux/rpm/mcloud.spec.template#L1-L235)
-- [infra/Arch_Linux/mcloud-browser.sh:1-12](file://infra/Arch_Linux/mcloud-browser.sh#L1-L12)
+- [infra/APPIMAGE/README.md:1-20](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/APPIMAGE/README.md#L1-L20)
+- [infra/APPIMAGE/make_appimage.sh:1-79](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/APPIMAGE/make_appimage.sh#L1-L79)
+- [infra/Flatpak/com.mcloud.browser/org.chromium.Chromium.yaml:1-153](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/Flatpak/com.mcloud.browser/org.chromium.Chromium.yaml#L1-L153)
+- [src/chrome/installer/linux/rpm/mcloud.spec.template:1-235](https://github.com/Mcloud136/Mcloud-Browser/blob/main/src/chrome/installer/linux/rpm/mcloud.spec.template#L1-L235)
+- [infra/Arch_Linux/mcloud-browser.sh:1-12](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/Arch_Linux/mcloud-browser.sh#L1-L12)
 
 ## 结论
 本项目提供了完整的 Linux 打包方案：

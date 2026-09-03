@@ -1,17 +1,18 @@
 # PartitionAlloc 内存分配器优化
 
-<cite>
-**本文引用的文件**
-- [README.md](file://README.md)
-- [mcloud_flags.txt](file://mcloud_flags.txt)
-- [partalloc.patch](file://other/partalloc.patch)
-- [2026-06-19-performance-optimization-design.md](file://docs/superpowers/specs/2026-06-19-performance-optimization-design.md)
-- [2026-06-19-performance-optimization.md](file://docs/superpowers/plans/2026-06-19-performance-optimization.md)
-- [M151-benchmark.md](file://docs/dev-logs/M151-benchmark.md)
-- [M151-opt-benchmark.md](file://docs/dev-logs/M151-opt-benchmark.md)
-- [gn_args.list（infra）](file://infra/args.list)
-- [win_gn_args.list](file://infra/win_gn_args.list)
-</cite>
+<details><summary>本文引用的文件</summary>
+
+- [README.md](https://github.com/Mcloud136/Mcloud-Browser/blob/main/README.md)
+- [mcloud_flags.txt](https://github.com/Mcloud136/Mcloud-Browser/blob/main/mcloud_flags.txt)
+- [partalloc.patch](https://github.com/Mcloud136/Mcloud-Browser/blob/main/other/partalloc.patch)
+- [2026-06-19-performance-optimization-design.md](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/superpowers/specs/2026-06-19-performance-optimization-design.md)
+- [2026-06-19-performance-optimization.md](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/superpowers/plans/2026-06-19-performance-optimization.md)
+- [M151-benchmark.md](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/dev-logs/M151-benchmark.md)
+- [M151-opt-benchmark.md](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/dev-logs/M151-opt-benchmark.md)
+- [gn_args.list（infra）](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/args.list)
+- [win_gn_args.list](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/win_gn_args.list)
+
+</details>
 
 ## 目录
 1. [简介](#简介)
@@ -50,18 +51,18 @@ B --> G["PartitionAlloc 分配路径"]
 ```
 
 图表来源
-- [mcloud_flags.txt:27-38](file://mcloud_flags.txt#L27-L38)
-- [2026-06-19-performance-optimization-design.md:78-88](file://docs/superpowers/specs/2026-06-19-performance-optimization-design.md#L78-L88)
-- [partalloc.patch:1-26](file://other/partalloc.patch#L1-L26)
-- [gn_args.list（infra）:5186-5196](file://infra/args.list#L5186-L5196)
-- [win_gn_args.list:5570-5591](file://infra/win_gn_args.list#L5570-L5591)
+- [mcloud_flags.txt:27-38](https://github.com/Mcloud136/Mcloud-Browser/blob/main/mcloud_flags.txt#L27-L38)
+- [2026-06-19-performance-optimization-design.md:78-88](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/superpowers/specs/2026-06-19-performance-optimization-design.md#L78-L88)
+- [partalloc.patch:1-26](https://github.com/Mcloud136/Mcloud-Browser/blob/main/other/partalloc.patch#L1-L26)
+- [gn_args.list（infra）:5186-5196](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/args.list#L5186-L5196)
+- [win_gn_args.list:5570-5591](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/win_gn_args.list#L5570-L5591)
 
 章节来源
-- [mcloud_flags.txt:27-38](file://mcloud_flags.txt#L27-L38)
-- [2026-06-19-performance-optimization-design.md:78-88](file://docs/superpowers/specs/2026-06-19-performance-optimization-design.md#L78-L88)
-- [partalloc.patch:1-26](file://other/partalloc.patch#L1-L26)
-- [gn_args.list（infra）:5186-5196](file://infra/args.list#L5186-L5196)
-- [win_gn_args.list:5570-5591](file://infra/win_gn_args.list#L5570-L5591)
+- [mcloud_flags.txt:27-38](https://github.com/Mcloud136/Mcloud-Browser/blob/main/mcloud_flags.txt#L27-L38)
+- [2026-06-19-performance-optimization-design.md:78-88](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/superpowers/specs/2026-06-19-performance-optimization-design.md#L78-L88)
+- [partalloc.patch:1-26](https://github.com/Mcloud136/Mcloud-Browser/blob/main/other/partalloc.patch#L1-L26)
+- [gn_args.list（infra）:5186-5196](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/args.list#L5186-L5196)
+- [win_gn_args.list:5570-5591](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/win_gn_args.list#L5570-L5591)
 
 ## 核心组件
 - 活跃槽位排序（PartitionAllocSortActiveSlotSpans）：在 PurgeMemory 时对活跃 slot span 进行排序，降低碎片化程度，提升后续分配命中率和页面回收效率。
@@ -72,8 +73,8 @@ B --> G["PartitionAlloc 分配路径"]
 以上特性均在 mcloud_flags.txt 中启用，并在设计文档中标注了对应的 Chromium 源码位置。
 
 章节来源
-- [mcloud_flags.txt:27-38](file://mcloud_flags.txt#L27-L38)
-- [2026-06-19-performance-optimization-design.md:78-88](file://docs/superpowers/specs/2026-06-19-performance-optimization-design.md#L78-L88)
+- [mcloud_flags.txt:27-38](https://github.com/Mcloud136/Mcloud-Browser/blob/main/mcloud_flags.txt#L27-L38)
+- [2026-06-19-performance-optimization-design.md:78-88](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/superpowers/specs/2026-06-19-performance-optimization-design.md#L78-L88)
 
 ## 架构总览
 下图展示了从浏览器启动到 PartitionAlloc 分配路径的关键环节，包括运行时标志注入、Feature 系统解析、allocator_shim 路由以及 PartitionAlloc 内部优化点。
@@ -99,9 +100,9 @@ Shim-->>App : 应用层获得内存
 ```
 
 图表来源
-- [mcloud_flags.txt:27-38](file://mcloud_flags.txt#L27-L38)
-- [gn_args.list（infra）:5186-5196](file://infra/args.list#L5186-L5196)
-- [win_gn_args.list:5570-5591](file://infra/win_gn_args.list#L5570-L5591)
+- [mcloud_flags.txt:27-38](https://github.com/Mcloud136/Mcloud-Browser/blob/main/mcloud_flags.txt#L27-L38)
+- [gn_args.list（infra）:5186-5196](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/args.list#L5186-L5196)
+- [win_gn_args.list:5570-5591](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/win_gn_args.list#L5570-L5591)
 
 ## 详细组件分析
 
@@ -118,12 +119,12 @@ Compact --> Return["返回更低碎片的内存布局"]
 ```
 
 图表来源
-- [mcloud_flags.txt:27-38](file://mcloud_flags.txt#L27-L38)
-- [2026-06-19-performance-optimization-design.md:78-88](file://docs/superpowers/specs/2026-06-19-performance-optimization-design.md#L78-L88)
+- [mcloud_flags.txt:27-38](https://github.com/Mcloud136/Mcloud-Browser/blob/main/mcloud_flags.txt#L27-L38)
+- [2026-06-19-performance-optimization-design.md:78-88](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/superpowers/specs/2026-06-19-performance-optimization-design.md#L78-L88)
 
 章节来源
-- [mcloud_flags.txt:27-38](file://mcloud_flags.txt#L27-L38)
-- [2026-06-19-performance-optimization-design.md:78-88](file://docs/superpowers/specs/2026-06-19-performance-optimization-design.md#L78-L88)
+- [mcloud_flags.txt:27-38](https://github.com/Mcloud136/Mcloud-Browser/blob/main/mcloud_flags.txt#L27-L38)
+- [2026-06-19-performance-optimization-design.md:78-88](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/superpowers/specs/2026-06-19-performance-optimization-design.md#L78-L88)
 
 ### 优先级继承锁（PartitionAllocUsePriorityInheritanceLocks）
 - 作用：引入优先级继承机制，避免低优先级线程长时间持有锁导致高优先级任务阻塞，从而减少锁竞争和抖动。
@@ -143,12 +144,12 @@ Lock-->>T2 : 允许继续执行
 ```
 
 图表来源
-- [mcloud_flags.txt:27-38](file://mcloud_flags.txt#L27-L38)
-- [2026-06-19-performance-optimization-design.md:78-88](file://docs/superpowers/specs/2026-06-19-performance-optimization-design.md#L78-L88)
+- [mcloud_flags.txt:27-38](https://github.com/Mcloud136/Mcloud-Browser/blob/main/mcloud_flags.txt#L27-L38)
+- [2026-06-19-performance-optimization-design.md:78-88](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/superpowers/specs/2026-06-19-performance-optimization-design.md#L78-L88)
 
 章节来源
-- [mcloud_flags.txt:27-38](file://mcloud_flags.txt#L27-L38)
-- [2026-06-19-performance-optimization-design.md:78-88](file://docs/superpowers/specs/2026-06-19-performance-optimization-design.md#L78-L88)
+- [mcloud_flags.txt:27-38](https://github.com/Mcloud136/Mcloud-Browser/blob/main/mcloud_flags.txt#L27-L38)
+- [2026-06-19-performance-optimization-design.md:78-88](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/superpowers/specs/2026-06-19-performance-optimization-design.md#L78-L88)
 
 ### 零释放内存回收（PartitionAllocEventuallyZeroFreedMemory）
 - 作用：在释放内存时执行清零，降低敏感数据残留风险，提升安全性。
@@ -164,12 +165,12 @@ Zero --> Return["归还给分配器"]
 ```
 
 图表来源
-- [mcloud_flags.txt:27-38](file://mcloud_flags.txt#L27-L38)
-- [README.md:121-133](file://README.md#L121-L133)
+- [mcloud_flags.txt:27-38](https://github.com/Mcloud136/Mcloud-Browser/blob/main/mcloud_flags.txt#L27-L38)
+- [README.md:121-133](https://github.com/Mcloud136/Mcloud-Browser/blob/main/README.md#L121-L133)
 
 章节来源
-- [mcloud_flags.txt:27-38](file://mcloud_flags.txt#L27-L38)
-- [README.md:121-133](file://README.md#L121-L133)
+- [mcloud_flags.txt:27-38](https://github.com/Mcloud136/Mcloud-Browser/blob/main/mcloud_flags.txt#L27-L38)
+- [README.md:121-133](https://github.com/Mcloud136/Mcloud-Browser/blob/main/README.md#L121-L133)
 
 ### 内存回收器（PartitionAllocMemoryReclaimer）
 - 作用：周期性或按需触发内存回收，与零释放、活跃槽位排序等特性协同，提升整体内存利用率与响应性。
@@ -188,12 +189,12 @@ MR-->>PM : 上报回收结果
 ```
 
 图表来源
-- [mcloud_flags.txt:27-38](file://mcloud_flags.txt#L27-L38)
-- [2026-06-19-performance-optimization-design.md:78-88](file://docs/superpowers/specs/2026-06-19-performance-optimization-design.md#L78-L88)
+- [mcloud_flags.txt:27-38](https://github.com/Mcloud136/Mcloud-Browser/blob/main/mcloud_flags.txt#L27-L38)
+- [2026-06-19-performance-optimization-design.md:78-88](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/superpowers/specs/2026-06-19-performance-optimization-design.md#L78-L88)
 
 章节来源
-- [mcloud_flags.txt:27-38](file://mcloud_flags.txt#L27-L38)
-- [2026-06-19-performance-optimization-design.md:78-88](file://docs/superpowers/specs/2026-06-19-performance-optimization-design.md#L78-L88)
+- [mcloud_flags.txt:27-38](https://github.com/Mcloud136/Mcloud-Browser/blob/main/mcloud_flags.txt#L27-L38)
+- [2026-06-19-performance-optimization-design.md:78-88](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/superpowers/specs/2026-06-19-performance-optimization-design.md#L78-L88)
 
 ### 平台特定优化：fewer_memory_regions
 - 补丁说明：在 Linux/Android/ChromeOS 上，将 fewer_memory_regions 默认启用，以缓解每进程 VMA 限制带来的问题。
@@ -208,10 +209,10 @@ Platform --> |否| Disable["保持禁用"]
 ```
 
 图表来源
-- [partalloc.patch:1-26](file://other/partalloc.patch#L1-L26)
+- [partalloc.patch:1-26](https://github.com/Mcloud136/Mcloud-Browser/blob/main/other/partalloc.patch#L1-L26)
 
 章节来源
-- [partalloc.patch:1-26](file://other/partalloc.patch#L1-L26)
+- [partalloc.patch:1-26](https://github.com/Mcloud136/Mcloud-Browser/blob/main/other/partalloc.patch#L1-L26)
 
 ## 依赖关系分析
 - 运行时标志：mcloud_flags.txt 提供统一的 enable-features 列表，确保 PartitionAlloc 相关特性在启动时被激活。
@@ -229,16 +230,16 @@ Patch["partalloc.patch"] --> PA
 ```
 
 图表来源
-- [mcloud_flags.txt:27-38](file://mcloud_flags.txt#L27-L38)
-- [gn_args.list（infra）:5186-5196](file://infra/args.list#L5186-L5196)
-- [win_gn_args.list:5570-5591](file://infra/win_gn_args.list#L5570-L5591)
-- [partalloc.patch:1-26](file://other/partalloc.patch#L1-L26)
+- [mcloud_flags.txt:27-38](https://github.com/Mcloud136/Mcloud-Browser/blob/main/mcloud_flags.txt#L27-L38)
+- [gn_args.list（infra）:5186-5196](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/args.list#L5186-L5196)
+- [win_gn_args.list:5570-5591](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/win_gn_args.list#L5570-L5591)
+- [partalloc.patch:1-26](https://github.com/Mcloud136/Mcloud-Browser/blob/main/other/partalloc.patch#L1-L26)
 
 章节来源
-- [mcloud_flags.txt:27-38](file://mcloud_flags.txt#L27-L38)
-- [gn_args.list（infra）:5186-5196](file://infra/args.list#L5186-L5196)
-- [win_gn_args.list:5570-5591](file://infra/win_gn_args.list#L5570-L5591)
-- [partalloc.patch:1-26](file://other/partalloc.patch#L1-L26)
+- [mcloud_flags.txt:27-38](https://github.com/Mcloud136/Mcloud-Browser/blob/main/mcloud_flags.txt#L27-L38)
+- [gn_args.list（infra）:5186-5196](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/args.list#L5186-L5196)
+- [win_gn_args.list:5570-5591](https://github.com/Mcloud136/Mcloud-Browser/blob/main/infra/win_gn_args.list#L5570-L5591)
+- [partalloc.patch:1-26](https://github.com/Mcloud136/Mcloud-Browser/blob/main/other/partalloc.patch#L1-L26)
 
 ## 性能考量
 - 碎片控制：活跃槽位排序在 PurgeMemory 时降低碎片，有助于稳定峰值内存与分配延迟。
@@ -251,8 +252,8 @@ Patch["partalloc.patch"] --> PA
 - M151-opt：新增运行时优化后，K2 内存峰值较基线有所上升（+1.9%），经预载类特性取舍后，真实站点场景内存进一步降低（-2.6%）。
 
 章节来源
-- [M151-benchmark.md:19-30](file://docs/dev-logs/M151-benchmark.md#L19-L30)
-- [M151-opt-benchmark.md:19-60](file://docs/dev-logs/M151-opt-benchmark.md#L19-L60)
+- [M151-benchmark.md:19-30](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/dev-logs/M151-benchmark.md#L19-L30)
+- [M151-opt-benchmark.md:19-60](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/dev-logs/M151-opt-benchmark.md#L19-L60)
 
 ## 故障排查指南
 - 验证内置标志生效：使用 verify_builtin_flags.ps1 检查子进程命令行是否包含预期 feature。
@@ -261,8 +262,8 @@ Patch["partalloc.patch"] --> PA
 - 性能回归定位：对比基线与优化版本的 K1/K2 指标，结合日志与内存快照定位异常。
 
 章节来源
-- [M151-benchmark.md:28-30](file://docs/dev-logs/M151-benchmark.md#L28-L30)
-- [M151-opt-benchmark.md:28-32](file://docs/dev-logs/M151-opt-benchmark.md#L28-L32)
+- [M151-benchmark.md:28-30](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/dev-logs/M151-benchmark.md#L28-L30)
+- [M151-opt-benchmark.md:28-32](https://github.com/Mcloud136/Mcloud-Browser/blob/main/docs/dev-logs/M151-opt-benchmark.md#L28-L32)
 
 ## 结论
 本项目通过统一的运行时标志管理与设计文档对齐，系统性启用了 PartitionAlloc 的多项高级特性，包括活跃槽位排序、优先级继承锁、零释放内存回收与内存回收器。结合平台特定的补丁与 GN 参数集成，实现了在多标签页、高并发与视频播放等场景下的内存与性能优化。基准测试表明，升级与优化未引入明显性能回归，且在内存占用方面取得一定改善。建议在安全敏感场景中谨慎评估零释放开销，并根据实际负载调整回收策略与预载类特性。
