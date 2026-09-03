@@ -1,0 +1,42 @@
+schema_version: 1
+module_path: ""
+title: MCloud Browser 项目根（Chromium 定制分支与构建编排）
+scope:
+    - README.md
+    - CODE_OF_CONDUCT.md
+    - SECURITY.md
+    - AGENTS.md
+    - CLAUDE.md
+    - .gitignore
+    - .gitattributes
+    - .gitmodules
+    - args.gn
+    - win_args.gn
+    - win_args_mcloud.gn
+    - mcloud_flags.txt
+    - get_repo.sh
+    - autobuild.sh
+    - build.sh
+    - build_android.sh
+    - build_mac.sh
+    - build_win.sh
+    - check_simd.sh
+    - clean.sh
+    - create_dmg.sh
+    - launch_browser.bat
+    - patch_ac3.sh
+    - reset_depot_tools.sh
+    - setup.sh
+    - tot.sh
+    - trunk.sh
+    - upstream_version.sh
+    - version.sh
+    - LICENSE.md
+    - TODO.md
+    - aliases.txt
+    - build_repackage.log
+    - g
+    - gclient
+source_files: []
+depends_on: []
+related_to: []

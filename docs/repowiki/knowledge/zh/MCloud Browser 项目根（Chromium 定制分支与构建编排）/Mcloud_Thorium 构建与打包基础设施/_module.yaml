@@ -1,0 +1,9 @@
+schema_version: 1
+module_path: infra_packaging
+title: Mcloud/Thorium 构建与打包基础设施
+scope:
+    - infra/
+source_files: []
+depends_on: []
+related_to:
+    - path: other_patches

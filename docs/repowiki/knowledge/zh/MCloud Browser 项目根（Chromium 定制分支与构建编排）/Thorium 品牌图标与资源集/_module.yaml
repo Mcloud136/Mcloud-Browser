@@ -1,0 +1,8 @@
+schema_version: 1
+module_path: logos_assets
+title: Thorium 品牌图标与资源集
+scope:
+    - logos/
+source_files: []
+depends_on: []
+related_to: []

@@ -1,0 +1,162 @@
+# 知识卡导出索引文件
+schema_version: 1
+locale: zh-CN
+branch: main
+nodes_managed: true
+exported_at: "2026-09-03T17:09:56Z"
+modules:
+    "":
+        dir_name: MCloud Browser 项目根（Chromium 定制分支与构建编排）
+        title: MCloud Browser 项目根（Chromium 定制分支与构建编排）
+        scope:
+            - README.md
+            - CODE_OF_CONDUCT.md
+            - SECURITY.md
+            - AGENTS.md
+            - CLAUDE.md
+            - .gitignore
+            - .gitattributes
+            - .gitmodules
+            - args.gn
+            - win_args.gn
+            - win_args_mcloud.gn
+            - mcloud_flags.txt
+            - get_repo.sh
+            - autobuild.sh
+            - build.sh
+            - build_android.sh
+            - build_mac.sh
+            - build_win.sh
+            - check_simd.sh
+            - clean.sh
+            - create_dmg.sh
+            - launch_browser.bat
+            - patch_ac3.sh
+            - reset_depot_tools.sh
+            - setup.sh
+            - tot.sh
+            - trunk.sh
+            - upstream_version.sh
+            - version.sh
+            - LICENSE.md
+            - TODO.md
+            - aliases.txt
+            - build_repackage.log
+            - g
+            - gclient
+        source_files: []
+        children:
+            - arm_builds
+            - benchmark
+            - depot_tools
+            - docs
+            - infra_packaging
+            - logos_assets
+            - other_patches
+            - pak_tool
+            - src_chromium_fork
+            - win_scripts
+        depends_on: []
+        related_to: []
+    arm_builds:
+        dir_name: Mcloud Browser ARM_AArch64 构建配置
+        title: Mcloud Browser ARM/AArch64 构建配置
+        scope:
+            - arm/
+        source_files: []
+        children: []
+        depends_on: []
+        related_to:
+            - path: win_scripts
+    benchmark:
+        dir_name: MCloud Browser 基准测试与性能验证体系
+        title: MCloud Browser 基准测试与性能验证体系
+        scope:
+            - benchmark/
+        source_files: []
+        children: []
+        depends_on: []
+        related_to:
+            - path: docs
+    depot_tools:
+        dir_name: Chromium depot_tools 工具集与 Windows 交叉编译工具链打包
+        title: Chromium depot_tools 工具集与 Windows 交叉编译工具链打包
+        scope:
+            - depot_tools/
+        source_files: []
+        children: []
+        depends_on: []
+        related_to:
+            - path: win_scripts
+    docs:
+        dir_name: Mcloud Browser 项目文档与架构说明
+        title: Mcloud Browser 项目文档与架构说明
+        scope:
+            - docs/
+        source_files: []
+        children: []
+        depends_on: []
+        related_to:
+            - path: benchmark
+    infra_packaging:
+        dir_name: Mcloud_Thorium 构建与打包基础设施
+        title: Mcloud/Thorium 构建与打包基础设施
+        scope:
+            - infra/
+        source_files: []
+        children: []
+        depends_on: []
+        related_to:
+            - path: other_patches
+    logos_assets:
+        dir_name: Thorium 品牌图标与资源集
+        title: Thorium 品牌图标与资源集
+        scope:
+            - logos/
+        source_files: []
+        children: []
+        depends_on: []
+        related_to: []
+    other_patches:
+        dir_name: Thorium 浏览器构建变体与补丁集
+        title: Thorium 浏览器构建变体与补丁集
+        scope:
+            - other/
+        source_files: []
+        children: []
+        depends_on: []
+        related_to:
+            - path: infra_packaging
+            - path: win_scripts
+    pak_tool:
+        dir_name: Chromium .pak 文件打包_解包工具 (pak)
+        title: Chromium .pak 文件打包/解包工具 (pak)
+        scope:
+            - pak_src/
+        source_files: []
+        children: []
+        depends_on: []
+        related_to:
+            - path: src_chromium_fork
+    src_chromium_fork:
+        dir_name: Thorium_Mcloud Chromium 源码根目录
+        title: Thorium/Mcloud Chromium 源码根目录
+        scope:
+            - src/
+        source_files: []
+        children: []
+        depends_on: []
+        related_to:
+            - path: pak_tool
+    win_scripts:
+        dir_name: Windows 平台 MCloud Browser 构建与部署脚本集
+        title: Windows 平台 MCloud Browser 构建与部署脚本集
+        scope:
+            - win_scripts/
+        source_files: []
+        children: []
+        depends_on: []
+        related_to:
+            - path: arm_builds
+            - path: depot_tools
+            - path: other_patches

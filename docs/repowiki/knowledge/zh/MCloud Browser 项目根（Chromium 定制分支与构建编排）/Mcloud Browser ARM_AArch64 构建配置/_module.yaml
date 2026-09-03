@@ -1,0 +1,9 @@
+schema_version: 1
+module_path: arm_builds
+title: Mcloud Browser ARM/AArch64 构建配置
+scope:
+    - arm/
+source_files: []
+depends_on: []
+related_to:
+    - path: win_scripts

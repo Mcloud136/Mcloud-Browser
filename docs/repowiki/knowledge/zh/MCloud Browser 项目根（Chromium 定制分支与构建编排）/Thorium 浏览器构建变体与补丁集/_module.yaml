@@ -1,0 +1,10 @@
+schema_version: 1
+module_path: other_patches
+title: Thorium 浏览器构建变体与补丁集
+scope:
+    - other/
+source_files: []
+depends_on: []
+related_to:
+    - path: infra_packaging
+    - path: win_scripts

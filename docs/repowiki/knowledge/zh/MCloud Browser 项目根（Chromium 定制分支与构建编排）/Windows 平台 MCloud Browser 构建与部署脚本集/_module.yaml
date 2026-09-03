@@ -1,0 +1,11 @@
+schema_version: 1
+module_path: win_scripts
+title: Windows 平台 MCloud Browser 构建与部署脚本集
+scope:
+    - win_scripts/
+source_files: []
+depends_on: []
+related_to:
+    - path: arm_builds
+    - path: depot_tools
+    - path: other_patches

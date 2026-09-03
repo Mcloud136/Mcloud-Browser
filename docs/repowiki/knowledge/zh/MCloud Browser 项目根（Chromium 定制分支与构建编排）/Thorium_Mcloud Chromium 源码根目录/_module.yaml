@@ -1,0 +1,9 @@
+schema_version: 1
+module_path: src_chromium_fork
+title: Thorium/Mcloud Chromium 源码根目录
+scope:
+    - src/
+source_files: []
+depends_on: []
+related_to:
+    - path: pak_tool

@@ -1,0 +1,9 @@
+schema_version: 1
+module_path: depot_tools
+title: Chromium depot_tools 工具集与 Windows 交叉编译工具链打包
+scope:
+    - depot_tools/
+source_files: []
+depends_on: []
+related_to:
+    - path: win_scripts
