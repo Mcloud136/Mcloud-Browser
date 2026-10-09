@@ -67,6 +67,9 @@ if ($found -eq $probe.Count) {
 # 加载器在进程内追加的开关会传递给渲染器等子进程，可从 WMI 命令行直接观测。
 if ($found -lt $probe.Count) {
     Write-Host "`nheadless 路径未确认，改用子进程命令行探测..." -ForegroundColor Yellow
+    # D35 修复（2026-10-08 bug-review）：兜底路径必须从头计数，否则与 headless
+    # 的部分命中累加后可能超过 probe.Count，把未生效的标志误判为验证通过。
+    $found = 0
     $probeDir = Join-Path $env:TEMP "mcloud_probe_$PID"
     if (Test-Path $probeDir) { Remove-Item -Recurse -Force $probeDir }
     $browser = Start-Process -FilePath $ChromeExe `

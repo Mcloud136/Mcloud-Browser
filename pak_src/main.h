@@ -19,9 +19,13 @@ int __cdecl mainCRTStartup() {
   int __arg_c;
 #ifdef UNICODE
   wchar_t **__arg_v = CommandLineToArgvW(GetCommandLineW(), &__arg_c);
+  if (__arg_v == NULL)
+    return 34; // Defect D19: argv conversion may fail (allocation)
   const int exitCode = wmain(__arg_c, __arg_v);
 #else
   char **__arg_v = CommandLineToArgvA(GetCommandLineA(), &__arg_c);
+  if (__arg_v == NULL)
+    return 34; // Defect D19: argv conversion may fail (allocation)
   const int exitCode = main(__arg_c, __arg_v);
 #endif
   LocalFree(__arg_v);

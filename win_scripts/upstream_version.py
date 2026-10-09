@@ -1,71 +1,20 @@
-# Copyright (c) 2026 Alex313031 and gz83.
-
 """
-This file is the equivalent of upstream_version.sh in the parent folder, but for native
-builds on Windows, we do not need to deal with the vs artifacts hash and linux
-sysroot. At the same time, download only the PGO file for win64.
+LEGACY — 已禁用（bug-review 2026-10-08，缺陷 D28）。
+
+upstream_version.py 使用被永久禁用的
+gclient sync --force --reset --nohooks --delete_unversioned_trees 组合
+（2026-08-06 事故实证：清除全部定制与 buildtools/win）。
+正确流程见 AGENTS.md：浅拉取 tag + deploy_mcloud.py 定点幂等部署。
 """
 
-import os
-import subprocess
 import sys
 
 
-def fail(msg):
-    # Print error message and exit
-    print(f"{sys.argv[0]}: {msg}", file=sys.stderr)
-    sys.exit(111)
+def main():
+    print("upstream_version.py 已禁用（LEGACY，缺陷 D28）。", file=sys.stderr)
+    print("请使用 AGENTS.md 升级流程。", file=sys.stderr)
+    return 1
 
 
-def try_run(command):
-    # Execute a command and die on failure
-    try:
-        subprocess.run(command, shell=True, check=True)
-    except subprocess.CalledProcessError:
-        fail(f"Failed {command}")
-
-
-# --help
-def display_help():
-    print(f"\nScript to check out Chromium tag of current Mcloud Browser version.\n")
-    print(f"\nNOTE: You may need to run trunk.py before using this script\n")
-
-
-if "--help" in sys.argv:
-    display_help()
-    sys.exit(0)
-
-
-# Set chromium/src dir from Windows environment variable
-cr_src_dir = os.getenv("CR_DIR", r"C:/src/chromium/src")
-
-
-# Set cr_ver
-cr_ver = "144.0.7559.254"
-
-
-print(f"\nCurrent Chromium version is: {cr_ver}\n")
-print(f"\nNOTE: Checking out tags/{cr_ver} in {cr_src_dir}\n")
-
-# Change directory to cr_src_dir and run commands
-os.chdir(cr_src_dir)
-
-try_run(f"git checkout -f tags/{cr_ver}")
-
-# Commands to run
-commands = [
-    "git clean -ffd",
-    "git clean -ffd",
-    "gclient sync --with_branch_heads --with_tags --force --reset --nohooks --delete_unversioned_trees",
-    "git clean -ffd",
-    "gclient runhooks",
-]
-
-# Run each command with error handling
-for cmd in commands:
-    try_run(cmd)
-
-
-print(f"\nChromium tree is checked out at tag: {cr_ver}\n")
-
-print("\nDone!\n")
+if __name__ == "__main__":
+    sys.exit(main())

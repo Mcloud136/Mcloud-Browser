@@ -21,11 +21,12 @@
 
 /**
  * Unpack a pak file to target path.
- * @param void *buffer - pointer to target pak buffer.
+ * @param uint8_t *buffer - pointer to target pak buffer.
+ * @param unsigned int size - buffer size in bytes.
  * @param char *outputPath - target path.
  * @return bool - succeed or not.
  */
-bool pakUnpack(uint8_t *buffer, char *outputPath);
+bool pakUnpack(uint8_t *buffer, unsigned int size, char *outputPath);
 
 /**
  * Pack a pak file from target index (ini) file,

@@ -41,9 +41,11 @@ os.chdir(cr_src_dir)
 # Determine the number of threads to use
 jobs = sys.argv[1] if len(sys.argv) > 1 else str(os.cpu_count())
 
-try_run(f'autoninja -C out/mcloud mcloud_all -j{jobs}')
+# D29（2026-10-08 修复）：原脚本引用本项目不存在的 mcloud_all / setup 目标
+# （上游 Thorium 专有），永远构建失败。改为与 AGENTS.md 一致的目标集。
+try_run(f'autoninja -C out/mcloud chrome -j{jobs}')
 
-try_run(f'autoninja -C out/mcloud setup mini_installer -j{jobs}')
+try_run(f'autoninja -C out/mcloud mini_installer -j{jobs}')
 
 installer_dest = os.path.normpath(os.path.join(cr_src_dir, 'out', 'mcloud'))
 

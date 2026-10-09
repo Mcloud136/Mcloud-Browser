@@ -4,8 +4,10 @@
 // msvc hacks
 #ifdef _MSC_VER
 #include <windows.h>
-#define ftello ftell
-#define fseeko fseek
+// Use the 64-bit file position APIs on MSVC: plain ftell returns a 32-bit
+// long and would silently truncate large files (defect D16).
+#define ftello _ftelli64
+#define fseeko _fseeki64
 #define PATH_MAX MAX_PATH
 #endif
 // linux header
@@ -71,6 +73,8 @@ typedef struct PakAlias {
 #define PAK_ERROR_UNKNOWN_VER "Error: Unknown pak version."
 #define PAK_ERROR_TRUNCATED "Error: Probably truncated pak file."
 #define PAK_ERROR_BROKEN_INDEX "Error: Probably broken pak index file."
+#define PAK_ERROR_BAD_ENTRY_ORDER "Error: Pak entry offsets are not monotonic."
+#define PAK_ERROR_TOO_LARGE "Error: Packed pak would exceed 4 GB."
 
 typedef struct MyPakHeader {
     uint32_t version;

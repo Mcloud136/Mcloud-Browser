@@ -1,90 +1,27 @@
 # Copyright (c) 2026 Alex313031, midzer and gz83.
-
+#
 """
-This file is the equivalent of reset_depot_tools.py in the parent folder, but we
-do not need to deal with the .vpython_cipd_cache.
-This file may prompt "Access denied" and other prompts during the operation, but
-in fact it seems that the files we need to delete have been deleted.
+LEGACY — 已禁用（bug-review 2026-10-08，缺陷 D37/D28 同族）。
+
+本脚本会删除 DEPOT_TOOLS_DIR 指向的整个目录并从 googlesource 重克隆最新
+master——直接破坏本项目"depot_tools 固定修订版本"策略（仓库内 depot_tools/
+与根目录 gclient/g 文件即为固定版本资产）。另有边界风险：DEPOT_TOOLS_DIR
+若配置为盘根带尾斜杠（如 "D:\"），`del /S /Q "D:\\\*"` 将清空整个盘；删除
+失败后仍会继续 clone，可能造成半删状态。
+
+如确需重置 depot_tools：手动移走旧目录后按项目固定修订重新拉取，或参考
+depot_tools/DEPOT_TOOLS_REVISION 记录版本，不要使用本脚本。
 """
 
-# TODO(gz83): Suppress false positives during operation?
-
-import os
-import subprocess
 import sys
 
 
-def fail(msg):
-    print(f"{sys.argv[0]}: {msg}", file=sys.stderr)
-    sys.exit(111)
+def main():
+    print("reset_depot_tools.py 已禁用（LEGACY，缺陷 D37）。", file=sys.stderr)
+    print("本项目 depot_tools 为固定修订版本，禁止整目录删除+重克隆 master。",
+          file=sys.stderr)
+    return 1
 
 
-def try_run(command):
-    try:
-        subprocess.run(command, shell=True, check=True)
-    except subprocess.CalledProcessError:
-        fail(f"Failed {command}")
-
-
-def remove(item_path):
-    if os.path.exists(item_path):
-        if os.path.isdir(item_path):
-            try:
-                # Try to unlock and delete the directory
-                unlock_and_delete(item_path)
-                print(f"removed '{item_path}'")
-            except PermissionError as e:
-                print(f"Failed to remove '{item_path}': {e}")
-        else:
-            os.remove(item_path)
-            print(f"removed '{item_path}'")
-
-
-def unlock_and_delete(path):
-    """Attempts to unlock and delete a directory using Windows cmd commands."""
-    # Use the Windows command line tools to unlock the directory
-    try:
-        # Use the command 'del' to delete all files recursively
-        subprocess.run(f'del /S /Q "{path}\\*"', shell=True, check=True)
-        # Use the command 'rmdir' to delete the directory
-        subprocess.run(f'rmdir /S /Q "{path}"', shell=True, check=True)
-    except subprocess.CalledProcessError as e:
-        print(f"Failed to unlock and delete directory '{path}' via CMD: {e}")
-        raise PermissionError(
-            f"Failed to unlock and delete directory '{path}' via CMD: {e}"
-        )
-
-
-def display_help():
-    print("\nScript to reset depot_tools on Windows.\n")
-    print("This will remove depot_tools, .gsutil, and .vpython-root")
-    print("from your disk, and then re-clone depot_tools.")
-    print("\n")
-
-
-if "--help" in sys.argv:
-    display_help()
-    sys.exit(0)
-
-
-depot_tools_dir = os.getenv("DEPOT_TOOLS_DIR", r"C:\src\depot_tools")
-gsutil_dir = os.path.expandvars(
-    os.getenv("GSUTIL_DIR", r"%USERPROFILE%\.gsutil"))
-vpython_root_dir = os.path.expandvars(
-    os.getenv("VPYTHON_ROOT_DIR", r"%LOCALAPPDATA%\.vpython-root")
-)
-
-print("\nRemoving depot_tools, etc\n")
-
-remove(depot_tools_dir)
-remove(gsutil_dir)
-remove(vpython_root_dir)
-
-print("\nRe-clone depot_tools\n")
-
-os.chdir(os.path.dirname(depot_tools_dir))
-try_run(f"git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git")
-
-print(
-    f"\nCompleted. You can now use the depot_tools installed at: {depot_tools_dir}\n")
-print("\nYou can now run trunk.py\n")
+if __name__ == "__main__":
+    sys.exit(main())

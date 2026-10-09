@@ -21,18 +21,20 @@ PakFile pakPackFiles(MyPakHeader *myHeader, PakFile *pakResFile,
 
 /**
  * Get a single file from pak, returns NULL_File on failure.
- * @param void *pakBuffer - pointer to pak.
- * @param uint16_t *id - target file id.
+ * @param uint8_t *pakBuffer - pointer to pak.
+ * @param unsigned int size - pak buffer size in bytes.
+ * @param uint16_t id - target file id.
  * @return PakFile - the target file.
  */
-PakFile pakGetFile(uint8_t *pakBuffer, uint16_t id);
+PakFile pakGetFile(uint8_t *pakBuffer, unsigned int size, uint16_t id);
 
 /**
  * Get all files from pak, returns NULL on failure.
  * Note: this would allocate memory.
- * @param void* buffer - pointer to pak.
+ * @param uint8_t *buffer - pointer to pak.
+ * @param unsigned int size - pak buffer size in bytes.
  * @return PakFile* - pointer to all files in pak.
  */
-PakFile *pakGetFiles(uint8_t *buffer);
+PakFile *pakGetFiles(uint8_t *buffer, unsigned int size);
 
 #endif // __PAK_FILE_H__

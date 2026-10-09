@@ -2,9 +2,11 @@
 # config 定义（供 BUILDCONFIG.gn 接线引用）。树文件为上游基线，
 # thorium 仓库内的同名文件基线过旧不可整体部署（2026-08-05 实证）。
 import io
+import os
 import sys
 
-p = r"D:\wxmuma\chromium-src\src\build\config\compiler\BUILD.gn"
+SRC = os.environ.get("CR_DIR", r"D:\wxmuma\chromium-src\src")
+p = os.path.join(SRC, "build", "config", "compiler", "BUILD.gn")
 s = io.open(p, encoding="utf-8").read()
 
 if 'config("polly")' in s:

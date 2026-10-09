@@ -4,9 +4,11 @@
 # 直接部署会与较新的 chromium 树冲突（enable_strict_deps 未定义），
 # 故接线改为在树的上游文件上原位应用。
 import io
+import os
 import sys
 
-p = r"D:\wxmuma\chromium-src\src\build\config\BUILDCONFIG.gn"
+SRC = os.environ.get("CR_DIR", r"D:\wxmuma\chromium-src\src")
+p = os.path.join(SRC, "build", "config", "BUILDCONFIG.gn")
 s = io.open(p, encoding="utf-8").read()
 
 if "compiler:polly" in s:

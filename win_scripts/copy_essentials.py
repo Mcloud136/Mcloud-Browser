@@ -10,8 +10,10 @@
 #   apply_mcloud_source_defaults.py D3D12 默认启用/后台模式默认关/DoH 校验
 import os, shutil, sys
 
-cr_src = os.environ.get('CR_DIR', '.')
-thor_src = os.environ.get('THOR_DIR', '.')
+# D27: 默认值与 deploy_mcloud.py 对齐（构建机标准树），避免未设 CR_DIR 时
+# 以 '.' 为根在错误位置创建 out/mcloud 等目录
+cr_src = os.environ.get('CR_DIR', r'D:\wxmuma\chromium-src\src')
+thor_src = os.environ.get('THOR_DIR', os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 os.makedirs(f"{cr_src}/out/mcloud/", exist_ok=True)
 
@@ -21,6 +23,20 @@ essential_files = [
     # thorium-specific file with no upstream counterpart; safe to copy.
     "src/build/config/compiler_opt.gni",
 ]
+
+# D41 防御（2026-10-09）：本清单只允许"无上游对应物"的文件。仓库 src/ 下与上游
+# 同名的副本均为旧内核基线（chrome_main_delegate.cc 实测 8 处 API 漂移），一旦被
+# 加回这里就会用旧副本覆盖新树并破坏构建（docs/dev-logs/phase2-dev-log.md §8）。
+# 需要改上游文件请写定点幂等脚本（apply_*/inject_*），不要加入本清单。
+ALLOWED_COPY = {"src/build/config/compiler_opt.gni"}
+_forbidden = [f for f in essential_files
+              if f.replace("\\", "/") not in ALLOWED_COPY]
+if _forbidden:
+    print("REFUSED: entries with an upstream counterpart must not be copied "
+          "wholesale: " + ", ".join(_forbidden))
+    print("Use a targeted idempotent script (apply_*/inject_*) instead "
+          "(see defect D41).")
+    sys.exit(1)
 
 for f in essential_files:
     src = os.path.join(thor_src, f)

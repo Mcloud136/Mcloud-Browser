@@ -80,72 +80,20 @@ void reset () {
 	"\033[1;31mNote: Existing destination files will be overwritten!\033[0m\n\n"  \
 	
 void printHelp() {
-    // get self path
-    char selfName[PATH_MAX];
-#ifdef _WIN32
-    GetModuleFileName(NULL, selfName, PATH_MAX);
-    // get file name from path
-    const char *ptr = strrchr(selfName, '\\');
-#else
-    int ret = readlink("/proc/self/exe", selfName, sizeof(selfName) - 1);
-    if (ret == -1)
-        strcpy(selfName, "pak");
-    else
-        selfName[ret] = 0;
-    // get file name from path
-    const char *ptr = strrchr(selfName, '/');
-#endif
-
-    if (ptr != NULL)
-        strcpy(selfName, ptr + 1);
-    printf(HELP_TEXT, selfName, selfName);
+    // Defect D14: the self-path block was dead code that also performed an
+    // overlapping strcpy and passed unused args to printf.
+    printf(HELP_TEXT);
 }
 
 
 
 void printVersion() {
-    // get self path
-    char selfName[PATH_MAX];
-#ifdef _WIN32
-    GetModuleFileName(NULL, selfName, PATH_MAX);
-    // get file name from path
-    const char *ptr = strrchr(selfName, '\\');
-#else
-    int ret = readlink("/proc/self/exe", selfName, sizeof(selfName) - 1);
-    if (ret == -1)
-        strcpy(selfName, "pak");
-    else
-        selfName[ret] = 0;
-    // get file name from path
-    const char *ptr = strrchr(selfName, '/');
-#endif
-
-    if (ptr != NULL)
-        strcpy(selfName, ptr + 1);
-	
+    // Defect D14: dead self-path block removed.
     printf(PAK_VERSION_STRING);
 }
 
 void printChromium() {
-    // get self path
-    char selfName[PATH_MAX];
-#ifdef _WIN32
-    GetModuleFileName(NULL, selfName, PATH_MAX);
-    // get file name from path
-    const char *ptr = strrchr(selfName, '\\');
-#else
-    int ret = readlink("/proc/self/exe", selfName, sizeof(selfName) - 1);
-    if (ret == -1)
-        strcpy(selfName, "pak");
-    else
-        selfName[ret] = 0;
-    // get file name from path
-    const char *ptr = strrchr(selfName, '/');
-#endif
-
-    if (ptr != NULL)
-        strcpy(selfName, ptr + 1);
-	
+    // Defect D14: dead self-path block removed.
     printf(CHROMIUM_ASCII);
 }
 
@@ -156,20 +104,24 @@ int pakUnpackPath(char *pakFilePath, char *outputPath) {
         return 1;
     }
     MyPakHeader myHeader;
-    if (!pakParseHeader(pakFile.buffer, &myHeader)) {
+    // Defect D8: every early return must release the whole-file buffer.
+    if (!pakParseHeader(pakFile.buffer, pakFile.size, &myHeader)) {
+        freeFile(pakFile);
         return 2;
     }
 
     if (!pakCheckFormat(pakFile.buffer, pakFile.size)) {
+        freeFile(pakFile);
         return 3;
     }
 
-    if (!pakUnpack(pakFile.buffer, outputPath)) {
+    if (!pakUnpack(pakFile.buffer, pakFile.size, outputPath)) {
         freeFile(pakFile);
         return 4;
     }
     freeFile(pakFile);
-    printf("\033[1;32\nmUnpacked %s\033[0m", pakFilePath);
+    // Defect D13: fixed broken ANSI escape ("\033[1;32\nm" -> "\033[1;32m")
+    printf("\033[1;32mUnpacked %s\033[0m", pakFilePath);
     printf("\033[1;32m to %s\033[0m\n\n", outputPath);
     return 0;
 }
@@ -232,7 +184,9 @@ PAK_PACK_INDEX_END:
         free(outputFilePath2);
     if (freeFilesPath && filesPath != NULL)
         free(filesPath);
-printf("\033[1;32m\nPacked %s\033[0m\n\n", outputFilePath);
+    // Defect D9: only report success when the pack actually succeeded
+    if (returnCode == 0)
+        printf("\033[1;32m\nPacked %s\033[0m\n\n", outputFilePath);
     return returnCode;
 }
 
@@ -279,6 +233,14 @@ int main(int argc, char *argv[]) {
         }
         if ((flags == PAK_FLAGS_UNPACK || flags == PAK_FLAGS_PACK) &&
             argc - i > 2) {
+            // Defect D7: refuse over-long paths instead of overflowing the
+            // fixed PATH_MAX buffers with strcpy.
+            if (strlen(argv[i + 1]) >= PATH_MAX ||
+                strlen(argv[i + 2]) >= PATH_MAX) {
+                printf("\033[1;31mError: path argument too long (>= %d)\033[0m\n",
+                       PATH_MAX);
+                return 33;
+            }
             strcpy(path1, argv[i + 1]);
             strcpy(path2, argv[i + 2]);
             process = true;

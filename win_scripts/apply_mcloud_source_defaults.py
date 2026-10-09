@@ -8,9 +8,11 @@
 #                                            无需修改（M151 上游默认已是 kAutomatic，
 #                                            MCloud 的 M150 修复已被上游吸收）
 import io
+import os
 import sys
 
-SRC = r"D:\wxmuma\chromium-src\src"
+# D27: 与 deploy_mcloud.py 的 CR_DIR 机制保持一致
+SRC = os.environ.get("CR_DIR", r"D:\wxmuma\chromium-src\src")
 
 def patch_file(path, old, new, desc, ok_if_new_present=None):
     s = io.open(path, encoding="utf-8").read()

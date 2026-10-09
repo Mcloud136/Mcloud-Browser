@@ -1,6 +1,16 @@
 // Copyright 2026 The Chromium Authors and Alex313031
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
+//
+// ⚠ 陈旧参考副本（缺陷 D41，2026-10-09 标注）：本文件是 2026-08-05 的旧 Chromium
+// 基线副本，**不参与构建**——已从 win_scripts/copy_essentials.py 清单移除，
+// 且与 M151 存在 8 处 API 漂移（base::StringPiece 移除、SPLIT_SKIP_EMPTY→
+// SPLIT_WANT_NONEMPTY、PackExtension 签名、OverrideCachedUIStrings /
+// kDisableBoostPriorityMode / DIR_INTERNAL_PLUGINS 移除），整份覆盖到源码树会
+// 编译失败（见 docs/dev-logs/phase2-dev-log.md §8）。
+// 启动标志加载器的唯一权威来源是 win_scripts/inject_flags_loader.py 的 LOADER
+// 常量（幂等注入到树内上游文件）。要改加载行为请改注入脚本，不要改这份副本，
+// 也不要把它重新加回任何复制清单。
 
 #include "chrome/app/chrome_main_delegate.h"
 

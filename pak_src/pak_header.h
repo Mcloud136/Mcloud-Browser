@@ -8,10 +8,11 @@
 /**
  * Generate MyPakHeader struct from pak buffer.
  * @param _in_ void *buffer - pointer to pak buffer.
+ * @param _in_ unsigned int size - buffer size in bytes (validated).
  * @param _out_ MyPakHeader myHeader - target file content.
  * @return bool - succeed or not.
  */
-bool pakParseHeader(void *buffer, MyPakHeader *myHeader);
+bool pakParseHeader(void *buffer, unsigned int size, MyPakHeader *myHeader);
 
 /**
  * Write pak header from MyPakHeader struct to buffer.

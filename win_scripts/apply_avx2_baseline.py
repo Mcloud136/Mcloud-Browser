@@ -1,9 +1,12 @@
 # 一次性工具：向 M151 上游版 build/config/win/BUILD.gn 应用 AVX2+FMA3 基线
 # （替换上游的 -msse3）。依据：技术规范 1.5 硬件基线。
 import io
+import os
 import sys
 
-p = r"D:\wxmuma\chromium-src\src\build\config\win\BUILD.gn"
+# D27: 与 deploy_mcloud.py 的 CR_DIR 机制保持一致（默认构建机标准树）
+SRC = os.environ.get("CR_DIR", r"D:\wxmuma\chromium-src\src")
+p = os.path.join(SRC, "build", "config", "win", "BUILD.gn")
 s = io.open(p, encoding="utf-8").read()
 
 if "-mavx2" in s:

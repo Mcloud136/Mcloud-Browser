@@ -1,7 +1,12 @@
-alias origin='git checkout -f origin/main'
+# D28（2026-10-08 bug-review）：origin/gsync 别名含破坏性组合
+# （checkout -f 整树重置 / sync --force --reset --delete_unversioned_trees
+# 会清除定制与 CIPD 二进制），已禁用并给出安全替代。
+# alias origin='git checkout -f origin/main'
+alias origin='git status -sb'
 alias gfetch='git fetch --tags'
 alias rebase='git rebase-update'
-alias gsync='gclient sync --with_branch_heads --with_tags --force --reset --nohooks --delete_unversioned_trees'
+# alias gsync='gclient sync --with_branch_heads --with_tags --force --reset --nohooks --delete_unversioned_trees'
+alias gsync='gclient sync --with_branch_heads --with_tags'
 alias gnls='gn ls out/mcloud'
 alias show='git show-ref'
 alias runhooks='gclient runhooks'

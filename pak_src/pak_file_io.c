@@ -1,31 +1,55 @@
 #include "pak_file_io.h"
 
 PakFile readFile(const char *fileName) {
-    PakFile file;
+    PakFile file = NULL_File;
     /* declare a file pointer */
     FILE *filePtr = fopen(fileName, "rb");
     /* quit if the file does not exist */
     if (filePtr == NULL)
         return NULL_File;
 
-    /* Get the number of bytes */
-    fseeko(filePtr, 0, SEEK_END);
-    file.size = (uint32_t) ftello(filePtr);
+    /* Get the number of bytes; reject seek failures and >4G files
+       (defect D6/D16: unchecked ftell, silent 32-bit truncation) */
+    if (fseeko(filePtr, 0, SEEK_END) != 0) {
+        fclose(filePtr);
+        return NULL_File;
+    }
+    int64_t length = ftello(filePtr);
+    if (length < 0 || length > (int64_t)UINT32_MAX - 1) {
+        fclose(filePtr);
+        return NULL_File;
+    }
 
     /* reset the file position indicator to
     the beginning of the file */
-    fseeko(filePtr, 0, SEEK_SET);
+    if (fseeko(filePtr, 0, SEEK_SET) != 0) {
+        fclose(filePtr);
+        return NULL_File;
+    }
+
+    file.size = (uint32_t)length;
 
     /* grab sufficient memory for the
     buffer to hold the text */
     file.buffer = calloc(file.size + 1, sizeof(uint8_t));
 
-    /* memory error */
-    if (file.buffer == NULL)
+    /* memory error: close the handle before returning (defect D6:
+       the original leaked filePtr here) */
+    if (file.buffer == NULL) {
+        fclose(filePtr);
         return NULL_File;
+    }
 
-    /* copy all the text into the buffer */
-    fread(file.buffer, sizeof(uint8_t), file.size, filePtr);
+    /* copy all the text into the buffer; a short read is a hard error,
+       not silent data corruption (defect D6) */
+    if (file.size > 0 &&
+        fread(file.buffer, sizeof(uint8_t), file.size, filePtr) !=
+            file.size) {
+        free(file.buffer);
+        file.buffer = NULL;
+        fclose(filePtr);
+        return NULL_File;
+    }
     fclose(filePtr);
 
     return file;
