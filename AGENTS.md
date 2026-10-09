@@ -23,7 +23,11 @@ MCloud Browser 是基于 Chromium（当前 M151，151.0.7922.x，硬件基线 AV
 | GitHub Actions | CI/CD（release.yml 发布 + verify.yml 源码验证） |
 
 - **仓库**：https://github.com/Mcloud136/Mcloud-Browser（main 分支，MIT 许可）。
-- **CI 触发**：push 到 main 或推送 `v*` tag。
+- **CI 触发**：`verify.yml` 在 push 到 main / PR / 手动时运行；`release.yml` **仅在推送 `v*` tag 时运行**
+  （push 到 main 不会发布）。注意 release 作业不在 runner 上编译内核，它假定仓库根存在
+  `mini_installer.exe` 才会算校验并上传资产——而该文件既被 `.gitignore` 排除、又超过 GitHub
+  单次 push 的 100 MiB 上限，因此**打 tag 只会建出没有安装包的 release**；安装包资产需通过
+  GitHub Release 资产上传（详见 `docs/tasks/bug-review-pak-src-defects.md` D45）。
 
 ## 源码根职责总览
 

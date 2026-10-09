@@ -1,5 +1,43 @@
 # MCloud Browser Changelog
 
+## M151-r2（稳定性/内存安全修复）— 2026-10-09
+
+### 🛡️ 运行时内存安全（本版重点，缺陷 D39/D40）
+- 加载器新增**命令行字节预算**：总 24KiB、普通开关子预算 12KiB，超预算条目跳过并 `LOG(WARNING)` 降级
+- 堵住两条同型崩溃路径：超大 `--enable-features` 合并值撑破子进程 `CreateProcessW` 32767 字符上限
+  （GPU 进程无法创建 → `FATAL GPU process isn't usable. Goodbye.`），以及单条超长值（如异常大的 `--js-flags`）
+- 实测：106,890B / 3000 条 feature 语料下浏览器存活且内置列表不入子进程命令行；修复前约 12s FATAL
+- 标志文件强制 1MiB 上限 + 逐行有界解析；解析改用 `string_view::substr`，`-Wunsafe-buffer-usage` 告警清零
+- 注入器"是否需要替换"判定由版本号标记改为正文比对（真幂等，避免正文与标记不同步的假升级）
+- 真实标志文件仅占预算 ~8%（1.9KB/24KB），60 项 feature + 3 项普通开关全部照常生效
+
+### 🧰 pak_src 工具（缺陷 D1-D24 收口）
+- 头部/表范围/偏移单调性校验、64 位尺寸累加并拒绝 >4GB、错误路径补齐 fclose/free、
+  有界索引写入与 `%255s` 宽度限制、argv 与路径拷贝越界防护
+- 判据：ASan 畸形语料优雅报错 + 450 例变异模糊 + 23 例结构化溢出探针（两向均带可成功正例），
+  零 ASan 报告/零访问违例/零挂起；v4/v5 真实 pak 往返字节一致
+
+### 🖥️ 体验修复配置固化
+- 窗口拖拽缩小播放视频冻结的缓解 4 项标志固化为禁用（§4.6 用户实测确认有效）
+- 核显视频开头绿屏（Intel D3D12 解码首帧缺陷）修复包内携带：`mcloud_flags.txt` 已确认打进 installer
+
+### 🏗️ 工程修正
+- 含 `gclient sync --force --reset --delete_unversioned_trees` 的 legacy 升级入口改为拒绝执行（D28/D37）
+- 8 个含中文的 `.ps1` 补 UTF-8 BOM，修复 PowerShell 5.1 解析失败（D38）
+- `copy_essentials.py` 白名单断言防旧基线副本再入（D41）；`build_win.py` 目标修正（D29）；脚本统一 `CR_DIR`（D30）
+- 发布链路缺陷登记并修复：installer 明文字节搜索无效（D43，应扫 `chrome.7z` 载荷）、
+  发行包与 `.sha256` sidecar 不同步（D44，发布脚本改为同批重算写盘）
+- `verify_sources.py` 接入 CI（`.github/workflows/verify.yml`）
+- 文档口径校正：标志数量统一为实测 63 条生效行 = 60 feature + 3 开关（D42）
+
+### 📊 验证与产物
+- 连续五轮 8 门回归全绿（零新缺陷）；K1 冷启动中位数 54ms 无性能回归
+- 发行包 `mcloud_151.0.7922.99_win64_mini_installer.exe`（123,448,320B）
+  SHA256 `054efb37c8018feda5ba06842e39269908e438f27ae873b0bb670bfc05ab389f`
+  （强制全量重做：重编加载器 TU → 重链 chrome.dll → 重建 chrome.7z → 重打 installer）
+
+---
+
 ## M151-opt（运行时优化增量）— 2026-08-06
 
 ### 🔧 V8 脚本执行修正（确定性 bug）

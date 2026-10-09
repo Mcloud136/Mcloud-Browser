@@ -305,6 +305,23 @@ detect_leaks 不支持），内存泄漏结论以逐行分配/释放配对审查
 - 关联：D43 同时纠正了"installer 内明文字节搜索"这一无效验证通道，
   发布门改为 `chrome.7z` 载荷扫描 + mtime 链条（`chrome.dll ≤ chrome.7z ≤ mini_installer.exe`）。
 
+### D45 release.yml 的资产上传前提在现实中不成立（打 tag 会产出空包 release）
+- 严重度: **Medium**（发布链路：看起来成功，实际没有安装包）
+- 事实：`release.yml` 只有 checkout → 取版本号 → 读 release notes → `if [ -f mini_installer.exe ]`
+  → `softprops/action-gh-release` 上传 `mini_installer.exe` 与校验文件；**runner 上不编译内核**
+  （ubuntu + 10min 超时）。而仓库根不存在 `mini_installer.exe`：
+  ① `.gitignore` 排除 `mcloud_*_win64_mini_installer.exe`（ADR-003 命名）；
+  ② 我们的包 123,448,320B ≈ 117.7MiB，超过 GitHub 单次 push 的 **100MiB 硬限**，即使改名入库也会被拒。
+  结果：checksum 步走 "not found, skipping"，action 对缺失文件静默跳过 → 建出**没有资产的 release**。
+  另外 `AGENTS.md` 原写"CI 触发：push 到 main 或推送 v* tag"，容易误读为 push main 即发布（实际 release 只认 tag）。
+- 已做的处置（本轮）：`AGENTS.md` 触发口径与前提写清楚；新增本版 release notes
+  （`docs/superpowers/specs/2026-10-09-release-notes-mcloud-r2.md`，供 release.yml 的
+  `ls -t *release-notes*.md | head -1` 取用）；发行包按 GitHub Release 资产通道上传而非入库。
+- 待决（owner：项目方，二选一）：
+  A. 改 `release.yml` 为 `workflow_dispatch` + 显式接收本地产物/artifact 路径，并按
+     `mcloud_<version>_win64_mini_installer.exe` 命名与生成校验（一次性把链路做对）；
+  B. 启用 Git LFS 入库二进制（代价：仓库历史永久背负每版 ~118MB，不建议）。
+
 ### 第2周期补充证据：结构化溢出探针（crafted_pak_cases.py，23 例）
 随机字节翻转很难构造出"结构合法但恶意"的头部，故补一组逐字节手工构造的探针，
 两个方向都带**可用为正例**（否则"全部报错"可能只是"文件找不到"的假通过）：
@@ -351,6 +368,7 @@ detect_leaks 不支持），内存泄漏结论以逐行分配/释放配对审查
 | 文档 | D42（标志数量口径矛盾） | ✅ 统一为实测 63 行/60 feature + 3 开关，附复算方法 | 计数脚本实测 |
 | 发布方法 | D43（installer 明文搜索无效） | ✅ 改为 chrome.7z 载荷扫描 + 打包输入判据 + mtime 链条 | 实测：installer 内 chrome.dll 亦 MISS；chrome.7z 命中条目名与新鲜度标记 |
 | 发布完整性 | D44（sidecar 与包体不同步） | ✅ 发布脚本重算哈希并写 `.sha256` | sidecar 与包体同批重算一致（当前发布包 `054efb37…05ab389f`） |
+| 发布链路 | D45（release.yml 资产前提不成立） | ⚠️ 口径与前提已写清 + 本版 release notes 落地；工作流改造待决（A/B） | 读 `.github/workflows/release.yml` 全文与 GitHub 100MiB push 限制核实 |
 | 文档 | D31/D32 | ✅ | 人工复核 |
 | benchmark | D35/D38 | ✅ | PS 5.1 解析通过 + K1=68ms |
 | 遗留风险 R5 | Linux legacy 面（D28 子项）| — | owner: 项目方；建议下次整理时删除或加 refusal guard（ADR-003 不维护面）|
