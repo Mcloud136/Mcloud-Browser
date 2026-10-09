@@ -33,3 +33,7 @@ __pycache__/
 mcloud_*_win64_mini_installer.exe
 mcloud_*_win64_mini_installer.exe.sha256
 .bugreview/
+
+# 本地 Agent 设置与临时构建日志（不入库）
+.claude/
+build_repackage.log
