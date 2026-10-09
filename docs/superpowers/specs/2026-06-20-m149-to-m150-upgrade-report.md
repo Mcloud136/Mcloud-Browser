@@ -219,5 +219,5 @@
 - 设计文档：`docs/superpowers/specs/2026-06-19-performance-optimization-design.md`
 - 实施计划：`docs/superpowers/plans/2026-06-19-performance-optimization.md`
 - 代码审查修复：`docs/superpowers/specs/2026-06-20-code-review-fixes.md`
-- 开发进度：`.claude/progress.md`
-- 项目指南：`CLAUDE.md`
+- 开发进度：`docs/progress.md`
+- 项目指南：`AGENTS.md`

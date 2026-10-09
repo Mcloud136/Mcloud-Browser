@@ -1,0 +1,85 @@
+digraph mcloud_build_pipeline {
+  rankdir=TB;
+  graph [fontname="Microsoft YaHei", label="MCloud Browser Windows 构建流水线\n(flow-visualizer + graphviz, 2026-08-18, 证据见 build-pipeline-flow.evidence.md)", labelloc=t, fontsize=16];
+  node  [fontname="Microsoft YaHei", fontsize=11];
+  edge  [fontname="Microsoft YaHei", fontsize=9];
+
+  /* ---- 触发者 ---- */
+  dev    [label="开发者\n(本地 Windows 构建)", shape=ellipse];
+  pusher [label="push / PR\n(main 分支)", shape=ellipse];
+  tagger [label="push v* tag", shape=ellipse];
+
+  /* ---- 覆盖仓库边界（输入侧） ---- */
+  subgraph cluster_thor {
+    label="THOR_DIR — thorium 覆盖仓库 (d:/wxmuma/thorium)";
+    style=dashed; color="#2563EB";
+    deploy_orch [label="win_scripts/deploy_mcloud.py\n统一部署编排器 (fail-fast)", shape=box, style="filled", fillcolor="#E0EAFF"];
+    flags_txt   [label="mcloud_flags.txt\n66 行启动标志 (含 --js-flags 复合行)\nAGENTS.md 称 52 项, 已漂移", shape=note];
+    opt_gni     [label="src/build/config/compiler_opt.gni\nSIMD/Polly/BOLT 参数声明\n(无上游对应物)", shape=note];
+    args_gn     [label="win_args_mcloud.gn\n构建配置 (AVX2/FMA/O3/ThinLTO)", shape=note];
+    verify_py   [label="win_scripts/verify_sources.py\n语法/存在性校验 (exit 0=PASS)", shape=box];
+  }
+
+  /* ---- Chromium 源码树边界（构建侧） ---- */
+  subgraph cluster_cr {
+    label="CR_DIR — Chromium M151 源码树 (D:/wxmuma/chromium-src/src)";
+    style=solid; color="#16A34A";
+    step1 [label="1 copy_essentials.py\n复制 compiler_opt.gni + flags.txt", shape=box];
+    step2 [label="2 apply_polly_wiring.py\nBUILDCONFIG.gn polly 接线", shape=box];
+    step3 [label="3 append_polly_configs.py\ncompiler/BUILD.gn polly 定义", shape=box];
+    step4 [label="4 apply_avx2_baseline.py\nwin/BUILD.gn AVX2+FMA3 基线", shape=box];
+    step5 [label="5 apply_mcloud_source_defaults.py\nD3D12/后台模式/DoH 定点修改", shape=box];
+    step6 [label="6 inject_flags_loader.py\n幂等注入 LoadMcloudPerformanceFlags", shape=box];
+    step7 [label="7 复制 flags.txt → out/mcloud/", shape=box];
+    delegate [label="chrome/app/chrome_main_delegate.cc\n(上游文件原位修改)", shape=component];
+    gngen    [label="gn gen out/mcloud --check\n(首次/改配置后必须)", shape=box];
+    build    [label="build_win.py\nautoninja mcloud_all\nautoninja setup mini_installer", shape=box];
+    flags_out [label="out/mcloud/mcloud_flags.txt", shape=note];
+    installer [label="out/mcloud/mini_installer.exe", shape=box3d];
+    runtime   [label="chrome.exe 启动\nBasicStartupComplete 早期读取\nexe 同目录 flags 并合并命令行", shape=box, style="filled", fillcolor="#FEF9C3"];
+  }
+
+  /* ---- CI 边界 ---- */
+  subgraph cluster_ci {
+    label="GitHub Actions (异步, 云端)";
+    style=dotted; color="#9333EA";
+    verify_wf  [label="verify.yml\nubuntu-latest, Python 3.12", shape=box];
+    verify_res [label="PASS / FAIL 门禁", shape=diamond];
+    release_wf [label="release.yml\n提取版本 + 读取 release notes", shape=box];
+    gh_release [label="GitHub Release\ninstaller + SHA256", shape=box3d];
+  }
+
+  legacy [label="setup.py 全量覆盖 + git apply 补丁\n(遗留路径, 2026-08-06 重构后已被\ndeploy_mcloud.py 定点注入取代)", shape=box, style="filled", fillcolor="#FEE2E2"];
+
+  /* ---- 主路径（同步编排） ---- */
+  dev -> deploy_orch [label="手动触发"];
+  flags_txt -> step1  [label="读取/复制"];
+  opt_gni   -> step1  [label="读取/复制"];
+  deploy_orch -> step1 [label="顺序调用"];
+  step1 -> step2; step2 -> step3; step3 -> step4;
+  step4 -> step5; step5 -> step6; step6 -> step7;
+  step6 -> delegate [label="原位写入 C++"];
+  step7 -> flags_out;
+  args_gn -> gngen [label="cp 为 out/mcloud/args.gn"];
+  step7 -> gngen [label="部署完成后", style=dashed];
+  gngen -> build [label="gn gen 成功后"];
+  build -> installer [label="产出"];
+  installer -> runtime [label="安装后运行", style=dashed];
+  flags_out -> runtime [label="启动时读取 (DIR_EXE)", style=dashed];
+
+  /* ---- 失败路径 ---- */
+  step2 -> deploy_orch [label="非零退出 → FAILED at step, 中止", style=dotted, color="#DC2626", constraint=false];
+  build -> dev [label="编译失败 exit 111", style=dotted, color="#DC2626"];
+
+  /* ---- CI 验证路径 ---- */
+  pusher -> verify_wf [label="push/PR 触发"];
+  verify_wf -> verify_py [label="python3 运行"];
+  verify_py -> verify_res;
+
+  /* ---- 发布路径 ---- */
+  tagger -> release_wf [label="v* tag 触发"];
+  release_wf -> gh_release [label="上传 (installer 须已入库)"];
+
+  /* ---- 遗留分支 ---- */
+  dev -> legacy [label="旧流程 (不推荐)", style=dashed, color="#9CA3AF"];
+}

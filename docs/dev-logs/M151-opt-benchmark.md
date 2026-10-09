@@ -59,6 +59,15 @@
 4. 移除后 flags 69→66 条；最终配置真实站点 K2 实测 **7472.8 MB**，比全配置 7676.2 MB 降 **203 MB（-2.6%）**，也低于仅禁用三项的 7550.8 MB（其余保留项亦有正向内存效果）；
 5. 剩余预载类（Prerender2WarmUpCompositor*、PreloadTopChromeWebUI、BookmarkTriggerForPreconnect、LoadingPreconnectToRedirectTarget）保留，其内存代价低且 bilibili 导航 -5.6% 收益主要由预连接类贡献。
 
+## 追加：安装版验证（2026-08-09）
+
+首次安装测试发现用户安装的是修复前旧包（缺 mcloud_flags.txt）；重装正确包后验证通过：
+
+1. **分发确认**：Application\mcloud_flags.txt 由安装包自动释放（66 条，归档时间戳 8/6 23:46）；
+2. **注入验证 8/8 通过**：invocation_count_for_maglev=200、osr-from-maglev、ThreadedPreloadScanner、Prerender2WarmUpCompositorForNewTabPage、RevokeMediaSourceObjectURLOnAttach、SpareRendererForSitePerProcess、HttpDiskCachePrewarming、PlatformHEVCDecoderSupport；
+3. **安装版基准**：K1 冷启动 102ms（102/68/110/65/115，双峰分布，安装路径更深+启动器委托开销）；K2 内存 2691.5MB（2685→2698）；
+4. 结论：安装版与便携构建行为一致，K1 绝对值受安装布局影响（launcher 委托），跨形态对比须注明。
+
 ## 结论与异常记录
 
 1. **内存回归 +50.2 MB（+1.9%）**：新增的预载/预热类 feature（MultipleSpareRPHs 多备用渲染进程、Preconnect/Prerender 系列）以内存换取预载收益，这是预期的空间-速度权衡。若对内存敏感，建议评估移除 `MultipleSpareRPHs`、`LoadingPredictorPrefetch`、`NewTabPageTriggerForPrerender2` 三项后重测。

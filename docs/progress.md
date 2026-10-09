@@ -24,7 +24,7 @@
 - **设计文档**：`docs/superpowers/specs/2026-06-19-performance-optimization-design.md`
 - **实施计划**：`docs/superpowers/plans/2026-06-19-performance-optimization.md`
 - **完成内容**：
-  - 51 个运行时标志（mcloud_flags.txt）
+  - 运行时标志文件 mcloud_flags.txt：63 条生效开关行（60 项 feature + 3 项普通开关，2026-10-09 实测）
   - 72 个编译时参数（args.gn）验证通过
   - D3D12 视频解码默认启用
   - DNS 修复（HTTP 断流问题）
@@ -70,7 +70,8 @@
 
 ### 2.2 运行时标志（mcloud_flags.txt）
 
-共 51 个标志，分 9 类：
+历史口径为 51 个标志，分 9 类（下表为当时分类；当前文件实测 63 条生效开关行 =
+60 项 feature + 3 项普通开关，其中 4 项因窗口拖拽卡顿已固化为注释禁用，见 §4.6）：
 - 启动速度：6 个
 - 视频播放：3 个
 - 渲染优化：4 个
@@ -155,13 +156,56 @@
 - **结论**：保持 D3D11，D3D12 配置保留但不强制启用
 
 ### 4.5 核显视频绿屏问题
-- **状态**：未解决
-- **现象**：切换到核显播放视频时，前几秒画面绿屏/花屏，过后恢复
-- **可能原因**：
-  - D3D11 解码器在核显上初始化延迟
-  - 视频帧池预热不足
-  - Intel 核显驱动兼容性问题
-- **下一步**：需要进一步调试，或更新显卡驱动
+- **状态**：✅ 已解决（2026-08-21 实测定位并修复）
+- **现象**：浏览器运行于核显播放视频时，前几秒画面绿屏/花屏，过后恢复；独显运行完全正常
+- **根因**（受控实验定位，T1-T4 + GPU 分配对照）：
+  - Intel 核显（UHD 770/Raptor Lake）的 **D3D12 视频解码器首帧输出缺陷**
+  - 非驱动版本问题（32.0.101.6314 与最新 32.0.101.7088 均复现）；非 overlay/MPO 层（禁 DComp 视频 overlay 无效）
+  - 早期未复现的原因：开发构建默认跑在独显（显示输出 GPU），复现必须显式控制 GPU 分配
+- **修复**：`mcloud_flags.txt` 新增 `--disable-features=D3D12VideoDecoder`（回退 D3D11，硬解能力不受影响），实测核显下绿屏消失
+- **附带修复**：安装版曾缺失 `mcloud_flags.txt`（旧安装包），已手工部署修正版到 Application 目录；下次用新安装包重装可自动携带
+- **遗留**：待上游修复或 GPU 黑名单条目落地后移除该 disable 标志；`src/media/base/media_switches.cc` 的 D3D12 默认启用定制已被上游 M151 吸收，下次升级时可清理
+
+### 4.6 窗口拖拽缩小播放视频时整浏览器冻结（缓解实验，2026-09-22 → 10-08 定案）
+- **状态**：✅ 缓解有效，配置已固化（用户 2026-10-08 确认实验期间未复现）
+- **现象**：核显环境，播放视频（B 站）时拖拽缩小浏览器窗口，多次卡顿后整个浏览器 UI 无响应
+- **排查证据链**（系统层零痕迹）：无崩溃转储（Crashpad/WER 空）、无 TDR（Display 4101）、无内存耗尽事件、GPU 进程未重启 → 判定为 UI 线程在窗口 resize 模态循环中同步等待 GPU/合成器的软挂起；overlay 引擎全程 0%（视频未走硬件覆盖平面，resize 每帧走 3D 重缩放路径）
+- **缓解**：`mcloud_flags.txt` 注释 4 项（实验组整组禁用，未二分归因）：
+  `ThrottleUnimportantFrameRate`、`ReduceHardwareVideoDecoderBuffers`、`SkiaGraphite`、`SkiaGraphitePrecompilation`；
+  同时关闭 GameViewer/MuMu 后台（存在虚拟显示适配器，14:47 有驱动加载失败记录）
+- **残留嫌疑**（若未来复发按序排查）：Intel 核显驱动过旧（32.0.101.6790，2025-04）→ 升级驱动；二分定位 4 项中具体元凶；`chrome://gpu` 导出确认实际渲染后端
+- **发布影响**：发行包 `mcloud_151.0.7922.99_win64_mini_installer.exe` 于 2026-10-08 以固化后的标志清单重新打包
+
+### 4.7 启动标志加载器的运行时内存安全加固（第2周期专项，2026-10-09）
+- **状态**：✅ 已修复并实测（缺陷 D39/D40，档案 `docs/tasks/bug-review-pak-src-defects.md`）
+- **现象**：一份超大/畸形的 `mcloud_flags.txt` 会让浏览器**自身**崩溃——合并后的
+  `--enable-features` 约 101KB 时 GPU 子进程 `CreateProcessW`（32767 字符上限）创建失败 →
+  `FATAL gpu_data_manager_impl_private.cc:417 GPU process isn't usable. Goodbye.`（约 12s 退出）
+- **根因**：加载器把文件内容无长度约束地合并进进程命令行，而该命令行会被所有子进程继承；
+  1MiB 的读取上限只防"文件过大"，不防"合法大文件合并后超出 OS 命令行上限"
+- **修复**（`win_scripts/inject_flags_loader.py` 的 `LOADER` 常量，加载器 v3→v4→v5）：
+  - v3：合并后的 feature 列表 >24KiB 时跳过内置合并并 `LOG(WARNING)`，优雅降级
+  - v4：把限制扩展为**加载器追加的全部开关共用字节预算**（总 24KiB，普通开关子预算 12KiB），
+    堵住单条超长值（如 250KB 的 `--js-flags`）这条同型路径；feature 合并在循环后执行，
+    故畸形普通开关不会挤占 feature 预算
+  - v5：解析改用 `string_view::substr`，消除 `-Wunsafe-buffer-usage` 裸指针告警；
+    注入器的"是否需替换"判定由版本号标记改为**正文比对**（正文与标记可能不同步）
+- **实测证据**：
+  - `probe_huge.py`：3000 条 feature（106,890B）→ 18s 存活、2 个 renderer、
+    子进程命令行中探针 feature 出现 **0** 次（合并确被跳过）；对照 v2 同语料 ~12s FATAL
+  - `loader_edge_test2.py` 11 例边界语料在 v5 二进制上 **11/11 PASS**
+    （含 250KB `--js-flags`、4000 个普通开关两个新增用例）
+  - 真实清单占用：63 条开关行合计约 1,886B，仅用掉 24KiB 预算的 8%（余量 13 倍）
+  - K1 冷启动中位数 **51ms**（原始 70/48/51/51/45），无性能回归
+- **方法学修正（D43）**：installer 负载是压缩的，`mini_installer.exe` 内搜文件明文
+  （连 `chrome.dll` 都搜不到）不是有效验证通道；发布脚本改为校验打包输入
+  （dll 内加载器字符串 + `out/mcloud/mcloud_flags.txt` 与仓库 SHA256 相同 +
+  `chrome.release` 列出该文件 + installer 不早于 dll）
+- **发布影响**：发行包已用 v5 构建重新生成
+  `mcloud_151.0.7922.99_win64_mini_installer.exe`（123,466,240B，
+  SHA256 `d558d75506429a695f97863f9dfb082b00f6befda5d63b18f10bea6d4927fd4e`，2026-10-09 15:58 构建）
+- **遗留**：`LOG(WARNING)` 在 `BasicStartupComplete` 阶段（logging 尚未初始化）不落 stderr，
+  降级证据以子进程命令行为准；上游若为 feature 传播加上长度保护，可复核本预算是否仍必要
 
 ---
 
@@ -209,7 +253,7 @@ start chrome.exe
 - B 站/YouTube — 视频播放测试
 - HTTP 网站 — 确认不断流
 
-### 5.3 VS2026 注意事项
+### 5.4 VS2026 注意事项
 - ATL 头文件需要手动添加到 INCLUDE 路径
 - 路径：`C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/VC/Tools/MSVC/14.51.36231/atlmfc/include`
 
@@ -233,9 +277,8 @@ start chrome.exe
 ```
 D:\wxmuma\
 ├── thorium\                          # MCloud Browser 项目
-│   ├── .claude\progress.md           # 本文件
-│   ├── CLAUDE.md                     # 项目指南
-│   ├── mcloud_flags.txt              # 运行时标志（51 个）
+│   ├── AGENTS.md                     # 项目指南（提供商无关，所有 Agent 共用）
+│   ├── mcloud_flags.txt              # 运行时标志（63 条生效行，见 §2.2）
 │   ├── win_args_mcloud.gn            # 编译时参数
 │   ├── win_scripts\copy_essentials.py # 覆盖文件复制脚本
 │   ├── src\build\config\             # MCloud 构建配置
