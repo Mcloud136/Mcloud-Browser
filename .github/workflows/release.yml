@@ -29,11 +29,45 @@ jobs:
       - name: Find release notes
         id: notes
         run: |
-          # Find the latest release notes file
-          NOTES_FILE=$(ls -t docs/superpowers/specs/*release-notes*.md 2>/dev/null | head -1)
-          if [ -f "$NOTES_FILE" ]; then
-            echo "NOTES_FILE=$NOTES_FILE" >> $GITHUB_OUTPUT
-            echo "Found release notes: $NOTES_FILE"
+          # Notes files are named YYYY-MM-DD-release-notes-mNNN[-suffix].md.
+          # Select deterministically by the date prefix in the FILE NAME:
+          # `ls -t` sorted by mtime, which git sets to checkout time, so it
+          # picked an older release's notes for tag v151.0.7922.99-r2 (defect
+          # D46). Prefer a file matching this tag's kernel major, then fall
+          # back to the newest date-prefixed file.
+          VERSION="${GITHUB_REF#refs/tags/v}"
+          MAJOR=$(echo "$VERSION" | cut -d. -f1)
+          # Only accept a numeric kernel major before it reaches the shell glob;
+          # anything else falls back to the newest date-prefixed notes file.
+          case "$MAJOR" in
+            ''|*[!0-9]*) MAJOR="" ;;
+          esac
+          # Optional tag suffix after the version, e.g. r2 for v151.0.7922.99-r2.
+          SUFFIX=$(echo "$VERSION" | sed -n 's/^[0-9][0-9.]*-//p')
+          CAND=""
+          if [ -n "$MAJOR" ] && [ -n "$SUFFIX" ]; then
+            case "$SUFFIX" in *[!A-Za-z0-9._-]*) SUFFIX="" ;; esac
+          fi
+          if [ -n "$MAJOR" ]; then
+            if [ -n "$SUFFIX" ]; then
+              CAND=$(ls docs/superpowers/specs/*release-notes*m"$MAJOR"*"$SUFFIX"*.md 2>/dev/null | sort -r | head -1)
+            fi
+            if [ -z "$CAND" ] && [ -z "$SUFFIX" ]; then
+              # Plain version tag: prefer the notes file that ends with the
+              # kernel major (no release suffix), so old tags do not inherit
+              # the newest suffix release's notes.
+              CAND=$(ls docs/superpowers/specs/*release-notes*m"$MAJOR".md 2>/dev/null | sort -r | head -1)
+            fi
+            if [ -z "$CAND" ]; then
+              CAND=$(ls docs/superpowers/specs/*release-notes*m"$MAJOR"*.md 2>/dev/null | sort -r | head -1)
+            fi
+          fi
+          if [ -z "$CAND" ]; then
+            CAND=$(ls docs/superpowers/specs/*release-notes*.md 2>/dev/null | sort -r | head -1)
+          fi
+          if [ -f "$CAND" ]; then
+            echo "NOTES_FILE=$CAND" >> $GITHUB_OUTPUT
+            echo "Found release notes: $CAND"
           else
             echo "No release notes file found, using default"
             echo "NOTES_FILE=" >> $GITHUB_OUTPUT
