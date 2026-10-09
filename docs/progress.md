@@ -203,7 +203,10 @@
   `chrome.release` 列出该文件 + installer 不早于 dll）
 - **发布影响**：发行包已用 v5 构建重新生成
   `mcloud_151.0.7922.99_win64_mini_installer.exe`（123,466,240B，
-  SHA256 `d558d75506429a695f97863f9dfb082b00f6befda5d63b18f10bea6d4927fd4e`，2026-10-09 15:58 构建）
+  SHA256 `054efb37c8018feda5ba06842e39269908e438f27ae873b0bb670bfc05ab389f`，123,448,320B，
+  2026-10-09 16:55 构建；同批 `chrome.dll` sha256 `c47b2d91eb77324ad596c5e9a3ea6cdf2f4443efa66e707375d1c5640e491d18`。
+  本包为**强制全量重做**产物（touch 加载器源文件 → 重编该 TU → 重链 dll → 重建 chrome.7z → 重打 installer），
+  发布判据 11 项全绿，A6 3/3 与 K1=54ms 复验通过
 - **遗留**：`LOG(WARNING)` 在 `BasicStartupComplete` 阶段（logging 尚未初始化）不落 stderr，
   降级证据以子进程命令行为准；上游若为 feature 传播加上长度保护，可复核本预算是否仍必要
 
