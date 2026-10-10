@@ -7,7 +7,7 @@
 
 MCloud Browser 是基于 Chromium（当前 M151，151.0.7922.x，硬件基线 AVX2+FMA3）的高性能 Windows 浏览器分支，
 通过 AVX2 原生编译 + 运行时优化标志（`mcloud_flags.txt`，启动时内置加载；
-2026-10-09 实测 63 条开关行 = 60 项 feature + 3 项普通开关）+ 编译时优化栈提供极致流畅体验。
+2026-10-10 (r3) 实测 56 条开关行 = 53 项 feature + 3 项普通开关；r2 时为 63 条 = 60 + 3，差额是 D48 清理掉的 7 条上游不存在的条目）+ 编译时优化栈提供极致流畅体验。
 本仓库**不是完整 Chromium 源码树**，而是存放覆盖文件（override files）、补丁、构建脚本和打包配置。
 完整构建需先将本仓库文件复制到外部 Chromium 源码树（`$CR_DIR`，默认 `D:\wxmuma\chromium-src\src`）再编译。
 
@@ -91,6 +91,9 @@ MCloud Browser 是基于 Chromium（当前 M151，151.0.7922.x，硬件基线 AV
 5. `apply_avx2_baseline.py` — win/BUILD.gn AVX2+FMA3 基线。
 6. `apply_mcloud_source_defaults.py` — D3D12/后台模式/DoH 源码级默认修改。
 7. **`inject_flags_loader.py`** — 将 flags 加载器注入 `chrome_main_delegate.cc`。
+8. **`apply_installer_payload.py`** — 向 `chrome/installer/mini_installer/chrome.release` 登记
+   `mcloud_flags.txt: %(ChromeDir)s\`（缺陷 D47 修复）。**这一步不可省略**：少了它，编译与打包
+   全部成功但安装不包含标志文件，63 行运行时优化整体静默丢失（幂等，可重复运行）。
 8. **`build_win.py`** — 执行 gn/autoninja 编译。
 9. 辅助：`version.py`（版本管理）、`clean.py`、`reset_depot_tools.py`、`tot.py`/`trunk.py`（ToT 同步）。
 10. **`verify_sources.py`** — 最小源码验证：win_scripts/ 全部 Python 脚本语法检查 + 关键脚本存在性 + pak_src/ C 源码检查。修改构建脚本后运行 `python3 win_scripts/verify_sources.py`（退出码 0=PASS / 1=FAIL）；已接入 CI（`.github/workflows/verify.yml`，push/PR 自动运行）。

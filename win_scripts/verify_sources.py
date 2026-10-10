@@ -33,6 +33,7 @@ KEY_SCRIPTS = [
     "apply_avx2_baseline.py",
     "append_polly_configs.py",
     "apply_polly_wiring.py",
+    "apply_installer_payload.py",
     "build_win.py",
     "deploy_mcloud.py",
     "version.py",

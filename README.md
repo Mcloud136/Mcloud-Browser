@@ -256,7 +256,7 @@ cp $THOR_DIR/win_args_mcloud.gn out/mcloud/args.gn
 # 7. 生成构建文件并校验
 gn gen out/mcloud --check
 
-# 8. 编译 + 打包（flags 文件已随 chrome.release 清单打入安装包）
+# 8. 编译 + 打包（chrome.release 的 mcloud_flags.txt 条目由 apply_installer_payload.py 保证，见缺陷 D47）
 autoninja -C out/mcloud chrome mini_installer
 
 # 9. 验证内置标志注入（可选）

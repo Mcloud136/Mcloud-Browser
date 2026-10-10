@@ -10,7 +10,8 @@
 #   4. apply_avx2_baseline.py       win/BUILD.gn AVX2+FMA3 基线
 #   5. apply_mcloud_source_defaults.py  D3D12/后台模式/DoH 校验
 #   6. inject_flags_loader.py       chrome_main_delegate.cc flags 加载器
-#   7. 复制 mcloud_flags.txt 到 out/mcloud（加载器运行时读取位置）
+#   7. apply_installer_payload.py   chrome.release 登记 mcloud_flags.txt（D47）
+#   8. 复制 mcloud_flags.txt 到 out/mcloud（加载器运行时读取位置）
 #
 # 部署完成后执行：gn gen out/mcloud --check
 import os
@@ -29,6 +30,7 @@ STEPS = [
     ("apply_avx2_baseline.py", None),
     ("apply_mcloud_source_defaults.py", None),
     ("inject_flags_loader.py", None),
+    ("apply_installer_payload.py", None),
 ]
 
 print("=== MCloud deploy: %s -> %s ===" % (os.environ['THOR_DIR'], cr_src))
@@ -40,11 +42,16 @@ for name, _ in STEPS:
         sys.exit(r.returncode)
 
 print("\n>>> copy mcloud_flags.txt -> out/mcloud/")
+import filecmp
 import shutil
-os.makedirs(os.path.join(cr_src, "out", "mcloud"), exist_ok=True)
-shutil.copy2(os.path.join(os.environ['THOR_DIR'], "mcloud_flags.txt"),
-             os.path.join(cr_src, "out", "mcloud", "mcloud_flags.txt"))
-print("done")
+dst_flags = os.path.join(cr_src, "out", "mcloud", "mcloud_flags.txt")
+os.makedirs(os.path.dirname(dst_flags), exist_ok=True)
+src_flags = os.path.join(os.environ['THOR_DIR'], "mcloud_flags.txt")
+if os.path.isfile(dst_flags) and filecmp.cmp(src_flags, dst_flags, shallow=False):
+    print("already in sync (content identical, mtime preserved)")
+else:
+    shutil.copy2(src_flags, dst_flags)
+    print("copied")
 
 print("\n=== deploy complete ===")
 print("next: gn gen out/mcloud --check")

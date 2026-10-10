@@ -1,5 +1,43 @@
 # MCloud Browser Changelog
 
+## M151-r3（发布链路完整性 + 优化清单真实性）— 2026-10-10
+
+### 🔧 发布链路（缺陷 D47，High）
+- 新增幂等注入脚本 `win_scripts/apply_installer_payload.py`，把 `mcloud_flags.txt: %(ChromeDir)s\`
+  登记进 `chrome/installer/mini_installer/chrome.release`，并接入 `deploy_mcloud.py`（现 7 步）
+  与 `verify_sources.py` 关键脚本清单
+- 修复前该行只存在于某台构建机的未提交改动里：干净源码树按文档构建会**编译打包全绿但安装包装不到标志文件**，
+  63 行运行时优化整体静默丢失（内核升级必然踩到）
+- 探针 `.bugreview/d47_probe.py` 五例全过：M155 上游文件首次注入 / 重复运行幂等 / 与当前 151 树状态判定 /
+  缺锚点报错不写文件 / **干净上游 151 文件 + 注入器 == 当前树文件（逐字节）**
+
+### 🧹 优化清单（缺陷 D48）
+- 按上游 feature **声明位**核对 151/155/156 后删除 6 条根本不存在、一直被静默忽略的条目：
+  `CanvasOopRasterization`、`DirectComposition`、`EarlyData`、`AVIF`、`SpeculationRules`、
+  `ServiceWorkerNavigationPreload`（这 6 条在 r2 上也无操作，**删除不改变现有行为**）
+- `BestEffortTaskInhibitingPolicy` 上游真名为 `EnableBestEffortTaskInhibitingPolicy`（默认禁用）：
+  改名后转注释保留，待基准验证再启用；`FlingSchedulingImprovements` 保留并标注"M155 起上游已移除，升级期删除"
+- 新增跨版本稳定性断言 `.bugreview/flag_stability.py`（PASS）- 标志文件形态由 63 行（60 feature + 3 普通开关）变为 **56 行 = 53 feature + 3 普通开关**；
+  加载器追加成本 ≈1,753 B，占 24 KiB 命令行预算的 **7.1%**（原 8 项冗余条目带来的开销一并消除）
+- 用项目自带 `benchmark/tools/check_features.py` 对两棵真实源码树交叉验证：M151 **53/53 OK**；
+  M155 **52/53 OK**，唯一 NOT_FOUND 正是已标注升级期处置的 `FlingSchedulingImprovements`
+：无新增开启项、被移除项在 151 上曾生效数 = 0、
+  53 条中 52 条三版全存活、普通开关三版均在
+- 方法论更正：新版 `BASE_FEATURE(kFoo, <default>)` 不写名字串，运行时名由标识符去 `k` 推导，
+  因此"全树搜引号名串"的旧判法既漏报又误报
+
+### 🚀 M155 升级准备（目标版本由用户定案为 M155）
+- 预拉取：`155.0.8059.40` 源码树（本地对象库浅克隆，10.2 GB）+ `chrome-win64-8059-…profdata`（104 MiB）；
+  DEPS 首轮被 googlesource 429 限流，已改 `--jobs=4` 多轮重试续跑（坑位已写入升级任务单）
+- 性能新特性挖掘：`.bugreview/declared_features_151_155.json` 全集合 diff（155 新增 809 / 移除 609，
+  性能关键词 118）→ `docs/tasks/m155-perf-features.md`（Tier A 19 项含源码出处与默认状态，Tier B/C 分档）
+- 执行任务单 `docs/tasks/m155-upgrade-task.md`（阶段 0–5 + 验收标准）
+
+### 📦 发行包
+- `mcloud_151.0.7922.99_win64_mini_installer.exe`（123,448,320 B 量级，本版全量重编译后重打）
+- SHA256：``393456968d948137b362b1a720074ef5e69804856b886ecf7ead937a3abdf049``
+
+
 ## M151-r2（稳定性/内存安全修复）— 2026-10-09
 
 ### 🛡️ 运行时内存安全（本版重点，缺陷 D39/D40）

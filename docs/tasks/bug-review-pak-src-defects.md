@@ -376,6 +376,48 @@ detect_leaks 不支持），内存泄漏结论以逐行分配/释放配对审查
   排序结果而非用户优先。规避方式（文档口径）：改 `mcloud_flags.txt` 删除被覆盖的
   内置条目，或用 `--disable-features` 反向压制，不依赖同名双写。
 
+## 第3周期（2026-10-10，升级预评估中发现）
+
+### D47 chrome.release 的 flags 条目无脚本产生（High，发布链路可复现性）
+- 事实：构建树中 `chrome/installer/mini_installer/chrome.release` 多出的
+  `mcloud_flags.txt: %(ChromeDir)s\` 一行**只存在于工作树的未提交修改**。
+  `deploy_mcloud.py` 的 6 个注入步骤无一写该文件；全仓检索仅
+  `win_scripts/setup.py`（遗留禁跑脚本）经 `other/mini_installer.patch` 间接涉及它；
+  `docs/BUILDING_WIN.md`/`AGENTS.md`/技术规范均未记载，而 `README.md:259` 已把它当既有事实。
+- 与既有记录的关系：D43/D44 轮次只是把"chrome.release 列出该文件"当作**发布门禁**核对
+  （`.bugreview/refresh_release.py` 门 3），并未记为**产生缺口**。
+- 后果：全新树（=任何一次内核升级）按文档执行 `deploy_mcloud.py → gn gen → autoninja chrome mini_installer`，
+  编译与打包全绿，但安装包不含 `mcloud_flags.txt` → 63 行运行时标志整体丢失，且无报错。
+  当前 v151.0.7922.99-r2 安装包正确，仅因这棵树恰好保留了手工改动。
+- 待决（owner：项目方）：新增第 7 个幂等注入脚本（锚点 `chrome.exe: %(ChromeDir)s\` 后插入），
+  挂入 `deploy_mcloud.py`，并在 `win_scripts/verify_sources.py` 加存在性检查；文档补步骤。
+- 证据：`docs/tasks/m155-upgrade-preassessment.md` §7 D47；
+  `git -C chromium-src/src status --porcelain -uno`（7 文件/207 行）与该文件的 `git diff` 单行 hunk。
+
+### D48 mcloud_flags.txt 有 7 条指向不存在的 feature，升级后再加 1 条（Medium，性能面）
+- 判定方法修正（重要）：新版 `BASE_FEATURE(kFoo, <default>)` 不再写名字串，
+  运行时名由标识符去 `k` 推导；因此"全树搜引号名串"的旧判法会误报，
+  必须按**声明位**判定。本轮据此建立目标版本已声明 feature 全集
+  （M151 7412 / M155 7576 / M156 7605 项）逐项核对 60 条。
+- M151（当前发布基线）即静默失效 7 条：`CanvasOopRasterization`、`EarlyData`、`AVIF`、
+  `SpeculationRules`、`ServiceWorkerNavigationPreload`、`BestEffortTaskInhibitingPolicy`
+  （真名 `EnableBestEffortTaskInhibitingPolicy`，见 `components/performance_manager/public/features.h:104`）、
+  `DirectComposition`。升到 155/156 再失效 1 条：`FlingSchedulingImprovements`。
+  另有 15 条属冗余（上游默认已等同我们的意图，含 `disable D3D12VideoDecoder`）。
+- 影响：优化清单虚高（"以为开了"），非崩溃类风险；`--enable-features` 未知名被 FeatureList 忽略。
+- 待决（owner：项目方）：改名 1 条、删除 6+1 条（删前按实测收益逐项判断），
+  并把 `benchmark/tools/check_features.py` 的存活校验纳入 `verify_sources.py`/CI。
+- 证据：`.bugreview/survival_check.py` + `survival_{151,155,156}.json`、`flags_table.md` 60 行明细。
+
+### D49 文档口径"V8 连字符写法在 M151 静默失效"与 V8 源码不符（Low，文档）
+- 源码证据：`v8/src/flags/flags-impl.h:19`
+  `static constexpr char NormalizeChar(char ch) { return ch == '_' ? '-' : ch; }`，
+  标志名比较统一经 `FlagHelpers::EqualNameWithSuffix`/`flags.cc` 归一化 →
+  `--osr-from-maglev` 与 `--osr_from_maglev` 等价，`--sparkplug-plus` 同理。
+- 现状：`AGENTS.md`"已知坑"与 `mcloud_flags.txt` 60-61 行注释均断言连字符写法失效；
+  该实证结论来自更早会话且无可复核产物，本轮未能复现。
+- 处置原则：**核实前不改 flags 文件**；如需硬结论做一次运行时歧义实验。
+
 ## 修复状态汇总（2026-10-09 第2周期更新）
 | 线 | 缺陷 | 修复 | 验证 |
 |----|------|------|------|
@@ -396,6 +438,9 @@ detect_leaks 不支持），内存泄漏结论以逐行分配/释放配对审查
 | 遗留风险 R7 | MSVC ASan 无 leak detector（/fsanitize=address 不支持 detect_leaks） | — | pak_src 泄漏面以 ASan 溢出/UAF + 往返一致性覆盖；泄漏需 WPA/Dr.Mem 另行取证 |
 
 ## 待办（本档案跟踪）
+- [ ] D47：补 `apply_installer_payload.py`（chrome.release 单行幂等注入）并挂入 deploy_mcloud.py + verify_sources.py
+- [ ] D48：清理 7+1 条失效 feature，改名 1 条；把 check_features.py 存活性校验接入 CI
+- [ ] D49：V8 连字符/下划线口径做一次运行时歧义实验后更正文档
 - [x] D1-D19 修复（pak_src/，2026-10-08）
 - [x] pak 修复后语料回归：8 组畸形输入优雅报错 + v4/v5 真实往返字节一致（ASan，failures=0）
 - [x] flags 加载器合并顺序缺陷 D21/D22/D23：注入器 v2 + 树内升级（重编译验证进行中）

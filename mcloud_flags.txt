@@ -5,6 +5,17 @@
 # performance optimizations. These are applied at browser startup.
 # =============================================================================
 
+# =====================================================================
+# [r3 清理 2026-10-10，缺陷 D48] 按声明位核对 151/155/156 三个版本后，
+# 删除 6 条在上游根本不存在、因而一直被 Chromium 静默忽略的条目：
+#   CanvasOopRasterization / DirectComposition / EarlyData / AVIF /
+#   SpeculationRules / ServiceWorkerNavigationPreload
+# 删除不改变当前版本行为（它们在 M151 上本就无操作）。
+# 稳定性不变式：本文件每条 feature 都必须在 151、155、156 三版全部声明存在，
+# 唯一例外是上面标注 [升级期处置] 的 FlingSchedulingImprovements。
+# 校验脚本：python .bugreview/flag_stability.py（升级后必须重跑）。
+# =====================================================================
+
 # --- Cold Startup Optimization ---
 --enable-features=SpareRendererForSitePerProcess
 --enable-features=BrowserProcessAboveNormalPriority
@@ -16,18 +27,19 @@
 # --- Video Playback Optimization ---
 --disable-background-media-suspend
 --enable-gpu-rasterization
---enable-features=CanvasOopRasterization
 
 # --- Rendering Optimization ---
+# [升级期处置] M151 上真实存在（默认禁用，本行启用）；155 起该 feature 标识符已从源码彻底消失（kFlingSchedulingImprovements 全树 0 命中，无同名后继），升到 155 时必须删除本行并重新评估滚动/合成调度类替代项（见 kResampleScrollEventsForFling、kApplyScrollRailingInRenderer）。
 --enable-features=FlingSchedulingImprovements
---enable-features=BestEffortTaskInhibitingPolicy
+# [D48 改名候选，r3 不直接启用] 本行原写作 BestEffortTaskInhibitingPolicy，上游并无该 feature（真名 EnableBestEffortTaskInhibitingPolicy，components/performance_manager/public/features.h，151/155 均默认禁用）。
+# 启用前需按规范第 7 章跑 K1/K2/K7 基准；确认收益后再取消下行注释。
+#--enable-features=EnableBestEffortTaskInhibitingPolicy
 # [2026-09-22 缓解实验 → 2026-10-08 用户确认有效，固化为禁用]
 # 窗口拖拽缩小播放视频时整浏览器 UI 冻结（无崩溃/TDR/内存耗尽痕迹，判定为
 # UI 线程同步等待合成器）。禁用清单（4 项，未二分归因，保持整组禁用）：
 # ThrottleUnimportantFrameRate / ReduceHardwareVideoDecoderBuffers /
 # SkiaGraphite / SkiaGraphitePrecompilation。详见 docs/progress.md 4.6
 #--enable-features=ThrottleUnimportantFrameRate
---enable-features=DirectComposition
 
 # --- Memory Optimization ---
 --enable-features=InfiniteTabsFreezing
@@ -48,13 +60,10 @@
 --enable-features=BackForwardCache
 --enable-features=CacheControlNoStoreEnterBackForwardCache
 --enable-features=AsyncDns
---enable-features=EarlyData
 
 # --- Image Optimization ---
---enable-features=AVIF
 
 # --- Speculation Rules ---
---enable-features=SpeculationRules
 
 # --- V8 JavaScript Optimization ---
 # V8 flag 命名使用下划线（M151 确认）；阈值低于默认值以更快进入 JIT
@@ -122,7 +131,6 @@
 --enable-features=UnimportantFramesPriority
 
 # --- Service Worker Optimization ---
---enable-features=ServiceWorkerNavigationPreload
 
 # --- Storage Optimization ---
 # PWAFullCodeCache / ServiceWorkerScriptFullCodeCache 已移除：
