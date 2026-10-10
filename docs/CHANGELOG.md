@@ -33,7 +33,14 @@
   性能关键词 118）→ `docs/tasks/m155-perf-features.md`（Tier A 19 项含源码出处与默认状态，Tier B/C 分档）
 - 执行任务单 `docs/tasks/m155-upgrade-task.md`（阶段 0–5 + 验收标准）
 
-### 📦 发行包
+### 📦 发布状态
+
+- 发布页：https://github.com/Mcloud136/Mcloud-Browser/releases/tag/v151.0.7922.99-r3
+- L3 深度安全审查：findings=0；`main` 与 tag `v151.0.7922.99-r3` 均已推送
+- 安装包已作为 Release 资产上传（HTTP 201），GitHub 计算摘要与本地一致；
+  公开下载经 302→206 校验，首字节 4D 5A，总长 123,466,752 B
+
+### 📦 构建产物
 
 - 本版为全量重编译产物（50,795 步，`autoninja exit=0`）；实测留痕见
   `docs/dev-logs/M151-r3-benchmark.md`（K1 中位数 39 ms；K2 2927.5 MB/64 进程，
