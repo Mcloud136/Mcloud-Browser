@@ -106,6 +106,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--chrome", default=DEFAULT_CHROME)
     ap.add_argument("--control", action="store_true", help="附带不存在名字的对照实验")
+    ap.add_argument("--allow-drift", action="store_true", help="允许构建目录与仓库正文不一致（仅用于看差异）")
     args = ap.parse_args()
 
     exe = args.chrome
@@ -113,8 +114,26 @@ def main():
     repo_flags = os.path.join(THOR, "mcloud_flags.txt")
     if not os.path.exists(flags_path):
         raise SystemExit("找不到 %s" % flags_path)
-    base_text = open(flags_path, encoding="utf-8").read()
-    same = "与仓库一致" if base_text == open(repo_flags, encoding="utf-8").read() else "与仓库不一致(!)"
+    raw_flags = open(flags_path, "rb").read()
+    try:
+        base_text = raw_flags.decode("utf-8-sig")
+    except UnicodeDecodeError as exc:
+        # 缺陷 D99/D100：构建目录的 flags 文件曾被中断的 loader 边界测试留成垃圾语料
+        # （首字节 0xD6，非 UTF-8）。旧实现在这里抛裸 traceback，看不出"产物目录被污染"
+        # 这个真实原因。现在给出可执行的修复指引。
+        raise SystemExit(
+            "FAIL: %s 不是合法 UTF-8（%s）。这几乎一定是 loader 边界测试被中断后留下的"
+            "测试语料——恢复方法：copy %s 过去（或重跑 deploy_mcloud.py），"
+            "并把测试指向硬链接沙箱而不是构建目录。"
+            % (flags_path, exc, os.path.join(THOR, "mcloud_flags.txt"))) from exc
+    repo_text = open(repo_flags, "rb").read().decode("utf-8-sig")
+    same = "与仓库一致" if base_text == repo_text else "与仓库不一致(!)"
+    if base_text != repo_text and not args.allow_drift:
+        raise SystemExit(
+            "FAIL: 构建目录 flags 与仓库正文不一致（%d B vs %d B）。"
+            "在这种状态下任何运行时结论都不属于发布配置；"
+            "先恢复（重跑 deploy_mcloud.py 或 copy 仓库文件），确认要看差异才加 --allow-drift。"
+            % (len(raw_flags), len(open(repo_flags, "rb").read())))
 
     want_en, want_dis, want_plain = active_entries(base_text)
     print("构建目录 flags = %s（%d 行活动条目 / %d 项 feature / %d 项普通开关）[%s]"

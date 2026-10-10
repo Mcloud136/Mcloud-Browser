@@ -279,6 +279,7 @@ autoninja -C out/mcloud chrome mini_installer
   ③ **`[System.Diagnostics.Process]` 没有 `Wait(int)`**，只有 `WaitForExit(int)`；
   中文输出被管道/文件捕获时需显式
   `[Console]::OutputEncoding = New-Object System.Text.UTF8Encoding $false`，且要排在**首条中文输出之前**。
+- **测试不得写入发布产物目录（缺陷 D99 纪律）**：会改写被测文件的测试（`loader_edge_test2/3` 要重写 `mcloud_flags.txt`）必须在**硬链接沙箱**里跑，不能把 `LOADER_TEST_OUT` 指到 `out/mcloud`。`final_gate_matrix.ps1` 会自动建 `out/mcloud_loader_test`（链运行时文件、跳过 args.gn/.ninja_log/build.ninja 与文件数>1000 的构建中间目录）。中断的测试曾在发布目录留下 106 KB/300 KB 的假 flags 文件，让后续门禁拿测试语料当生产配置测量。测试脚本里有「发现构建特征文件即 REFUSED/exit 2」的前门；确需在生产目录上跑，显式设 `MCLOUD_ALLOW_LOADER_TEST_ON_BUILD_DIR=1`。
 - **基准/工具脚本不得写死被测树**：`benchmark/*.ps1` 与 `benchmark/tools/*` 的默认对象改为
   `$env:MCHROME_EXE` / `$env:MCHROME_OUT`（再退回 `D:\wxmuma\chromium-src-155\src\out\mcloud`），
   并在开头打印**被测身份**（exe/dll 绝对路径、字节数、mtime、同目录 `mcloud_flags.txt` 是否存在），

@@ -18,9 +18,60 @@ Set-Content -LiteralPath $LOG -Value ("[{0}] === 收口门禁开始 ===" -f (Get
 function L($m) { Add-Content -LiteralPath $LOG -Value ("[{0}] {1}" -f (Get-Date -Format 's'), $m) -Encoding UTF8 }
 $PY = 'C:\Users\Administrator\AppData\Local\Programs\Python\Python312\python.exe'
 if (-not $OutDir) { $OutDir = 'D:\wxmuma\chromium-src-155\src\out\mcloud' }
-$env:LOADER_TEST_OUT = $OutDir
 $env:PYTHONUTF8 = '1'
 Set-Location 'D:\wxmuma\thorium'
+
+# ⚠ 缺陷 D99（第3周期扩展轮实测）：这里原来把 LOADER_TEST_OUT 直接设成真实构建目录。
+#   loader_edge_test2/3 会**改写** <OUT_DIR>/mcloud_flags.txt 做边界语料（BOM / 空文件 /
+#   垃圾字节 / 3000 条合并上限），只在 finally 里恢复。一旦测试被中断（本次就是被 Ctrl-C
+#   级别的 Stop-Process 打断），构建目录里留下的就是测试语料——实测先后看到 106,890 B 与
+#   300,063 B 的假文件（其一首字节 0xD6，根本不是 UTF-8），后续 A6 / flag_runtime_state /
+#   leak_probe 全是在**用测试垃圾当生产配置**测量，其中一个直接崩在 UnicodeDecodeError。
+#   修法：给测试造一个**硬链接沙箱**（同卷、零拷贝），沙箱里 chrome.exe/chrome.dll 等只读
+#   文件与真树共享，唯独 mcloud_flags.txt 是沙箱自己的新文件——测试怎么写都碰不到发布目录。
+$loaderSandbox = Join-Path (Split-Path $OutDir -Parent) 'mcloud_loader_test'
+if (Test-Path $loaderSandbox) { Remove-Item -Recurse -Force $loaderSandbox -ErrorAction SilentlyContinue }
+$null = New-Item -ItemType Directory -Force -Path $loaderSandbox
+# 只镜像 chrome.exe 运行需要的内容：硬链接全部**文件**（含子目录），跳过构建元数据。
+# 跳元数据有两个理由：① 测试用不到它们；② loader 测试的 D99 防线靠 args.gn/.ninja_log
+# 判断"这是不是真实构建目录"，把它们链进沙箱会让沙箱自己被判成构建目录。
+$skipNames = @('args.gn', '.ninja_log', '.ninja_deps', 'build.ninja', 'mcloud_flags.txt')
+$linked = 0
+$skippedDirs = @()
+foreach ($f in @(Get-ChildItem -Path $OutDir -File -Force -ErrorAction SilentlyContinue)) {
+    if ($skipNames -contains $f.Name) { continue }
+    $dst = Join-Path $loaderSandbox $f.Name
+    try {
+        New-Item -ItemType HardLink -Path $dst -Target $f.FullName -ErrorAction Stop | Out-Null
+        $linked++
+    } catch { Write-Warning ("硬链接失败 {0}：{1}" -f $f.Name, $_.Exception.Message) }
+}
+# 子目录按"是否像运行时资产"决定：文件数 > 1000 的一律跳过（obj/ gen/ pyproto/ win_clang_* 等
+# 构建中间产物，chrome 启动不需要，且链它们会花几分钟）。locales/angledata/resources 都是小目录。
+foreach ($d in @(Get-ChildItem -Path $OutDir -Directory -Force -ErrorAction SilentlyContinue)) {
+    $cnt = @(Get-ChildItem $d.FullName -File -Recurse -Force -ErrorAction SilentlyContinue).Count
+    if ($cnt -gt 1000) { $skippedDirs += ("{0}({1})" -f $d.Name, $cnt); continue }
+    foreach ($f in @(Get-ChildItem $d.FullName -File -Recurse -Force -ErrorAction SilentlyContinue)) {
+        if ($skipNames -contains $f.Name) { continue }
+        $rel = $f.FullName.Substring($OutDir.Length + 1)
+        $dst = Join-Path $loaderSandbox $rel
+        $dir = Split-Path $dst -Parent
+        if (-not (Test-Path $dir)) { $null = New-Item -ItemType Directory -Force -Path $dir }
+        try {
+            New-Item -ItemType HardLink -Path $dst -Target $f.FullName -ErrorAction Stop | Out-Null
+            $linked++
+        } catch { Write-Warning ("硬链接失败 {0}：{1}" -f $rel, $_.Exception.Message) }
+    }
+}
+Copy-Item -Path (Join-Path $PSScriptRoot '..\..\mcloud_flags.txt') `
+          -Destination (Join-Path $loaderSandbox 'mcloud_flags.txt') -Force
+$env:LOADER_TEST_OUT = $loaderSandbox
+Write-Host ("loader 测试沙箱: {0}（硬链接 {1} 个文件；发布目录的 mcloud_flags.txt 不会被改写）" `
+    -f $loaderSandbox, $linked)
+if ($linked -lt 50) {
+    Write-Warning "沙箱只链接到 $($linked) 个文件——少于预期，loader 测试可能起不来 chrome（缺资源）。"
+}
+
 
 # ⚠ 缺陷 D89（第3周期实测）：这里原先写 `$results += ...`。PowerShell 的作用域规则是
 #   "读父作用域、写即建本地副本"，函数内的 `+=` 只累加到 Invoke-Gate 的局部变量，脚本级

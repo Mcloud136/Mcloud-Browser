@@ -321,6 +321,8 @@
   并补两路对照：合法函数级 param 不报、顶层错位仍报。
 - D94（High）：`run_baseline.ps1` 抓不到子基准输出（`Write-Host` 属 stream 6，`| Tee-Object` 抓的是成功流，实测 0 行）→ 基线报告没有数字却报「报告已写入」；`-Version` 默认写死 `M150`、`$env:COMPUTER_NAME` 拼错。已改 `6>&1` 捕获 + 数值填表 + 版本自动推导 + 取不到数即 exit 1。
 
+- D99/D100（本轮最严重的一条，与 D89 同级）：门禁让 loader 边界测试直接改写 `out/mcloud/mcloud_flags.txt`，中断后发布目录里留下测试语料（106 KB/300 KB，其一非 UTF-8），后续门禁在污染窗口里测量的却是「测试配置」。已改为硬链接沙箱 + 「构建特征文件即 REFUSED」前门 + runtime_state 不一致即中止。
+
 本轮只动工具/脚本/文档，未触碰 C++ 与 `mcloud_flags.txt`，产物与哈希不变；扩展轮收口门禁
 `ALL PASS (8/8)`（假树输入会输出 `FAIL x5`/exit 1，证明该结论不是恒真输出）。
 

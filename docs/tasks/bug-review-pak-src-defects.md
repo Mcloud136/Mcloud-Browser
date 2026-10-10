@@ -649,7 +649,7 @@ PowerShell 5.1（中文必须 UTF-8 BOM，见 D38）、GN（Chromium 构建元�
   （F541 之类）。给它修 lint 是局部最优、全局负收益——正确处置是删除或加 refusal guard（同 ADR-003
   对 Linux legacy 面的处理方式），已列入待办而不是本轮顺手改。
 
-## 第3周期缺陷登记（D52–D97，详版与全部证据见 `docs/tasks/bug-review-cycle3-report.md`）
+## 第3周期缺陷登记（D52–D100，详版与全部证据见 `docs/tasks/bug-review-cycle3-report.md`）
 
 一句话索引（每条的报告里有 file:line、根因、影响、修复与 Red→Green 证据）：
 
@@ -701,11 +701,17 @@ PowerShell 5.1（中文必须 UTF-8 BOM，见 D38）、GN（Chromium 构建元�
 | D95 | Medium | 判据文档缺口 | 噪声带与 A/B 采纳门槛只散落在 `docs/tasks/m155-perf-features.md` §5 与工具里，**权威规范里一个字都没有** → 下一轮很容易拿跨会话数据当回归/收益（本次实测：同一会话内 K2 五采样带宽 2550.2–2553.2 MB（0.12%），跨会话却是 2550.5 vs 2586.8–2593.0（~1.5%）） | ✅ 规范新增 §4.2.1：逐指标带宽表 + 采纳/否决门槛 + 「只用同会话成对数据」「≥2 轮」「判据预注册」三条硬规则 |
 | D96 | Medium | `docs/architecture/performance-build-technical-spec.md` §4.3 | 写「现有源码级默认值修改（均经 `copy_essentials.py` 复制生效）」并要求新修改「进入 `copy_essentials.py` 的文件清单」——与现行构建链相反：三处修改由 `apply_mcloud_source_defaults.py` 定点注入，而 `copy_essentials.ALLOWED_COPY` 会**主动拒绝**有上游对应物的整份复制（D41）；表内 D3D12/DoH 两行的现状也已过期（前者只回退历史覆盖、后者只做存在性校验） | ✅ 口径更正 + 表格按脚本正文逐行重述现状（注入/回退/仅校验三态） |
 | D97 | Low–Med | `win_scripts/setup.py` | 遗留全量覆盖脚本只靠文档口头约定「勿在新树上运行」，任何人（或 Agent）误跑一次就污染源码树，而且没有报错指回它（D37 的收尾项） | ✅ 加拒绝闸：默认 `REFUSED` + exit 112 并指向 `deploy_mcloud.py`，需 `MCLOUD_ALLOW_LEGACY_SETUP=1` 才继续；`--help` 保持 0（实测三条路径） |
+| D99 | **Critical** | `final_gate_matrix.ps1` + `loader_edge_test2/3.py` | 门禁把 `LOADER_TEST_OUT` 设成**真实构建目录**，而这两个边界测试会改写 `<out>/mcloud_flags.txt`（BOM/空文件/垃圾字节/3000 条合并上限语料），只在 finally 恢复。实测：测试被打断后发布目录里留下 106,890 B 与 300,063 B 的假 flags 文件（其一首字节 0xD6、根本不是 UTF-8），下游 A6 / flag_runtime_state / leak_probe 于是**拿测试垃圾当生产配置**测量，其中一个直接崩在裸 UnicodeDecodeError；若在此状态下跑 `mini_installer`，安装包里就是垃圾语料 | ✅ 门禁改为给测试建**硬链接沙箱** `out/mcloud_loader_test`（链全部运行时文件、跳过 args.gn/.ninja_log/.ninja_deps/build.ninja 与文件数>1000 的构建中间目录；跑完 loader 测试后真实文件 sha256 前后 `61b7670856ed` 不变）；两个测试各加 `REFUSED` 防线（目标目录出现构建特征文件即 exit 2，需 `MCLOUD_ALLOW_LOADER_TEST_ON_BUILD_DIR=1` 才放行） |
+| D100 | Medium | `.bugreview/flag_runtime_state.py` | ① 以 utf-8 硬读构建目录 flags，被污染时抛裸 traceback，看不出真实原因；② 检出「与仓库不一致」只打印一行 `(!)` 就继续测——在这种状态下得到的运行时结论不属于发布配置；③ `--control` 会写生产 flags 文件（虽有 finally 恢复） | ✅ 改按 utf-8-sig 读字节，解码失败给出「产物目录被测试污染」的可执行修复指引；不一致即 exit，只有 `--allow-drift` 才继续看差异 |
 
 流程性缺口（不是某一行代码的错）：**本轮之前仓库没有任何 Python 静态检查在跑**。
 现已引入 `ruff`（F/E9/B/SIM）+ `pyflakes`，并把 ruff 的真阳性（B023/B905/F841）逐条判真伪后处置。
 
-## 第3周期·扩展轮（D77–D97：导航基准、门禁聚合、src/ 参与度、步骤文档、临时文件）
+## 第3周期·扩展轮（D77–D100：导航基准、门禁聚合、src/ 参与度、步骤文档、临时文件）
+
+> 编号说明：本段登记 D77–D100，其中 **D98 未启用**（复核后未成立，编号保留不复用），
+> 实际共 23 条。
+
 
 前一轮的收口报告说"八项门禁全绿"。扩展轮从**未被覆盖的测试面**（导航基准脚本、门禁自身的
 聚合逻辑、仓库 `src/` 的实际参与度）继续查，结果先推翻的正是这句话的取证方式（D89）。
@@ -994,6 +1000,81 @@ PowerShell 里 **函数体也可以有自己的 `param(...)`**（惯例缩进 4 
 而与其它会话记录的 2586.8–2593.0 MB 相差 **~1.5%** —— 跨会话绝对值不能当基线。
 
 补充（同一轮的清扫证据）：全仓 `Tee-Object` 扫描确认这种「用成功流抓 `Write-Host`」的写法**只存在于 `run_baseline.ps1` 一处**，其余脚本没有同类隐患；捕获后新增回显循环，避免采集器变成「控制台全程无输出」的黑箱。
+
+### D99 门禁让边界测试直接改写「发布产物目录」里的 mcloud_flags.txt（Critical）
+
+`benchmark/tools/final_gate_matrix.ps1` 原来设 `$env:LOADER_TEST_OUT = $OutDir`
+（真实构建树的 `out/mcloud`），而 `.bugreview/loader_edge_test2.py` / `loader_edge_test3.py`
+的工作方式正是：备份 `<OUT_DIR>/mcloud_flags.txt` → 依次写入 BOM 语料 / 空文件 / 垃圾字节 /
+3000 条合并上限语料 → 启动该目录里的 `chrome.exe` 观察子进程命令行 → 在 finally 里恢复备份。
+
+这个设计只在「测试正常跑完」时成立。同一会话内连续撞到的实测后果：
+
+- 17:02 与 17:32 两次检查 `out/mcloud/mcloud_flags.txt`，分别看到 **300,063 B** 与
+  **106,890 B** 的文件（仓库真身 8,186 B，sha256 前缀 `61b7670856ed`）——即测试正在写、
+  或被中断后没恢复。
+- 17:32 我打断门禁（Stop-Process）后恢复没执行；紧接着 `.bugreview/flag_runtime_state.py`
+  读到**首字节 0xD6、非 UTF-8** 的该文件并抛裸 `UnicodeDecodeError`（那正是垃圾字节用例）。
+- 同一条链路上的其它门禁（A6 内置标志验证、leak_probe、runtime_state）都可能落在
+  **污染窗口里**：量的是测试语料的行为，却报成「发布配置已验证」。
+- 若在这种状态下执行 `autoninja mini_installer`，安装包里打进去的就是测试语料。
+  这条恰好被既有防线挡住一半：`.bugreview/package_m155.py` 会比对
+  `out/mcloud/mcloud_flags.txt` 与仓库正文，不一致就报 problem（它也是本缺陷的检出手段）。
+
+根因不是某个变量写错，而是**隔离边界画错了位置**：会改写被测文件的测试，
+其写入目标不能是发布产物目录本身；把安全性寄托在 finally 恢复上，等于假设进程永不被打断。
+
+修复（三层，全部实测）：
+
+1. 门禁为 loader 测试建**硬链接沙箱** `out/mcloud_loader_test`：同卷硬链接全部运行时文件
+   （零拷贝、秒级），只**不**链 `mcloud_flags.txt`（沙箱自己从仓库复制一份）；
+   跳过 `args.gn / .ninja_log / .ninja_deps / build.ninja` 以及文件数 > 1000 的一级目录
+   （实测 `obj/ 65k`、`gen/ 87k`、`pyproto/`、`win_clang_*`，链接它们要多花几分钟且 chrome
+   启动不需要），保留 `locales/ angledata/ resources/ …` 等小目录。
+2. 两个测试各加 `_refuse_real_build_dir()`：目标目录出现构建特征文件即 `REFUSED` + exit 2，
+   并提示改用沙箱或显式 `MCLOUD_ALLOW_LOADER_TEST_ON_BUILD_DIR=1`。
+   （这条防线本身也被实测过：第一次把沙箱建在链了 `args.gn` 的位置时，它立刻把沙箱
+   判成构建目录并拒绝——说明判据有效，随后改为不链元数据文件。）
+3. 隔离有效性的直接验证：沙箱里跑完 loader 测试后，真实产物文件
+   sha256 `61b7670856ed → 61b7670856ed`（UNCHANGED）。
+
+对既有结论的影响（按可证性分级，不是一句"应该没事"）：
+
+- **安装包内容安全（口径已二次修正）**：`.bugreview/package_m155.py` 只做一次字节比对，
+  而 `.bugreview/refresh_release.py:92` 早就**知道**这个风险——它的处理方式是"不一致就等 60 秒
+  重试，最多 5 次"，注释里写明"这通常说明有一轮验证正在跑，不是包过期"。
+  也就是说历史上的防线是**轮询等测试跑完**，而不是消除写入；测试被打断时重试永远等不回来。
+  本次产物 `0602cafa…`（127,523,328 B）是在污染窗口之前就构建完成的，installer 载荷与
+  `chrome.7z` 内容另有扫描证据（`mcloud_flags.txt` 条目 + 正文内特征串），故发布物本身不受影响。
+  真正的问题是这条已知风险**没有传递到新写的门禁**里：`final_gate_matrix.ps1` 连重试都没有，
+  直接把测试指向了发布目录。修复因此不是"加等待"，而是消除写入位置（硬链接沙箱）。
+- **A6 内置标志门禁**：它断言的是生产清单里独有的条目（`InitialWebUI` 等）。
+  测试语料用的是 `EdgeProbeFeat2999` 之类标记名，不含这些条目 ⇒ 该门禁 PASS 本身就说明
+  它启动时读的是正文文件，因此此前 A6 的结论可保留。
+- **KPI 基线（`docs/dev-logs/M155-benchmark.md`）**：**判定为作废、需重采**。时间线核对结果——
+  该报告于 17:23–17:26 采集，而同一时刻门禁矩阵正跑在 loader 边界测试阶段（17:16 启动，
+  17:24 前后 chrome 进程数 8 即为测试在跑），也就是说 K1/K2 极可能是在
+  `out/mcloud/mcloud_flags.txt` 被换成测试语料的窗口里测的：那种状态下浏览器**没有内置优化清单**，
+  K1/K2 数字不代表发布配置。文件在 17:33 才恢复为正文（8,186 B / `61b7670856ed`）。
+  处置：D99 的硬链接沙箱生效后**重新采集一份**，旧文件保留但在开头标注作废原因。
+- **flag_runtime_state**：崩溃前读到的是垃圾文件（D100），故其此前一轮的输出只作参考；
+  收口重跑时它会先做正文一致性检查，不一致直接 exit。
+
+### D100 `flag_runtime_state.py` 读到被污染文件时抛裸 traceback，且发现不一致仍继续给结论（Medium）
+
+三处叠加：① 用 utf-8 硬读构建目录 flags，遇到垃圾字节抛
+`UnicodeDecodeError: ‘utf-8’ codec can’t decode byte 0xd6 in position 0`，
+既没指出「这是产物目录被测试污染」也没给恢复方法；② 它其实已经算出「与仓库不一致(!)」，
+但只打印一行就继续做运行时比对，于是结论不属于发布配置；③ `--control` 对照实验会往
+生产 flags 文件追加一行再在 finally 恢复，同样依赖「不被打断」。
+
+修复：① 按 `utf-8-sig` 读字节再解码，失败时 `SystemExit` 说明「几乎一定是 loader 边界测试
+被中断后留下的测试语料」并给出恢复方法（copy 仓库文件 / 重跑 deploy_mcloud.py）；
+② 与仓库正文不一致时**直接 exit**，只有显式 `--allow-drift` 才继续（并打出大小差异）；
+③ 保留 finally 恢复，但前置检查让它不再需要信任恢复。
+
+纪律（已写进 AGENTS.md）：**测试不得写入发布产物目录**；会改写被测文件的测试一律在
+硬链接沙箱里跑；写生产位置的动作必须有「特征文件即拒绝」的前门，而不是依赖 finally 恢复。
 
 ### 扩展轮的全局效率结论（稳定优先，不是局部最优）
 

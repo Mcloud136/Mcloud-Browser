@@ -66,6 +66,22 @@ def check(name, allcmd, tokens):
     return True
 
 
+
+def _refuse_real_build_dir(out_dir):
+    """缺陷 D99 防线：本测试会**改写** <out>/mcloud_flags.txt，只在 finally 恢复。
+    若指向真实构建目录，任何中断（Kill / 超时 / 断电）都会把测试语料留在发布产物目录里，
+    后续门禁与打包就在拿垃圾当生产配置。这里用「构建目录特征文件」判定并拒绝。"""
+    markers = ("args.gn", ".ninja_log", "build.ninja")
+    hit = [m for m in markers if os.path.exists(os.path.join(out_dir, m))]
+    if hit and os.getenv("MCLOUD_ALLOW_LOADER_TEST_ON_BUILD_DIR") != "1":
+        print("REFUSED: LOADER_TEST_OUT=%s 看起来是真实构建目录（发现 %s）。" % (out_dir, ", ".join(hit)))
+        print("  本测试会改写该目录下的 mcloud_flags.txt，中断即污染发布产物。")
+        print("  正确做法：用硬链接沙箱（final_gate_matrix.ps1 会自动建 out/mcloud_loader_test），")
+        print("  或明确知情后设 MCLOUD_ALLOW_LOADER_TEST_ON_BUILD_DIR=1 强行运行。")
+        sys.exit(2)
+
+
+_refuse_real_build_dir(OUT_DIR)
 def main():
     if not os.path.exists(CHROME):
         print("chrome.exe missing")
