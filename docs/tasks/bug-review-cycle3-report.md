@@ -43,6 +43,7 @@
 | D65 | Medium | `.bugreview/d49_experiment.py` | 证据不可信 | 读取线程闭包捕获循环变量（B023 真阳性），可能采到别的用例的 stderr | ✅ `_reader(p=p, chunks=chunks)` 显式绑定 |
 | D66 | Medium | 本周期修复自身 | 次生缺陷（自查发现，共 3 处） | ①实例指纹用完整路径匹配（8.3 短名 vs 长名）→ 采到 0 进程 0 MB 仍打 PASS；②`loader_edge_test3` 的 `launched`/`nproc` 在清理**之后**才取 → 7 例假 FAIL；③PowerShell 里 `double + '\|' + int` 抛"无法把 '\|' 转成 System.Double"，被 `except ValueError` 吞成 0.0 MB | ✅ 叶子名指纹 + 取值顺序 + 改用 `-f` 格式化 + "0 进程即 FAIL"护栏 |
 | D67 | Medium | `apply_avx2_baseline.py:12`、`apply_polly_wiring.py:14` | 静默分叉 | 都用 `if "<标志串>" in s: exit(0)` 判"已应用" → **改了标志列表/接线正文再跑，树里仍是老版本**（与 D64 同族） | ✅ 两个脚本都改为正文比对式升级器（不一致整段替换；上游形状变了则带指引地报错） |
+| D73| Low| apply_mcloud_source_defaults.py| 上游把 BASE_FEATURE 拆成多行写时，精确单行匹配同时看不到 ENABLED 与 DISABLED：自愈失效且误报「形态已变更」→ deploy 直接退出| 加空白归一化兜底匹配（跨行形态实测 rc=0 且不误写） |
 
 D66 值得单独留档：**修 D52/D55 的那一批改动自己带了三个新缺陷，全部被回归测试当场抓出来**。
 其中第 ③ 个（PowerShell 数字与字符串用 `+` 拼接会抛类型转换异常，而异常被宽 `except` 吞掉）

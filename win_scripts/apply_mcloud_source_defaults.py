@@ -37,14 +37,29 @@ print("应用 MCloud 源码级默认值修改：")
 msw = SRC + r"\media\base\media_switches.cc"
 DISABLED = "BASE_FEATURE(kD3D12VideoDecoder, base::FEATURE_DISABLED_BY_DEFAULT);"
 ENABLED = "BASE_FEATURE(kD3D12VideoDecoder, base::FEATURE_ENABLED_BY_DEFAULT);"
+
+
+def _norm(t):
+    """D73：上游常把 BASE_FEATURE 拆成多行写，精确单行匹配会同时落空，
+    于是既看不到 ENABLED 历史覆盖（自愈失效），也看不到 DISABLED（误报"形态已变更"）。
+    先按原样匹配，匹配不到再用空白归一化的形态兜底。"""
+    return " ".join(t.split())
+
+
 _s = io.open(msw, encoding="utf-8").read()
+_n = _norm(_s)
 if ENABLED in _s:
     _s = _s.replace(ENABLED, DISABLED, 1)
     io.open(msw, "w", encoding="utf-8", newline="\n").write(_s)
     print("  [fixed] 回退历史覆盖：kD3D12VideoDecoder 恢复上游 DISABLED_BY_DEFAULT"
           "（禁用意图改由 mcloud_flags.txt 显式声明）")
-elif DISABLED in _s:
-    print("  [ok] kD3D12VideoDecoder 上游默认 DISABLED（无需覆盖，禁用由 flags 显式保证）")
+elif DISABLED in _s or _norm(DISABLED) in _n:
+    print("  [ok] kD3D12VideoDecoder 上游默认 DISABLED（无需覆盖，禁用由 flags 显式保证）"
+          + ("，跨行声明形态" if DISABLED not in _s else ""))
+elif _norm(ENABLED) in _n:
+    print("  [WARN] 树上是跨行形态的 ENABLED 历史覆盖，不做盲改；请人工把该声明回退为 "
+          "FEATURE_DISABLED_BY_DEFAULT 后重跑")
+    sys.exit(1)
 else:
     print("  [WARN] kD3D12VideoDecoder 声明形态已变更，请人工核对 media/base/media_switches.cc")
     sys.exit(1)
