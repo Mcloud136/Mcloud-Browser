@@ -85,7 +85,6 @@ def stop_instance(udd, proc):
     下一轮链接就以 `lld-link: failed to write output './dxcompiler.dll': permission denied`
     失败（本轮实测：9 个孤儿进程直接把 51,296 步的重编打断）。
     """
-    key = _key_of(udd)
     for _attempt in range(5):
         pids = instance_pids(udd)
         if not pids:

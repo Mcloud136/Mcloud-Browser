@@ -6,7 +6,6 @@
 # 内容一致才算完成；发现我们自己写过的旧版本就整段替换；上游形状变了则明确报错。
 import io
 import os
-import re
 import sys
 
 # D27: 与 deploy_mcloud.py 的 CR_DIR 机制保持一致（默认构建机标准树）
@@ -33,7 +32,6 @@ if BEGIN in s:
     assert k != -1, "AVX2 块的收尾未找到，文件形状与脚本假设不符"
     k += len("\n    }")
     cur = s[i:k]
-    want = new.lstrip("    ").strip("\n")
     if cur.rstrip() == new.strip():
         print("AVX2 baseline already present (content match), nothing to do")
         sys.exit(0)

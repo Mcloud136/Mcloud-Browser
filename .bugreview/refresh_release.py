@@ -20,7 +20,6 @@ direction. Replacement gates inspect the *inputs* the packer consumed:
 import hashlib
 import os
 import shutil
-import subprocess
 import sys
 import time
 

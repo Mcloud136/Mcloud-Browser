@@ -7,7 +7,6 @@
 """
 import re
 import subprocess
-import sys
 
 SRC = r"D:\wxmuma\chromium-src\src"
 KINDS = "BASE_FEATURE|BASE_DECLARE_FEATURE|DEFINE_FEATURE|UNI_FEATURE|FEATURE"

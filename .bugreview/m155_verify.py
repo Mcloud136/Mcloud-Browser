@@ -9,7 +9,6 @@ A6 子进程命令行 → K1 → K2 → leak_probe(155 vs 151 A/B)。
 """
 import argparse
 import hashlib
-import json
 import os
 import re
 import subprocess

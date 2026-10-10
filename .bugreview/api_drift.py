@@ -7,7 +7,6 @@ Usage: python api_drift.py <rev> [<rev2> ...]
 Everything is read from the git object store (`git show rev:path`, `git grep rev`),
 so the working tree (still M151 and actively used by out/mcloud) is never touched.
 """
-import json
 import re
 import subprocess
 import sys

@@ -679,6 +679,7 @@ PowerShell 5.1（中文必须 UTF-8 BOM，见 D38）、GN（Chromium 构建元�
 | D73 | Low | `apply_mcloud_source_defaults.py` | 上游把 `BASE_FEATURE` 拆成多行写时，精确单行匹配同时看不到 ENABLED 与 DISABLED → 自愈失效且误报「形态已变更」，deploy 直接退出 | ✅ 加空白归一化兜底；跨行形态实测 rc=0 且不写入 |
 | D74 | — (成本结论) | `build/config/compiler/BUILD.gn` 的一个 config 正文 | 只改 config 的**写法**（`use_polly=false` 下展开为空）也让 `gn gen` 后 ninja 给出 51,296 步计划（≈3 小时全树重编）。零收益改动必须与真实改动同批落地 | ✅ 写进 AGENTS.md 与规范；本轮因同时要交付 loader v6 验证链而接受这次重编 |
 | D75 | Low–Med | `AGENTS.md` 的 other/ 一节 + `other/*.patch` | 文档把 32 个补丁写成「关键补丁」，但当前构建链一个都不应用（唯一引用者是禁止运行的 setup.py）；其中 `mini_installer.patch` 与 D47 修复同源重复，顺手应用会造成 chrome.release 重复条目/冲突 | ✅ 口径更正为「历史/参考材料，非构建输入」并加禁打提示 |
+| D76 | Low | `docs/tasks/m155-perf-features.md` §5 第 7 步 + `docs/CMDLINE_FLAGS_LIST.md` | 采纳 flags 后要「更新 CMDLINE_FLAGS_LIST.md」的指引指向的是**上游 Chromium switch 转储**（Jun 19 起未动，192 KB，非本项目台账），照着做只会改错文件 | ✅ 指引改指 `mcloud_flags.txt` 条目注释为权威台账；剩余项：需要一份带分组/依据/验证状态的机器可读 flags 索引（规范 4.1.2 已建议） |
 
 流程性缺口（不是某一行代码的错）：**本轮之前仓库没有任何 Python 静态检查在跑**。
 现已引入 `ruff`（F/E9/B/SIM）+ `pyflakes`，并把 ruff 的真阳性（B023/B905/F841）逐条判真伪后处置。

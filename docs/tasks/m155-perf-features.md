@@ -116,7 +116,8 @@
      需要用户在同一构建上做拖拽+视频复现后才决定；本轮只出数据。
 7. 胜出项写回 `mcloud_flags.txt` 后：`python .bugreview/flag_stability.py 155 156`（跨版本存活性）+
    `python .bugreview/flag_runtime_state.py`（运行时回显核对）都要过，再更新
-   `docs/CMDLINE_FLAGS_LIST.md`、CHANGELOG 与升级报告。
+   `mcloud_flags.txt` 的条目注释就是权威台账（`docs/CMDLINE_FLAGS_LIST.md` 是上游
+   switch 转储、不是本项目清单，别去改它——见缺陷档案 D76）、CHANGELOG 与升级报告。
 
 ### 5.1 A/B 结果（M155.0.8059.40，同一二进制，`out/mcloud` 运行时清单）
 

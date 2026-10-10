@@ -5,7 +5,6 @@
 标记 android/ mac/ linux/ chromeos/ 等专属路径与 cros/woa 依赖；输出可据以
 判断"启用了在本产品里到底走不走得到"。
 """
-import re
 import subprocess
 import sys
 

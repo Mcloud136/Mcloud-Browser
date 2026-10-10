@@ -51,6 +51,7 @@ def probe(exe, label):
         "Vulkan/SwiftShader 回退": ("swiftshader" in txt.lower() or "vulkan" in txt.lower()),
         "gpu-preferences 片段": txt[txt.find("--gpu-preferences"):][:120] if "--gpu-preferences" in txt else "-",
         "本实例进程数": len(lines),
+        "浏览器主进程命令行可见": bool(main),
     }
     # 加载器是在**进程内**追加开关的，所以浏览器自身的 OS 命令行里看不到注入结果；
     # 能看到的是子进程命令行里的 override 回显（base/metrics/field_trial.cc:690）。
