@@ -41,7 +41,7 @@
 | D63 | Medium(潜伏) | `append_polly_configs.py` | "开了也没开" | Polly 是编译期 pass 却写进 ldflags；Windows 分支给 lld 发 BOLT 不支持的参数 | ✅ 改 cflags / emit-relocs 加 `!is_win` |
 | D64 | Medium | `append_polly_configs.py` | 静默不一致 | 见到 `config("polly")` 就只补 import 后退出，正文永远停在首版 | ✅ 改为正文比对式升级器 |
 | D65 | Medium | `.bugreview/d49_experiment.py` | 证据不可信 | 读取线程闭包捕获循环变量（B023 真阳性），可能采到别的用例的 stderr | ✅ `_reader(p=p, chunks=chunks)` 显式绑定 |
-| D66 | Medium | 本周期修复自身 | 次生缺陷（自查发现，共 3 处） | ①实例指纹用完整路径匹配（8.3 短名 vs 长名）→ 采到 0 进程 0 MB 仍打 PASS；②`loader_edge_test3` 的 `launched`/`nproc` 在清理**之后**才取 → 7 例假 FAIL；③PowerShell 里 `double + '\|' + int` 抛"无法把 '\|' 转成 System.Double"，被 `except ValueError` 吞成 0.0 MB | ✅ 叶子名指纹 + 取值顺序 + 改用 `-f` 格式化 + "0 进程即 FAIL"护栏 |
+| D66 | Medium | 本周期修复自身 | 次生缺陷（自查发现，按证据强度分级） | ①**已证实**：PowerShell 里 `double + '\|' + int` 抛"无法把 '\|' 转成 System.Double"（独立复现见 §4），被 `except ValueError` 吞成 `0.0 MB / 0 进程` → 量具静默产出假数据；②**已证实**：`loader_edge_test3` 的 `launched`/`nproc` 在清理之后才取 → 7 例假 FAIL；③**假设未证实**：完整路径实例指纹可能因 8.3 短名 vs 长名落空——当时的 0 读数由 ① 已充分解释，③从未复现，改叶子名只是"两种写法里更稳的一种"而非已证明的修复 | ✅ ① 改 `-f` 格式化；② 取值顺序前移；③ 统一叶子名并把"0 进程"变成硬 FAIL（护栏独立于 ③ 是否成立都值得加） |
 | D67 | Medium | `apply_avx2_baseline.py:12`、`apply_polly_wiring.py:14` | 静默分叉 | 都用 `if "<标志串>" in s: exit(0)` 判"已应用" → **改了标志列表/接线正文再跑，树里仍是老版本**（与 D64 同族） | ✅ 两个脚本都改为正文比对式升级器（不一致整段替换；上游形状变了则带指引地报错） |
 | D73| Low| apply_mcloud_source_defaults.py| 上游把 BASE_FEATURE 拆成多行写时，精确单行匹配同时看不到 ENABLED 与 DISABLED：自愈失效且误报「形态已变更」→ deploy 直接退出| 加空白归一化兜底匹配（跨行形态实测 rc=0 且不误写） |
 

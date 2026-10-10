@@ -669,7 +669,7 @@ PowerShell 5.1（中文必须 UTF-8 BOM，见 D38）、GN（Chromium 构建元�
 | D63 | Medium(潜伏) | Polly 写进 ldflags（编译期 pass 基本空转）；Windows 分支给 lld 发 BOLT 不支持的参数 | ✅ 改 cflags / `!is_win` |
 | D64 | Medium | `append_polly_configs.py` 见 `config("polly")` 就退出，正文永远停在首版 | ✅ 正文比对式升级器 |
 | D65 | Medium | `d49_experiment.py` 读取线程闭包捕获循环变量（B023 真阳性），实验证据不可信 | ✅ 默认参数显式绑定 |
-| D66 | Medium | 本轮修复自身引入 3 个次生缺陷（短名匹配 / 清理后才取值 / PS 数字+'|' 拼接抛异常被吞） | ✅ 全部修复，并把"0 进程"改成硬失败 |
+| D66 | Medium | 修复自身引入的次生缺陷：已证实 2 个（PS 数字+'|' 拼接抛异常被 except 吞成 0 值；清理后才取值），未证实假设 1 个（完整路径指纹的短名差异） | ✅ 全部修复，并把"0 进程"改成硬失败 |
 | D67 | Medium | `apply_avx2_baseline.py` / `apply_polly_wiring.py` 用"标志串存在"判已应用，改正文不生效（D64 同族） | ✅ 都改为正文比对升级器（副本三态验证） |
 | D68 | Medium | `verify_builtin_flags.ps1` 主路径 | M155 上 `--headless=new --dump-dom chrome://version` 已无 DOM，规范 4.1.1 写的验证方法事实失效，只剩兜底 | ✅ 子进程命令行改为主路径 |
 | D69 | Low | 同文件兜底分支 | 兜底按 exe 目录过滤，会把别的实例命令行读进来（假阳性） | ✅ 按本次实例 GUID 指纹 |
