@@ -190,7 +190,16 @@ D59 的负向对照（临时加行内注释）→ FAIL，恢复后 → PASS。
    紧接着 `gn gen --check` 后 ninja 给出 **51,296 步**计划（≈3 小时）。
    中途因孤儿进程锁文件失败后重跑仍是 34,310 步。
    → 可执行的纪律：**"把注释/写法改正确"这类零收益的 GN 改动，必须与真实改动同批落地**。
-   机制层面（为何空展开仍改变每条命令行）未细究，已列待办。
+   机制层面查证（联网 + 本机文档，结论：**能确认的边界**）：Ninja 的增量判定是"命令行变了才重编"，
+   而 GN 只要任一 build 文件改动就会重写 `build.ninja`
+   （[Fuchsia《GN 介绍》](https://fuchsia-china.com/docs/zh-hans/concepts/build_system/intro/)、
+   [GN Quick Start](https://www.cnblogs.com/bigben0123/articles/12626833.html)）；
+   Chromium 的 `action()` 一律带 `restat`，内容不变的生成物不会继续传播
+   （[writing_gn_templates.md](https://github.com/denoland/chromium_build/blob/upstream/docs/writing_gn_templates.md)）。
+   我们的观测与之相容：`chrome.dll` 重编后**字节数完全相同**（303,440,384 B），说明编译命令行确实没变；
+   那 24,468 步就不是"内容差异导致必须重编"，而是"GN 重写 build.ninja 后 ninja 的 dep 文件/mtime
+   比较判定为过期"这一类**伪失效**。公开文档没有给出更具体的机制说明，**未定论**，
+   但可执行的纪律不变：改 `build/config/**` 下的 GN 文本 == 一轮全树重编，必须与真实改动同批做。
 
    **本轮对 D74 的实际处置（记录得很直白，避免被误读成"已修复"）**：
    重编中途发现代价后，尝试把树内 polly 块回退成"已构建时的旧文本"以止损，
