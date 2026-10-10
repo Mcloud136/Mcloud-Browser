@@ -1,5 +1,13 @@
 # Checking out and Building Mcloud Browser for Windows &nbsp;<img src="https://github.com/Alex313031/mcloud/blob/main/logos/NEW/build_light.svg#gh-dark-mode-only" width="48"> <img src="https://github.com/Alex313031/mcloud/blob/main/logos/NEW/build_dark.svg#gh-light-mode-only" width="48">
 
+> ⚠ **本文是上游 Thorium/Mcloud 遗留文档，不是本仓库（Mcloud136/Mcloud-Browser，Chromium M155）的构建说明。**
+> 它假设源码在 `C:\src\chromium\src`、要求 VS 2022、`git clone Alex313031/mcloud`，
+> 并且完全没有本项目的唯一定制入口 `win_scripts/deploy_mcloud.py`（定点注入：加载器、AVX2 基线、
+> Polly 接线、`chrome.release` 的 `mcloud_flags.txt` 登记）。
+> **照本文操作会得到一个不含任何本仓库定制的构建，甚至在打包阶段失败**（缺陷 D91 记录于此）。
+> 权威步骤请看：仓库根 `AGENTS.md` 的「构建快速参考 / 完整构建流程」与
+> `docs/progress.md` §5.1。本文只保留作背景资料（工具链版本、常见 VS 组件问题等仍有一读价值）。
+
 There are instructions for other platforms here in the Mcloud Browser Docs directory.
 
 ## System Requirements

@@ -649,7 +649,7 @@ PowerShell 5.1（中文必须 UTF-8 BOM，见 D38）、GN（Chromium 构建元�
   （F541 之类）。给它修 lint 是局部最优、全局负收益——正确处置是删除或加 refusal guard（同 ADR-003
   对 Linux legacy 面的处理方式），已列入待办而不是本轮顺手改。
 
-## 第3周期缺陷登记（D52–D67，详版与全部证据见 `docs/tasks/bug-review-cycle3-report.md`）
+## 第3周期缺陷登记（D52–D92，详版与全部证据见 `docs/tasks/bug-review-cycle3-report.md`）
 
 一句话索引（每条的报告里有 file:line、根因、影响、修复与 Red→Green 证据）：
 
@@ -680,15 +680,275 @@ PowerShell 5.1（中文必须 UTF-8 BOM，见 D38）、GN（Chromium 构建元�
 | D74 | — (成本结论) | `build/config/compiler/BUILD.gn` 的一个 config 正文 | 只改 config 的**写法**（`use_polly=false` 下展开为空）也让 `gn gen` 后 ninja 给出 51,296 步计划（≈3 小时全树重编）。零收益改动必须与真实改动同批落地 | ✅ 写进 AGENTS.md 与规范；本轮因同时要交付 loader v6 验证链而接受这次重编 |
 | D75 | Low–Med | `AGENTS.md` 的 other/ 一节 + `other/*.patch` | 文档把 32 个补丁写成「关键补丁」，但当前构建链一个都不应用（唯一引用者是禁止运行的 setup.py）；其中 `mini_installer.patch` 与 D47 修复同源重复，顺手应用会造成 chrome.release 重复条目/冲突 | ✅ 口径更正为「历史/参考材料，非构建输入」并加禁打提示 |
 | D76 | Low | `docs/tasks/m155-perf-features.md` §5 第 7 步 + `docs/CMDLINE_FLAGS_LIST.md` | 采纳 flags 后要「更新 CMDLINE_FLAGS_LIST.md」的指引指向的是**上游 Chromium switch 转储**（Jun 19 起未动，192 KB，非本项目台账），照着做只会改错文件 | ✅ 指引改指 `mcloud_flags.txt` 条目注释为权威台账；剩余项：需要一份带分组/依据/验证状态的机器可读 flags 索引（规范 4.1.2 已建议） |
+| D77 | Medium | `src/` 590 个文件里 344 个是"与树内不同、无人应用"的惰性副本（含上一代注入痕迹），AGENTS.md 却称其为"主战场/覆盖文件" | 改这些文件不生效也不报错；拿副本与树内比对会得出错误结论 | ✅ 生成 `src/INVENTORY.md`（`.bugreview/src_inventory.py`）+ AGENTS.md 口径更正，副本保留 |
+| D78 | High | `bench_navigation.ps1` | `2>$null \| Out-Null` 吞掉一切，dump 拿不到 DOM 也把墙钟当"加载耗时"输出 | ✅ stdout 落盘按字节判成功，任何无效样本即抛「导航基准不可信」 |
+| D79 | High | 同上 | `& $exe` 无超时 → 页面/网络卡住时基准永久挂起（本周期目标点名的"进程卡死"面） | ✅ `WaitForExit(-TimeoutSec*1000)` + 超时 Kill + `-TimeoutSec` 参数 |
+| D80 | Low | 同上 | 参数名 `$args`/`$profile` 与 PowerShell 自动变量同名 | ✅ 改名 + profile 用 PID+GUID 唯一化 + 实例级清理 |
+| D81 | Low | 同上（D78 修复引入） | `$p.Wait(ms)`：PS 5.1 的 Process 没有 `Wait(int)`，MethodNotFound 直接失败 | ✅ 改 `WaitForExit(ms)`；全仓扫 `\.Wait\(` 零残留 |
+| D82 | Low | 7 个 benchmark `.ps1` | 输出被管道捕获时按 GBK 编码，日志中文全乱码（护栏最初还排在首条输出之后） | ✅ 统一加 UTF-8 OutputEncoding 护栏并调序 |
+| D83 | High | `final_gate_matrix.ps1` | `param()` 不在首位 → `-OutDir` 被静默丢弃、恒测默认树，且仍 exit 0 | ✅ param 归位；bogus 树实跑证明参数确被消费（日志 8 处该路径） |
+| D84 | Medium | 验证方法本身 | `PSParser::Tokenize` 对"语句顺序"类错误全盲（同一文件三次 PARSE OK 却是坏的）；仓库此前无任何 PS 静态检查 | ✅ `verify_sources.py` 增 BOM/param 位置/AST 三层 + 空输入即 FAIL；三个负例文件验证可证伪 |
+| D85 | Low | 新 lint 子进程 | 中文错误消息经管道回 Python 后乱码（D82 机制发生在我自己写的检查器上） | ✅ 临时脚本首行加 OutputEncoding |
+| D86 | Med–High | 9 个 benchmark/工具脚本 | 默认被测树硬编码为 M151 回滚树，且日志不打印测的是哪个二进制 | ✅ env 解析 + 155 兜底 + 被测身份横幅 + 回滚树告警 + 缺失即 throw |
+| D87 | Medium | `flag_stability.py` | 隐含依赖"三个 tag 对象存在于取证仓库"，缺失时表现成一大片无根因的 FAIL | ✅ `_require_revs()` 前置校验（exit 2 + 修复指引）+ 打印解析到的 commit + `--tree` |
+| D88 | Low | D87 修复引入 | `--tree` 的值先被当成"基线修订"分配，报错信息指向错误对象 | ✅ 先摘 `--tree` 再分配位置参数 |
+| D89 | **Critical** | `final_gate_matrix.ps1` 聚合 | 函数体内 `$results +=` 因 PowerShell 作用域规则永不累加到脚本级 → 汇总表空白、**无论门禁成败恒输出 ALL PASS 且 exit 0**（bogus 树下 `exit=1` 与 `ALL PASS` 同屏） | ✅ `$script:` 累加 + 条数自检 + NOEXIT 判失败 + 逐项打 stdout；删除同缺陷的早期草稿 |
+| D90 | High | `docs/progress.md` §5.1「下次编译更新内核时的操作」 | 只让跑 `copy_essentials.py`，且树写成 M151 的 `chromium-src`；照做会**跳过全部定点注入**（加载器/AVX2/Polly 接线/chrome.release 登记），得到"能编译能打包但定制整体丢失"的结果 —— 与 D47 同一失败模式，且这条路径正是升级时会照着做的清单 | ✅ 改为 `deploy_mcloud.py` 为唯一入口 + 显式 `CR_DIR`，并补 rebase 后必做的清单（重生成 INVENTORY、flag_stability、门禁矩阵） |
+| D91 | Medium | `docs/BUILDING_WIN.md` + `AGENTS.md` 的「前置文档」指针 | 该文件是上游 Thorium 文档（`C:\src\chromium\src`、VS 2022、`git clone Alex313031/mcloud`、构建 `mcloud_shell/setup` 等本项目不存在的目标、私有密钥口径与 ADR-001 冲突），**完全没有 deploy_mcloud 步骤**，却被 AGENTS.md 指为 Windows 构建前置文档 | ✅ 文件头加"上游遗留、非本仓库步骤"警示并指向权威步骤；AGENTS.md 指针改为本文「构建快速参考」+ progress §5.1 |
+| D92 | Medium | `bench_navigation.ps1`（D78 修复自身引入） | `finally` 里用 `-ErrorAction SilentlyContinue` 删重定向临时文件：浏览器子进程（renderer/crashpad）仍持有 stdout 句柄时删除必然失败，而错误被吞 → 两次实跑在 `%TEMP%` 遗留 **42 个** `navdom_*/naverr_*`（0 B～400 KB），正是本周期目标点名的资源泄漏面 | ✅ 删除失败登记到 `$script:pendingCleanup`（作用域写法即 D89 的教训），Test-Mode 在杀完本实例进程后重试；实例清理改为最多 5 轮「杀→等 600 ms」；仍残留则 `Write-Warning` 报数 |
 
 流程性缺口（不是某一行代码的错）：**本轮之前仓库没有任何 Python 静态检查在跑**。
 现已引入 `ruff`（F/E9/B/SIM）+ `pyflakes`，并把 ruff 的真阳性（B023/B905/F841）逐条判真伪后处置。
 
-## 修复状态汇总（2026-10-09 第2周期更新）
+## 第3周期·扩展轮（D77–D92：导航基准、门禁聚合、src/ 参与度、步骤文档、临时文件）
 
+前一轮的收口报告说"八项门禁全绿"。扩展轮从**未被覆盖的测试面**（导航基准脚本、门禁自身的
+聚合逻辑、仓库 `src/` 的实际参与度）继续查，结果先推翻的正是这句话的取证方式（D89）。
+全部结论都配了"能失败"的负向对照，方法见 `docs/tasks/bug-review-cycle3-report.md` 扩展轮一节。
+
+### D77 仓库 `src/` 里 344 个"与树内不同、却无人应用"的惰性副本，文档把它们说成主战场（Medium）
+
+- 严重度：Medium（不损坏构建，但系统性误导人与 Agent 的判断）。
+- 实测（`.bugreview/src_inventory.py`，对照 `D:\wxmuma\chromium-src-155\src`）：
+  `src/` 共 **590** 个文件；**233** 个在树内没有对应路径（真正的仓库独有资产）；
+  **12** 个与树内字节一致；**345** 个内容不同，其中被构建流水线真正使用的只有
+  `build/config/compiler_opt.gni`（copy_essentials 白名单）1 个 —— 即 **344 个差异副本无人读取**。
+  空白/换行归一后仍相同者为 **0**，说明差异是实质内容差异，不是格式漂移。
+- 更危险的是新旧混杂：仓库副本 `build/config/BUILDCONFIG.gn`、`build/config/compiler/BUILD.gn`
+  里带着上一代内核注入的 polly/avx2 痕迹（分别 8/13 处、9 处），而 `build/config/win/BUILD.gn`
+  的副本一处都没有。拿它们和树内比对，会得出"注入丢失"的错误结论。
+- 文档口径错误：`AGENTS.md` 写「`src/` — Chromium 覆盖文件（核心）… 112 个文件，修改浏览器行为的
+  主战场」，实测 590 个（112 ≈ 当时的 `.cc/.h` 数，现为 106），且"覆盖文件"这个定性只对
+  白名单里的 1 个成立。
+- 修复：① 生成权威清单 `src/INVENTORY.md`（工具 `.bugreview/src_inventory.py --write`，
+  重生成幂等、清单文件自身不计数）；② `AGENTS.md` 口径更正为"素材目录，不是生效修改集"；
+  ③ D41 的 `copy_essentials.ALLOWED_COPY` 继续作为唯一整份复制闸门（有上游对应物即拒绝）。
+- 验证：`python .bugreview/src_inventory.py` 输出 `总数=590 仓库独有=233 与树一致=12
+  与树不同=345 实际被使用=2 惰性差异副本=344`；`INVENTORY.md` 的"实际参与构建"表只含
+  compiler_opt.gni 与 chrome_main_delegate.cc（后者标注"副本不生效"）。
+
+### D78–D81 `bench_navigation.ps1`：吞掉输出的"耗时"、无超时、自动变量重名、PS 5.1 没有 `Wait(int)`
+
+`benchmark/bench_navigation.ps1` 是唯一还没被本轮覆盖的基准脚本，逐条读下来有四个问题，
+其中两个直接属于本周期目标点名的"性能数据不可信"和"进程卡死"：
+
+- **D78（High，数据有效性）**：旧实现用 `& $exe --headless --disable-gpu … 2>$null | Out-Null`
+  测量。`--dump-dom` 什么都没拿到时，进程照样启动→退出，墙钟时间被当成"页面加载耗时"输出。
+  实测 M155 上旧 headless 的 dump 可能为空（D68 同族），也就是说这条基准可以长期输出一组
+  完全不代表加载性能的毫秒数而毫无征兆。
+  修复：显式 `--headless=new`，stdout 落盘并**以 DOM 字节数判成功**（<200 B 记为无效样本，
+  不记耗时），任何无效样本都会让脚本以 `导航基准不可信：N 例无效…` 抛出而非静默出数。
+  文件头同时声明量具边界：headless 不含 GPU 合成/光栅化路径，只能看相对趋势，
+  不能声称测的是真实打开体验（真实渲染路径需要窗口化 + CDP 的 K3 通道，仍在待办）。
+- **D79（High，进程卡死）**：`& $exe` 没有超时，页面或网络卡住时整个基准永久挂起。
+  修复：`Start-Process -PassThru` + `WaitForExit($TimeoutSec*1000)`，超时即 `Kill()` 并记为
+  超时样本；新增 `-TimeoutSec` 参数（默认 60）。
+- **D80（Low）**：参数名用了 `$args` / `$profile`，与 PowerShell 自动变量同名，跨作用域取值不可靠。
+  修复：改名 `$argv` / `$prof`；profile 目录用 `mcloud_nav_<mode>_<PID>_<guid>` 唯一化，
+  清理改为**按本次实例命令行指纹筛 PID**（不再机器级杀进程，D55 口径）。
+- **D81（Low，修复自身引入）**：新代码写了 `$p.Wait($TimeoutSec * 1000)`。PS 5.1 的
+  `[System.Diagnostics.Process]` 只有 `WaitForExit(int)`，没有 `Wait(int)` →
+  `MethodNotFound`，脚本直接失败。修复为 `WaitForExit`，并对全仓 `.ps1` 扫 `\.Wait\(`，
+  除注释外零命中。
+- 验证：`-Runs 1 -TimeoutSec 45` 实跑，两种模式各 3 个 URL 全部拿到真实 DOM
+  （example 2 378 B / bilibili ≈390 KB / qq ≈408 KB），耗时 330/1266/1938 ms 与
+  328/1268/1418 ms，退出码 0；单轮差异（qq +36.7%）**不作为结论**——样本数 1，
+  远低于本项目"至少 2 次交错重复"的判定门槛。
+
+### D82 benchmark 脚本中文输出被按 GBK 编码，捕获到日志即乱码（Low，含护栏次序坑）
+
+PowerShell 5.1 在 stdout 被管道/文件捕获时按 `[Console]::OutputEncoding`（本机 936/GBK）编码，
+`.ps1` 源文件虽有 BOM、解析正确，输出却全是乱码；实测同一次运行的日志里"被测对象"整行不可读。
+修复：给 `bench_*.ps1`、`run_baseline.ps1`、`verify_builtin_flags.ps1`、`final_gate_matrix.ps1`
+统一加 `try { [Console]::OutputEncoding = New-Object System.Text.UTF8Encoding $false } catch {}`。
+次生坑（同轮发现并修）：护栏最初被插在"被测对象身份横幅"（D86）**之后**，而那恰好是最需要
+看清的一行；已统一调序为 param → `$ErrorActionPreference` → 护栏 → 其余输出。用无 BOM 的
+`UTF8Encoding($false)` 而非 `[Text.Encoding]::UTF8`，避免流首写 BOM。
+验证：`bench_size` / `bench_startup` / `bench_navigation` 三个脚本经管道输出全部可读。
+
+### D83 `final_gate_matrix.ps1` 的 `param()` 不在首位，`-OutDir` 被静默丢弃且仍退出 0（High）
+
+PowerShell 要求脚本级 `param(...)` 是**第一条语句**（前面只能有注释/空行）。该文件把它写在
+`$ErrorActionPreference`/`Set-Content`/`function`/`$PY` 四行之后，于是 `param` 被当作命令名，
+抛 `CommandNotFoundException`（非终止错误，只打印），参数块整体作废：`-OutDir` 恒为默认值，
+且因 `ErrorActionPreference='Continue'` 仍返回退出码 0。
+
+- 最小复现（实测）：`$x=1` + `param([string]$y='d')` → 输出 `side effect ran`、
+  `param : 无法将"param"项识别为 cmdlet…`、`y=d x=1`，`EXIT=0`。传 `-y HELLO` 被丢弃。
+- 影响面评估（诚实口径）：默认值本来就等于目标树（155），所以此前"门禁跑在 155 产物上"这一
+  事实成立；这个缺陷咬人的场景是**换树验证**（例如回滚树比对、升级期比对）——那时会测到默认树
+  却以为测的是指定树。属于 D72 同族（结果归属错误）。
+- 修复：`param([string]$OutDir = '')` 移到注释块之后作为首条语句，并在文件头写下这条语言规则。
+- 验证（负向对照即"绑定真的生效"）：`-OutDir D:\BOGUS_TREE_XYZ` 跑门禁，日志与 stdout 出现
+  8 处该路径（`chrome.exe 不存在: D:\BOGUS_TREE_XYZ\chrome.exe` 等），说明参数已被消费。
+
+### D84 我用来判 `.ps1` 可行的方法（`PSParser::Tokenize`）本身是盲的（Medium，量具可证伪性）
+
+`Tokenize` 只做词法切分，D83 那类"语句顺序"错误它一个都不报——同一文件我三次得到 `PARSE OK`。
+仓库此前**没有任何** PowerShell 静态检查（`verify_sources.py` 只查 Python 与 pak_src C）。
+修复：把 `.ps1` 检查并入 `win_scripts/verify_sources.py`，三层——
+① 编码规则：含非 ASCII 却无 UTF-8 BOM ⇒ FAIL（D38 约定的机器化）；
+② 位置规则：`param(` 出现在任何非注释顶层语句之后 ⇒ FAIL（D83）；
+③ AST 规则：`[Language.Parser]::ParseFile` 逐文件解析，有错即 FAIL；
+   并且**输入为空 / CHECKED=0 一律判 FAIL**（否则扫描器坏了会被当成"全部通过"）。
+可证伪性验证：临时放三个负例文件（param 后置 / 非 ASCII 无 BOM / 少一个 `}`），
+门禁分别报出对应 FAIL，`RESULT: FAIL` 且 exit 1；删除后 `PASS 45/45 + AST 45/45`、exit 0。
+顺带在同一轮抓到 4 个**真实**在用的文件缺 BOM（`.bugreview/build_m155.ps1`、
+`cycle3_settle.ps1`、`wait_then_gate.ps1`、`.diag/collect_stutter_diag4.ps1`），已补 BOM。
+
+### D85 `verify_sources.py` 的 PowerShell 子进程自身把错误信息也编成乱码（Low）
+
+AST 层第一次运行时，PowerShell 抛出的中文错误消息（`语句块…缺少右"}"`）经管道回到 Python 后
+显示为乱码——正是 D82 的机制，这次发生在我新写的检查器自己身上。
+修复：在临时 lint 脚本首行加同一条 OutputEncoding 护栏。验证：同一条错误现在原样可读
+（`[FAIL] PowerShell AST parse: PSLINT|..._negctl_syntax.ps1|2|语句块或类型定义中缺少右"}"。`）。
+
+### D86 十处硬编码 M151 回滚树默认值：不传参就量到旧二进制，日志还看不出测了谁（Medium–High）
+
+`bench_startup/bench_memory/bench_navigation/run_baseline/bench_size/verify_builtin_flags/
+bolt_pipeline/pgo_collect/diag_igpu_green_screen` 的默认 `-ChromeExe`/`-OutDir` 全写死为
+`D:\wxmuma\chromium-src\src\out\mcloud`（那是 M151 回滚参考树，当前发布对象在
+`chromium-src-155`），且**没有一个脚本在输出里说明自己测的是哪个文件**。
+后果与 D72 同类：结果归属错误，而且看起来完全正常。
+修复（统一口径而非逐处改路径，避免下次换树再犯）：
+① 默认值改为空串 + 运行时解析：`$env:MCHROME_EXE` / `$env:MCHROME_OUT` → 再退回 155 树；
+② 打印被测对象身份：绝对路径、字节数、mtime、同目录 `mcloud_flags.txt` 是否存在
+   （缺失即提示"内置优化不生效，结果无意义"）；
+③ 路径命中回滚树特征（`chromium-src\`）时 `Write-Warning` 明示"不是当前发布对象"；
+④ 目标目录/文件不存在直接 `throw`（旧 `bench_size` 只是打印空表）。
+验证：`bench_startup` 输出 `被测对象: …chromium-src-155…chrome.exe | 4,389,888 B |
+mtime=2026-10-11T00:20:49 | 内置标志文件=同目录存在`；`bench_size` 输出 `chrome.dll=
+303,440,384 B`，与当前产物一致。
+
+### D87 `flag_stability.py` 隐含依赖"tag 对象存在于 M151 参考树"，缺失时表现为一堆无意义 FAIL（Medium）
+
+A–F 断言全部用 `git grep <rev>` **按修订**取证（所以指向 `chromium-src\src` 是对的：那棵树里
+fetch 过 155/156 的 tag 对象，工作树没动）。但这条外部前提没写下来、也没校验：一旦该树被重新
+clone/sync 不带 tags，三个 rev 全部解析失败，工具会输出一大片"未找到"的断言 FAIL，把根因藏起来。
+修复：新增 `_require_revs()` 前置校验（`git rev-parse --verify <rev>^{commit}`），
+失败即给出可执行修复指引并以 **exit 2** 退出；同时打印每个 rev 实际解析到的 commit，
+再支持 `--tree <path>` / `FLAG_STAB_TREE` 换取证仓库（与 D86 的"被测身份要可见"同一原则）。
+验证：`--tree D:\wxmuma\thorium` → `FAIL: 在 … 中解析不到修订 151.0.7922.99（基线）——tag 对象缺失`
++ exit 2；正常跑 → 打印 `151.0.7922.99 -> fbb5d9fd5e73 / 155.0.8059.40 -> cfaadc5a132d /
+156.0.8078.12 -> 634b046faf21`，A–F 全 PASS（53/53 条目三版全存活）。
+
+### D88 我新加的 `--tree` 解析顺序错，把路径当成了"基线修订"（Low，修复自身引入）
+
+`_ARGS` 先按位置分配 REV151/155/156，再摘 `--tree` 的值 ⇒ 那条负向对照最初报出的是
+"解析不到修订 D:\wxmuma\thorium"。改为先摘 `--tree` 值再分配位置参数（`.remove()` 只摘一次）。
+验证：重跑同一条负例，消息变成"解析不到修订 151.0.7922.99（基线）"，exit 2 不变。
+
+### D89 收口门禁的聚合逻辑恒报 ALL PASS——"门禁的门禁"是坏的（Critical）
+
+`final_gate_matrix.ps1` 里 `Invoke-Gate` 函数体内用 `$results += …` 汇总。PowerShell 的作用域规则
+是"读父作用域、写即建本地副本"：函数内的 `+=` 只累加到函数的局部变量，脚本级 `$results`
+永远为空 ⇒ 汇总表一行都不打印、`$bad.Count -eq 0` 恒成立 ⇒ **无论各门禁实际成败，都输出
+`RESULT: ALL PASS` 并以 0 退出**。
+
+- 决定性证据（bogus 树实跑）：日志同时出现 `leak_probe(2x15) => exit=1`
+  （`FileNotFoundError`，chrome.exe 不存在）与 `RESULT: ALL PASS`，进程退出码 0。
+  修复后同一条命令如实报 `RESULT: FAIL x5`、exit 1，并把 8 行逐项表打到 stdout。
+- 对既有结论的影响（必须说清）：本报告与 M155 升级记录里"八项门禁全绿"的**摘要行不可作为证据**。
+  逐门禁的真实退出码此前已分别独立取证（verify_sources / flag_stability / loader_edge_test2·3 /
+  A6 子进程命令行探测 / leak_probe / package_m155 各自有日志与退出码），本轮又用真树重跑一遍
+  复核；扩展轮之后的收口以"逐项表 + 条数自检"为准，不再引用 ALL PASS 摘要。
+- 修复四条（都在同一文件）：① `$script:results += $row` 显式写脚本作用域；
+  ② 汇总自检 `$results.Count -ne $EXPECTED_GATES` ⇒ FAIL（采集数与调用点数不符时，
+  门禁自身坏了不能当通过）；③ `ExitCode` 为 `$null` 时判 `NOEXIT` 按失败处理，
+  避免"拿不到退出码"被 `-eq 0` 误判；④ 每行结果同步 `Write-Host` 到 stdout，调用方不必
+  只依赖日志摘要。删除同类的早期草稿 `.bugreview/cycle3_final_gate.ps1`（同一缺陷，避免两个
+  版本并存）。
+- 附带清扫：写了 `.ps1` 作用域误用扫描器（顶层 `$x = @()` + 函数体内 `$x +=`），
+  排除注释行后全仓只剩已修文件，无第二处。
+
+### D90 `docs/progress.md` §5.1 的"下次更新内核时的操作"跳过了全部定点注入（High）
+
+升级时会照着执行的那份清单（§5.1「下次编译更新内核时的操作」）只写了一步
+`python3 $THOR_DIR/win_scripts/copy_essentials.py`，然后把 `args.gn` / `gn gen` / `autoninja` 排下去，
+并且 `CR_DIR` 指向 `chromium-src`（M151 回滚参考树）。缺陷不在于某行写错，而在于**缺步骤**：
+
+- 本项目对上游文件的所有定制都由 `deploy_mcloud.py` 编排的定点注入产生
+  （`inject_flags_loader.py` 的加载器、`apply_avx2_baseline.py`、`apply_polly_wiring.py` +
+  `append_polly_configs.py`、`apply_mcloud_source_defaults.py`、`apply_installer_payload.py`）。
+- 只跑 `copy_essentials.py` 的结果是：**编译成功、打包成功、`gn gen --check` 也不报错**，
+  但 `chrome_main_delegate.cc` 里没有 `LoadMcloudPerformanceFlags()`、`chrome.release` 里没有
+  `mcloud_flags.txt` 条目 —— 53 项 feature + 3 项开关整体静默丢失。这与 D47（安装包不带标志文件）
+  是同一个失败模式，只是这次出现在"给人看的步骤文档"里。
+- 另外 §5.1 的 `chromium-src` 路径与 AGENTS.md 的多树口径冲突（默认值陷阱，2026-10-10 已踩过一次）。
+
+修复：§5.1 重写为 `deploy_mcloud.py` 作唯一部署入口 + 显式 `CR_DIR`（155 树）+
+`verify_sources.py` 作为编译前门禁，并补上 rebase 之后必做的三件事
+（重生成 `src/INVENTORY.md`、跑 `flag_stability.py <基线> <新tag> <下一tag>`、
+跑 `final_gate_matrix.ps1` 并只认逐项退出码）。
+
+### D91 `docs/BUILDING_WIN.md` 是上游 Thorium 文档，却被 AGENTS.md 指为 Windows 前置文档（Medium）
+
+逐条核对：该文件假设 Chromium 在 `C:\src\chromium\src`、要求 **VS 2022**、让你
+`git clone --recursive https://github.com/Alex313031/mcloud.git`（不是本仓库），构建目标是
+`autoninja -C out\mcloud mcloud chromedriver mcloud_shell setup mini_installer`
+（`mcloud_shell`/`setup` 目标在本 fork 的流程里不存在，而 `setup` 在本项目里恰好是**禁止运行**
+的遗留覆盖脚本名，见 AGENTS.md），密钥口径写"私有仓库、联系维护者"，与 ADR-001
+（公开密钥入库）冲突。全文**没有一句**提到 `deploy_mcloud.py` 或 `win_scripts/`。
+
+风险不是"读错文档浪费十分钟"，而是它是一个**可执行的错误流程**：新人或 Agent 按 AGENTS.md 的
+"前置文档"指引过去，会产出一个不含任何本仓库定制的构建，并且完全看不出哪里出了问题
+（与 D47/D90 同类，静默失效链条的源头）。
+
+修复：① 文件顶部加醒目警示块，声明它是上游遗留材料、列出与本项目冲突的四点，
+并把权威步骤指向 `AGENTS.md`「构建快速参考」与 `docs/progress.md` §5.1；
+② `AGENTS.md` 第 118 行的"前置文档"指针同步更正（并保留 BUILDING_WIN.md 作为工具链背景资料）。
+
+### D92 基准脚本的临时文件删除被 SilentlyContinue 吞掉，留下 42 个文件（Medium，资源泄漏）
+
+D78 的修复给 `Measure-Url` 加了 `-RedirectStandardOutput/-RedirectStandardError`，并在 `finally`
+里删这两个临时文件。看起来是对的，实测两次运行（24 次页面加载）后 `%TEMP%` 里留下
+**22 个 `navdom_*` + 20 个 `naverr_*`**，单个最大 409 KB。
+
+根因不是路径写错，而是 Windows 句柄语义：`chrome.exe` 主进程退出时，`--dump-dom` 的输出重定向
+句柄被子进程（renderer / crashpad-handler）继承，主进程一退出 `finally` 立刻执行 `Remove-Item`
+就会撞上 sharing violation；而 `-ErrorAction SilentlyContinue` 把这个失败彻底吞掉——
+**泄漏本身不致命，"看不见的泄漏"才是**（同一台机器反复跑基准会持续堆积）。
+交互验证：同一批遗留文件在进程全部退出后可以正常删除（`DELETE OK`），证实是时序而非权限问题。
+
+修复三处：
+1. 删除失败的文件登记进 `$script:pendingCleanup` —— 这里必须用 `$script:` 前缀，
+   否则会重演 D89 的"函数内累加不生效"；
+2. `Test-Mode` 的 `finally` 改为**最多 5 轮「按实例指纹杀进程 → 等 600 ms」**，
+   之后再调用 `Flush-PendingCleanup()` 重试删除；
+3. 重试后仍删不掉的，`Write-Warning` 明确报出数量，不再静默。
+
+验证（判据是"跑完即净"）：清完基线后完整跑一次 `-Runs 1 -TimeoutSec 40`，
+结束时 `navdom=0 naverr=0 navprof=0`；同一次运行仍产出 6 个有效样本
+（example 329 ms / bilibili 1088 ms / qq 1412 ms，DOM 408 KB 级），说明改动没有牺牲测量本身。
+
+附带收获（同一次实验里再证 D38）：我临时写的检查脚本 `/tmp/nav_leak_check.ps1` 没有 BOM，
+其中文字面量在 PowerShell 5.1 下被按 GBK 解析，输出显示为"杩愯缁撴潫"；
+而仓库内带 BOM 的 `bench_navigation.ps1` 同一管道里输出完全正常——BOM 规则现在由
+`verify_sources.py` 自动把关，临时脚本则不在扫描范围（在仓库外的文件，属一次性工具）。
+
+### 扩展轮的全局效率结论（稳定优先，不是局部最优）
+
+- **优先级重排**：D89 > D78/D79/D83/D86 > D77/D84/D87 > D80/D81/D82/D85/D88。
+  判据不是"改动大小"而是"错了会不会被看出来"：假绿与归属错误（D89/D72/D86）一旦成立，
+  整条验证链的输出都不再是证据，比任何单点性能项都贵。
+- **护栏顺序是语义的一部分**：D82 的护栏若排在首条中文输出之后，就恰好把它最该保护的那行
+  留在乱码里；D83 的 `param` 位置、D89 的作用域同理——都是"看起来能跑、实则失效"的次序问题，
+  所以修复必须配一个"能失败"的对照，而不是只跑一次成功样例。
+- **不为局部最优牺牲可复现性**：仓库 `src/` 里 344 个惰性副本，看起来最"优"的解是直接删掉
+  （少 344 个误导源），但那会一起丢掉 Thorium/Mcloud 的历史对照材料，且 ADR-003 只发 Windows
+  x64、其余平台的副本本就是参考件。选择「清单化 + 文档更正 + 保留」，代价是一份自动清单，
+  收益是任何 Agent 打开目录第一眼就能看到「这个文件没人用」。
+
+## 修复状态汇总（2026-10-09 第2周期更新；扩展轮补行见末尾）
 
 | 线 | 缺陷 | 修复 | 验证 |
 |----|------|------|------|
+| 基准/导航 | D78/D79/D80/D81 | ✅ DOM 字节判成功 + WaitForExit 超时 + 自动变量改名 + 实例级清理 | 实跑 2 模式×3 URL 全取到真实 DOM（2.4 KB/400 KB 级），退出码 0 |
+| 工具输出 | D82/D85 | ✅ 7 个 `.ps1` 加 UTF-8 输出护栏并调至首条输出之前；lint 子进程同样处理 | 管道捕获输出全部可读 |
+| 门禁自身 | D83/D84/D89 | ✅ param 归位 + `verify_sources.py` 新增 BOM/param 位置/AST 三层检查 + 聚合改 `$script:` 并自检条数 | 三个负例文件各自被检出 FAIL；bogus 树下门禁如实报 `FAIL x5`/exit 1 |
+| 结果归属 | D86/D87 | ✅ 默认值改为 env+155 并打印被测身份；flag_stability 前置校验三个修订 | 横幅打印 exe/dll 路径、大小、mtime、flags 文件状态；负例 exit 2 |
+| 文档口径 | D77/D90/D91 | ✅ 生成 `src/INVENTORY.md`（工具 `.bugreview/src_inventory.py`）+ AGENTS.md 口径与"前置文档"指针更正 + `progress.md` §5.1 改以 `deploy_mcloud.py` 为唯一部署入口 + `BUILDING_WIN.md` 顶部加"上游遗留、非本仓库步骤"警示 | 实测 590/233/12/345/344，真正参与构建的只有 1 个副本；§5.1 与 `deploy_mcloud.py` 的 8 个注入步骤逐条核对一致 |
+| 修复次生 | D88 | ✅ `--tree` 先摘值再分配位置参数 | 负例消息指向真正的修订名 |
 | pak_src | D1-D24 | ✅ 代码已改 | ✅ ASan 语料 8 组优雅报错 + v4/v5 往返字节一致（failures=0） |
 | flags 加载器 | D21/D22/D23/D33 | ✅ 注入器 v2（含 D33 include 路径修复）+ 树内升级 | ✅ A6 3/3 + 边界套件（v2 语料 9 例） |
 | flags 加载器 | D39/D40 | ✅ loader v3 合并值上限 + v4 全量字节预算（v5 去裸指针告警） | ✅ v3 实测 106KB 语料不崩（`probe_huge`）；✅ v5 二进制 11/11 边界用例通过（含 250KB `--js-flags` 与 4000 个普通开关） |

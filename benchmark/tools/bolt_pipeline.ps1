@@ -20,10 +20,15 @@ param(
     [Parameter(Mandatory = $true)]
     [ValidateSet("instrument", "collect", "optimize", "verify", "all")]
     [string]$Step,
-    [string]$OutDir = "D:\wxmuma\chromium-src\src\out\mcloud",
+    [string]$OutDir = "",
     [string]$LlvmBin = "",          # llvm-bolt.exe 所在目录；留空则自动探测
     [int]$CollectSeconds = 120      # 插桩版运行时长（采集窗口）
 )
+
+# 被测对象口径（第3周期 bug-review，缺陷 D86）：默认值曾硬编码为 M151 回滚参考树，
+# 不显式传参就会把结果归属到错误的产物树。现在默认取 $env:MCHROME_OUT，退回当前 155 树。
+if (-not $OutDir) { $OutDir = if ($env:MCHROME_OUT) { $env:MCHROME_OUT } else { 'D:\wxmuma\chromium-src-155\src\out\mcloud' } }
+if ($OutDir -match 'chromium-src(\|$)') { Write-Warning "被测路径属于 M151 回滚参考树，不是当前发布对象（155）。" }
 
 $ErrorActionPreference = "Stop"
 

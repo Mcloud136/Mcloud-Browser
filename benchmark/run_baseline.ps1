@@ -10,11 +10,38 @@
 # =============================================================================
 param(
     [string]$Version = "M150",
-    [string]$ChromeExe = "D:\wxmuma\chromium-src\src\out\mcloud\chrome.exe",
-    [string]$OutDir = "D:\wxmuma\chromium-src\src\out\mcloud"
+    [string]$ChromeExe = "",
+    [string]$OutDir = ""
 )
 
 $ErrorActionPreference = "Stop"
+
+# 中文输出护栏（第3周期 bug-review，缺陷 D82）：stdout 被管道/文件捕获时，PowerShell 5.1
+# 按控制台代码页（本机 GBK 936）编码，日志里的中文全是乱码，人工核对极易误读。
+# 显式改为无 BOM 的 UTF-8；无控制台时（如服务上下文）setter 可能抛错，故 try 包裹。
+# ⚠ 护栏必须排在所有中文 Write-Host 之前——身份横幅本身就是要看的那一行。
+try { [Console]::OutputEncoding = New-Object System.Text.UTF8Encoding $false } catch {}
+
+# 被测对象口径（第3周期 bug-review，缺陷 D86）：默认值曾硬编码为 M151 回滚参考树，
+# 不显式传参就会把结果归属到错误的产物树。现在默认取 $env:MCHROME_OUT，退回当前 155 树。
+if (-not $OutDir) { $OutDir = if ($env:MCHROME_OUT) { $env:MCHROME_OUT } else { 'D:\wxmuma\chromium-src-155\src\out\mcloud' } }
+if ($OutDir -match 'chromium-src(\|$)') { Write-Warning "被测路径属于 M151 回滚参考树，不是当前发布对象（155）。" }
+
+# 被测对象口径（第3周期 bug-review，缺陷 D86）：旧默认值硬编码在 M151 回滚参考树
+# （chromium-src\src），不传 -ChromeExe 就会量到旧树，而日志里看不出测的是哪个二进制
+# ——与 D72"给陈旧产物开绿灯"同族的归属错误。现在默认取 $env:MCHROME_EXE，退回当前
+# 155 树，并打印被测对象身份（路径/大小/修改时间/内置标志是否同目录）。
+if (-not $ChromeExe) { $ChromeExe = if ($env:MCHROME_EXE) { $env:MCHROME_EXE } else { 'D:\wxmuma\chromium-src-155\src\out\mcloud\chrome.exe' } }
+if (-not (Test-Path $ChromeExe)) { throw "chrome.exe 不存在: $ChromeExe" }
+$subject = Get-Item $ChromeExe
+$mcloudFlagsNextTo = Join-Path $subject.DirectoryName 'mcloud_flags.txt'
+Write-Host ("被测对象: {0} | {1:N0} B | mtime={2:s} | 内置标志文件={3}" -f `
+    $subject.FullName, $subject.Length, $subject.LastWriteTime,
+    $(if (Test-Path $mcloudFlagsNextTo) { '同目录存在' } else { '缺失（内置优化不生效，结果无意义）' }))
+if ($subject.FullName -match 'chromium-src(\|$)') {
+    Write-Warning "被测对象位于 M151 回滚参考树，不是当前发布对象（155）。确认这是你要测的目标。"
+}
+
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $report = @()
 

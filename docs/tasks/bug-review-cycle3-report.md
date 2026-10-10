@@ -23,7 +23,7 @@
 外围脚本面：`win_scripts/*.py` 15 个、`benchmark/*.ps1` 5 个、`benchmark/tools/*.py`、
 本轮新入库的 `.bugreview/*.py` 验证脚本 16 个。
 
-## 2. 缺陷清单（D52–D72，全部带 file:line 与复现）
+## 2. 缺陷清单（D52–D76，全部带 file:line 与复现；扩展轮 D77–D89 见 §8）
 
 | # | 严重 | 位置 | 类别 | 一句话 | 状态 |
 |---|---|---|---|---|---|
@@ -151,7 +151,7 @@ $ids=...; ('{0}|{1}' -f ..., $p.Count)                          → rc=0 "66.8|1
 真实形状 → `already up to date (content match)`（证明修脚本不会引发 gn 重编）；
 把正文改成旧变体 → `replaced`；再跑 → `up-to-date`。
 
-**收口门禁矩阵（00:22 全量重编成功后，00:28 完成）— 8 项 ALL PASS**
+**收口门禁矩阵（00:22 全量重编成功后，00:28 完成）— 8 项 ALL PASS** （⚠ 口径更正 2026-10-10 扩展轮：该「ALL PASS」摘要行由缺陷 D89 的失效聚合产生，不能作证据；结论只依据逐项退出码——扩展轮修复后重跑为 8/8 逐项 exit=0，且同一命令对不存在的树会输出 FAIL x5 / exit 1。）
 
 | 门禁 | 结果 |
 |---|---|
@@ -253,3 +253,89 @@ D59 的负向对照（临时加行内注释）→ FAIL，恢复后 → PASS。
 - [ ] D49：用修好的 `d49_experiment.py` 重跑，并 `autoninja d8` 做权威判定
 - [ ] 泄漏判据升级（malloc 计数 / WPA），使 ±5 MB 级别的内存回归可测
 - [ ] `.bugreview` 工具统一 `with open(...)`（SIM115 收口）
+- [ ] K3 真实导航通道：窗口化 + CDP 测"打开页面"，替代 `bench_navigation.ps1` 的 headless 趋势值
+- [ ] `src/INVENTORY.md` 纳入内核升级检查清单（每次 rebase 后重生成，差异数应显著下降）
+
+---
+
+## 8. 扩展轮（D77–D92）：把审计范围推到"未被覆盖的面"，结果推翻了自己的收口证据
+
+§1–§7 收口后做完成度审计时发现，三类东西仍未被真正检视过：**导航基准脚本**、**门禁矩阵自身的
+聚合逻辑**、以及**仓库 `src/` 到底有多少文件在参与构建**。扩展轮先查这三处，随后把同类问题推到步骤文档，共新登记 16 条
+缺陷（详版见 `docs/tasks/bug-review-pak-src-defects.md` 的"第3周期·扩展轮"一节）：
+
+| 编号 | 严重度 | 一句话 |
+|------|--------|--------|
+| D77 | Medium | `src/` 590 个文件里 344 个是"与树内不同却无人应用"的惰性副本，AGENTS.md 称其为"主战场" |
+| D78 | High | `bench_navigation.ps1` 吞掉全部输出，拿不到 DOM 也把墙钟当"页面加载耗时"报数 |
+| D79 | High | 同脚本 `& $exe` 无超时 → 网络/页面卡住时基准永久挂起（本周期目标点名的卡死面） |
+| D80 | Low | 参数名 `$args`/`$profile` 与 PowerShell 自动变量同名 |
+| D81 | Low | D78 修复自身引入：PS 5.1 的 `Process` 没有 `Wait(int)`，只有 `WaitForExit(int)` |
+| D82 | Low | 7 个 `.ps1` 的中文输出被按 GBK 编码，捕获即乱码；护栏还排在首条输出之后 |
+| D83 | High | `final_gate_matrix.ps1` 的 `param()` 不在首位 → `-OutDir` 静默丢弃、仍退出 0 |
+| D84 | Medium | 我用来判 `.ps1` 可行的 `PSParser::Tokenize` 对语句顺序错误全盲；仓库此前无任何 PS 静态检查 |
+| D85 | Low | 新写的 lint 子进程自身中文错误消息乱码 |
+| D86 | Med–High | 9 个脚本默认被测对象硬编码为 M151 回滚树，且日志不打印测的是哪个二进制 |
+| D87 | Medium | `flag_stability.py` 隐含依赖"tag 对象存在于取证仓库"，缺失时表现成无根因的一大片 FAIL |
+| D88 | Low | D87 修复引入：`--tree` 的值先被当成"基线修订"分配 |
+| D89 | **Critical** | 门禁矩阵函数体内 `$results +=` 因 PowerShell 作用域规则永不生效 → **恒输出 `ALL PASS` 且 exit 0** |
+| D90 | High | `docs/progress.md` §5.1「下次更新内核时的操作」只跑 `copy_essentials.py` → 跳过全部定点注入，产出"能编译能打包但定制全丢"的构建（D47 同族） |
+| D91 | Medium | `docs/BUILDING_WIN.md` 是上游 Thorium 流程（`C:\src`、VS 2022、`mcloud_shell/setup` 目标、无私钥口径），却被 AGENTS.md 指为 Windows 前置文档 |
+| D92 | Medium | D78 修复引入的临时文件泄漏：`SilentlyContinue` 吞掉句柄占用导致的删除失败，两次实跑遗留 42 个 `%TEMP%` 文件 | ✅ pendingCleanup + 杀进程后重试 + 残留即告警；跑完 `navdom=0 naverr=0` |
+
+### 8.1 D89 是本轮最重要的一条：假绿发生在"门禁的门禁"上
+
+证据（对不存在的树跑门禁）：日志里同时出现 `leak_probe(2x15) => exit=1`
+（`FileNotFoundError`）与 `RESULT: ALL PASS`，进程退出码 0。原因不是某行算错，而是
+PowerShell 的作用域规则——函数内 `$results += …` 只写函数的本地副本，脚本级 `$results`
+恒为空数组，于是汇总表空白、`$bad.Count -eq 0` 恒成立。
+
+由此必须修正本报告前面的口径：**"八项门禁全绿"这句话，其"ALL PASS 摘要行"从今往后不再作为
+证据**；结论只依据逐项表里的每条退出码。此前的逐门禁证据仍各自独立成立（A6 子进程命令行探测、
+flag_stability A–F、loader 边界套件、package_m155 内容扫描都有各自的日志与退出码）。
+
+修复后的两条硬要求，都已在真树/假树两种输入上验证过：
+
+1. 聚合用 `$script:results`，并**自检条数**：采集数 ≠ 预期门禁数即 FAIL（"汇总为空"永远不等于通过）。
+2. `ExitCode` 取不到时判 `NOEXIT` 按失败处理，绝不让 `$null -eq 0` 之类的比较滑向 PASS。
+
+### 8.2 扩展轮的三轮复核（R6–R8）
+
+- **R6 假绿专项**：把所有"报 OK 但可能什么都没测"的位置列出来逐个证伪 ——
+  门禁聚合（D89）、PS lint 空输入（D84 的 `CHECKED=0` 判 FAIL）、`flag_stability` 的 rev 缺失
+  （D87）、被测对象归属（D86）。每条都做了"让它失败"的对照，而不是只看成功样例。
+- **R7 语言/工具语义核对**：`param` 位置（最小复现脚本实测：副作用先执行、`param` 被当命令名、
+  参数丢弃、仍 exit 0）、`Wait` vs `WaitForExit`、`$script:` 作用域、`Console::OutputEncoding`
+  与 BOM 的关系、`git rev-parse --verify` 作为 tag 存在性判据。
+- **R8 影响面回溯**：新缺陷是否使既有结论作废？逐条判定 ——
+  D83 不使先前门禁失效（默认树恰是目标树），D89 使**摘要行**失效但逐项退出码仍可用，
+  D78/D79 使**过去的导航数字**不可信（本轮不引用），D86 使过去"未传参直接跑"的基准结果
+  归属不明（本轮所有基准都改为显式打印身份后重跑）。
+
+### 8.3 验证方法本身的升级（可复用，不是一次性）
+
+`win_scripts/verify_sources.py` 现在除了 Python 语法与 pak_src C，还检查每个 `.ps1`：
+BOM 规则（D38 机器化）、`param` 位置（D83）、AST 解析（D84），并且**空输入/CHECKED=0 一律 FAIL**。
+可证伪性已验证：临时放三个负例（param 后置 / 非 ASCII 无 BOM / 缺一个 `}`）→ 门禁逐条报 FAIL
+且 exit 1；删除后 `PASS 45/45` + `AST 45/45`、exit 0。
+同一轮就抓到 4 个**真在用的**文件缺 BOM（`.bugreview/build_m155.ps1`、`cycle3_settle.ps1`、
+`wait_then_gate.ps1`、`.diag/collect_stutter_diag4.ps1`），已补齐。
+
+### 8.4 扩展轮收口门禁（修复后真树重跑，逐项退出码）
+
+```
+verify_sources        exit=0  PASS      ← 含新增的 PowerShell 三层检查（45 个 .ps1）
+flag_stability(A-F)   exit=0  PASS      ← 前置校验打印 151→fbb5d9fd5e73 / 155→cfaadc5a132d / 156→634b046faf21
+loader_edge_test2     exit=0  PASS
+loader_edge_test3     exit=0  PASS
+A6 builtin flags      exit=0  PASS
+flag_runtime_state    exit=0  PASS
+leak_probe(2x15)      exit=0  PASS
+package_m155(门禁)     exit=0  PASS
+RESULT: ALL PASS (8/8)                  ← 带条数自检，且同一命令对假树会输出 FAIL x5 / exit 1
+```
+
+同一二进制（`chrome.dll` 303,440,384 B、`chrome.exe` 4,389,888 B、installer
+`0602cafa…7090`）在本轮之前已验证；扩展轮没有改动任何浏览器源码或 `mcloud_flags.txt`，
+只动工具、脚本与文档，因此不需要重新编译。
+

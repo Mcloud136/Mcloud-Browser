@@ -269,7 +269,7 @@
 - **发布物已知偏差（需知悉）**：已发布的 r3 包**不含** `--disable-features=SkiaGraphite`（D50 修于升级期，
   晚于 r3 打包），即 r3 用户实际运行在 Graphite 启用状态；M155 包修正这一点。因此 r3 上是否复现拖拽冻结
   不能用来否定定案结论，验证请以 M155 包为准。
-- **发布状态**：M155 包已本地构建并通过 8 项门禁，用户 2026-10-10 决定**暂缓发布**（先做 A/B）；
+- **发布状态**：M155 包已本地构建并通过 8 项门禁（逐项 exit=0；摘要行口径见缺陷 D89），用户 2026-10-10 决定**暂缓发布**（先做 A/B）；
   A/B 现已完成，等待发布指示。提交 `f816752` 仍在本地未推送。
 
 ### 4.11 第3周期全面 bug-review（2026-10-10 晚，D52–D67）
@@ -290,29 +290,66 @@
 - 加载器升到 v6（浏览器进程限定 + BOM 剥离），`loader_edge_test2` 11/11 与 `loader_edge_test3` 7/7 PASS，
   并在 M151(v5) 上取得 T1 的 Red 对照。产物随 `gn gen --check` 后的整树重编重建（成因待查，已列待办）。
 
+### 4.12 第3周期·扩展轮（2026-10-10 晚，D77–D92）
+
+收口报告做完完成度审计后，把测试面推到三处未覆盖的地方：导航基准脚本、门禁矩阵自身的聚合逻辑、
+仓库 `src/` 的实际参与度。结果新登记 12 条缺陷，其中一条直接推翻了自己此前的收口证据形式：
+
+- **D89（Critical）**：`final_gate_matrix.ps1` 在函数体内 `$results +=`，PowerShell 作用域规则
+  使脚本级数组恒为空 → **不管门禁成败都打印 `RESULT: ALL PASS` 并 exit 0**。用不存在的构建树
+  实跑取证（`leak_probe => exit=1` 与 `ALL PASS` 同屏）。修复：`$script:` 累加 + 采集条数自检 +
+  `ExitCode` 为 null 判 NOEXIT + 逐项表同时打 stdout。今后**只认逐项退出码**，不认摘要行。
+- D83：同文件 `param()` 不在首位 → `-OutDir` 静默丢弃（换树验证会测错树）；已归位并实测参数生效。
+- D78/D79：`bench_navigation.ps1` 吞输出（无 DOM 也报"加载耗时"）+ 无超时（会挂死）；
+  改为 DOM 字节判成功、`WaitForExit` 超时、实例级清理，并在文件头声明 headless 的测界限制。
+- D84/D85：`verify_sources.py` 新增 PowerShell 三层检查（BOM / `param` 位置 / AST 解析，空输入即 FAIL），
+  三个负例文件验证其可证伪；当场抓到 4 个在用 `.ps1` 缺 BOM 并补齐。
+- D86/D87：基准与门禁脚本的默认被测对象不再硬编码 M151 回滚树，改为 env + 155 兜底 +
+  **打印被测身份**（路径/字节数/mtime/标志文件）；`flag_stability.py` 前置校验三个修订并打印 commit。
+- D77：实测 `src/` 590 个文件里 **344 个**是与树内不同且无人应用的惰性副本，AGENTS.md 旧口径
+  （"覆盖文件/主战场/112 个"）已更正，权威清单见 `src/INVENTORY.md`（可用
+  `python .bugreview/src_inventory.py --write` 重生成）。
+- D90/D91（同类：文档是"会被执行"的东西）：本节 §5.1 原来只让跑 `copy_essentials.py`，
+  跳过全部定点注入 → 照做会得到"编译打包都成功、定制整体静默丢失"的构建；已改为
+  `deploy_mcloud.py` 唯一入口。`docs/BUILDING_WIN.md` 是上游 Thorium 流程（`C:\src`、VS 2022、
+  `mcloud_shell/setup` 目标），却曾被 AGENTS.md 指为前置文档，现已在文件头加警示并更正指针。
+
+- D92（泄漏面）：D78 新加的临时清理被 `-ErrorAction SilentlyContinue` 吞掉失败，两次实跑遗留 42 个 `%TEMP%` 文件；改为登记 pendingCleanup + 杀进程后 5 轮重试 + 残留告警，重跑后 `navdom=0 naverr=0`。教训：**清理动作本身要能被证伪**，静默容错等于没有清理。
+
+本轮只动工具/脚本/文档，未触碰 C++ 与 `mcloud_flags.txt`，产物与哈希不变；扩展轮收口门禁
+`ALL PASS (8/8)`（假树输入会输出 `FAIL x5`/exit 1，证明该结论不是恒真输出）。
+
 ## 5. 下次编译更新内核时的操作
 
 ### 5.1 编译命令
+
+> **口径修正（2026-10-10 扩展轮，缺陷 D90）**：本节此前只让跑 `copy_essentials.py`，并把树写成
+> `chromium-src`（那是 M151 回滚参考树）。照着做会**跳过全部定点注入**——加载器、Polly 接线、
+> AVX2 基线、`chrome.release` 的 `mcloud_flags.txt` 登记一个都不做，结果编译与打包都成功，
+> 但定制整体静默丢失（与缺陷 D47 同一失败模式）。部署的唯一入口是 `deploy_mcloud.py`。
+
 ```bash
-cd /d/wxmuma/chromium-src/src
-
-# 同步覆盖文件
-export THOR_DIR="/d/wxmuma/thorium"
-export CR_DIR="/d/wxmuma/chromium-src/src"
-python3 $THOR_DIR/win_scripts/copy_essentials.py
-
-# 复制 args.gn
-cp $THOR_DIR/win_args_mcloud.gn out/mcloud/args.gn
-
-# 生成构建文件
-export PATH="/d/wxmuma/depot_tools:$PATH"
+export THOR_DIR="D:/wxmuma/thorium"
+export CR_DIR="D:/wxmuma/chromium-src-155/src"    # ⚠ 多棵树并存时必须显式设置（默认值是 M151 树）
+export PATH="D:/wxmuma/depot_tools:$PATH"
 export DEPOT_TOOLS_WIN_TOOLCHAIN=0
 export vs2026_install="C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools"
 export INCLUDE="C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/VC/Tools/MSVC/14.51.36231/atlmfc/include;$INCLUDE"
-gn gen out/mcloud --check
 
-# 编译
-autoninja -C out/mcloud chrome
+cd "$CR_DIR"
+python3 "$THOR_DIR/win_scripts/deploy_mcloud.py"          # 编排全部注入 + 复制 mcloud_flags.txt
+python3 "$THOR_DIR/win_scripts/verify_sources.py"        # 源码级门禁（含 .ps1 三层检查）
+cp "$THOR_DIR/win_args_mcloud.gn" out/mcloud/args.gn     # 首次或配置变更时
+gn gen out/mcloud --check
+autoninja -C out/mcloud chrome mini_installer
+```
+
+升级/rebase 之后的两项收尾必做（否则文档与仓库状态会立刻失真）：
+
+```bash
+python "$THOR_DIR/.bugreview/src_inventory.py" --write    # 重生成 src/INVENTORY.md（D77）
+python "$THOR_DIR/.bugreview/flag_stability.py" <基线tag> <新tag> <下一tag>   # A–F 跨版本存活性
+powershell -File "$THOR_DIR/benchmark/tools/final_gate_matrix.ps1"            # 收口门禁（认逐项退出码）
 ```
 
 ### 5.2 启动浏览器

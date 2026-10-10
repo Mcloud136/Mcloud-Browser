@@ -12,16 +12,58 @@
 import json
 import re
 import subprocess
+import os
 import sys
 
 REPO = r"d:\wxmuma\thorium"
-TREE = r"D:\wxmuma\chromium-src\src"
+# 本断言全部走 `git grep <rev>`，即**按修订**取证，不读工作树；因此 TREE 只需要是
+# "同时含这三个 tag 对象"的仓库，而不是当前构建树。默认用 M151 参考树（升级预评估时
+# 已把 155/156 的 tag 对象 fetch 进去，且未动工作树）。这是一条隐含外部前提：一旦该树
+# 被重新 clone/sync 而不带 tags，三个 rev 全部解析失败——旧实现会把它表现为一堆
+# "未找到" 断言 FAIL，看不出真实原因（缺陷 D87）。现在由 _require_revs() 前置校验并
+# 明确报出"tag 对象缺失/换树"，同时打印每个 rev 实际解析到的 commit（被测身份口径，
+# 与 D86 同源）。
+TREE = os.environ.get("FLAG_STAB_TREE", r"D:\wxmuma\chromium-src\src")
 PY = sys.executable
 # 版本集合可被命令行覆盖：flag_stability.py 155.0.8059.40 156.0.8078.12 157.x
 # 语义 = 基线版 + 两个目标版；升级后必须用新的基线复跑本断言。
-_ARGS = [a for a in sys.argv[1:] if not a.startswith("-")]
-REV151, REV155, REV156 = (_ARGS + ["151.0.7922.99", "155.0.8059.40", "156.0.8078.12"])[:3]
+# 再支持 `--tree <path>` 换取证仓库（例如改用 155 树 + 其本地 tags）。
+# ⚠ 解析顺序：必须先摘掉 --tree 的参数值，再按位置分配三个修订。早期实现先分配后摘除，
+#   于是 `--tree X` 会把 X 当成"基线修订"，报错信息里出现"解析不到修订 X"（第3周期实测，
+#   缺陷 D88——量具自己的参数解析把故障指到别处）。
+_args = [a for a in sys.argv[1:] if not a.startswith("-")]
+if "--tree" in sys.argv:
+    _i = sys.argv.index("--tree")
+    if _i + 1 >= len(sys.argv):
+        print("用法错误：--tree 需要一个路径参数")
+        sys.exit(2)
+    TREE = sys.argv[_i + 1]
+    if TREE in _args:
+        _args.remove(TREE)          # 只摘一次，位置参数语义不受影响
+REV151, REV155, REV156 = (_args + ["151.0.7922.99", "155.0.8059.40", "156.0.8078.12"])[:3]
 UPGRADE_MARKER = "FlingSchedulingImprovements"
+
+
+def _require_revs():
+    """前置校验：TREE 必须能解析全部三个修订，否则给出可执行的修复指引。"""
+    if not os.path.exists(os.path.join(TREE, ".git")):
+        print("FAIL: %s 不是 git 仓库（TREE/FLAG_STAB_TREE 指向错了吗？）" % TREE)
+        sys.exit(2)
+    resolved = {}
+    for label, rev in (("基线", REV151), ("目标1", REV155), ("目标2", REV156)):
+        pr = subprocess.run(["git", "-C", TREE, "rev-parse", "--verify", rev + "^{commit}"],
+                            capture_output=True, text=True, errors="replace", timeout=120)
+        if pr.returncode != 0:
+            print("FAIL: 在 %s 中解析不到修订 %s（%s）——tag 对象缺失。" % (TREE, rev, label))
+            print("      修复：git -C %s fetch --tags --force https://.../chromium/src %s"
+                  % (TREE, rev))
+            print("      或换用含该 tag 的仓库：--tree <path> / 环境变量 FLAG_STAB_TREE")
+            sys.exit(2)
+        resolved[rev] = pr.stdout.strip()[:12]
+    print("取证仓库: %s" % TREE)
+    for rev in (REV151, REV155, REV156):
+        print("  %s -> %s" % (rev, resolved[rev]))
+    return resolved
 
 
 def _line_action(text, name):
@@ -70,6 +112,7 @@ def git_show_head(path):
 
 
 fails = []
+_require_revs()
 cur = open(REPO + r"\mcloud_flags.txt", encoding="utf-8").read()
 old = git_show_head("mcloud_flags.txt")
 if not old:

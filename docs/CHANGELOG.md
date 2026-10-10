@@ -62,6 +62,44 @@
 - 产物：加载器升到 v6 需重编 `chrome.dll`；`gn gen --check` 后出现整树重编计划（51,296 步，
   确切成因待查，已列待办），为保持"仓库正文 == 二进制源码"本轮接受该重编
 
+### 第3周期·扩展轮（同日晚，D77–D92：导航基准 / 门禁聚合 / src 参与度 / 步骤文档 / 临时文件）
+
+- **D89（Critical，本轮最重要）**：`benchmark/tools/final_gate_matrix.ps1` 的汇总用函数体内
+  `$results +=`，PowerShell 作用域规则使其永不写回脚本级变量 → **无论各门禁成败都输出
+  `RESULT: ALL PASS` 且 exit 0**。决定性证据：对不存在的构建树实跑，日志同屏出现
+  `leak_probe => exit=1` 与 `ALL PASS`。修复后聚合用 `$script:`、**自检采集条数**、
+  `ExitCode` 取不到判 `NOEXIT`、逐项表打到 stdout；对假树如实报 `FAIL x5`/exit 1，
+  对真树 `ALL PASS (8/8)`。口径修正：**"ALL PASS 摘要行"不再作为证据，结论只认逐项退出码。**
+- D83：同一文件的 `param()` 写在四条语句之后 → `-OutDir` 被静默丢弃、恒测默认树且仍 exit 0
+  （最小复现：副作用先执行、`param` 被当命令名、参数丢失）。已归位并证明参数确被消费。
+- D78/D79/D80/D81：`bench_navigation.ps1` 曾 `2>$null | Out-Null` 吞掉输出、拿不到 DOM 也报
+  "加载耗时"，且 `& $exe` 无超时（页面卡住即基准挂死）。改为 `--headless=new` + DOM 字节判成功 +
+  `WaitForExit(超时)` + 实例级清理 + 自动变量改名；无效样本一律抛"导航基准不可信"。
+  文件头同时声明量具边界：headless 不含 GPU 合成路径，只看相对趋势。
+- D84/D85：`PSParser::Tokenize` 对语句顺序类错误全盲（同一坏文件三次 PARSE OK）。
+  `win_scripts/verify_sources.py` 新增 PowerShell 三层检查：BOM 规则（D38 机器化）、
+  `param` 位置、AST 解析，且**空输入即 FAIL**；三个负例文件验证可证伪，并当场抓到
+  4 个在用的 `.ps1` 缺 BOM。
+- D86/D87/D88：9 个基准/工具脚本的默认被测对象硬编码在 M151 回滚树且不打印身份 → 改为
+  `$env:MCHROME_EXE`/`MCHROME_OUT` + 155 兜底 + 打印 exe/dll 路径·大小·mtime·标志文件状态 +
+  回滚树告警；`flag_stability.py` 增 `_require_revs()` 前置校验并打印三个修订解析到的 commit。
+- D77：实测仓库 `src/` 590 文件中 **344 个**与 M155 树内容不同却无任何脚本读取（其中
+  `BUILDCONFIG.gn`/`compiler/BUILD.gn` 副本还带着上一代注入痕迹），而 AGENTS.md 称其为
+  "覆盖文件/主战场"。生成权威清单 `src/INVENTORY.md`（工具 `.bugreview/src_inventory.py`）
+  并更正口径：`src/` 是素材目录，改上游文件只能走 `win_scripts/apply_*|inject_*`。
+- D90（High，步骤文档缺步骤）：`docs/progress.md` §5.1"下次编译更新内核时的操作"只让跑
+  `copy_essentials.py`，**跳过全部定点注入**（加载器 / AVX2 / Polly 接线 / `chrome.release` 登记），
+  照做会得到"能编译能打包、但 53 项 feature + 3 项开关整体静默丢失"的构建 —— 与 D47 同一失败
+  模式，出现在升级时真正会被执行的清单上。已重写为 `deploy_mcloud.py` 唯一入口 + 显式 `CR_DIR`
+  + 编译前 `verify_sources.py` + rebase 后三项收尾（重生成 INVENTORY、flag_stability、门禁矩阵）。
+- D91（Medium）：`docs/BUILDING_WIN.md` 是上游 Thorium 流程（`C:\src\chromium\src`、VS 2022、
+  `git clone Alex313031/mcloud`、构建 `mcloud_shell/setup` 等本项目不存在的目标、"密钥在私有仓库"
+  与 ADR-001 冲突），全文没有 `deploy_mcloud.py`，却被 AGENTS.md 指为 Windows 前置文档。
+  已在文件头加"上游遗留、非本仓库步骤"警示，并把 AGENTS.md 的指针改到权威步骤。
+- D92（Medium，泄漏）：D78 新加的临时文件清理用 `-ErrorAction SilentlyContinue` 把"子进程仍持有重定向句柄"导致的删除失败吞掉，两次实跑在 `%TEMP%` 遗留 42 个文件（最大 409 KB）。改为 `pendingCleanup` 登记 + 按实例杀进程后 5 轮重试 + 残留即告警；重跑后 `navdom=0 naverr=0 navprof=0`，且样本仍有效。
+- 本轮**未改动任何浏览器 C++ 源码与 `mcloud_flags.txt`**，故不需重编；产物仍是
+  `chrome.dll` 303,440,384 B / installer `0602cafa…7090`。
+
 ### Tier A 候选 A/B（升级后同日完成，结论：全部不采纳）
 
 

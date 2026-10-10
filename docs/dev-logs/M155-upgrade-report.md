@@ -75,6 +75,6 @@ round 1 曾按预登记阈值判 `PartitionAllocAdaptiveMemoryReclaimInterval` �
 - D49：V8 `_`/`-` 等价性需 `autoninja d8` 才能定论
 - 把 `check_features.py` 存活性校验接入 CI 的可行性（当前记为不接入：runner 无 Chromium 检出）
 - 发布：push / tag / 资产上传（用户 2026-10-10 决定暂缓，先做 A/B；A/B 与第3周期 bug-review 均已完成，等待发布指示）。
-  当前本地产物：127,523,328 B，SHA256 `0602cafabb94f221e7a6ec5bfd59605fceaceb0b2fa8c4d7e88339ea50717090`（第3周期全量重编后的 8 项门禁 ALL PASS 版本）；
+  当前本地产物：127,523,328 B，SHA256 `0602cafabb94f221e7a6ec5bfd59605fceaceb0b2fa8c4d7e88339ea50717090`（第3周期全量重编后的 8 项门禁版本；⚠ 该「ALL PASS」摘要行因缺陷 D89 的失效聚合不可作证据，已在扩展轮修复并逐项重跑 8/8，见 docs/tasks/bug-review-cycle3-report.md §8）；
   旧的 `cd6f5172…` 因 D72（构建失败仍打包）作废。
 

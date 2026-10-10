@@ -1,4 +1,4 @@
-# collect_stutter_diag4.ps1 - virtual display software + GPU counters baseline
+﻿# collect_stutter_diag4.ps1 - virtual display software + GPU counters baseline
 $ErrorActionPreference = 'SilentlyContinue'
 
 Write-Output "=== [A] MuMu / GameViewer / emulator / streaming processes running ==="

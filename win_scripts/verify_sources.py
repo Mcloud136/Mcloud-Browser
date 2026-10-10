@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Minimal source verification for win_scripts/ and pak_src/.
+"""Minimal source verification for win_scripts/, pak_src/, benchmark/ and infra/.
 
 Checks:
   1. Python syntax check (py_compile) for every .py under win_scripts/
@@ -9,20 +9,38 @@ Checks:
   4. Optional: gcc -fsyntax-only on pak_src/*.c when a compiler is available,
      Windows only (reported as SKIPPED on non-Windows platforms, since pak_src
      has an unguarded <windows.h> include, and when no compiler is available).
+  5. PowerShell lint for every tracked .ps1 (Windows only, SKIPPED elsewhere):
+       - files containing non-ASCII text must be UTF-8 *with BOM* (AGENTS.md rule,
+         defect D38: PowerShell 5.1 otherwise reads them as GBK and fails to parse);
+       - `param(...)` must be the first statement of the script — statements before
+         it make PowerShell treat `param` as a command name, the whole parameter
+         block dies, and the documented override switches (-OutDir/-ChromeExe) are
+         silently ignored while the script still exits 0 (defect D83);
+       - a real AST parse via [System.Management.Automation.Language.Parser].
+         PSParser::Tokenize is NOT enough: it accepts a misplaced param block
+         (defect D84 — the check itself must be falsifiable, so this is covered by
+         the negative controls documented in docs/tasks/bug-review-cycle3-report.md).
 
 Exit code 0 = PASS, 1 = FAIL. Usage: python3 win_scripts/verify_sources.py
 """
 
+import io
+import os
 import platform
 import py_compile
 import shutil
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 WIN_SCRIPTS = REPO_ROOT / "win_scripts"
 PAK_SRC = REPO_ROOT / "pak_src"
+
+# Directories that are vendored/generated and must not be linted as our code.
+PS_SKIP_DIRS = {".git", "depot_tools", "third_party", "node_modules", "__pycache__",
+                "old", "out"}
 
 # Key scripts that the build pipeline depends on.
 KEY_SCRIPTS = [
@@ -102,6 +120,135 @@ def check_pak_syntax():
     return "passed", f"{checked} file(s) syntax-checked with {Path(gcc).name}"
 
 
+def collect_powershell_files():
+    """Every tracked-ish .ps1 in the repo, minus vendored/generated dirs."""
+    out = []
+    for dirpath, dirnames, filenames in os.walk(REPO_ROOT):
+        dirnames[:] = [d for d in dirnames if d not in PS_SKIP_DIRS]
+        for f in filenames:
+            if f.lower().endswith(".ps1"):
+                out.append(Path(dirpath) / f)
+    return sorted(out)
+
+
+def _first_statement(lines):
+    """Return (lineno, text) of the first non-comment, non-blank line."""
+    for i, ln in enumerate(lines, 1):
+        s = ln.strip()
+        if not s or s.startswith("#"):
+            continue
+        return i, s
+    return 0, ""
+
+
+def check_powershell_static():
+    """BOM rule + param-position rule. Returns (checked, failures)."""
+    failures = []
+    files = collect_powershell_files()
+    for p in files:
+        rel = p.relative_to(REPO_ROOT)
+        raw = p.read_bytes()
+        has_bom = raw.startswith(b"\xef\xbb\xbf")
+        try:
+            text = raw.decode("utf-8-sig")
+        except UnicodeDecodeError as exc:
+            failures.append((rel, "not valid UTF-8: %s" % exc))
+            continue
+        if not has_bom and any(ord(c) > 127 for c in text):
+            failures.append((rel, "contains non-ASCII but has no UTF-8 BOM "
+                                  "(PowerShell 5.1 reads it as GBK and fails to "
+                                  "parse - see AGENTS.md / defect D38)"))
+        lines = text.splitlines()
+        first_ln, first_txt = _first_statement(lines)
+        param_ln = 0
+        for i, ln in enumerate(lines, 1):
+            if ln.strip().lower().startswith("param(") or ln.strip().lower() == "param":
+                param_ln = i
+                break
+        if param_ln and first_ln and param_ln > first_ln:
+            failures.append((rel, "param(...) at line %d is preceded by statement "
+                                  "%r (line %d): PowerShell then treats `param` as a "
+                                  "command name, the parameter block is discarded and "
+                                  "documented overrides are silently ignored while the "
+                                  "script still exits 0 (defect D83)"
+                                  % (param_ln, first_txt[:60], first_ln)))
+    return len(files), failures
+
+
+_PS_LINT_SCRIPT = r"""
+try { [Console]::OutputEncoding = New-Object System.Text.UTF8Encoding $false } catch {}
+$ErrorActionPreference = 'Stop'
+$listFile = $args[0]
+$paths = @(Get-Content -LiteralPath $listFile | Where-Object { $_.Trim() -ne '' })
+# 量具必须能被证伪：输入为空绝不能报 OK（第3周期缺陷 D66/D84 同一类假绿）。
+if ($paths.Count -eq 0) { Write-Host 'PSLINT|EMPTY_INPUT'; exit 1 }
+$bad = 0
+foreach ($f in $paths) {
+  $tok = $null; $errs = $null
+  try {
+    $null = [System.Management.Automation.Language.Parser]::ParseFile($f, [ref]$tok, [ref]$errs)
+  } catch {
+    Write-Host ("PSLINT|{0}|0|{1}" -f $f, $_.Exception.Message); $bad++; continue
+  }
+  if ($errs -and $errs.Count -gt 0) {
+    foreach ($e in $errs) {
+      Write-Host ("PSLINT|{0}|{1}|{2}" -f $f, $e.Extent.StartLineNumber, $e.Message)
+    }
+    $bad += $errs.Count
+  }
+}
+Write-Host ("PSLINT|CHECKED={0}|ERRORS={1}" -f $paths.Count, $bad)
+if ($bad -gt 0) { exit 1 }
+exit 0
+"""
+
+
+def check_powershell_ast_parse():
+    """AST-parse every .ps1 with PowerShell itself. Returns (status, detail)."""
+    if platform.system() != "Windows":
+        return "skipped", "non-Windows platform (no PowerShell lint)"
+    ps = shutil.which("powershell.exe") or shutil.which("powershell")
+    if not ps:
+        return "skipped", "powershell.exe not found"
+    files = collect_powershell_files()
+    if not files:
+        return "failed", "no .ps1 files discovered (scanner broken, not a clean pass)"
+    tmpdir = tempfile.mkdtemp(prefix="verify_ps_")
+    try:
+        lint_path = os.path.join(tmpdir, "pslint.ps1")
+        list_path = os.path.join(tmpdir, "files.txt")
+        with io.open(lint_path, "wb") as fh:
+            fh.write(b"\xef\xbb\xbf" + _PS_LINT_SCRIPT.encode("utf-8"))
+        with io.open(list_path, "w", encoding="utf-8") as fh:
+            for f in files:
+                fh.write(str(f) + "\n")
+        proc = subprocess.run(
+            [ps, "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", lint_path, list_path],
+            capture_output=True, timeout=600)
+        out = proc.stdout.decode("utf-8", "replace")
+        errs = proc.stderr.decode("utf-8", "replace")
+        if proc.returncode != 0:
+            bad = [ln for ln in out.splitlines() if ln.startswith("PSLINT|")
+                   and not ln.startswith("PSLINT|CHECKED")]
+            detail = "; ".join(bad[:6]) if bad else ("runner exit=%d %s"
+                                                     % (proc.returncode, errs.strip()[:200]))
+            return "failed", detail
+        checked = 0
+        for ln in out.splitlines():
+            if ln.startswith("PSLINT|CHECKED="):
+                try:
+                    checked = int(ln.split("CHECKED=")[1].split("|")[0])
+                except ValueError:
+                    checked = 0
+        if checked == 0:
+            return "failed", "PowerShell lint reported CHECKED=0 (no file was parsed)"
+        return "passed", "%d .ps1 file(s) AST-parsed clean" % checked
+    except subprocess.TimeoutExpired:
+        return "failed", "PowerShell lint timed out after 600s"
+    finally:
+        shutil.rmtree(tmpdir, ignore_errors=True)
+
+
 def main():
     ok = True
 
@@ -131,6 +278,23 @@ def main():
     status, detail = check_pak_syntax()
     label = {"passed": "PASS", "failed": "FAIL", "skipped": "SKIP"}[status]
     print(f"[{label}] pak_src C syntax: {detail}")
+    if status == "failed":
+        ok = False
+
+    checked, ps_failures = check_powershell_static()
+    if ps_failures:
+        ok = False
+        print(f"[FAIL] PowerShell static lint: "
+              f"{len(ps_failures)}/{checked} file(s) flagged")
+        for rel, msg in ps_failures:
+            print(f"       - {rel}: {msg}")
+    else:
+        print(f"[PASS] PowerShell static lint: {checked} .ps1 file(s) "
+              f"(UTF-8 BOM rule + param-position rule) OK")
+
+    status, detail = check_powershell_ast_parse()
+    label = {"passed": "PASS", "failed": "FAIL", "skipped": "SKIP"}[status]
+    print(f"[{label}] PowerShell AST parse: {detail}")
     if status == "failed":
         ok = False
 

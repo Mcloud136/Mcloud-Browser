@@ -42,11 +42,26 @@ MCloud Browser 是基于 Chromium（当前 M155，155.0.8059.40，硬件基线 A
 | `benchmark/` | PowerShell/Python | 性能基准测试脚本（启动、内存、导航、体积）与工具 |
 | `depot_tools/` | - | 固定的 depot_tools 修订版本与 Windows 工具链配置 |
 
-## src/ — Chromium 覆盖文件（核心）
+## src/ — 素材目录（**不是**「当前生效的修改集」）
 
-112 个文件，修改浏览器行为的主战场。按子目录定位：
+**口径已更正（2026-10-10 第3周期扩展轮，缺陷 D77）**：`src/` 实测 **590** 个文件（不是旧文档写的
+112；112 ≈ 当年的 `.cc/.h` 数，现为 106）。与 M155 构建树比对：**233** 个树内无对应路径（真正的
+仓库独有资产）、**12** 个字节一致、**345** 个内容不同——而构建流水线只应用其中 **1** 个
+（`build/config/compiler_opt.gni`，经 `copy_essentials.py` 白名单整份复制）。
+也就是说：**改其余 344 个"与树内不同"的副本不会生效，也不会报错**；这些副本还新旧混杂
+（`build/config/BUILDCONFIG.gn`、`compiler/BUILD.gn` 的副本带着上一代内核的 polly/avx2 注入痕迹，
+`build/config/win/BUILD.gn` 的副本没有）——**拿仓库副本与树内文件比对会得出错误结论**。
 
-### src/chrome/（60 文件，最高频修改区）
+权威清单：**`src/INVENTORY.md`**（自动生成的"哪些文件真的参与构建"），随内核升级后重生成：
+`python .bugreview/src_inventory.py --write`。
+
+要改上游 Chromium 文件，正确路径只有一个：在 `win_scripts/` 写**定点幂等脚本**
+（`apply_*` / `inject_*`），由 `deploy_mcloud.py` 编排。不要往 `copy_essentials.py` 的整份复制清单
+里加有上游对应物的文件——那里的 `ALLOWED_COPY` 白名单会直接拒绝（缺陷 D41）。
+
+下面按子目录定位**素材**（读它们可以了解历史意图，但不能据此判断"当前构建里是什么样"）：
+
+### src/chrome/（素材 60 文件；历史改动集中区，但除注入目标外均为惰性副本）
 - **启动标志加载：唯一来源是 `win_scripts/inject_flags_loader.py` 的 `LOADER` 常量**（向树内
   `chrome/app/chrome_main_delegate.cc` 幂等注入 `LoadMcloudPerformanceFlags()`）。
   ⚠ 仓库内的 `src/chrome/app/chrome_main_delegate.cc` 是 2026-08-05 的**旧基线副本，不参与构建、
@@ -100,7 +115,9 @@ MCloud Browser 是基于 Chromium（当前 M155，155.0.8059.40，硬件基线 A
 
 注意：`setup.py` 为遗留全量覆盖脚本，已被定点注入取代，勿在新 Chromium 树上运行（会污染源码树）。
 
-前置文档：`docs/BUILDING_WIN.md`。
+前置文档：**本文件下面「构建快速参考」一节 + `docs/progress.md` §5.1**（两者一致，是权威步骤）。
+⚠ `docs/BUILDING_WIN.md` 是**上游 Thorium 遗留文档**（假设 `C:\src\chromium\src`、要 VS 2022、
+无 `deploy_mcloud.py` 步骤），照它做会得到不含本仓库定制的构建 —— 已在文件头加了警示（缺陷 D91）。
 
 ## pak_src/ — .pak 资源工具（14 文件）
 
@@ -246,6 +263,24 @@ autoninja -C out/mcloud chrome mini_installer
 - **品牌名称**：使用 Chromium 默认品牌名（不修改）。
 - **文件命名**：小写加下划线（如 `mcloud_flag_entries.h`）。
 - **PowerShell 编码**：含中文的 `.ps1` 必须存为 **UTF-8 with BOM**（PowerShell 5.1 对无 BOM 文件按 GBK 解析会直接语法失败；benchmark/ 与 tools/ 已批量修复，见 `docs/tasks/bug-review-pak-src-defects.md` D38）。
+  该约定现已机器化：`python3 win_scripts/verify_sources.py` 会检查全部 `.ps1` 的 BOM、`param` 位置并用
+  PowerShell 的 AST 解析器实跑一遍（非 Windows 平台自动 SKIP，空输入一律判 FAIL）。
+- **PowerShell 三条语言坑（第3周期扩展轮实测，D81/D82/D83/D89）**：
+  ① **`param(...)` 必须是脚本第一条语句**（前面只能有注释/空行）。写在赋值语句之后不会报语法错，
+  而是把 `param` 当命令名抛非终止错误 → **参数块整体作废、传入的 `-OutDir/-ChromeExe` 被静默丢弃，
+  脚本仍退出 0**。
+  ② **函数内 `$x += …` 不会累加到脚本级变量**（PowerShell 作用域：读父级、写即建本地副本）。
+  聚合结果必须 `$script:results += …`，或让函数返回对象由调用方收集。
+  累加完必须**自检条数**：`$results.Count -ne <预期门禁数>` 直接判 FAIL——否则"汇总为空"会表现成
+  `ALL PASS`（这是缺陷 D89，本仓库最严重的一次假绿，位置在"门禁的门禁"）。
+  ③ **`[System.Diagnostics.Process]` 没有 `Wait(int)`**，只有 `WaitForExit(int)`；
+  中文输出被管道/文件捕获时需显式
+  `[Console]::OutputEncoding = New-Object System.Text.UTF8Encoding $false`，且要排在**首条中文输出之前**。
+- **基准/工具脚本不得写死被测树**：`benchmark/*.ps1` 与 `benchmark/tools/*` 的默认对象改为
+  `$env:MCHROME_EXE` / `$env:MCHROME_OUT`（再退回 `D:\wxmuma\chromium-src-155\src\out\mcloud`），
+  并在开头打印**被测身份**（exe/dll 绝对路径、字节数、mtime、同目录 `mcloud_flags.txt` 是否存在），
+  路径命中 M151 回滚树特征时 `Write-Warning`。多棵源码树并存时，"结果归属到哪棵树的产物"
+  必须写在日志里，不能靠调用者记得自己传了什么（缺陷 D86/D72 同族）。
 - **补丁位置**：`other/` 目录，命名 `feature-name.patch`。
 - **文档位置**：`docs/architecture/`（架构）、`docs/dev-logs/phase{N}-dev-log.md`（开发日志）、`docs/decisions/ADR-{NNN}-{title}.md`（决策记录）、`docs/tasks/`（任务文档）。
 - **修改 build/ 目录前**：必须备份 `compiler_opt.gni` 等自定义文件。
