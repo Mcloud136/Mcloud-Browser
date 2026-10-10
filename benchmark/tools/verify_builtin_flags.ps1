@@ -4,9 +4,15 @@
 # 验证 chrome_main_delegate.cc 的 LoadMcloudPerformanceFlags() 是否把
 # mcloud_flags.txt 注入了进程命令行。
 #
-# 原理：以 headless 模式 dump chrome://version 页面，检查其中的命令行/
-# 变体信息是否包含清单中的代表 feature。因加载器在进程内追加开关，
-# 操作系统级命令行不可见，必须通过浏览器自报内容验证。
+# 原理：加载器在进程内追加开关，操作系统层面看不到浏览器自己的命令行改动，
+# 但浏览器为子进程构建命令行时会把已注册的 feature override 传下去
+# （base/metrics/field_trial.cc:690 → GetCommandLineFeatureOverrides()），
+# 因此**子进程命令行是唯一可靠的观测通道**。
+# ⚠ 旧版首选的 `--headless=new --dump-dom chrome://version` 在 M155 上已不再返回该页 DOM
+#   （实测无输出），继续拿它当主路径会让门禁"看起来跑过了"其实什么都没验（缺陷 D68）。
+#   现在子进程探测是主路径，headless 只在 -KeepHeadlessProbe 下作为附加诊断。
+# ⚠ 统计与清理都按本次 --user-data-dir 的实例指纹来，绝不按进程名做机器级操作
+#   （缺陷 D52/D55：那会读到用户自己的浏览器，甚至把它杀掉）。
 #
 # 用法：
 #   .\verify_builtin_flags.ps1 [-ChromeExe <path>]
@@ -32,69 +38,86 @@ if (-not (Test-Path $flagsFile)) {
 
 # 从清单挑选三组代表 feature（启动/内存/媒体，规范 4.1.1 抽查要求）
 $probe = @("SpareRendererForSitePerProcess", "InfiniteTabsFreezing", "PlatformHEVCDecoderSupport")
+# 禁用侧代表项：必须出现在 --disable-features 的值里才算真被禁用（缺陷 D50 的教训）
+$probeDisable = @("SkiaGraphite")
 $found = 0
 
-$userDataDir = Join-Path $env:TEMP "mcloud_verify_flags_$PID"
-if (Test-Path $userDataDir) { Remove-Item -Recurse -Force $userDataDir }
+# 实例指纹用 GUID 命名的临时 profile；统计与清理都只认这一个指纹
+$probeDir = Join-Path $env:TEMP ("mcloud_a6_{0}" -f [guid]::NewGuid().ToString("N").Substring(0, 8))
+$dirKey = Split-Path $probeDir -Leaf
+New-Item -ItemType Directory -Path $probeDir -Force | Out-Null
+$exeLeaf = Split-Path $ChromeExe -Leaf
 
-Write-Host "以 headless 模式采集 chrome://version ..." -ForegroundColor Cyan
-$html = & $ChromeExe --headless=new --disable-gpu --no-sandbox `
-    "--user-data-dir=$userDataDir" --no-first-run `
-    --enable-logging=stderr --v=0 `
-    --dump-dom "chrome://version" 2>$null
+function Stop-A6Instance($key) {
+    if (-not $key) { return }
+    for ($i = 0; $i -lt 4; $i++) {
+        $ids = @(Get-CimInstance Win32_Process -Filter "Name='$exeLeaf'" |
+                 Where-Object { $_.CommandLine -like "*$key*" } |
+                 ForEach-Object { $_.ProcessId })
+        if ($ids.Count -eq 0) { return }
+        Get-Process -Id $ids -ErrorAction SilentlyContinue |
+            Stop-Process -Force -ErrorAction SilentlyContinue
+        Start-Sleep -Seconds 2
+    }
+}
 
-if (-not $html) {
-    Write-Warning "headless dump 无输出，将改用子进程命令行探测。"
-} else {
+Write-Host "启动一个实例并采集其子进程命令行 ..." -ForegroundColor Cyan
+$browser = $null
+try {
+    $browser = Start-Process -FilePath $ChromeExe `
+        -ArgumentList "--user-data-dir=$probeDir", "--no-first-run",
+        "--no-default-browser-check", "about:blank" -PassThru
+    Start-Sleep -Seconds 14
+
+    $lines = @(Get-CimInstance Win32_Process -Filter "Name='$exeLeaf'" |
+               Where-Object { $_.CommandLine -like "*$dirKey*" } |
+               ForEach-Object { $_.CommandLine })
+    if ($lines.Count -eq 0) {
+        # 观测通道失效必须硬失败，不许输出"0 命中"式的假结论（同 D66 的教训）
+        throw "未采集到本实例任何进程命令行（指纹或 WMI 查询失效），无法判定"
+    }
+    Write-Host ("  本实例进程数: {0}" -f $lines.Count) -ForegroundColor DarkGray
+    $allCmd = $lines -join " "
     foreach ($f in $probe) {
-        if ($html -match [regex]::Escape($f)) {
+        if ($allCmd -match [regex]::Escape($f)) {
             Write-Host ("  [OK] {0}" -f $f) -ForegroundColor Green
             $found++
         } else {
             Write-Host ("  [MISS] {0}" -f $f) -ForegroundColor Red
         }
     }
-}
-
-if (Test-Path $userDataDir) { Remove-Item -Recurse -Force $userDataDir }
-
-if ($found -eq $probe.Count) {
-    Write-Host "`n验证通过：内置启动标志已生效（A6 闭环）。请同步记录到 docs/dev-logs/。" -ForegroundColor Green
-    exit 0
-}
-
-# 兜底：headless 路径未确认时，改用子进程命令行探测——
-# 加载器在进程内追加的开关会传递给渲染器等子进程，可从 WMI 命令行直接观测。
-if ($found -lt $probe.Count) {
-    Write-Host "`nheadless 路径未确认，改用子进程命令行探测..." -ForegroundColor Yellow
-    # D35 修复（2026-10-08 bug-review）：兜底路径必须从头计数，否则与 headless
-    # 的部分命中累加后可能超过 probe.Count，把未生效的标志误判为验证通过。
-    $found = 0
-    $probeDir = Join-Path $env:TEMP "mcloud_probe_$PID"
-    if (Test-Path $probeDir) { Remove-Item -Recurse -Force $probeDir }
-    $browser = Start-Process -FilePath $ChromeExe `
-        -ArgumentList "--user-data-dir=$probeDir", "--no-first-run", "--no-default-browser-check", "about:blank" -PassThru
-    Start-Sleep -Seconds 12
-    $procs = Get-CimInstance Win32_Process | Where-Object {
-        $_.Name -eq (Split-Path $ChromeExe -Leaf) -and $_.CommandLine -like "*$exeDir*"
-    }
-    $allCmd = ($procs.CommandLine -join ' ')
-    for ($i = 0; $i -lt $probe.Count; $i++) {
-        if ($allCmd -match [regex]::Escape($probe[$i])) {
-            Write-Host ("  [OK] {0}" -f $probe[$i]) -ForegroundColor Green
+    # 禁用侧也要证明（清单里 --disable-features 的项要在回显里看得见）
+    foreach ($f in $probeDisable) {
+        if ($allCmd -match ("--disable-features=[^ ]*" + [regex]::Escape($f))) {
+            Write-Host ("  [OK] 禁用生效: {0}" -f $f) -ForegroundColor Green
             $found++
         } else {
-            Write-Host ("  [MISS] {0}" -f $probe[$i]) -ForegroundColor Red
+            Write-Host ("  [MISS] 禁用未生效: {0}" -f $f) -ForegroundColor Red
         }
     }
-    try { $browser.Kill(); $browser.WaitForExit(10000) } catch {}
-    if (Test-Path $probeDir) { Remove-Item -Recurse -Force $probeDir }
+} finally {
+    # 清理永远不许抛（D70：旧版裸 Remove-Item 在 lockfile 仍被占用时抛异常，
+    # 而 $ErrorActionPreference='Stop' 让脚本在探测中途就退出，并留下整组孤儿进程）
+    Stop-A6Instance $dirKey
+    if (Test-Path $probeDir) { Remove-Item -Recurse -Force $probeDir -ErrorAction SilentlyContinue }
+    if (Test-Path $probeDir) { Remove-Item -Recurse -Force $probeDir -ErrorAction SilentlyContinue }
+    $leftover = @(Get-CimInstance Win32_Process -Filter "Name='$exeLeaf'" -ErrorAction SilentlyContinue |
+                  Where-Object { $_.CommandLine -like "*mcloud_a6_*" })
+    if ($leftover.Count -gt 0) {
+        Write-Warning ("仍有 {0} 个本工具启动的实例未退出（可能锁住 out 目录，影响后续编译）" -f $leftover.Count)
+        exit 1
+    }
 }
 
-if ($found -ge $probe.Count) {
+$probeCount = $probe.Count + $probeDisable.Count
+
+if ($found -ge $probeCount) {
     Write-Host "`n验证通过：内置启动标志已生效（A6 闭环）。请同步记录到 docs/dev-logs/。" -ForegroundColor Green
     exit 0
 } else {
-    Write-Host "`n验证未通过（$found/$($probe.Count)）。检查：① mcloud_flags.txt 是否位于 exe 同目录；② chrome_main_delegate.cc 是否已编进当前构建。" -ForegroundColor Yellow
+    Write-Host ("`n验证未通过（{0}/{1}）。检查：① mcloud_flags.txt 是否在 exe 同目录；" -f $found, $probeCount) -ForegroundColor Yellow
+    Write-Host  "  ② chrome_main_delegate.cc 是否已编进当前构建；③ v6 起加载器只在浏览器进程读文件，" -ForegroundColor Yellow
+    Write-Host  "   子进程靠命令行继承下发，所以要看的是子进程命令行而不是浏览器自己的。" -ForegroundColor Yellow
     exit 1
 }
+

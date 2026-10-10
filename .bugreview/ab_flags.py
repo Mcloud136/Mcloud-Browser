@@ -176,12 +176,27 @@ def kill_matching(prefixes, settle=3):
         print("   [warn] WMI 查询超时，跳过清理（不做机器级强杀）", flush=True)
         return
     pids = [x for x in out.split() if x.isdigit()]
-    if pids:
+    # 循环杀到干净：一次性强杀会留 crashpad-handler 尾巴，
+    # 残余进程会锁住 out 目录里的 DLL 并打断下一次链接（缺陷 D71 实测）
+    for _ in range(4):
+        if not pids:
+            break
         try:
             ps("Get-Process -Id %s -ErrorAction SilentlyContinue | "
                "Stop-Process -Force -ErrorAction SilentlyContinue" % ",".join(pids))
         except subprocess.TimeoutExpired:
             print("   [warn] 终止进程超时", flush=True)
+            break
+        time.sleep(2)
+        try:
+            out = ps("Get-CimInstance Win32_Process -Filter \"Name='chrome.exe'\" | "
+                     "Where-Object { %s } | ForEach-Object { $_.ProcessId }" % cond)
+        except subprocess.TimeoutExpired:
+            break
+        pids = [x for x in out.split() if x.isdigit()]
+    if pids:
+        print("   [warn] 本流水线仍有 %d 个实例进程未退出（可能锁住 out 目录）" % len(pids),
+              flush=True)
     if settle:
         time.sleep(settle)
 

@@ -292,7 +292,18 @@
   - 方案 A（推荐）：源码级默认值——参照 `media_switches.cc`（D3D12 默认启用）的既有做法，将各 feature 的默认 state 改为 ENABLED；
   - 方案 B：内置启动参数——在浏览器主进程初始化处读取随包分发的标志文件并追加到命令行；
   - 方案 C：全部转为 `mcloud_flag_entries.h` 的 chrome://flags 条目并设默认启用。
-- 【必须】生效验证方法：构建后通过 `chrome://version` 命令行、`chrome://flags`、`base::FeatureList::IsEnabled` 日志抽查，至少覆盖启动、内存、媒体三组各 2 项。
+- 【必须】生效验证方法（口径已按 D68 更正）：**主路径是子进程命令行回显**——浏览器经
+  `base/metrics/field_trial.cc:690` → `FeatureList::GetCommandLineFeatureOverrides()`
+  把已注册的命令行 override 序列化进子进程命令行，因此从 `Win32_Process.CommandLine`
+  解析 `--enable-features=`/`--disable-features=` 即得运行时真值集合
+  （工具：`benchmark/tools/verify_builtin_flags.ps1`、`.bugreview/flag_runtime_state.py`）。
+  抽查至少覆盖启动、内存、媒体三组各 2 项，并且**必须同时证明禁用侧**（只验 enable 侧曾让 D50 漏网）。
+  ⚠ 旧口径「用 `chrome://version` 命令行 / `chrome://flags` 抽查」在 M155 已不可作为主路径：
+  `--headless=new --dump-dom chrome://version` 不再返回该页 DOM（实测无输出），
+  拿它当主路径会让门禁"看起来跑过了"其实什么都没验。
+- 【必须】量具自身也是被测对象：任何"绿色"输出都必须有一个**能失败的正例**证伪它
+  （第3周期实测：A6 脚本因清理语句抛异常而在探测前终止、构建失败后打包门禁仍报全绿，
+  分别记为 D70 与 D72）。采不到数据一律判 FAIL，禁止返回 0 值式的"成功"。
 - 【必须·2026-10-10 补充】上述抽查之外，用 `.bugreview/flag_runtime_state.py` 做**运行时回显核对**：
   浏览器经 `base/metrics/field_trial.cc:690` → `FeatureList::GetCommandLineFeatureOverrides()`
   把命令行 override 序列化进子进程命令行，故从 `Win32_Process.CommandLine` 解析

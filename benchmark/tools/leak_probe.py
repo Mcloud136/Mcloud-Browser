@@ -78,18 +78,37 @@ def workset_mb(udd):
 
 
 def stop_instance(udd, proc):
-    """只终止本实例的进程；绝不使用机器级的 `Get-Process chrome | Stop-Process`。"""
-    pids = instance_pids(udd)
-    if pids:
+    """只终止本实例的进程；绝不使用机器级的 `Get-Process chrome | Stop-Process`。
+
+    必须**循环杀到干净**（缺陷 D71）：一次性杀 PID 会留下尾巴——浏览器被杀时
+    crashpad-handler 可能正在重启，残余进程会继续持有 out 目录里的 DLL 句柄，
+    下一轮链接就以 `lld-link: failed to write output './dxcompiler.dll': permission denied`
+    失败（本轮实测：9 个孤儿进程直接把 51,296 步的重编打断）。
+    """
+    key = _key_of(udd)
+    for _attempt in range(5):
+        pids = instance_pids(udd)
+        if not pids:
+            break
         ps("Get-Process -Id %s -ErrorAction SilentlyContinue | "
-           "Stop-Process -Force -ErrorAction SilentlyContinue"
-           % ",".join(str(x) for x in pids))
-    if proc and proc.poll() is None:
+           "Stop-Process -Force -ErrorAction SilentlyContinue" % ",".join(str(x) for x in pids))
+        time.sleep(2)
+    if proc is not None and proc.poll() is None:
         try:
             proc.wait(timeout=30)
         except subprocess.TimeoutExpired:
             proc.kill()
-            proc.wait(timeout=30)
+            try:
+                proc.wait(timeout=30)
+            except subprocess.TimeoutExpired:
+                pass
+    left = instance_pids(udd)
+    if left:
+        # 不许静默：残留进程会锁文件、也会污染下一次测量的指纹
+        print("WARN: 本实例仍有 %d 个进程未退出（PID %s）——后续编译可能被文件锁打断"
+              % (len(left), left[:8]))
+    return not left
+
 
 
 def cdp(path, method="GET"):

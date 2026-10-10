@@ -23,7 +23,7 @@
 外围脚本面：`win_scripts/*.py` 15 个、`benchmark/*.ps1` 5 个、`benchmark/tools/*.py`、
 本轮新入库的 `.bugreview/*.py` 验证脚本 16 个。
 
-## 2. 缺陷清单（D52–D66，全部带 file:line 与复现）
+## 2. 缺陷清单（D52–D72，全部带 file:line 与复现）
 
 | # | 严重 | 位置 | 类别 | 一句话 | 状态 |
 |---|---|---|---|---|---|
@@ -81,6 +81,27 @@ D66 值得单独留档：**修 D52/D55 的那一批改动自己带了三个新�
   处置原则统一为：注入器一律"正文比对 + 关键锚点存在性校验"，静态门禁再加一层语法形状校验（E/F 断言）。
 - 每条修复都要求"能失败的正例"：D59 用临时加行内注释让门禁 FAIL 再恢复；D62 用删调用点的副本
   得到 exit 1；D64 用 BUILD.gn 副本连跑两次得到 replaced → already up to date。
+
+**追加发现（同一轮内，D68–D72）——全部是在"跑自己的验收脚本 / 跑自己的构建链"时暴露的**
+
+| # | 严重 | 位置 | 事实与证据 |
+|---|---|---|---|
+| D68 | Medium | `benchmark/tools/verify_builtin_flags.ps1` | A6 的主路径 `--headless=new --dump-dom chrome://version` 在 M155 上**不再返回该页 DOM**（实测无输出）。脚本会落到兜底分支，于是"规范 4.1.1 写明的验证方法"事实上已经失效，只剩兜底在做事后补救；一旦兜底也出问题，门禁会给出没有依据的结论 |
+| D69 | Low | 同上 | 兜底分支的过滤器是 `CommandLine -like "*$exeDir*"`（整个 out 目录），会把**别的实例**（另一个探针、另一次 A/B）的命令行一起读进来 → 假阳性 |
+| D70 | High | 同上 | 清理临时目录用裸 `Remove-Item -Recurse -Force`，而 profile 的 `lockfile` 仍被无头实例子进程占用 → 抛 IOException；`$ErrorActionPreference='Stop'` 让脚本**在探测之前就终止**（实测真实退出码 1），并且留下一整组孤儿 chrome（实测 9 个）。旧版退出码还被管道吃掉，看起来像成功 |
+| D71 | High | `benchmark/tools/leak_probe.py` 等 | 实例清理是**一次性** kill：浏览器被杀时 crashpad-handler 会重启，残余进程继续持有 `out/mcloud` 里 DLL 的句柄。实测后果：`lld-link: error: failed to write output './dxcompiler.dll': permission denied` → `autoninja exit=1`，51,296 步的重编被自己的测试工具打断 |
+| D72 | High | `.bugreview/package_m155.py` + `cycle3_finalize.ps1` | 编译失败后链上继续跑打包，门禁只看"产物存在 + 内容证据 + installer≥dll"，于是拿**上一轮遗留的 installer** 算出 `cd6f5172…` 并打印"门禁全绿"、写进发布说明。门禁无法区分"构建成功"与"构建失败但产物还在" |
+
+修复与原则：
+- A6 脚本重写为**子进程命令行主路径**（实例 GUID 指纹筛选、取不到进程即 throw、
+  禁用侧 `SkiaGraphite` 也要证明、清理全部 `SilentlyContinue` 且放进 `finally`、
+  收尾检查 `mcloud_a6_*` 残留并按失败处理）。PSParser 校验 PARSE OK。
+- `leak_probe/gpu_probe/ab_flags` 的实例清理改为**循环杀到干净**（最多 4 轮，仍有残留就打印 WARN），
+  不再指望一次性 kill。
+- `package_m155.py` 增加新鲜度链：`chrome.dll` 必须不早于 `chrome_main_delegate.cc`，
+  且不早于 4 个 GN 源文件；`cycle3_finalize.ps1` 在 `autoninja` 非零时**直接退出，不再打包**。
+  这条正是"能失败的正例"：在修复前跑一次就产出了假的"门禁全绿 + 新哈希"。
+- 规范 4.1.1 的验证方法描述随之更正（不能再写"通过 chrome://version 抽查"作为主路径）。
 
 ### R5 效率与全局最优（详见 §5）
 

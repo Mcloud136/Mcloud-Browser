@@ -66,9 +66,20 @@ def probe(exe, label):
                "Where-Object { $_.CommandLine -like '*%s*' } | "
                "ForEach-Object { $_.ProcessId }" % key)
     pids = [x for x in idout.split() if x.isdigit()]
-    if pids:
+    # 循环杀到干净：一次性杀会留下 crashpad-handler 尾巴，残余进程会锁住 out 目录里的 DLL
+    # 从而打断下一次链接（缺陷 D71 实测）
+    for _ in range(4):
+        if not pids:
+            break
         ps("Get-Process -Id %s -ErrorAction SilentlyContinue | "
            "Stop-Process -Force -ErrorAction SilentlyContinue" % ",".join(pids))
+        time.sleep(2)
+        idout = ps("Get-CimInstance Win32_Process -Filter \"Name='chrome.exe'\" | "
+                   "Where-Object { $_.CommandLine -like '*%s*' } | "
+                   "ForEach-Object { $_.ProcessId }" % prof)
+        pids = [x for x in idout.split() if x.isdigit()]
+    if pids:
+        print("   WARN: 本探测实例仍有 %d 个进程未退出（可能锁住 out 目录）" % len(pids))
     if proc.poll() is None:
         try:
             proc.wait(timeout=30)

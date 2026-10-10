@@ -64,6 +64,22 @@ z = scan(z7, [b"mcloud_flags.txt", "[r3 清理 2026-10-10".encode(), b"SkiaGraph
 problems += ["chrome.7z 缺载荷证据: %s" % k for k, v in z.items() if not v]
 if os.path.getmtime(inst) < os.path.getmtime(dll):
     problems.append("installer 早于 chrome.dll，需重打包")
+# D72：门禁必须能识别"编译失败但产物还在"的情况。本轮实测踩过：
+# 探针残留的 chrome 进程锁住 dxcompiler.dll → autoninja exit=1，
+# 而旧门禁只看产物存在与内容证据，于是拿着上一轮的 installer 打印"门禁全绿"并回填了新哈希。
+# 这里加两条"新鲜度链"：产物必须不早于它应当包含的源码/构建配置。
+_loader_src = os.path.join(SRC, "chrome", "app", "chrome_main_delegate.cc")
+_gn_srcs = [os.path.join(SRC, "build", "config", "BUILDCONFIG.gn"),
+            os.path.join(SRC, "build", "config", "compiler", "BUILD.gn"),
+            os.path.join(SRC, "build", "config", "win", "BUILD.gn"),
+            os.path.join(SRC, "build", "config", "compiler_opt.gni")]
+_t_dll = os.path.getmtime(dll)
+if os.path.getmtime(_loader_src) > _t_dll:
+    problems.append("chrome.dll 早于加载器源文件 chrome_main_delegate.cc："
+                    "最后一次编译发生在源码改动之前（或在改动之后失败），产物不反映仓库正文")
+_t_gn = max(os.path.getmtime(g) for g in _gn_srcs if os.path.exists(g))
+if _t_gn > _t_dll:
+    problems.append("chrome.dll 早于 GN 配置源文件：当前构建配置未反映在产物里，需重编后再打包")
 if problems:
     print("FAIL 门禁：")
     for p in problems:
