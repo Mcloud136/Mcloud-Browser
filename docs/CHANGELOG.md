@@ -34,6 +34,10 @@
 - 执行任务单 `docs/tasks/m155-upgrade-task.md`（阶段 0–5 + 验收标准）
 
 ### 📦 发行包
+
+- 本版为全量重编译产物（50,795 步，`autoninja exit=0`）；实测留痕见
+  `docs/dev-logs/M151-r3-benchmark.md`（K1 中位数 39 ms；K2 2927.5 MB/64 进程，
+  与档案值 2646.2 MB/57 进程**进程数不同不可直接比较**）；A6 子进程命令行验证通过
 - `mcloud_151.0.7922.99_win64_mini_installer.exe`（123,448,320 B 量级，本版全量重编译后重打）
 - SHA256：``393456968d948137b362b1a720074ef5e69804856b886ecf7ead937a3abdf049``
 
