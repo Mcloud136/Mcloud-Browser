@@ -410,7 +410,9 @@ detect_leaks 不支持），内存泄漏结论以逐行分配/释放配对审查
 - **部分已修复并发布（2026-10-10，M151-r3）**：删除三版均不存在的 6 条；改名条目转注释保留（启用会改行为，
   待基准）；`FlingSchedulingImprovements` 保留并标「升级期删除」（M151 上真实生效）。断言脚本
   `.bugreview/flag_stability.py`（A-E 五条）PASS；`check_features.py` 双树实测 M151 53/53、M155 52/53。
-  **剩余待办**：把存活性校验接入 CI。
+  存活性校验已作为**本地轮次门禁**接入 `.bugreview/round_check.sh` 门 10（实测 53/53 通过）。
+  CI 侧不接入：`verify.yml` 跑在 ubuntu runner 且没有 Chromium 检出，`check_features.py` 必须要源码树；
+  若要进 CI，需先在 workflow 里做定向浅拉取（数 GB），代价与收益不匹配，故记为已知边界。
 - 证据：`.bugreview/survival_check.py` + `survival_{151,155,156}.json`、`flags_table.md` 60 行明细。
 
 ### D49 文档口径"V8 连字符写法在 M151 静默失效"与 V8 源码不符（Low，文档）
