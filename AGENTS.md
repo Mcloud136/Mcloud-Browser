@@ -216,10 +216,10 @@ autoninja -C out/mcloud chrome mini_installer
   要把某项从禁用改为启用，必须**删掉** `--disable-features=` 行，追加 enable 行是无效实验（A/B 曾因此差点误判）。
 - **基准与探针一律按"实例"而非"进程名"取数**（缺陷 D52/D55）。`Get-Process chrome` 会把用户自己开着的
   浏览器一起算进 K2，`Get-Process chrome | Stop-Process` 会杀掉它的会话。现统一以本次启动的
-  `--user-data-dir` **叶子名**为指纹筛 PID（不要用完整路径：Python 的 TEMP 可能是 8.3 短名，命令行里是长名，
-  整批匹配会落空却照样打印 PASS）。取不到进程必须判 FAIL，不许返回 0。
+  `--user-data-dir` **叶子名**为指纹筛 PID（比完整路径稳——不依赖短名/长名是否一致；该路径差异本身
+  尚未复现，见 D66-③）。硬规则：**取不到进程必须判 FAIL**，禁止返回 0 值式的"成功"。
 - **PowerShell 数字与字符串不能用 `+` 拼接**：`[math]::Round(...)+'|'+$n` 抛
-  "无法将值 '|' 转换为 System.Double"，而宽 `except` 会把它吞成"0 MB"（D66-③ 实测）。格式化一律用 `-f`。
+  "无法将值 '|' 转换为 System.Double"，而宽 `except` 会把它吞成"0 MB"（D66-① 已独立复现）。格式化一律用 `-f`。
 - **注入器一律"正文比对式升级器"**（缺陷 D62/D64/D67）：禁止用"某标志串是否存在"判定已应用——
   那会让树内正文永远停在旧版，输出却自称 already up to date。加载器还必须在正文一致时**继续校验调用点**。
 - Python 静态检查已引入 `ruff`（`python -m ruff check --select F,E9,B,SIM win_scripts benchmark .bugreview`）；
