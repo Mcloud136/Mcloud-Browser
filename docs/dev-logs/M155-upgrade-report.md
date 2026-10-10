@@ -74,5 +74,7 @@ round 1 曾按预登记阈值判 `PartitionAllocAdaptiveMemoryReclaimInterval` �
   本轮判据不覆盖（清单见 `m155-perf-features.md` §5.2）
 - D49：V8 `_`/`-` 等价性需 `autoninja d8` 才能定论
 - 把 `check_features.py` 存活性校验接入 CI 的可行性（当前记为不接入：runner 无 Chromium 检出）
-- 发布：push / tag / 资产上传（用户 2026-10-10 决定暂缓，先做 A/B；A/B 已完成，等待新指示）
+- 发布：push / tag / 资产上传（用户 2026-10-10 决定暂缓，先做 A/B；A/B 与第3周期 bug-review 均已完成，等待发布指示）。
+  当前本地产物：127,523,328 B，SHA256 `0602cafabb94f221e7a6ec5bfd59605fceaceb0b2fa8c4d7e88339ea50717090`（第3周期全量重编后的 8 项门禁 ALL PASS 版本）；
+  旧的 `cd6f5172…` 因 D72（构建失败仍打包）作废。
 

@@ -81,10 +81,12 @@
 - **发布物已知偏差**：已发布的 r3 包不含 `--disable-features=SkiaGraphite`（D50 修于升级期，晚于 r3 打包），
   即 r3 用户实际跑在 Graphite 启用状态；M155 包修正这一点。证据与说明见 `docs/dev-logs/M155-upgrade-report.md`
 
-### 发布
-- 安装包：`mcloud_155.0.8059.40_win64_mini_installer.exe`（127,543,808 B）
-- SHA256：`195f93498b053e663d641fa72ef281633986aededd43181f8608c1af6aa2dd81`
-  （此哈希取代同日 A/B 前的首版 `2afdfbdc…02`：仅 `mcloud_flags.txt` 的 D51 语法修正引起重打包）
+### 发布（未发布，仅本地产物）
+- 安装包：`mcloud_155.0.8059.40_win64_mini_installer.exe`（127,523,328 B）
+- SHA256：`0602cafabb94f221e7a6ec5bfd59605fceaceb0b2fa8c4d7e88339ea50717090`（sidecar 已同步；第3周期 bug-review 后的 loader v6 + D51 修正版全量重编产物）
+- 哈希沿革（三个值都有原因，不是抄错）：`2afdfbdc…02` A/B 前首版 → `195f9349…2dd81` D51 flags 修正后 →
+  `cd6f5172…3527` **作废**（D72：构建因孤儿进程锁文件失败，打包链却仍给上一轮遗留产物算出的哈希）→
+  当前 `0602cafa…7090`（00:22 全量重编成功后，8 项收口门禁 ALL PASS）
 - 发布状态：**未发布**（用户 2026-10-10 决定先做候选 A/B，暂缓 push/tag/资产上传）
 
 

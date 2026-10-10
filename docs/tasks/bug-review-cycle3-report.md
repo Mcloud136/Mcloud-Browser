@@ -151,6 +151,23 @@ $ids=...; ('{0}|{1}' -f ..., $p.Count)                          → rc=0 "66.8|1
 真实形状 → `already up to date (content match)`（证明修脚本不会引发 gn 重编）；
 把正文改成旧变体 → `replaced`；再跑 → `up-to-date`。
 
+**收口门禁矩阵（00:22 全量重编成功后，00:28 完成）— 8 项 ALL PASS**
+
+| 门禁 | 结果 |
+|---|---|
+| `verify_sources.py` | PASS（17 个 win_scripts 文件语法 + 11 关键脚本 + 14 pak_src 源文件） |
+| `flag_stability.py` A–F | PASS（53 项 feature 三版全存活、params 成对、行内注释未发现） |
+| `loader_edge_test2.py` | **11/11**（含 3000 feature 触发合并上限、250 KiB `--js-flags` 触发预算） |
+| `loader_edge_test3.py` | **7/7**（T1 BOM 在 v6 上 marker=True；T5 禁用侧胜出；T7 6 个子进程继承） |
+| A6 `verify_builtin_flags.ps1`（重写版） | exit=0（子进程回显主路径 + 实例 GUID 指纹 + 禁用侧断言） |
+| `flag_runtime_state.py` | exit=0（enable 51 / disable 2、无缺失项） |
+| `leak_probe.py`（2 轮 × 15 标签） | exit=0，但**只能当冒烟**：合计 +21.5 MB 逼近 25 MB 阈值，而 2 轮采样的分辨率远不如判据本身 |
+| `package_m155.py` | exit=0 → 新哈希 `0602cafabb94f221e7a6ec5bfd59605fceaceb0b2fa8c4d7e88339ea50717090`，产物 127,523,328 B；新鲜度链（dll ≥ 加载器源、≥ GN 源）已生效 |
+
+附带一条能钉死 D74 的观测：**24,468 步全树重编后的 `chrome.dll` 字节数与重编前完全相同
+（303,440,384 B）**——即 polly/AVX2 那次 GN 正文改动确实没有任何语义差异，
+却付了一整轮重编。这条就是"零收益 GN 改动不要单开重编"最直接的量化证据。
+
 **口径复核（第 5 轮的一致性检查）**：重算 `mcloud_flags.txt` = 142 行 / 56 条活动开关行 / 53 项 feature / 3 项普通开关，与 AGENTS.md 第 10 行的记载逐字一致；运行时回显侧则是 enable 51 + disable 2（`InitialWebUI` 走 trial 通道不进回显，见 D51），两份数字对得起来源，不存在"文档说 53 项全部生效"那种口径失真。
 
 **门禁**：`flag_stability.py`（A–F 全断言）PASS；`verify_sources.py` PASS；

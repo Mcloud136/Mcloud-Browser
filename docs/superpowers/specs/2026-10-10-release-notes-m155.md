@@ -32,4 +32,4 @@
 certutil -hashfile mcloud_155.0.8059.40_win64_mini_installer.exe SHA256
 ```
 
-预期值：`195f93498b053e663d641fa72ef281633986aededd43181f8608c1af6aa2dd81`
+预期值：`0602cafabb94f221e7a6ec5bfd59605fceaceb0b2fa8c4d7e88339ea50717090`
