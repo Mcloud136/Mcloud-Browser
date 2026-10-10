@@ -151,6 +151,8 @@ $ids=...; ('{0}|{1}' -f ..., $p.Count)                          → rc=0 "66.8|1
 真实形状 → `already up to date (content match)`（证明修脚本不会引发 gn 重编）；
 把正文改成旧变体 → `replaced`；再跑 → `up-to-date`。
 
+**口径复核（第 5 轮的一致性检查）**：重算 `mcloud_flags.txt` = 142 行 / 56 条活动开关行 / 53 项 feature / 3 项普通开关，与 AGENTS.md 第 10 行的记载逐字一致；运行时回显侧则是 enable 51 + disable 2（`InitialWebUI` 走 trial 通道不进回显，见 D51），两份数字对得起来源，不存在"文档说 53 项全部生效"那种口径失真。
+
 **门禁**：`flag_stability.py`（A–F 全断言）PASS；`verify_sources.py` PASS；
 D59 的负向对照（临时加行内注释）→ FAIL，恢复后 → PASS。
 
