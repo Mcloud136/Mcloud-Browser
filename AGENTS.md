@@ -201,6 +201,16 @@ autoninja -C out/mcloud chrome mini_installer
 
 - 构建目录固定为 `out/mcloud`；构建配置 `win_args_mcloud.gn`。
 - 启动标志 `mcloud_flags.txt`（仓库根）由 `chrome_main_delegate.cc` 内置加载。
+- **feature params 语法**：`Feature:param/value/param/value`，value 必需。写成裸名（`Feature:a/b/c`）不报错，
+  参数会被整段丢掉并退回上游默认值（缺陷 D51）。`.bugreview/flag_stability.py` 的 E 断言已按成对语法校验。
+- **运行时是否真生效**：静态"声明位存在"只能证明名字存在。要核对实际生效集合，用
+  `python .bugreview/flag_runtime_state.py`——浏览器经 `field_trial.cc:690` → `GetCommandLineFeatureOverrides()`
+  把命令行 override 序列化进**子进程**命令行，从 `Win32_Process.CommandLine` 解析即可。注意该集合
+  不含带 params（走 field trial 通道）的条目，"看不到"≠"没生效"。
+- **同名 feature 双写时禁用侧胜出**（`base/feature_list.cc:449-452`，disable 先注册 + emplace 首条生效）。
+  要把某项从禁用改为启用，必须**删掉** `--disable-features=` 行，追加 enable 行是无效实验（A/B 曾因此差点误判）。
+- **多棵源码树时 `deploy_mcloud.py` 必须显式设 `CR_DIR`**：其默认值是 `D:\wxmuma\chromium-src\src`（M151 树），
+  在 155 树下不设变量就会把定制部署到旧树（2026-10-10 实际踩到；因全部步骤幂等未致损）。
 - CI：`.github/workflows/release.yml`（发布，push `v*` tag 触发）+ `.github/workflows/verify.yml`（源码验证，push/PR 触发）。
 
 ## 性能优化参考

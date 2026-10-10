@@ -436,6 +436,8 @@ detect_leaks 不支持），内存泄漏结论以逐行分配/释放配对审查
 
 | 发布链路 | D47（chrome.release 定制无脚本产生） | ✅ 注入器 + 接线 + 探针五例全过，已随 r3 发布 | 2026-10-10 `.bugreview/d47_probe.py` |
 | 性能清单 | D48（7 条静默失效 + 1 条升级期失效） | ✅ 已清理并发布（改名条目转注释、校验脚本 PASS）；CI 接入待办 | `.bugreview/flag_stability.py`、`check_features.py` 双树 |
+| 性能清单 | D51（InitialWebUI params 语法不合法；feature 本身已启用） | ✅ 改写为 `param/true` 成对语法；E 断言升级为语法校验 | 改前后 `flag_runtime_state.py` 回显逐项一致（净行为不变）+ 负向对照 FAIL/PASS + M151 同象 |
+| 验证方法 | D50/D51 的共性教训：静态判据与"某通道看不到"都不等于运行时状态 | ✅ 新增运行时回显核对工具，并把集合语义写进脚本注释 | `flag_runtime_state.py` 头部说明 |
 ### D50 SkiaGraphite 的「禁用」从未生效（Medium，定案与实现不一致）
 - 事实：窗口拖拽冻结缓解定案要求 4 项永久禁用，但其中 `SkiaGraphite` 在 **151/155/156 上游默认均为
   `FEATURE_ENABLED_BY_DEFAULT`**，而 `mcloud_flags.txt` 只是把 `--enable-features=SkiaGraphite` 注释掉 ——
@@ -446,6 +448,41 @@ detect_leaks 不支持），内存泄漏结论以逐行分配/释放配对审查
   「已登记例外」（A 断言只禁止未登记的开启项）。因该项与 GPU 效率存在张力，已列入 155 上的同方法 A/B
   （拖拽场景复现 + `benchmark/tools/gpu_probe.py`）；未测前不撤销。
 - 一般形式：**凡「永久禁用」清单，都必须核对上游默认值**；默认启用的项只能靠显式 disable 表达。
+- 2026-10-10 补充（运行时侧证）：`.bugreview/flag_runtime_state.py` 在 M155 构建上实测，
+  `--disable-features=` 里的 `SkiaGraphite` 与 `D3D12VideoDecoder` 均出现在子进程 override 的
+  disable 集合中 → 两项禁用**确实生效**（此前只有静态判据）。
+
+### D51 `InitialWebUI` 的 feature params 写法不合法（Low，静默降级；**结论经二次修正**）
+- 观察：`.bugreview/flag_runtime_state.py` 在 M155 构建上比对"清单声明集合 vs 子进程命令行回显集合"，
+  发现第 24 行 `--enable-features=InitialWebUI:without_spellcheck/without_translate/high_stream_priority`
+  **没有出现在回显里**（其余 50 项 ours 全部命中）。
+- 初判（已推翻）：条目未注册 → 整个 feature 从未生效。错因：把"回显集合"等同于"已启用集合"。
+- 真实机制（源码实证，M155）：
+  ① `base/feature_list.cc:880 ParseEnableFeatureString()` 按 `:`/`.`/`<` 三段切分；带 params 但没写
+     study/group 时，会**合成**一个 trial（`study="Study"+名字`、`group="Group"+名字`）并返回 true；
+  ② `ParseEnableFeatures()`（同文件 337 行）于是把它登记成 `InitialWebUI<StudyInitialWebUI`，
+     `RegisterOverride(..., OVERRIDE_ENABLE_FEATURE, trial)` —— **feature 确实被启用**；
+  ③ `base/feature_list.cc:1432 GetFeatureOverridesImpl(command_line_only=true)` 明确
+     `if (entry.second.field_trial != nullptr …) continue;` —— **带 trial 的 override 被排除在回显之外**
+     （它改由 field trial 共享内存通道下发）。所以"回显里没有"只说明"这条走了 trial 路径"，不说明没生效。
+- 仍成立的部分：params 的**语法**确实不对。Chromium 要求 `Feature:param/value/param/value`，
+  我们给了三个没有值的裸名 → 参数关联失败，三个 param 取的是代码里的**默认值**。
+  查 M155 `content/public/common/content_features.cc:568` 起：
+  `high_stream_priority` / `without_spellcheck` / `without_translate` 的 `BASE_FEATURE_PARAM(bool,…)`
+  默认值**都是 true**，正是我们想要的取值，因此**当前净行为无差异**（这是它至今没暴露的原因）。
+  风险只在于"上游若翻转默认值，我们的意图就悄悄丢了"。
+- oracle 的正确读法（写进工具注释）：子进程回显 = **未关联 trial 的命令行 override**；
+  带 params 的条目走 trial 通道，不参与回显。对照实验（`--control` 注入不存在的裸名会被回显）
+  只能证明"回显是原样回显型"，不能反推"未回显即未启用"。
+- 处置（已完成 2026-10-10）：第 24 行改写为合法语法
+  `InitialWebUI:without_spellcheck/true/without_translate/true/high_stream_priority/true`；
+  改后重跑 `flag_runtime_state.py`：回显集合与改前**逐项一致**（enable 51 / disable 2、InitialWebUI 仍
+  因走 trial 通道不在回显内）→ 净行为不变的实证。`flag_stability.py` 的 E 断言已升级为**成对语法校验**
+  （奇数 token 直接 FAIL），并用"临时改回旧写法"做了负向对照：旧写法 FAIL、新写法 PASS，验证判据本身有效。
+- 跨版本核实：M151 构建（r3 时代 flags）跑同一脚本，[A] 同样只有 `InitialWebUI` 不在回显内 →
+  **两版行为一致，非升级引入的回归**。
+- 一般形式：**运行时可见性判据必须先弄清它统计的是什么集合**；把"某通道看不到"直接读成"没生效"
+  是 D50（注释≠禁用）的同构错误，只是这次方向相反（看不到但其实生效）。
 
 ## 修复状态汇总（2026-10-09 第2周期更新）
 | 线 | 缺陷 | 修复 | 验证 |
@@ -470,6 +507,8 @@ detect_leaks 不支持），内存泄漏结论以逐行分配/释放配对审查
 - [x] D47：补 `apply_installer_payload.py`（chrome.release 单行幂等注入）并挂入 deploy_mcloud.py + verify_sources.py（r3 已发布）
 - [x] D48：清理失效条目（删 6 / 注释改名 1 / 标记升级期 1）已随 r3 发布；存活性校验已进本地轮次门禁（round_check 门 10），CI 不接入原因见上文 D48
 - [ ] D49：V8 连字符/下划线口径做一次运行时歧义实验后更正文档
+- [x] D51：`mcloud_flags.txt` 第 24 行 InitialWebUI params 改写为 `param/value` 合法语法（净行为不变，
+      已用 `flag_runtime_state.py` 改前后回显逐项一致证明），E 断言加奇数 token 校验并做负向对照
 - [x] D1-D19 修复（pak_src/，2026-10-08）
 - [x] pak 修复后语料回归：8 组畸形输入优雅报错 + v4/v5 真实往返字节一致（ASan，failures=0）
 - [x] flags 加载器合并顺序缺陷 D21/D22/D23：注入器 v2 + 树内升级（重编译验证进行中）

@@ -293,11 +293,20 @@
   - 方案 B：内置启动参数——在浏览器主进程初始化处读取随包分发的标志文件并追加到命令行；
   - 方案 C：全部转为 `mcloud_flag_entries.h` 的 chrome://flags 条目并设默认启用。
 - 【必须】生效验证方法：构建后通过 `chrome://version` 命令行、`chrome://flags`、`base::FeatureList::IsEnabled` 日志抽查，至少覆盖启动、内存、媒体三组各 2 项。
+- 【必须·2026-10-10 补充】上述抽查之外，用 `.bugreview/flag_runtime_state.py` 做**运行时回显核对**：
+  浏览器经 `base/metrics/field_trial.cc:690` → `FeatureList::GetCommandLineFeatureOverrides()`
+  把命令行 override 序列化进子进程命令行，故从 `Win32_Process.CommandLine` 解析
+  `--enable-features=`/`--disable-features=` 即得"真正被接受"的条目集合。
+  注意该集合是 command-line-only：带 params 的条目走 field trial 通道不在其中（见 D51），
+  "看不到"不等于"没生效"，反之"看得到"是可靠的注册证据。
 
 ### 4.1.2 清单组织与注释
 
 - 【必须】标志按功能域分组（冷启动/视频/渲染/内存/网络/GPU/媒体/线程等，维持 `mcloud_flags.txt` 现有分区），每条目附单行注释说明预期收益。
-- 【必须】带参数 feature（如 `InitialWebUI:without_spellcheck/without_translate/high_stream_priority`、`--js-flags`）须单独标注参数含义与修改风险。
+- 【必须】带参数 feature 的语法是 `Feature:param/value/param/value`（值为必需，布尔写 `/true`）；
+  例：`InitialWebUI:without_spellcheck/true/without_translate/true/high_stream_priority/true`。
+  只给裸名（`Feature:a/b/c`）不会报错，但参数关联失败、全部退回代码内默认值（缺陷档案 D51），
+  所以每条目须单独标注参数含义与修改风险，并说明"若上游默认值翻转我们的意图是否还在"。
 - 【推荐】为清单建立机器可读索引（如 JSON/CSV：feature 名、分组、引入版本、依据、验证状态），供第 9 章升级检查脚本消费。
 
 ## 4.2 feature flag 增删审核流程

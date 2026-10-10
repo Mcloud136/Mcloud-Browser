@@ -28,9 +28,28 @@
   钩子按字面调用 `python3` 会命中 WindowsApps 占位程序 → 在真实 Python 目录内 `mklink /H python3.exe python.exe`；
   缺 `v8/tools/builtins-pgo/profiles/x64-rl.profile` 会让 `snapshot_blob.bin` 直接失败 → `download_profiles.py download`
 
+### Tier A 候选 A/B（升级后同日完成，结论：全部不采纳）
+- 方法：同一 M155 二进制，只改 `out/mcloud/mcloud_flags.txt`，基线 + 10 臂逐项测 K1/K2/泄漏漂移/GPU；
+  判定阈值在看数据前登记（`docs/tasks/m155-perf-features.md` §5.1），结论由 `.bugreview/ab_verdict.py` 机械产出
+- **每一项都先过运行时生效校验**（子进程命令行回显，依据 `field_trial.cc:690` →
+  `FeatureList::GetCommandLineFeatureOverrides()`）——没注册的臂直接跳过计时，避免产出"与基线无差异"的假数据
+- 关键修正：变更算子必须是**编辑**而非追加。`base/feature_list.cc:449-452` 证明同名 feature 双写时
+  **禁用侧胜出**，所以 `SkiaGraphite` 的"启用"臂用删行（回上游默认），追加 enable 是无效实验
+- **重复测量给出的噪声带**（同配置两遍）：K1 ±4 ms、K2 ±0.19 %、泄漏 ±8.9 MB。round 1 按 ±5 MB 阈值
+  判 `PartitionAllocAdaptiveMemoryReclaimInterval` 过采纳线，交错复测后被否（三次取值跨零）→
+  最终 **8 项候选一律不采纳**，flags 不新增条目（无重复收益就加条目 = D48 的成因）
+- `SkiaGraphite` 保持显式禁用：四项判据看不出差别，撤销定案需要拖拽+视频的人工复现证据而非 KPI
+- **D51（新，Low）**：`InitialWebUI` 的 params 写成 `Feature:a/b/c`（缺 value）→ 参数关联失败退回默认值；
+  因三个参数上游默认恰为 `true` 故净行为不变。已改为 `param/true` 显式写法，并给 `flag_stability.py`
+  的 E 断言加"奇数 token 即 FAIL"的语法校验（负向对照已验证）。M151/M155 回显一致，非升级引入
+- **发布物已知偏差**：已发布的 r3 包不含 `--disable-features=SkiaGraphite`（D50 修于升级期，晚于 r3 打包），
+  即 r3 用户实际跑在 Graphite 启用状态；M155 包修正这一点。证据与说明见 `docs/dev-logs/M155-upgrade-report.md`
+
 ### 发布
-- 安装包：`mcloud_155.0.8059.40_win64_mini_installer.exe`（127,541,248 B）
-- SHA256：``2afdfbdc66a8050badd8811d46b11d6176bb5ae9c3c4fe3a123a70181a9e1f02``
+- 安装包：`mcloud_155.0.8059.40_win64_mini_installer.exe`（127,543,808 B）
+- SHA256：`195f93498b053e663d641fa72ef281633986aededd43181f8608c1af6aa2dd81`
+  （此哈希取代同日 A/B 前的首版 `2afdfbdc…02`：仅 `mcloud_flags.txt` 的 D51 语法修正引起重打包）
+- 发布状态：**未发布**（用户 2026-10-10 决定先做候选 A/B，暂缓 push/tag/资产上传）
 
 
 ## M151-r3（发布链路完整性 + 优化清单真实性）— 2026-10-10

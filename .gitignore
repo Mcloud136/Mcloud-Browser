@@ -32,7 +32,11 @@ __pycache__/
 # M151+ 发布产物命名格式（ADR-003）
 mcloud_*_win64_mini_installer.exe
 mcloud_*_win64_mini_installer.exe.sha256
-.bugreview/
+# 缺陷核查/验证工具与数据：数据与日志不入库（可由脚本重新生成），
+# 但**脚本本身入库**——文档里大量引用 `.bugreview/*.py` 作为证据链，
+# 若脚本只存在于本机工作树，干净检出就无法复现任何一条已记录判据（同 D47 类问题）。
+.bugreview/*
+!.bugreview/*.py
 
 # 本地 Agent 设置与临时构建日志（不入库）
 .claude/

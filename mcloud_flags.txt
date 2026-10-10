@@ -21,7 +21,9 @@
 --enable-features=BrowserProcessAboveNormalPriority
 --enable-features=SendGPUChannelEarly
 --enable-features=DeferSpeculativeRFHCreation
---enable-features=InitialWebUI:without_spellcheck/without_translate/high_stream_priority
+# [D51 修正 2026-10-10] feature params 语法必须是 param/value（值为必需）。原写法只给裸名，
+# 参数关联失败、三项全部退回上游默认值（三者默认恰为 true，所以净行为不变，但意图不可移植）。
+--enable-features=InitialWebUI:without_spellcheck/true/without_translate/true/high_stream_priority/true
 --enable-features=TransientKeepAlivePolicy
 
 # --- Video Playback Optimization ---

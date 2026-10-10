@@ -250,6 +250,28 @@
 - 待办：Tier A 候选逐项 A/B、发布（push/tag/资产，需授权 + L3）、D49 用 d8 定论。
   详见 `docs/dev-logs/M155-upgrade-report.md`。
 
+### 4.10 M155 Tier A 候选 A/B 与 D51（2026-10-10 晚，升级后追加）
+
+- **A/B 结论：8 项候选一律不采纳**，`mcloud_flags.txt` 不新增条目。判据与方法见
+  `docs/tasks/m155-perf-features.md` §5.1–§5.3；数据 `.bugreview/ab_results_round1.json`、
+  `.bugreview/ab_confirm.json`；结论由 `.bugreview/ab_verdict.py` 按预登记阈值机械产出。
+- **为什么"不采纳"而不是"待定"**：交错复测给出的同配置重复噪声是 K1 ±4 ms、K2 ±0.19 %、
+  泄漏 ±8.9 MB，而所有候选的差值都小于它——包括 round 1 里唯一过采纳线的
+  `PartitionAllocAdaptiveMemoryReclaimInterval`（三次取值跨零）。在无重复收益时加条目 = D48 的成因。
+- **`SkiaGraphite` 保持显式禁用**：四项判据看不出启用/禁用的差别，而撤销拖拽冻结定案需要的是
+  人工拖拽+视频复现证据。§4.6 的定案状态不变。
+- **新增验证工具与纪律**（可重复执行）：
+  `benchmark/tools/leak_probe.py`（标签开合驻留漂移）、`benchmark/tools/gpu_probe.py`（窗口化 GPU 路径，
+  现支持 `--chrome/--label/--json`）、`.bugreview/flag_runtime_state.py`（子进程命令行回显核对运行时生效集合，
+  含"未知名也会回显"的对照实验）。E 断言已升级为 feature params 语法（`param/value` 成对）校验。
+- **D51（新，Low）**：`InitialWebUI` 的 params 缺 value → 参数被丢弃、退回上游默认值（三值恰为 true，
+  故净行为不变）。已改写为显式 `/true`，M151 与 M155 运行时回显一致 → 非升级引入。详见缺陷档案。
+- **发布物已知偏差（需知悉）**：已发布的 r3 包**不含** `--disable-features=SkiaGraphite`（D50 修于升级期，
+  晚于 r3 打包），即 r3 用户实际运行在 Graphite 启用状态；M155 包修正这一点。因此 r3 上是否复现拖拽冻结
+  不能用来否定定案结论，验证请以 M155 包为准。
+- **发布状态**：M155 包已本地构建并通过 8 项门禁，用户 2026-10-10 决定**暂缓发布**（先做 A/B）；
+  A/B 现已完成，等待发布指示。提交 `f816752` 仍在本地未推送。
+
 ## 5. 下次编译更新内核时的操作
 
 ### 5.1 编译命令

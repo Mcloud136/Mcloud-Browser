@@ -58,7 +58,22 @@ def probe(exe, label):
     return interesting
 
 
+def main(argv=None):
+    import argparse
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--chrome", default=r"D:\wxmuma\chromium-src-155\src\out\mcloud\chrome.exe")
+    ap.add_argument("--label", default="build")
+    ap.add_argument("--json", action="store_true", help="只输出一行 JSON，供脚本消费")
+    args = ap.parse_args(argv)
+    got = probe(args.chrome, args.label)
+    if args.json:
+        print(json.dumps(got, ensure_ascii=False))
+    return 0 if got["gpu-process 存在"] and not got["Vulkan/SwiftShader 回退"] else 1
+
+
 if __name__ == "__main__":
+    if len(sys.argv) > 1:
+        sys.exit(main())
     out = {}
     for label, exe in (("M155", r"D:\wxmuma\chromium-src-155\src\out\mcloud\chrome.exe"),
                        ("M151", r"D:\wxmuma\chromium-src\src\out\mcloud\chrome.exe")):
