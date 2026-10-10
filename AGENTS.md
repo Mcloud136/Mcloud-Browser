@@ -125,9 +125,14 @@ C 语言编写的 Chromium 资源包工具：
 
 ## other/ — 补丁与工具
 
-- `*.patch` 文件：按 `feature-name.patch` 命名，修改 Chromium 源码的补丁集合。
-- `other/build_ffmpeg.py` — FFmpeg 构建工具。
-- 关键补丁：`mini_installer.patch`（安装包打包 mcloud_flags.txt）、`allow_manifest_v2_extensions.patch`、`add-hevc-ffmpeg-decoder-parser.patch`。
+- `*.patch` 文件：按 `feature-name.patch` 命名，共 32 个。**当前构建链不应用任何 .patch**
+  （`deploy_mcloud.py` 只跑定点注入脚本）；唯一引用者是遗留的 `win_scripts/setup.py`，而该脚本按约定禁止运行。
+  因此这些补丁是**上游历史/参考材料**，不是构建输入。
+- ⚠ 不要"顺手应用"这些补丁（缺陷 D75）：`mini_installer.patch` 与 D47 的修复同源重复——
+  `mcloud_flags.txt` 进 `chrome.release` 现在由 `win_scripts/apply_installer_payload.py` 幂等写入，
+  再打这个补丁会造成重复条目或冲突；`allow_manifest_v2_extensions.patch` /
+  `add-hevc-ffmpeg-decoder-parser.patch` 同理，对应能力已由覆盖文件或上游默认提供。
+  要改上游文件一律写 `apply_*` / `inject_*` 幂等脚本（见 D41 约定）。
 
 ## benchmark/ — 性能基准
 
@@ -221,6 +226,11 @@ autoninja -C out/mcloud chrome mini_installer
   仓库此前没有任何 Python linter 在跑。真阳性（B023/B905 等）逐条判真伪后再修。
 - **多棵源码树时 `deploy_mcloud.py` 必须显式设 `CR_DIR`**：其默认值是 `D:\wxmuma\chromium-src\src`（M151 树），
   在 155 树下不设变量就会把定制部署到旧树（2026-10-10 实际踩到；因全部步骤幂等未致损）。
+- **GN 里 config 的正文改动 = 全树重编**（缺陷档案 D74 实测）：只换 `config("polly")` 的写法
+  （`use_polly=false` 下展开为空）也让 `gn gen` 后 ninja 给出 51,296 步计划（约 3 小时）。
+  因此"把注释/写法改正确"这类零收益改动必须与真实改动同批落地，不要为它单开一次全树重编。
+- **跑基准/探针前先清残留实例**：孤儿 chrome 会锁住 `out/mcloud` 里的 DLL，
+  实测让链接以 `lld-link: failed to write ./dxcompiler.dll: permission denied` 失败（D71）。
 - CI：`.github/workflows/release.yml`（发布，push `v*` tag 触发）+ `.github/workflows/verify.yml`（源码验证，push/PR 触发）。
 
 ## 性能优化参考

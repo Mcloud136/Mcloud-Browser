@@ -677,6 +677,8 @@ PowerShell 5.1（中文必须 UTF-8 BOM，见 D38）、GN（Chromium 构建元�
 | D71 | High | leak_probe / gpu_probe / ab_flags 清理 | 一次性 kill 留下 crashpad-handler 尾巴，残余进程锁住 out 目录 DLL → 实测 `lld-link: failed to write ./dxcompiler.dll: permission denied`、`autoninja exit=1`，51,296 步重编被自家工具打断 | ✅ 循环杀到干净 + 残留 WARN |
 | D72 | High | `package_m155.py` + 收尾链 | 构建失败后仍继续打包：门禁只看产物存在与内容证据，于是拿上一轮遗留的 installer 算出 cd6f5172 写进发布说明，无法区分「构建成功」与「构建失败但产物还在」 | ✅ 新鲜度链（dll 不早于加载器源与 4 个 GN 源）+ 构建失败即中止不打包 |
 | D73 | Low | `apply_mcloud_source_defaults.py` | 上游把 `BASE_FEATURE` 拆成多行写时，精确单行匹配同时看不到 ENABLED 与 DISABLED → 自愈失效且误报「形态已变更」，deploy 直接退出 | ✅ 加空白归一化兜底；跨行形态实测 rc=0 且不写入 |
+| D74 | — (成本结论) | `build/config/compiler/BUILD.gn` 的一个 config 正文 | 只改 config 的**写法**（`use_polly=false` 下展开为空）也让 `gn gen` 后 ninja 给出 51,296 步计划（≈3 小时全树重编）。零收益改动必须与真实改动同批落地 | ✅ 写进 AGENTS.md 与规范；本轮因同时要交付 loader v6 验证链而接受这次重编 |
+| D75 | Low–Med | `AGENTS.md` 的 other/ 一节 + `other/*.patch` | 文档把 32 个补丁写成「关键补丁」，但当前构建链一个都不应用（唯一引用者是禁止运行的 setup.py）；其中 `mini_installer.patch` 与 D47 修复同源重复，顺手应用会造成 chrome.release 重复条目/冲突 | ✅ 口径更正为「历史/参考材料，非构建输入」并加禁打提示 |
 
 流程性缺口（不是某一行代码的错）：**本轮之前仓库没有任何 Python 静态检查在跑**。
 现已引入 `ruff`（F/E9/B/SIM）+ `pyflakes`，并把 ruff 的真阳性（B023/B905/F841）逐条判真伪后处置。
