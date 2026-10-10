@@ -345,7 +345,7 @@ BOM 规则（D38 机器化）、`param` 位置（D83）、AST 解析（D84），
   扫 `Tee-Object` 只有 run_baseline 一处（已修）；扫"顶层数组 + 函数内 `+=`"的作用域误用，
   排除注释误报后只剩已修文件与已删除的早期草稿。
 
-### 8.4 扩展轮收口门禁（修复后真树重跑，逐项退出码）
+### 8.4 扩展轮收口门禁（D99 沙箱生效后的最终一轮，逐项退出码）
 
 ```
 verify_sources        exit=0  PASS      ← 含新增的 PowerShell 三层检查（45 个 .ps1）
@@ -358,6 +358,17 @@ leak_probe(2x15)      exit=0  PASS
 package_m155(门禁)     exit=0  PASS
 RESULT: ALL PASS (8/8)                  ← 带条数自检，且同一命令对假树会输出 FAIL x5 / exit 1
 ```
+
+
+这一轮与 §4 那轮的区别不是结果，而是**结果现在可信**：
+
+- 聚合自检生效：`results.Count` 必须等于 8，否则门禁自身判 FAIL（D89 修复）；
+  同一命令对不存在的构建树会输出 `FAIL x5` + exit 1（已实测，见 §8.1）。
+- loader 边界测试跑在**硬链接沙箱** `out/mcloud_loader_test`（2705 个链接文件），
+  跑完后真实 `out/mcloud/mcloud_flags.txt` 与仓库字节一致
+  （8,186 B / sha256 `61b7670856ed`），不再有"门禁在污染窗口里测测试语料"的可能（D99 修复）。
+- `flag_runtime_state` 现在会先做正文一致性检查，不一致直接 exit，不给结论（D100 修复）。
+- 全部 8 项 exit=0，`RESULT: ALL PASS (8/8)`，进程退出码 0，收尾后 chrome 残留进程数 0。
 
 同一二进制（`chrome.dll` 303,440,384 B、`chrome.exe` 4,389,888 B、installer
 `0602cafa…7090`）在本轮之前已验证；扩展轮没有改动任何浏览器源码或 `mcloud_flags.txt`，
