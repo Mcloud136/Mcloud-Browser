@@ -228,7 +228,7 @@
 - r3 已收尾：全量重编译成功，`package_r3.py` 门禁全绿，发布包 123,466,752 B，
   SHA256 `393456968d948137b362b1a720074ef5e69804856b886ecf7ead937a3abdf049`（sidecar 同步写盘），
   A6 通过；K1/K2 实测留痕见 `docs/dev-logs/M151-r3-benchmark.md`（K2 因进程数 64≠57 不与档案值直接比）。
-- 未收口：D49（V8 连字符与下划线是否等价，源码显示 `flags-impl.h:19 NormalizeChar` 归一化，缺运行时歧义实验）；
+- 未收口：D49（V8 连字符与下划线是否等价，源码显示 `flags-impl.h:19 NormalizeChar` 归一化，已试过 stderr 通道但无法判别（V8 未知 js-flags 被静默忽略，见缺陷档案 D49 补充），需 `autoninja d8` 才能定论）；
   r3 的推送/打 tag/资产上传尚未执行（需 L3 安全审查门禁 + 用户授权）。
 
 ## 5. 下次编译更新内核时的操作

@@ -417,6 +417,16 @@ detect_leaks 不支持），内存泄漏结论以逐行分配/释放配对审查
 - 现状：`AGENTS.md`"已知坑"与 `mcloud_flags.txt` 60-61 行注释均断言连字符写法失效；
   该实证结论来自更早会话且无可复核产物，本轮未能复现。
 - 处置原则：**核实前不改 flags 文件**；如需硬结论做一次运行时歧义实验。
+- 2026-10-10 运行时实验结果（**否定了"可以做运行时歧义实验"的可行性**）：
+  ① `--enable-logging=stderr --v=1` 下分别注入 `--js-flags=--trace-opt-verbose`、
+  `--trace_opt_verbose`、拼错的 `--trace-opt-verbos`，三者 stderr 字节数几乎相同（2207/2206/2205 B），
+  V8 优化追踪命中均为 0 —— Chrome 不把 V8 的 `--trace-*` 输出转发到浏览器进程 stderr；
+  ② 改用"未知标志是否报错"作判别子：注入 `--js-flags=--zzz-not-a-v8-flag` 与两个合法写法，
+  stderr 中都只有无关的 GCM `DEPRECATED_ENDPOINT` 一行，**没有任何 V8 拒绝信息** —— 说明
+  Chromium 对 `--js-flags` 里的未知名字是静默忽略，因此"缺少报错"不能证明"写法有效"。
+  结论：该运行时通道无法判别；唯一权威依据仍是 V8 源码 `flags-impl.h:19 NormalizeChar`（`_`/`-` 等价）。
+  若要确定性结论，可行路径是在树内 `autoninja d8` 后用 d8 直接跑两种写法对比（尚未执行）。
+  实验脚本：`.bugreview/d49_experiment.py`（含"必须用线程读 stderr，否则 os.read 阻塞使超时失效"的修正）。
 
 ## 修复状态汇总（2026-10-09 第2周期更新）
 | 线 | 缺陷 | 修复 | 验证 |
