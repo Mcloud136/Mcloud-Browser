@@ -8,7 +8,25 @@
 #   apply_avx2_baseline.py         win/BUILD.gn AVX2+FMA3 基线（替换 -msse3）
 #   inject_flags_loader.py         chrome_main_delegate.cc 内置 flags 加载器
 #   apply_mcloud_source_defaults.py D3D12 默认启用/后台模式默认关/DoH 校验
+import filecmp
 import os, shutil, sys
+
+
+def copy_if_changed(src, dst):
+    """内容相同就不写：避免只刷新 mtime 而让 ninja 把整棵树判为过期。
+
+    实证（2026-10-10 做 r3 时）：`deploy_mcloud.py` 无条件重写
+    `build/config/compiler_opt.gni`（内容其实一字未改）会触发约 5 万步的全量重编译，
+    而 r3 的真正变更只有数据文件。幂等脚本应当"内容比对后再写"，与
+    inject_flags_loader.py 的正文比对同一套原则（缺陷 D25 的延伸）。
+    """
+    if os.path.isfile(dst) and filecmp.cmp(src, dst, shallow=False):
+        print(f"unchanged, skipped write (mtime preserved): {os.path.basename(dst)}")
+        return False
+    os.makedirs(os.path.dirname(dst), exist_ok=True)
+    shutil.copy2(src, dst)
+    return True
+
 
 # D27: 默认值与 deploy_mcloud.py 对齐（构建机标准树），避免未设 CR_DIR 时
 # 以 '.' 为根在错误位置创建 out/mcloud 等目录
@@ -47,9 +65,8 @@ for f in essential_files:
         rel = rel[len("src/"):]
     dst = os.path.join(cr_src, rel)
     if os.path.exists(src):
-        os.makedirs(os.path.dirname(dst), exist_ok=True)
-        shutil.copy2(src, dst)
-        print(f"Copied: {f} -> {dst}")
+        if copy_if_changed(src, dst):
+            print(f"Copied: {f} -> {dst}")
     else:
         print(f"SKIP (not found): {f}")
 
@@ -57,8 +74,8 @@ for f in essential_files:
 flags_src = os.path.join(thor_src, "mcloud_flags.txt")
 flags_dst = os.path.join(cr_src, "out", "mcloud", "mcloud_flags.txt")
 if os.path.exists(flags_src):
-    shutil.copy2(flags_src, flags_dst)
-    print("Copied: mcloud_flags.txt -> out/mcloud/")
+    if copy_if_changed(flags_src, flags_dst):
+        print(f"Copied: mcloud_flags.txt -> {flags_dst}")
 else:
     print("SKIP (not found): mcloud_flags.txt")
 
