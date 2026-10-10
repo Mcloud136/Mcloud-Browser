@@ -457,7 +457,7 @@ detect_leaks 不支持），内存泄漏结论以逐行分配/释放配对审查
 
 ## 待办（本档案跟踪）
 - [x] D47：补 `apply_installer_payload.py`（chrome.release 单行幂等注入）并挂入 deploy_mcloud.py + verify_sources.py（r3 已发布）
-- [x] D48：清理失效条目（删 6 / 注释改名 1 / 标记升级期 1）已随 r3 发布；剩余待办是把 check_features.py 存活性校验接入 CI
+- [x] D48：清理失效条目（删 6 / 注释改名 1 / 标记升级期 1）已随 r3 发布；存活性校验已进本地轮次门禁（round_check 门 10），CI 不接入原因见上文 D48
 - [ ] D49：V8 连字符/下划线口径做一次运行时歧义实验后更正文档
 - [x] D1-D19 修复（pak_src/，2026-10-08）
 - [x] pak 修复后语料回归：8 组畸形输入优雅报错 + v4/v5 真实往返字节一致（ASan，failures=0）
