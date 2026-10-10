@@ -649,7 +649,7 @@ PowerShell 5.1（中文必须 UTF-8 BOM，见 D38）、GN（Chromium 构建元�
   （F541 之类）。给它修 lint 是局部最优、全局负收益——正确处置是删除或加 refusal guard（同 ADR-003
   对 Linux legacy 面的处理方式），已列入待办而不是本轮顺手改。
 
-## 第3周期缺陷登记（D52–D93，详版与全部证据见 `docs/tasks/bug-review-cycle3-report.md`）
+## 第3周期缺陷登记（D52–D96，详版与全部证据见 `docs/tasks/bug-review-cycle3-report.md`）
 
 一句话索引（每条的报告里有 file:line、根因、影响、修复与 Red→Green 证据）：
 
@@ -697,11 +697,14 @@ PowerShell 5.1（中文必须 UTF-8 BOM，见 D38）、GN（Chromium 构建元�
 | D91 | Medium | `docs/BUILDING_WIN.md` + `AGENTS.md` 的「前置文档」指针 | 该文件是上游 Thorium 文档（`C:\src\chromium\src`、VS 2022、`git clone Alex313031/mcloud`、构建 `mcloud_shell/setup` 等本项目不存在的目标、私有密钥口径与 ADR-001 冲突），**完全没有 deploy_mcloud 步骤**，却被 AGENTS.md 指为 Windows 构建前置文档 | ✅ 文件头加"上游遗留、非本仓库步骤"警示并指向权威步骤；AGENTS.md 指针改为本文「构建快速参考」+ progress §5.1 |
 | D92 | Medium | `bench_navigation.ps1`（D78 修复自身引入） | `finally` 里用 `-ErrorAction SilentlyContinue` 删重定向临时文件：浏览器子进程（renderer/crashpad）仍持有 stdout 句柄时删除必然失败，而错误被吞 → 两次实跑在 `%TEMP%` 遗留 **42 个** `navdom_*/naverr_*`（0 B～400 KB），正是本周期目标点名的资源泄漏面 | ✅ 删除失败登记到 `$script:pendingCleanup`（作用域写法即 D89 的教训），Test-Mode 在杀完本实例进程后重试；实例清理改为最多 5 轮「杀→等 600 ms」；仍残留则 `Write-Warning` 报数 |
 | D93 | Low（但代价高） | 我新加的 `param` 位置检查本身 | 判据用 `ln.strip().startswith(“param(”)`，会**把函数体内合法的 `param(...)` 也当违规**（函数有自己的参数块，通常缩进 4 空格）。当前仓库恰好没有这种写法所以没暴露——是 R9 复核时按「假阳性会让人关掉检查」推演出来的 | ✅ 只认顶格 `param(`；两路对照实测：合法的函数级 param 不报，顶层错位的仍报 |
+| D94 | High | `benchmark/run_baseline.ps1`（KPI 基线采集器） | PS 5.1 里 `Write-Host` 走 information stream(6)，旧写法 `& 子脚本 \| Tee-Object -Variable k1out` 抓的是成功流 → **一行都抓不到**（同机实测：不加 `6>&1` 捕获 0 行，加了 6 行）；于是生成的基线报告「原始数据」为空、KPI 表恒写「见原始数据」，末尾还绿色打印「报告已写入」。另有三处同源小错：`$Version` 默认值写死 "M150"（报告标题与文件名都会标错内核）、`$env:COMPUTER_NAME` 拼错（Windows 是 `COMPUTERNAME`）→「构建机」字段恒空、子基准异常/无输出不判 → 空报告也算成功 | ✅ 统一 `6>&1` 捕获 + 正则抽出 K1/K2/K7 数值填表 + 版本从被测二进制文件版本推导 + COMPUTERNAME 修正 + 抽不到数即写进「异常记录」并 exit 1（报告仍留作取证） |
+| D95 | Medium | 判据文档缺口 | 噪声带与 A/B 采纳门槛只散落在 `docs/tasks/m155-perf-features.md` §5 与工具里，**权威规范里一个字都没有** → 下一轮很容易拿跨会话数据当回归/收益（本次实测：同一会话内 K2 五采样带宽 2550.2–2553.2 MB（0.12%），跨会话却是 2550.5 vs 2586.8–2593.0（~1.5%）） | ✅ 规范新增 §4.2.1：逐指标带宽表 + 采纳/否决门槛 + 「只用同会话成对数据」「≥2 轮」「判据预注册」三条硬规则 |
+| D96 | Medium | `docs/architecture/performance-build-technical-spec.md` §4.3 | 写「现有源码级默认值修改（均经 `copy_essentials.py` 复制生效）」并要求新修改「进入 `copy_essentials.py` 的文件清单」——与现行构建链相反：三处修改由 `apply_mcloud_source_defaults.py` 定点注入，而 `copy_essentials.ALLOWED_COPY` 会**主动拒绝**有上游对应物的整份复制（D41）；表内 D3D12/DoH 两行的现状也已过期（前者只回退历史覆盖、后者只做存在性校验） | ✅ 口径更正 + 表格按脚本正文逐行重述现状（注入/回退/仅校验三态） |
 
 流程性缺口（不是某一行代码的错）：**本轮之前仓库没有任何 Python 静态检查在跑**。
 现已引入 `ruff`（F/E9/B/SIM）+ `pyflakes`，并把 ruff 的真阳性（B023/B905/F841）逐条判真伪后处置。
 
-## 第3周期·扩展轮（D77–D93：导航基准、门禁聚合、src/ 参与度、步骤文档、临时文件）
+## 第3周期·扩展轮（D77–D96：导航基准、门禁聚合、src/ 参与度、步骤文档、临时文件）
 
 前一轮的收口报告说"八项门禁全绿"。扩展轮从**未被覆盖的测试面**（导航基准脚本、门禁自身的
 聚合逻辑、仓库 `src/` 的实际参与度）继续查，结果先推翻的正是这句话的取证方式（D89）。
@@ -942,6 +945,41 @@ PowerShell 里 **函数体也可以有自己的 `param(...)`**（惯例缩进 4 
 两路对照（都实测）：
 - 合法对照 `$ErrorActionPreference='Stop'` + `function Get-Thing { param([string]$Name) … }` → 不报；
 - 违规对照 `$x = 1` + 顶层 `param([string]$OutDir='')` → 仍报，且门禁 exit 1。
+
+### D94 基线采集器抓不到任何子基准输出，却写出「看起来完整」的报告（High，假绿家族）
+
+`benchmark/run_baseline.ps1` 是 K1/K2/K7 的一键采集器，产物是
+`docs/dev-logs/<版本>-benchmark.md`。它有四个叠在一起的问题：
+
+1. **抓不到输出（核心）**：PowerShell 5.1 里 `Write-Host` 写的是 **information stream(6)**，
+   而旧代码 `& "$scriptDirench_startup.ps1" … | Tee-Object -Variable k1out` 管道接的是
+   **成功流**。三个子基准的所有输出都走 `Write-Host`，所以 `$k1out/$k2out/$k7out` 全是空的。
+   同机实测（用 `bench_size.ps1` 做判据）：不加 `6>&1` 捕获 **0 行**，加 `6>&1` 捕获 **6 行**。
+2. **KPI 表里没有数字**：表格三行硬编码 `| 见原始数据 |`，而原始数据是空的 ——
+   报告看起来结构完整，实际没有任何一次测量结果。
+3. **失败不判**：子基准抛异常或被中断后，脚本照样 `Out-File` 写报告并绿色打印
+   「报告已写入」，退出码 0。
+4. **两处口径/字段错误**：`-Version` 默认值写死 `"M150"`（同时决定报告标题和**文件名**，
+   于是 M155 的基线会被归档成 `M150-benchmark.md`）；环境信息行用了 `$env:COMPUTER_NAME`，
+   Windows 上的变量名是 `COMPUTERNAME`（无下划线），所以「构建机」字段恒为空。
+
+为什么算 High：这是本周期目标点名的"性能测量有效性"面，而且失效方式是**静默**——
+使用者拿到一份格式漂亮的空报告，很难发现里面没有数。
+
+修复（全部落在同一个文件）：
+- `Invoke-BenchCapture` 用 `& $script @params 6>&1` 捕获（含子脚本异常，转成
+  `SUB-SCRIPT-ERROR:` 行保留在原始数据里）；
+- `Get-BenchValue` 按 `K1 …中位数): N ms` / `K2 …中位数): N MB` /
+  `out/mcloud 总体积 : N MB`（另抽 `chrome.exe`、`mini_installer`）把数值直接填进 KPI 表；
+- 任一 KPI 抽不到数 ⇒ 报告「结论与异常记录」写明哪几项失败，脚本 **exit 1**（报告仍写盘，
+  因为它是取证）；
+- `-Version` 留空时从被测二进制的 `ProductVersion` 推导（`M155`），不再写死；
+- `COMPUTER_NAME` → `COMPUTERNAME`，并在报告里补上被测对象身份行（与 D86 同口径）。
+
+验证：见本节末尾的实跑记录（`run_baseline.ps1` 全量 K1+K2(50 标签)+K7 一次跑完，
+报告表格内含真实数值，退出码 0）。
+
+补充（同一轮的清扫证据）：全仓 `Tee-Object` 扫描确认这种「用成功流抓 `Write-Host`」的写法**只存在于 `run_baseline.ps1` 一处**，其余脚本没有同类隐患；捕获后新增回显循环，避免采集器变成「控制台全程无输出」的黑箱。
 
 ### 扩展轮的全局效率结论（稳定优先，不是局部最优）
 

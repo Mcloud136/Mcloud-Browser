@@ -328,18 +328,49 @@
 - 【必须】每次内核升级后执行 feature 有效性检查（脚本或人工 grep 源码确认 feature 名仍存在），先例：M150 移除 `use_webaudio_pffft`（`win_args_mcloud.gn` 第 73 行）；代码审查已移除 4 项不当 flag（`docs/superpowers/specs/2026-06-20-code-review-fixes.md`）。
 - 【待补充】清单中各 feature 的单独基准验证数据。需要：按 4.4 基准方法逐项开关对比，优先覆盖高风险类别与内存组 11 项。
 
-## 4.3 默认配置基线（源码级默认值修改登记）
+### 4.2.1 判定门槛与噪声带（A/B 采纳纪律，2026-10-10 实测固化，缺陷 D95）
 
-现有源码级默认值修改（均经 `copy_essentials.py` 复制生效）：
+本机（i9-14900HX / 31.6 GB / MuMu 虚拟显卡）同配置重复测量的**实测噪声带**：
 
-| 修改 | 文件 | 说明 |
-|------|------|------|
-| D3D12 视频解码默认启用 | `src/media/base/media_switches.cc` | 已知问题：不可用时回退 D3D11；核显绿屏待修复（CHANGELOG M150 已知限制） |
-| DoH 模式改为 kAutomatic | `src/chrome/browser/net/default_dns_over_https_config_source.cc` | 修复 HTTP 断流（CHANGELOG M150） |
-| 后台模式默认关闭 | `src/chrome/browser/background/extensions/background_mode_manager.cc` | — |
+| 指标 | 同会话内重复带 | 判定门槛（超出才承认差异） |
+|------|----------------|------------------------------|
+| K1 冷启动中位数 | ±12 ms（首启动离群 59–69 ms，需丢弃首轮或跑 ≥15 次） | 慢于基线 > max(3, 带宽) ms 即否决 |
+| K2 内存峰值 | ±0.19%（同一会话 5 次采样实测 2550.2–2553.2 MB） | > +2% 即否决 |
+| 泄漏探针 | ±8.9 MB，且与采样位置相关 | 变差 > 5 MB 即否决；改善 ≤ −5 MB 且可复现才算收益 |
+| K3 导航（headless） | 单页跨会话可达 ±10% 以上 | 只作趋势，不作采纳依据（headless 不含 GPU 合成路径） |
 
-- 【必须】任何新的源码级默认值修改须同步登记到上表（维护于升级报告与本规范），并进入 `copy_essentials.py` 的文件清单。
-- 【必须】登记条目须含：修改目的、已知副作用、每次升级时的合并注意事项。
+- 【必须】A/B 判定只用**同会话成对/交错**数据；跨会话差值（例如 K2 本次 2550.5 MB 与另一会话
+  2586.8–2593.0 MB，差 ~1.5%）**不得**当作回归或收益——它大于同会话带宽，来源是会话级环境漂移
+  （网络标签加载、后台任务、电源状态），不是被测变更。
+- 【必须】每项候选至少 2 个完整重复轮次；结论写"采纳/否决"必须引用预注册判据
+  （`.bugreview/ab_verdict.py` 的 rubric），不得事后按结果调门槛。
+- 【必须】量具改动（脚本、判据、采样口径）与被测项变更**不得混在同一轮**里比较。
+- 【推荐】任何"改善"若幅度小于表中带宽，一律记为"不可分辨"，不写入发布说明。
+
+### 4.3 默认配置基线（源码级默认值修改登记）
+
+> **口径更正（2026-10-10 第3周期扩展轮，缺陷 D96）**：本节原文写"现有源码级默认值修改
+> （均经 `copy_essentials.py` 复制生效）"，并要求新修改"进入 `copy_essentials.py` 的文件清单"——
+> 两者都与现行构建链相反：这三处修改现在由 **`apply_mcloud_source_defaults.py` 定点幂等注入**产生，
+> 而 `copy_essentials.py` 的 `ALLOWED_COPY` 白名单**会主动拒绝**任何"有上游对应物"的文件整份复制
+> （缺陷 D41：旧内核副本整份覆盖会直接破坏新树构建）。照原文操作要么被脚本拒绝，要么在旧版本上
+> 污染源码树。
+
+现有源码级默认值修改（由 `deploy_mcloud.py` 编排的 `apply_mcloud_source_defaults.py` 注入树内文件）：
+
+| 修改 | 文件 | 现状（2026-10-10 按 `apply_mcloud_source_defaults.py` 正文核对） |
+|------|------|----------------------------------------------------------------------|
+| D3D12 视频解码 | `src/media/base/media_switches.cc` | **不再翻转上游默认**（阶段 3b 清理）：脚本现在只做反向修正——若树上残留历史
+  `ENABLED_BY_DEFAULT` 覆盖就回退为上游 `DISABLED_BY_DEFAULT`；解码取向由 `mcloud_flags.txt`
+  与上游默认共同决定。已知问题：核显绿屏（CHANGELOG M150 已知限制） |
+| 后台模式默认关闭 | `src/chrome/browser/background/extensions/background_mode_manager.cc` | **仍在注入**（注册与激活两处，幂等） |
+| DoH 模式 kAutomatic | `src/chrome/browser/net/default_dns_over_https_config_source.cc` | **不再修改**：M151+ 上游默认已是 `net::SecureDnsMode::kAutomatic`，脚本只做存在性校验，异常时 WARN 提示人工核对（历史上的"修复 HTTP 断流"覆盖已无必要） |
+
+- 【必须】任何新的源码级默认值修改须同步登记到上表（维护于升级报告与本规范），
+  并写进 `win_scripts/apply_mcloud_source_defaults.py`（或其新的定点脚本）由 `deploy_mcloud.py` 编排，
+  **不要**加进 `copy_essentials.py` 的文件清单。
+- 【必须】登记条目须含：修改目的、已知副作用、每次升级时的合并注意事项；注入脚本必须幂等且
+  锚点找不到时**硬失败退出**（不得静默跳过，见缺陷 D47/D62 的同一教训）。
 - 【推荐】能用 feature flag 实现的默认值变更优先用 flag，减少升级时的手工合并面。
 
 ## 4.4 V8 运行时参数

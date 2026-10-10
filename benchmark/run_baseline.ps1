@@ -9,7 +9,7 @@
 # docs/dev-logs/{版本}-benchmark.md。
 # =============================================================================
 param(
-    [string]$Version = "M150",
+    [string]$Version = "",
     [string]$ChromeExe = "",
     [string]$OutDir = ""
 )
@@ -43,12 +43,46 @@ if ($subject.FullName -match 'chromium-src(\|$)') {
 }
 
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+
+# -Version 不再写死 "M150"（缺陷 D94）：报告标题与文件名都取这个值，写死就会把 M155 的
+# 基线归档成 M150-benchmark.md。留空时从被测二进制的文件版本推导。
+if (-not $Version) {
+    $pv = $subject.VersionInfo.ProductVersion
+    if ($pv -match '^(\d+)\.') { $Version = 'M' + [int]$Matches[1] } else { $Version = 'unknown' }
+}
+
+# D94 主问题：PowerShell 5.1 里 `Write-Host` 写的是 **information stream(6)**，
+# `& 子脚本 | Tee-Object -Variable x` 抓的是**成功流**——三个子基准的输出全部走 Write-Host，
+# 所以旧写法一行都抓不到（同机实测：不加 6>&1 捕获 0 行，加了 6 行）。
+# 后果是生成的基线报告里「原始数据」是空的，KPI 表却写着「见原始数据」，
+# 末尾还绿色打印「报告已写入」——一份看起来完整、实则没有数字的报告（假绿家族）。
+# 现在：① 统一用 6>&1 捕获；② 从中抽出 KPI 数值填进表；③ 抽不到就判 FAIL 并让脚本非零退出。
+function Invoke-BenchCapture([string]$ScriptPath, [hashtable]$Params) {
+    $lines = @()
+    try {
+        $lines = @(& $ScriptPath @Params 6>&1 | ForEach-Object { [string]$_ })
+    } catch {
+        $lines = @("SUB-SCRIPT-ERROR: " + $_.Exception.Message)
+    }
+    # 捕获之后必须回显，否则人盯着控制台看时全程无输出（采集器变成了"黑箱跑到哪一步了"）
+    foreach ($ln in $lines) { Write-Host $ln }
+    return , $lines
+}
+
+function Get-BenchValue($lines, [string]$pattern) {
+    foreach ($ln in $lines) {
+        if ($ln -match $pattern) { return $Matches[1] }
+    }
+    return ''
+}
 $report = @()
 
 $report += "# 基准测试结果 — $Version"
 $report += ""
 $report += "- **测试日期**：$(Get-Date -Format 'yyyy-MM-dd')"
-$report += "- **构建信息**：Chromium $Version，args.gn 模板：win_args_mcloud.gn，构建机：$env:COMPUTER_NAME"
+# ⚠ Windows 的环境变量名是 COMPUTERNAME（没有下划线）。旧写法 $env:COMPUTER_NAME 恒为空，
+# 报告里的「构建机」字段一直是空白——采集环境信息的那一行自己漏采了（缺陷 D94 子项）。
+$report += "- **构建信息**：Chromium $Version，args.gn 模板：win_args_mcloud.gn，构建机：$env:COMPUTERNAME"
 $report += "- **对照基准**：无（首次基线）"
 $report += ""
 $report += "## 环境信息"
@@ -70,16 +104,31 @@ $report += "## KPI 结果"
 $report += ""
 
 Write-Host "=== K1 冷启动（5 次）===" -ForegroundColor Cyan
-& "$scriptDir\bench_startup.ps1" -ChromeExe $ChromeExe -Runs 5 | Tee-Object -Variable k1out
-$report += "| K1 | 冷启动时间（中位数，ms） | 见原始数据 | — | — |"
+$k1out = Invoke-BenchCapture (Join-Path $scriptDir 'bench_startup.ps1') @{ ChromeExe = $ChromeExe; Runs = 5 }
+$k1 = Get-BenchValue $k1out 'K1 .*?中位数[）)]:\s*([\d.]+)\s*ms'
 
 Write-Host "`n=== K2 内存（50 标签）===" -ForegroundColor Cyan
-& "$scriptDir\bench_memory.ps1" -ChromeExe $ChromeExe -Tabs 50 -SettleSeconds 90 | Tee-Object -Variable k2out
-$report += "| K2 | 内存峰值 50 标签（中位数，MB） | 见原始数据 | — | — |"
+$k2out = Invoke-BenchCapture (Join-Path $scriptDir 'bench_memory.ps1') @{ ChromeExe = $ChromeExe; Tabs = 50; SettleSeconds = 90 }
+$k2 = Get-BenchValue $k2out 'K2 .*?中位数[）)]:\s*([\d.]+)\s*MB'
 
 Write-Host "`n=== K7 体积 ===" -ForegroundColor Cyan
-& "$scriptDir\bench_size.ps1" -OutDir $OutDir | Tee-Object -Variable k7out
-$report += "| K7 | 二进制体积 | 见原始数据 | —（仅观测） | — |"
+$k7out = Invoke-BenchCapture (Join-Path $scriptDir 'bench_size.ps1') @{ OutDir = $OutDir }
+$k7 = Get-BenchValue $k7out 'out/mcloud 总体积\s*:\s*([\d.,]+)\s*MB'
+$k7exe = Get-BenchValue $k7out 'chrome\.exe\s*:\s*([\d.,]+)\s*MB'
+$k7inst = Get-BenchValue $k7out 'mini_installer\s*:\s*([\d.,]+)\s*MB'
+
+$missing = @()
+if (-not $k1) { $missing += 'K1' }
+if (-not $k2) { $missing += 'K2' }
+if (-not $k7) { $missing += 'K7' }
+
+$report += "| KPI | 指标 | 本次值 | 上次基线 | 判定 |"
+$report += "|-----|------|--------|----------|------|"
+$report += ("| K1 | 冷启动时间（中位数，ms） | {0} | — | {1} |" -f $(if ($k1) { $k1 } else { '取数失败' }), '待比对')
+$report += ("| K2 | 内存峰值 50 标签（中位数，MB） | {0} | — | {1} |" -f $(if ($k2) { $k2 } else { '取数失败' }), '待比对')
+$report += ("| K7 | 二进制体积（out/mcloud，MB） | {0} | — | —（仅观测） |" -f $(if ($k7) { $k7 } else { '取数失败' }))
+$report += ("| K7-细分 | chrome.exe / mini_installer（MB） | {0} / {1} | — | —（仅观测） |" -f `
+    $(if ($k7exe) { $k7exe } else { '—' }), $(if ($k7inst) { $k7inst } else { '—' }))
 
 $report += ""
 $report += "## 原始数据"
@@ -92,7 +141,13 @@ $report += '```'
 $report += ""
 $report += "## 结论与异常记录"
 $report += ""
-$report += "（待填写）"
+if ($missing.Count -gt 0) {
+    $report += ("- **采数失败**：{0}（子基准未产出可解析的结果行，见下方原始数据）" -f ($missing -join ', '))
+} else {
+    $report += "- 三项自动化 KPI 均成功采数（K1/K2/K7 数值已填进上表）。"
+}
+$report += "- 被测对象：$($subject.FullName)（$($subject.Length) B，mtime $($subject.LastWriteTime.ToString('s'))）"
+$report += "- 其余（待填写）"
 
 $outFile = Join-Path $scriptDir "..\docs\dev-logs\$Version-benchmark.md"
 $outFile = [System.IO.Path]::GetFullPath($outFile)
@@ -101,4 +156,9 @@ if (-not (Test-Path (Split-Path $outFile))) {
 }
 $report | Out-File -FilePath $outFile -Encoding UTF8
 Write-Host "`n报告已写入: $outFile" -ForegroundColor Green
+if ($missing.Count -gt 0) {
+    # 报告照样留下（它是取证），但退出码必须非 0：一份没有数字的基线不能算采集成功（D94）
+    Write-Host ("采数失败：{0} —— 报告已写但本次基线无效" -f ($missing -join ', ')) -ForegroundColor Red
+    exit 1
+}
 Write-Host "K3-K6 为手工流程，见 benchmark/README.md；完成后请补充到同一报告。"
