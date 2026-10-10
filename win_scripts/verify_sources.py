@@ -160,9 +160,13 @@ def check_powershell_static():
                                   "parse - see AGENTS.md / defect D38)"))
         lines = text.splitlines()
         first_ln, first_txt = _first_statement(lines)
+        # 只判**顶层** param：脚本级 param 块按约定顶格写，而函数体内的 param 是
+        # 合法的（函数自己的参数块，通常缩进 4 空格）。用 strip() 会把后者也抓进来，
+        # 造成对合法代码的假阳性——假阳性的代价是"人们开始关掉这条检查"。
         param_ln = 0
         for i, ln in enumerate(lines, 1):
-            if ln.strip().lower().startswith("param(") or ln.strip().lower() == "param":
+            low = ln.lower()
+            if low.startswith("param(") or low == "param":
                 param_ln = i
                 break
         if param_ln and first_ln and param_ln > first_ln:

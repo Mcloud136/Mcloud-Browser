@@ -649,7 +649,7 @@ PowerShell 5.1（中文必须 UTF-8 BOM，见 D38）、GN（Chromium 构建元�
   （F541 之类）。给它修 lint 是局部最优、全局负收益——正确处置是删除或加 refusal guard（同 ADR-003
   对 Linux legacy 面的处理方式），已列入待办而不是本轮顺手改。
 
-## 第3周期缺陷登记（D52–D92，详版与全部证据见 `docs/tasks/bug-review-cycle3-report.md`）
+## 第3周期缺陷登记（D52–D93，详版与全部证据见 `docs/tasks/bug-review-cycle3-report.md`）
 
 一句话索引（每条的报告里有 file:line、根因、影响、修复与 Red→Green 证据）：
 
@@ -696,11 +696,12 @@ PowerShell 5.1（中文必须 UTF-8 BOM，见 D38）、GN（Chromium 构建元�
 | D90 | High | `docs/progress.md` §5.1「下次编译更新内核时的操作」 | 只让跑 `copy_essentials.py`，且树写成 M151 的 `chromium-src`；照做会**跳过全部定点注入**（加载器/AVX2/Polly 接线/chrome.release 登记），得到"能编译能打包但定制整体丢失"的结果 —— 与 D47 同一失败模式，且这条路径正是升级时会照着做的清单 | ✅ 改为 `deploy_mcloud.py` 为唯一入口 + 显式 `CR_DIR`，并补 rebase 后必做的清单（重生成 INVENTORY、flag_stability、门禁矩阵） |
 | D91 | Medium | `docs/BUILDING_WIN.md` + `AGENTS.md` 的「前置文档」指针 | 该文件是上游 Thorium 文档（`C:\src\chromium\src`、VS 2022、`git clone Alex313031/mcloud`、构建 `mcloud_shell/setup` 等本项目不存在的目标、私有密钥口径与 ADR-001 冲突），**完全没有 deploy_mcloud 步骤**，却被 AGENTS.md 指为 Windows 构建前置文档 | ✅ 文件头加"上游遗留、非本仓库步骤"警示并指向权威步骤；AGENTS.md 指针改为本文「构建快速参考」+ progress §5.1 |
 | D92 | Medium | `bench_navigation.ps1`（D78 修复自身引入） | `finally` 里用 `-ErrorAction SilentlyContinue` 删重定向临时文件：浏览器子进程（renderer/crashpad）仍持有 stdout 句柄时删除必然失败，而错误被吞 → 两次实跑在 `%TEMP%` 遗留 **42 个** `navdom_*/naverr_*`（0 B～400 KB），正是本周期目标点名的资源泄漏面 | ✅ 删除失败登记到 `$script:pendingCleanup`（作用域写法即 D89 的教训），Test-Mode 在杀完本实例进程后重试；实例清理改为最多 5 轮「杀→等 600 ms」；仍残留则 `Write-Warning` 报数 |
+| D93 | Low（但代价高） | 我新加的 `param` 位置检查本身 | 判据用 `ln.strip().startswith(“param(”)`，会**把函数体内合法的 `param(...)` 也当违规**（函数有自己的参数块，通常缩进 4 空格）。当前仓库恰好没有这种写法所以没暴露——是 R9 复核时按「假阳性会让人关掉检查」推演出来的 | ✅ 只认顶格 `param(`；两路对照实测：合法的函数级 param 不报，顶层错位的仍报 |
 
 流程性缺口（不是某一行代码的错）：**本轮之前仓库没有任何 Python 静态检查在跑**。
 现已引入 `ruff`（F/E9/B/SIM）+ `pyflakes`，并把 ruff 的真阳性（B023/B905/F841）逐条判真伪后处置。
 
-## 第3周期·扩展轮（D77–D92：导航基准、门禁聚合、src/ 参与度、步骤文档、临时文件）
+## 第3周期·扩展轮（D77–D93：导航基准、门禁聚合、src/ 参与度、步骤文档、临时文件）
 
 前一轮的收口报告说"八项门禁全绿"。扩展轮从**未被覆盖的测试面**（导航基准脚本、门禁自身的
 聚合逻辑、仓库 `src/` 的实际参与度）继续查，结果先推翻的正是这句话的取证方式（D89）。
@@ -925,6 +926,22 @@ D78 的修复给 `Measure-Url` 加了 `-RedirectStandardOutput/-RedirectStandard
 其中文字面量在 PowerShell 5.1 下被按 GBK 解析，输出显示为"杩愯缁撴潫"；
 而仓库内带 BOM 的 `bench_navigation.ps1` 同一管道里输出完全正常——BOM 规则现在由
 `verify_sources.py` 自动把关，临时脚本则不在扫描范围（在仓库外的文件，属一次性工具）。
+
+### D93 我给 `param` 位置写的新检查会产生假阳性（Low，R9 复核时发现）
+
+`check_powershell_static()` 用 `ln.strip().lower().startswith("param(")` 找 param 块。
+PowerShell 里 **函数体也可以有自己的 `param(...)`**（惯例缩进 4 空格），那是完全合法的写法，
+而脚本级"param 必须首位"的规则对它不适用。按 strip() 判，一个把 `$ErrorActionPreference`
+放在前面、后面定义带 param 的函数的脚本会被误判为违规。
+
+危害不是"多打一行日志"，而是**假阳性会把人训练成忽略门禁**（检查失去可信度）。
+当前 44 个 `.ps1` 恰好都写成 `function f($a, [string]$b)` 形式（不是函数内 `param`），
+所以没有暴露——是 R9 逐行复核新代码时按"这段判据对哪些合法代码会误判"推出来的。
+
+修复：只认**顶格** `param(`（顶层脚本级 param 块的写法），并在文件内注释里写明理由。
+两路对照（都实测）：
+- 合法对照 `$ErrorActionPreference='Stop'` + `function Get-Thing { param([string]$Name) … }` → 不报；
+- 违规对照 `$x = 1` + 顶层 `param([string]$OutDir='')` → 仍报，且门禁 exit 1。
 
 ### 扩展轮的全局效率结论（稳定优先，不是局部最优）
 
