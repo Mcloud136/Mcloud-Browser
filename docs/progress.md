@@ -272,6 +272,24 @@
 - **发布状态**：M155 包已本地构建并通过 8 项门禁，用户 2026-10-10 决定**暂缓发布**（先做 A/B）；
   A/B 现已完成，等待发布指示。提交 `f816752` 仍在本地未推送。
 
+### 4.11 第3周期全面 bug-review（2026-10-10 晚，D52–D67）
+
+- 报告：`docs/tasks/bug-review-cycle3-report.md`；缺陷登记：`docs/tasks/bug-review-pak-src-defects.md`
+  第3周期两节（详版 + 速查表）。
+- 两条 High 是**测量与工具自身的破坏性**：K2/驻留原先按进程名汇总整机 chrome（数字与被测对象无关），
+  且三个探针工具做机器级 `Stop-Process`（会杀掉用户自己的浏览器会话）。均已改为实例级指纹与实例级清理，
+  并加"0 进程即 FAIL"护栏。同构建对照证据：2586.8 MB/58 进程 → 2512.85 MB/57 进程。
+- 静默失效族继续收口：D57（BOM 首行丢失）、D59（行内注释整条失效 → F 断言）、
+  D62（注入器不校验调用点 → 加载器可变成死代码却报 already up to date）、
+  D64/D67（polly 接线与 AVX2 注入器无升级路径）。
+- 卡死与进程堆积：12+ 处外部调用补 timeout；bench_*.ps1 清理移入 finally；leak_probe 不再占用固定 9333 端口。
+- D63：Polly 走 ldflags 属"开了也空转"，已改 cflags 并给 Windows 关掉 BOLT 的 emit-relocs；
+  `use_polly/use_bolt` 仍为 false（前置依赖未就绪）。
+- D66 记录了本轮修复自身引入又被回归测试抓出的 3 个次生缺陷——包括 PowerShell
+  `double + '|'` 抛类型转换异常被宽 except 吞成 0 MB。结论：**改判据/工具必须当场跑能失败的正例**。
+- 加载器升到 v6（浏览器进程限定 + BOM 剥离），`loader_edge_test2` 11/11 与 `loader_edge_test3` 7/7 PASS，
+  并在 M151(v5) 上取得 T1 的 Red 对照。产物随 `gn gen --check` 后的整树重编重建（成因待查，已列待办）。
+
 ## 5. 下次编译更新内核时的操作
 
 ### 5.1 编译命令

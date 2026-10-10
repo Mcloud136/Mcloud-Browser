@@ -56,19 +56,38 @@ Write-Host ("驻留 {0} 秒等待稳定..." -f $SettleSeconds)
 Start-Sleep -Seconds $SettleSeconds
 
 $measured = @()
+$procs = @()
+try {
 for ($i = 1; $i -le $Samples; $i++) {
-    # 按主进程名汇总所有子进程（同一进程名 chrome）
-    $procs = Get-Process -Name ([System.IO.Path]::GetFileNameWithoutExtension($ChromeExe)) -ErrorAction SilentlyContinue
+    # 缺陷 D52：旧实现按进程名汇总机器上**所有** chrome 进程（含用户自己开的浏览器、
+    # 上一轮残留实例），K2 与被测实例无关。现以本次 --user-data-dir 为指纹筛选本实例 PID 树。
+    $exeName = [System.IO.Path]::GetFileName($ChromeExe)
+    $ids = @(Get-CimInstance Win32_Process -Filter "Name='$exeName'" |
+             Where-Object { $_.CommandLine -like "*$userDataDir*" } |
+             ForEach-Object { $_.ProcessId })
+    if ($ids.Count -gt 0) {
+        $procs = @(Get-Process -Id $ids -ErrorAction SilentlyContinue)
+    } else {
+        $procs = @()
+    }
     $sum = ($procs | Measure-Object -Property WorkingSet64 -Sum).Sum
     $mb = [math]::Round($sum / 1MB, 1)
     $measured += $mb
     Write-Host ("[{0}/{1}] 工作集合计: {2} MB（进程数 {3}）" -f $i, $Samples, $mb, $procs.Count)
     if ($i -lt $Samples) { Start-Sleep -Seconds $SampleInterval }
 }
-
-try { $proc.Kill(); $proc.WaitForExit(10000) } catch {}
-Start-Sleep -Seconds 2
-if (Test-Path $userDataDir) { Remove-Item -Recurse -Force $userDataDir }
+} finally {
+    # 无论采样阶段是否抛错（$ErrorActionPreference='Stop'），都必须收掉本实例进程与临时目录，
+    # 否则会留下孤儿 chrome（后续测量被污染，且机器上进程越积越多）。
+    if ($procs.Count -gt 0) {
+        try { $null = $proc.Kill(); $null = $proc.WaitForExit(10000) } catch {}
+        try { $procs | Where-Object { $_.Id -ne $proc.Id } | ForEach-Object { $_.Kill() } } catch {}
+    } else {
+        try { $null = $proc.Kill(); $null = $proc.WaitForExit(10000) } catch {}
+    }
+    Start-Sleep -Seconds 2
+    if (Test-Path $userDataDir) { Remove-Item -Recurse -Force $userDataDir -ErrorAction SilentlyContinue }
+}
 
 $median = Get-Median $measured
 Write-Host ""

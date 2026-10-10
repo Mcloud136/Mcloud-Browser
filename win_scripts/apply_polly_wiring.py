@@ -11,9 +11,10 @@ SRC = os.environ.get("CR_DIR", r"D:\wxmuma\chromium-src\src")
 p = os.path.join(SRC, "build", "config", "BUILDCONFIG.gn")
 s = io.open(p, encoding="utf-8").read()
 
-if "compiler:polly" in s:
-    print("wiring already present, nothing to do")
-    sys.exit(0)
+# D67（本周期修）：旧实现 `if "compiler:polly" in s: exit(0)` 只判"存在"，改了接线正文再跑，
+# 树里仍是老版本 —— 与 D64/D67(AVX2) 同族的静默分叉。现按正文比对，不一致就整段替换。
+BEGIN_EXE = "# MCloud Browser: wire LLVM Polly / BOLT emit-relocs configs into linkable"
+BEGIN_SHL = "# MCloud Browser: same Polly / BOLT emit-relocs wiring for shared libraries."
 
 wire_exe = (
     "# MCloud Browser: wire LLVM Polly / BOLT emit-relocs configs into linkable\n"
@@ -39,10 +40,31 @@ wire_shl = (
     'set_defaults("shared_library") {'
 )
 
-assert s.count('set_defaults("executable") {') == 1, "executable anchor not unique"
-assert s.count('set_defaults("shared_library") {') == 1, "shared_library anchor not unique"
 
-s = s.replace('set_defaults("executable") {', wire_exe)
-s = s.replace('set_defaults("shared_library") {', wire_shl)
+def upgrade(text, begin, wire, anchor):
+    """把 begin→anchor 之间我们写过的任何版本，统一升级为当前 wire 正文。"""
+    if begin not in text:
+        assert text.count(anchor) == 1, "anchor not unique: " + anchor
+        return text.replace(anchor, wire, 1), "applied"
+    i = text.index(begin)
+    k = text.index(anchor, i)          # 我们那段一直延伸到 set_defaults 锚点
+    cur = text[i:k]
+    want = wire[:wire.index(anchor)]
+    if cur == want:
+        return text, "up-to-date"
+    return text[:i] + want + text[k:], "replaced"
+
+
+changed = []
+for begin, wire, anchor in ((BEGIN_EXE, wire_exe, 'set_defaults("executable") {'),
+                            (BEGIN_SHL, wire_shl, 'set_defaults("shared_library") {')):
+    s, state = upgrade(s, begin, wire, anchor)
+    changed.append(anchor.split('"')[1] + ":" + state)
+
+if all(c.endswith(":up-to-date") for c in changed):
+    print("polly wiring already up to date (content match), nothing to do")
+    sys.exit(0)
+
 io.open(p, "w", encoding="utf-8", newline="\n").write(s)
-print("wiring applied")
+print("polly wiring: " + ", ".join(changed))
+

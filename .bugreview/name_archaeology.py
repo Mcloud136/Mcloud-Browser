@@ -23,7 +23,7 @@ def scan(rev):
         ["git", "-C", SRC, "grep", "-I", "-h", "-A2", "-E",
          "(" + KINDS + ")[[:space:]]*\\([[:space:]]*k[A-Za-z0-9_]+",
          rev, "--", "*.cc", "*.h", "*.mm"],
-        capture_output=True, text=True, errors="replace").stdout
+        capture_output=True, text=True, errors="replace", timeout=900).stdout
     found = {}
     for blk in re.split(r"(?m)^--$", out):
         joined = " ".join(ln.strip() for ln in blk.splitlines())

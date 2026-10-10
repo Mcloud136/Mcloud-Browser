@@ -69,7 +69,8 @@ if ('#include "base/files/file_util.h"' not in s and
 
 LOADER = r'''
 // --- MCloud Browser: built-in performance startup flags (mcloud_flags.txt) ---
-// loader v5: line parsing via string_view::substr (no raw pointer arithmetic,
+// loader v6: browser-process-only guard (D58) + UTF-8 BOM strip (D57) on top of
+// v5: line parsing via string_view::substr (no raw pointer arithmetic,
 // clean under -Wunsafe-buffer-usage) on top of v4 (shared command-line byte
 // budget for every appended switch, D40), v3 (merged-feature-list cap, D39)
 // and v2 (single-pass accumulation, user-first merge, capped read).
@@ -88,6 +89,20 @@ LOADER = r'''
 // FATAL "GPU process isn't usable", bug-review D39/D40).
 // See docs/architecture/performance-build-technical-spec.md section 4.1.1.
 void LoadMcloudPerformanceFlags() {
+  base::CommandLine* command_line = base::CommandLine::ForCurrentProcess();
+
+  // D58: only the browser process needs to read the file. ContentMain calls
+  // BasicStartupComplete() in EVERY process (content_main_runner_impl.cc:964),
+  // so without this guard each renderer/GPU/utility process re-reads and
+  // re-parses the file at launch -- and re-applies the budget against its own
+  // inherited command line, which can make a child drop entries the browser
+  // kept. Children already receive the resolved overrides (browser -> child
+  // command line + field-trial shared memory), so skipping the read loses
+  // nothing.
+  if (command_line->HasSwitch(switches::kProcessType)) {
+    return;
+  }
+
   base::FilePath exe_dir;
   if (!base::PathService::Get(base::DIR_EXE, &exe_dir)) {
     return;
@@ -97,8 +112,16 @@ void LoadMcloudPerformanceFlags() {
   if (!base::ReadFileToStringWithMaxSize(flags_path, &contents, 1u << 20)) {
     return;
   }
-
-  base::CommandLine* command_line = base::CommandLine::ForCurrentProcess();
+  // D57: strip a UTF-8 BOM. Windows PowerShell 5.1 `Set-Content -Encoding UTF8`
+  // and some editors write one; the parser requires lines to start with "--",
+  // so a BOM silently drops the first line (a comment today, a flag tomorrow --
+  // the same failure mode as D48).
+  if (contents.size() >= 3 &&
+      static_cast<unsigned char>(contents[0]) == static_cast<unsigned char>(0xEF) &&
+      static_cast<unsigned char>(contents[1]) == static_cast<unsigned char>(0xBB) &&
+      static_cast<unsigned char>(contents[2]) == static_cast<unsigned char>(0xBF)) {
+    contents.erase(0, 3);
+  }
 
   // Total byte budget for everything appended here, and the smaller sub-budget
   // for plain (non-feature) switches. Keeping half of the budget free for the
@@ -205,7 +228,6 @@ void LoadMcloudPerformanceFlags() {
   merge_user_first(switches::kDisableFeatures, builtin_disable);
 }
 // --- MCloud Browser: end ---
-
 '''
 
 # ---- 升级路径：树内已有标记块 → 内容不同才整体替换 ----
@@ -214,23 +236,34 @@ if has_block:
     want = LOADER.strip("\n")
     i = s.index(LOADER_BEGIN)
     j = s.index(LOADER_END) + len(LOADER_END)
-    if s[i:j] == want:
-        print("loader already up to date (content match), nothing to do")
-        sys.exit(0)
+    # D62：块内容一致不等于"注入完整"。调用点若被上游改写或被手工删除，加载器就变成
+    # 存在但永不运行的死代码（静默失效，与 D47 同族）。因此两种分支都必须先校验调用点。
     if not re.search(r"\n(  //)? *LoadMcloudPerformanceFlags\(\);", s):
-        print("ERROR: loader block found but call site missing; "
-              "manual intervention required")
+        print("ERROR: loader block present but the call to "
+              "LoadMcloudPerformanceFlags() is missing from "
+              "BasicStartupComplete(); manual intervention required")
         sys.exit(1)
+    if i >= j:
+        # 标记顺序异常（文件被破坏或手工编辑过）时，继续替换会把中间内容复制成重复，
+        # 直接写坏源文件；停下让人处理。
+        print("ERROR: LOADER_END at %d is not after LOADER_BEGIN at %d; "
+              "refusing to rewrite %s" % (j, i, p))
+        sys.exit(1)
+    if s[i:j] == want:
+        print("loader already up to date (content match, call site verified), nothing to do")
+        sys.exit(0)
     s = s[:i] + want + s[j:]
     io.open(p, "w", encoding="utf-8", newline="\n").write(s)
     print("loader block replaced in place (content differed from repo version)")
     sys.exit(0)
 
 # ---- 注入点 1：匿名命名空间开头 ----
-anchor_ns = "namespace {"
-idx = s.find(anchor_ns)
-assert idx != -1, "namespace { anchor not found"
-insert_pos = idx + len(anchor_ns) + 1  # skip the newline after "namespace {"
+# D63b：用整行匹配定位，不再依赖"namespace { 之后恰好有一个换行"的偏移量假设；
+# 上游若把匿名命名空间写成 `namespace {` 后跟空行/注释，旧的 idx+len+1 会把加载器
+# 插到错误位置（编译期才暴露，且报错信息与真实原因无关）。
+_mm_ns = re.search(r"\nnamespace \{\n", s)
+assert _mm_ns, "line-anchored 'namespace {' not found (upstream file shape changed?)"
+insert_pos = _mm_ns.end()
 s = s[:insert_pos] + LOADER + s[insert_pos:]
 
 # ---- 注入点 2：BasicStartupComplete 函数体开头 ----

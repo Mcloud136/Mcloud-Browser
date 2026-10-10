@@ -8,19 +8,11 @@ deletes //out/mcloud and unneeded PGO files.
 import os
 import shutil
 import sys
-import subprocess
 
 
 def fail(msg):
     print(f"{sys.argv[0]}: {msg}", file=sys.stderr)
     sys.exit(111)
-
-
-def try_run(command):
-    try:
-        subprocess.run(command, shell=True, check=True)
-    except subprocess.CalledProcessError:
-        fail(f"Failed {command}")
 
 
 def clean_files(directory):

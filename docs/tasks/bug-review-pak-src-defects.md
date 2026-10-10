@@ -484,7 +484,200 @@ detect_leaks 不支持），内存泄漏结论以逐行分配/释放配对审查
 - 一般形式：**运行时可见性判据必须先弄清它统计的是什么集合**；把"某通道看不到"直接读成"没生效"
   是 D50（注释≠禁用）的同构错误，只是这次方向相反（看不到但其实生效）。
 
+## 第3周期（2026-10-10 晚，全面测试：性能 / 内存 / 进程卡死 + 全局效率评审）
+
+范围：运行时加载器（`inject_flags_loader.py` 的 LOADER 与注入器本体）、`win_scripts/*.py`、
+`benchmark/*.ps1` 与 `benchmark/tools/*.py`、本次新入库的 `.bugreview` 验证脚本、以及树内实际
+被编译的定制面（`git diff --stat` 实测 6 文件 / 229 行）。工具链侧新装了 ruff + pyflakes 做静态分析
+（仓库原本没有任何 Python linter 在跑，这是一个流程缺口）。
+
+语言与专业视角：C++（Chromium base / content 启动路径）、Python 3.12（无版本声明文件，脚本按 3.8+ 兼容写）、
+PowerShell 5.1（中文必须 UTF-8 BOM，见 D38）、GN（Chromium 构建元语言）。
+
+### D52 基准内存测量把整机 chrome 都算进去（High，测量有效性）
+- 位置：`benchmark/bench_memory.ps1`（旧第 61 行 `Get-Process -Name chrome`）、
+  `benchmark/tools/leak_probe.py`（旧 `workset_mb()` 同样是按进程名汇总）。
+- 事实：这两处按**进程名**而非**实例**汇总，因此用户自己开着的浏览器、上一轮残留的实例、
+  并行运行的另一个探针，全部计入 K2/驻留数字。被测对象与数字之间没有因果关系。
+- 影响：直接污染本项目最关键的内存 KPI；也是 §5.3 里"同配置三次取值跨零、散布 ~27 MB"的主要来源之一。
+  任何据此做出的采纳/否决判断都不可靠。
+- 修复：以本次启动使用的 `--user-data-dir` 为指纹，用 `Win32_Process.CommandLine` 筛出属于本实例的
+  PID 集合再汇总 WorkingSet64；bench_memory 与 leak_probe 同步改造，并在输出里打印进程数以暴露筛选结果。
+- 验证：见 §"证据"，同一构建下修复前后各跑一次 K2 + 泄漏探针，比较进程数与散布。
+
+### D53 leak_probe 写死 CDP 端口 9333（Medium，会驱动"别人的"浏览器）
+- 位置：`benchmark/tools/leak_probe.py:DEV_PORT = 9333`。
+- 事实：端口固定。若机器上已有别的 chrome 在 9333 上监听（上一轮残留 / 用户自己开了调试端口），
+  `/json/new` 打到的是**那个实例**，而内存采样的却是我们启动的实例 → 数据自相矛盾且无任何报错。
+- 修复：每次运行 `bind(0)` 取空闲端口并传给 `--remote-debugging-port`。
+- 附带安全含义：常驻的 9333 是本地任意进程可驱动浏览器的入口，测试工具不应默认占用它。
+
+### D54 bench_*.ps1 无 finally，异常路径留下孤儿 chrome 与临时目录（Medium，进程堆积）
+- 位置：`benchmark/bench_startup.ps1`、`benchmark/bench_memory.ps1`（`$ErrorActionPreference='Stop'`
+  但清理语句都是普通顺序语句，不在 try/finally 中）。
+- 影响：采样阶段任何一步抛错（WMI 抖动、`Remove-Item` 被杀软占用、数组为空触发算术异常）都会让
+  chrome 进程留在后台；反复运行即进程越积越多，机器表现像"卡死"，且后续测量被前面的孤儿污染。
+- 修复：把启动—采样—清理包进 `try { … } finally { … }`，finally 内用 `-ErrorAction SilentlyContinue`
+  保证清理自身不再抛错。
+
+### D55 测试工具做机器级 Stop-Process（High，会杀掉用户自己的浏览器会话）
+- 位置：`benchmark/tools/leak_probe.py`、`benchmark/tools/gpu_probe.py`、`.bugreview/ab_flags.py`
+  的 `kill_chrome()` / `Get-Process chrome | Stop-Process -Force`。
+- 事实：这三处在采样结束后**无条件终止整机所有 chrome 进程**。用户一边跑基准一边浏览网页时，
+  会话和未保存的标签会被静默丢弃（本次 A/B 跑了约 90 分钟，期间就是这种状态）。
+- 根因：把"清理我自己起的实例"实现成了"清理所有同名进程"。
+- 修复：统一改为按临时 profile 前缀筛 PID（`OUR_PROFILE_PREFIXES`），只杀自己启动的实例；
+  用户默认 profile 位于 `%LOCALAPPDATA%` 而非 `%TEMP%`，因此该筛选不会误伤。
+  `ab_flags.kill_matching()` 成为共享实现，`propagated_sets()` 的内联强杀一并替换。
+
+### D56 WMI / PowerShell 调用普遍没有 timeout（Medium，无声挂死）
+- 位置：`benchmark/tools/gpu_probe.py:ps()`、`benchmark/tools/leak_probe.py:ps()`、
+  `.bugreview/flag_runtime_state.py:ps()`、`.bugreview/ab_flags.py:ps()/kill_chrome()`、
+  `.bugreview/flag_stability.py`、`frozen_flags_check.py`、`api_drift.py`、`name_archaeology.py`、
+  `candidate_applicability.py`、`d47_probe.py`（git grep 全树检索），`win_scripts/deploy_mcloud.py`。
+- 影响：`wmiprvse` 或 git 索引锁一旦卡住，整条流水线停在这一步且不报错（本轮已实际踩到过类似的
+  长挂起，见 D54 的同类现象）。属于"进程卡死"类风险，不是崩溃类。
+- 修复：所有 `subprocess.run` 显式 timeout（PowerShell 180 s、git grep 600–900 s、部署步骤 900 s），
+  并在 `ab_flags.kill_chrome()` 里把超时降级为"跳过清理并打印警告"，绝不做机器级强杀兜底。
+
+### D57 加载器不剥 UTF-8 BOM，首行静默丢失（Low–Medium，静默失效族）
+- 位置：`win_scripts/inject_flags_loader.py` LOADER 解析循环。
+- 事实：解析要求行以 `--` 开头；带 BOM 时第一行变成 `` 开头 → 该行被整条跳过。
+  PowerShell 5.1 的 `Set-Content -Encoding UTF8` 与部分编辑器会写 BOM，而本项目的 `.ps1`
+  规范恰恰强调 BOM，风险来源真实存在。当前 `mcloud_flags.txt` 无 BOM（实测首字节为 `# =`），
+  所以尚未发作，但这是一颗"改一次文件就静默掉一条 flag"的地雷（D48 同族）。
+- 修复：读取后按字节比较剥去前 3 字节（`0xEF 0xBB 0xBF`），不使用转义字面量——
+  本次编辑过程中就因把 `\xEF` 经 Python 字符串写成真实字节而把源文件写坏过一次，
+  字节比较形式对编码事故免疫。
+- 验证：`.bugreview/loader_edge_test3.py` 的 T1 用例（BOM + 首行即 flag）在旧二进制上必失配，
+  新二进制必须命中，见"证据"。
+
+### D58 加载器在每个子进程重复读盘解析，并按各自命令行重算预算（Low，效率 + 一致性）
+- 事实：调用点是 `ChromeMainDelegate::BasicStartupComplete()`，而该方法由
+  `ContentMainRunnerImpl::Initialize()` 在**所有进程类型**里调用（`content/app/content_main_runner_impl.cc:964`）。
+  于是 browser、renderer、GPU、utility、crashpad 每个进程启动都读一次文件、做一次 split、再走一遍预算判定。
+- 影响分级说明：读的是 7.9 KB 文件，单次成本很小；**真正的风险是一致性**——子进程的
+  `--enable-features` 值已经是浏览器解析后的完整列表，加载器又在其后追加一遍内置列表，
+  于是子进程的预算判定基线与浏览器不同；在接近上限的语料下，子进程可能丢掉浏览器保留的条目
+  （FeatureList 在浏览器与子进程之间不一致正是 Chromium 用 DCHECK 明令防备的情况）。
+- 修复：`if (command_line->HasSwitch(switches::kProcessType)) return;`——子进程已经通过
+  命令行继承 + field-trial 共享内存拿到最终状态，无需重复读盘。
+- 诚实声明：这一项**不主张性能收益**（每进程一次小文件读，落在 §5.3 的噪声带之下，测不出来）；
+  做的是"去掉无谓工作与跨进程不一致面"，属稳定前提下的正确性收敛。
+
+### D59 flags 文件行内注释会让整条静默失效（Medium，静默失效族）
+- 事实：加载器只把"整行以 `#` 开头"视为注释；`--enable-features=X # 备注` 会把 `#` 及其后文本
+  并进 feature 名，Chromium 侧不报错也不生效。
+- 决策（全局最优而非局部最优）：**不改运行期解析**去支持行内注释。加载器的语义应当与 Chromium
+  自身对 `--enable-features` 的解析一致，多一层 shell 式注释只会让"文件里写的"与"内核看到的"更难看清。
+  改为在作者侧静态拦住：`flag_stability.py` 新增 **F 断言**，活动行含 `#` 即 FAIL。
+- 验证（Red→Green）：临时给 `TransientKeepAlivePolicy` 加 ` # 行内注释实验` → 稳定性门禁由
+  PASS 变 FAIL（A/C/F 三条断言同时命中），恢复后回到 PASS。
+
+### D60 loader_edge_test2.py 把 M151 树路径写死（Medium，测错对象 + 改写旧树）
+- 事实：`OUT_DIR` 硬编码 `chromium-src\src\out\mcloud`。在双树并存（M151 + M155）的现状下，
+  直接运行会 (a) 测到旧二进制上，结论与当前内核无关；(b) 把旧树 `out/mcloud/mcloud_flags.txt` 改写掉。
+- 修复：路径改由环境变量 `LOADER_TEST_OUT` 决定（默认仍为旧值以保持既有可复现行为，但必须显式选择目标树）。
+- 一般形式：任何"对着 out 目录写文件再启动浏览器"的测试都必须显式绑定被测树。
+
+### D61 win_scripts/clean.py 里残留 `try_run(shell=True)` 死代码（Low）
+- 事实：`try_run()` 在本文件无任何调用点，却使用 `shell=True`；一旦将来被人复用，
+  就是把拼接字符串喂给 shell 的老问题（本仓库对 `del /S /Q` 一类命令已有严格约束）。
+- 修复：删除该函数及其 `import subprocess`，行为不变（`python -m py_compile` + 干跑校验）。
+
+### D62 加载器注入器只在"正文不一致"时才校验调用点（High，静默 no-op）
+- 事实：旧逻辑 `if s[i:j] == want: print("already up to date"); sys.exit(0)` 在正文一致时直接返回，
+  调用点检查写在它后面。于是"块还在、但 `LoadMcloudPerformanceFlags();` 这行被上游改写或手工删掉"
+  这种情况会被完全放过：加载器变成存在但永不执行的死代码，63 行运行时优化整体静默丢失，
+  而 deploy 输出显示"already up to date"。与 D47 同族（编译打包全绿、行为静默缺失）。
+- 修复：调用点校验前置，任何分支都先证明调用存在；同时补 `i >= j` 的顺序断言
+  （标记错位时继续替换会把中间内容复制成重复、直接写坏源文件）。
+- 验证（Red→Green）：正例——M155 树输出 `loader already up to date (content match, call site verified)`；
+  负例——把调用行从副本里删掉后运行，退出码 1 并给出明确错误文本。
+
+### D63 Polly / BOLT 接线语义错误（Medium，潜伏；当前 use_polly/use_bolt=false 故无实际影响）
+- 事实一：`config("polly")` 把 `-mllvm:-polly*` 放进 **ldflags**。Polly 是编译期 pass
+  （SCoP 检测 + 多面体变换），只有 **cflags** 才能让它作用在逐 TU 编译上；放 ldflags 时只有
+  link-time codegen 看得见 → 即便把 `use_polly` 打开也基本空转，属于"看起来开了其实没开"（D50 同族）。
+- 事实二：polly config 里还写了 `ldflags = common_optimize_on_ldflags`，与 Polly 无关，
+  却在开启时覆盖链接 flags 的合并语义。
+- 事实三：`emit-relocs` 为 BOLT 后链接服务，而 BOLT 官方只支持 ELF/Mach-O；Windows COFF 路线未证实。
+  旧写法在 `is_win` 分支给 lld 发 `-mllvm:--emit-relocs`，一旦有人打开 `use_bolt` 就是链接期报错，
+  而不是给出"不支持"的明确信号。
+- 修复：Polly 改走 `cflags`（Windows 用 `-mllvm:-…`，其他平台用 `-mllvm -…`）；删除无关的
+  `common_optimize_on_ldflags`；`emit-relocs` 加 `!is_win` 条件。
+- 说明为什么现在不动 args.gn：`use_polly`/`use_bolt` 仍必须为 false（前置依赖未就绪，见规范 2.6/10.1），
+  本轮修的是"将来开启时的正确性"，不是开启它。
+
+### D64 append_polly_configs.py 没有升级路径（Medium，自称已生效实则不改）
+- 事实：脚本一旦看到 `config("polly")` 存在就只补 import 然后 `exit(0)`，正文永远停留在第一次注入的版本。
+  结果是"仓库里的定义已经改了，树里还是旧的"，而且输出写着 `already present, nothing to do`——
+  与 D47/D50 同族的静默不一致。加载器注入器早已改成正文比对式升级器，这里补齐同一约定。
+- 修复：定位 `BEGIN → polly config 收尾 }` 整块做正文比对，不一致就整体替换；
+  `ensure_import()` 保证只有一处 import。
+- 验证（Red→Green）：对 BUILD.gn 副本运行两次 → 第一次 `block replaced in place`、
+  第二次 `already up to date (content match)`；副本中 `compiler_opt.gni` import 计数为 1、
+  `common_optimize_on_ldflags` 残留已消失。
+
+### D65 d49_experiment.py 的读取线程闭包捕获循环变量（Medium，实验证据本身不可信）
+- 事实：`_reader()` 定义在 `for label, jsflag in CASES:` 内部，捕获外层 `p` / `chunks`；
+  上一轮的 daemon 线程可能在 `p` 重新绑定之后才执行 `os.read(p.stderr…)`，
+  于是采到**另一个用例**的 stderr（ruff B023 命中，且此处经核查为真阳性而非误报）。
+- 影响：D49 的结论依赖这份 stderr 采集；证据链必须自洽。
+- 修复：`def _reader(p=p, chunks=chunks):` 显式绑定当轮对象（Python 惯用写法）。
+
+### 3.x 全局效率评审（"稳定前提下最优效率"，而非局部最优）
+
+- **AVX2+FMA3 基线附带 `-mf16c -mlzcnt -mbmi -mbmi2`**：看似超出 AGENTS.md 声明的基线，实际不是风险——
+  商用 x86 里支持 AVX2 的处理器（Haswell 起、AMD Excavator 起）全部带 BMI1/BMI2/LZCNT/F16C，
+  不存在"有 AVX2 而无 BMI2"的在产机型，所以不会因这条产生 SIGILL。记录该推理，避免以后被当作隐患反复审。
+- **deploy 第 8 步与 `copy_essentials.py` 功能重复**：两处都把 `mcloud_flags.txt` 放进 `out/mcloud`，
+  所以第 8 步永远打印 `already in sync`。保留（无害）但已在此记录，防止有人把它当"同步失败"信号误读；
+  若日后精简，应删第 8 步而不是删 copy_essentials 的那一份（后者在单步执行路径上也必须成立）。
+- **`CR_DIR` 默认指向 M151 树**：双树并存时这是最容易踩的坑（本轮实际踩到一次，因步骤幂等未致损）。
+  已在 AGENTS.md 立为硬性提示。
+- **验证脚本的算法成本**：`survival_check.py` 走"一次全树扫描建立声明全集 + 集合查询"，
+  而 `flag_stability.py`/`frozen_flags_check.py` 是"每个条目一次 `git grep` 全树"（53 条 × 3 个版本 = 159 次
+  全树检索）。单次运行约几分钟，作为本地门禁可接受，但**不能进 CI**（runner 上既无检出也无这个时间预算）。
+  全局最优的判断是：把 `survival_check` 的全集缓存复用到 `flag_stability` 的 C 断言里（它已经在读
+  `.bugreview/stab_151.json` 这类缓存），而不是给每个条目继续发 grep；这一步排在下轮工具优化，
+  不在本轮，因为它只影响验证速度、不影响被验证的产物。
+- **加载器的时间/空间复杂度**：单次读 ≤1 MiB、一次 split、O(条目数) 累积成两个字符串后各合并一次
+  （v2 就消除了 v1 的 O(n²) `AppendSwitchASCII`）。预算用 `size_t` 减法比较，均在"已用 ≤ 预算"不变量下，
+  不存在无符号下溢。v6 之后子进程不再走这条路（D58）。
+- **`win_scripts/setup.py` 的定位**：ruff 剩下的 34 条告警绝大多数来自这个"禁止运行"的遗留全量覆盖脚本
+  （F541 之类）。给它修 lint 是局部最优、全局负收益——正确处置是删除或加 refusal guard（同 ADR-003
+  对 Linux legacy 面的处理方式），已列入待办而不是本轮顺手改。
+
+## 第3周期缺陷登记（D52–D67，详版与全部证据见 `docs/tasks/bug-review-cycle3-report.md`）
+
+一句话索引（每条的报告里有 file:line、根因、影响、修复与 Red→Green 证据）：
+
+| # | 严重 | 一句话 | 状态 |
+|---|---|---|---|
+| D52 | High | `bench_memory.ps1` / `leak_probe.py` 按进程名汇总整机 chrome，K2 与被测实例无因果关系 | ✅ 实例级 PID 筛选（实测 K2 由 2586.8/58 → 2512.85/57） |
+| D53 | Medium | leak_probe 写死 CDP 端口 9333，可能驱动别的实例却量我们的内存 | ✅ 每轮 `bind(0)` 取空闲端口 |
+| D54 | Medium | bench_*.ps1 的清理不在 finally，异常路径留下孤儿 chrome + 临时目录 | ✅ try/finally |
+| D55 | High | 测试工具 `Get-Process chrome \| Stop-Process` 会杀掉用户自己的浏览器会话 | ✅ 按临时 profile 指纹只杀本实例（三处） |
+| D56 | Medium | WMI/PowerShell/git grep 普遍无 timeout，一处卡住整条链无声停住 | ✅ 统一补 180/600/900 s |
+| D57 | Low–Med | 加载器不剥 UTF-8 BOM → 首行整条被丢（PS 5.1 写文件默认带 BOM） | ✅ 字节比较剥离；T1 用例 v5 FAIL / v6 PASS |
+| D58 | Low | 加载器在每个子进程重复读盘解析并按各自命令行重算预算 | ✅ `kProcessType` 限定；T7 证明子进程仍继承 |
+| D59 | Medium | flags 活动行尾写 ` # 备注` 会让该条整条静默失效 | ✅ 新增 F 断言静态拦住（不改运行期语义） |
+| D60 | Medium | `loader_edge_test2.py` 硬编码 M151 树：测旧二进制并改写旧树 flags | ✅ 改 `LOADER_TEST_OUT` |
+| D61 | Low | `clean.py` 残留 `try_run(shell=True)` 死代码 | ✅ 删除 |
+| D62 | High | 注入器只在正文不一致时才看调用点 → 调用行丢失时报 "already up to date" 而加载器永不运行 | ✅ 调用点校验前置 + 标记顺序断言（负例 exit 1） |
+| D63 | Medium(潜伏) | Polly 写进 ldflags（编译期 pass 基本空转）；Windows 分支给 lld 发 BOLT 不支持的参数 | ✅ 改 cflags / `!is_win` |
+| D64 | Medium | `append_polly_configs.py` 见 `config("polly")` 就退出，正文永远停在首版 | ✅ 正文比对式升级器 |
+| D65 | Medium | `d49_experiment.py` 读取线程闭包捕获循环变量（B023 真阳性），实验证据不可信 | ✅ 默认参数显式绑定 |
+| D66 | Medium | 本轮修复自身引入 3 个次生缺陷（短名匹配 / 清理后才取值 / PS 数字+'|' 拼接抛异常被吞） | ✅ 全部修复，并把"0 进程"改成硬失败 |
+| D67 | Medium | `apply_avx2_baseline.py` / `apply_polly_wiring.py` 用"标志串存在"判已应用，改正文不生效（D64 同族） | ✅ 都改为正文比对升级器（副本三态验证） |
+
+流程性缺口（不是某一行代码的错）：**本轮之前仓库没有任何 Python 静态检查在跑**。
+现已引入 `ruff`（F/E9/B/SIM）+ `pyflakes`，并把 ruff 的真阳性（B023/B905/F841）逐条判真伪后处置。
+
 ## 修复状态汇总（2026-10-09 第2周期更新）
+
+
 | 线 | 缺陷 | 修复 | 验证 |
 |----|------|------|------|
 | pak_src | D1-D24 | ✅ 代码已改 | ✅ ASan 语料 8 组优雅报错 + v4/v5 往返字节一致（failures=0） |
@@ -509,6 +702,15 @@ detect_leaks 不支持），内存泄漏结论以逐行分配/释放配对审查
 - [ ] D49：V8 连字符/下划线口径做一次运行时歧义实验后更正文档
 - [x] D51：`mcloud_flags.txt` 第 24 行 InitialWebUI params 改写为 `param/value` 合法语法（净行为不变，
       已用 `flag_runtime_state.py` 改前后回显逐项一致证明），E 断言加奇数 token 校验并做负向对照
+- [x] 第3周期 D52–D67 全部修复：测试工具改实例级指纹统计与清理（取不到进程即判 FAIL）、
+      外部调用补 timeout、bench 清理进 finally、注入器一律正文比对升级器（含调用点校验）、
+      加载器 v6（BOM 剥离 + 浏览器进程限定）、Polly 改 cflags。
+      证据：`loader_edge_test2` 11/11、`loader_edge_test3` 7/7（M155/v6），
+      T1 在 M151(v5) 上为 Red；`flag_stability` E/F 断言各有负向对照
+- [ ] 第3周期遗留：`gn gen --check` 后出现整树重编（51,296 步）的确切成因待查；
+      以后只改 GN 前先用 `autoninja -n` 看计划步数再决定是否 gen（owner：项目方）
+- [ ] 第3周期遗留：工具侧 SIM115（`open()` 未用 with，79 处）统一收口；
+      `win_scripts/setup.py` 删除或加 refusal guard（其 lint 噪声随之消失）
 - [x] D1-D19 修复（pak_src/，2026-10-08）
 - [x] pak 修复后语料回归：8 组畸形输入优雅报错 + v4/v5 真实往返字节一致（ASan，failures=0）
 - [x] flags 加载器合并顺序缺陷 D21/D22/D23：注入器 v2 + 树内升级（重编译验证进行中）

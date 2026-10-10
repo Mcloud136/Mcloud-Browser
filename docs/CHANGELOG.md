@@ -28,7 +28,35 @@
   钩子按字面调用 `python3` 会命中 WindowsApps 占位程序 → 在真实 Python 目录内 `mklink /H python3.exe python.exe`；
   缺 `v8/tools/builtins-pgo/profiles/x64-rl.profile` 会让 `snapshot_blob.bin` 直接失败 → `download_profiles.py download`
 
+### 第3周期全面 bug-review（2026-10-10 晚，D52–D67）
+- 范围：运行时加载器与其注入器、`win_scripts/*.py`、`benchmark/*.ps1` 与 `benchmark/tools/*.py`、
+  新入库的 `.bugreview` 验证脚本、以及 `git diff --stat` 实测的 6 文件 / 229 行编译面。
+  详版报告：`docs/tasks/bug-review-cycle3-report.md`（含 5 轮深度 review 与全局效率评审）
+- **测量有效性（High）**：`bench_memory.ps1` / `leak_probe.py` 原先按**进程名**汇总整机 chrome，
+  K2 与被测实例无因果关系；测试工具还做机器级 `Stop-Process`，会杀掉用户自己的浏览器会话。
+  现统一按本次 `--user-data-dir` 叶子名筛 PID、只清理本实例、采不到进程即判 FAIL。
+  同构建同时刻对照：2586.8 MB / 58 进程（整机口径）→ **2512.85 MB / 57 进程**（实例口径）
+- **静默失效族收口**：D62 注入器只在正文不一致时才看调用点（调用行丢失会报 already up to date 而加载器永不运行，
+  已改为无条件校验 + 负例 exit 1）；D64/D67 polly 接线与 AVX2 基线注入器从"标志串存在即完成"
+  改为正文比对式升级器；D57 加载器不剥 UTF-8 BOM（首行整条被丢）；D59 flags 行尾 ` # 注释` 会让该条失效
+  （新增 `flag_stability.py` 的 F 断言静态拦住，不改运行期语义）
+- **卡死风险**：12+ 处 WMI/PowerShell/git grep 调用无 timeout → 统一补 180/600/900 s；
+  bench_*.ps1 的清理移入 try/finally（异常路径不再留孤儿 chrome 与临时目录）；
+  leak_probe 不再写死 CDP 端口 9333（每轮取空闲端口，避免驱动到别人的实例）
+- **D63（潜伏）**：Polly 是编译期 pass 却被写进 `ldflags`（打开也基本空转）、Windows 分支给 lld 发
+  BOLT 不支持的 `--emit-relocs` → 改 `cflags` 并加 `!is_win`；`use_polly/use_bolt` 仍保持 false
+- 新增 `benchmark/tools/`… 之外，加载器边界测试扩充为 `loader_edge_test2`（11 例）+
+  `loader_edge_test3`（7 例，含 BOM/空文件/缺文件/垃圾行/双写/行内注释/子进程限定），
+  并在 M151(v5) 上做 Red 对照：**T1 BOM 用例 v5 失败、v6 通过**，证明用例有鉴别力
+- 本轮自身引入又被回归测试抓出的 3 个次生缺陷记为 D66（含 PowerShell
+  `double + '|'` 抛类型转换异常被宽 except 吞成 0 MB 这一条）
+- 流程缺口修复：此前**仓库没有任何 Python 静态检查**，现引入 ruff + pyflakes 并逐条判真伪处置真阳性
+- 产物：加载器升到 v6 需重编 `chrome.dll`；`gn gen --check` 后出现整树重编计划（51,296 步，
+  确切成因待查，已列待办），为保持"仓库正文 == 二进制源码"本轮接受该重编
+
 ### Tier A 候选 A/B（升级后同日完成，结论：全部不采纳）
+
+
 - 方法：同一 M155 二进制，只改 `out/mcloud/mcloud_flags.txt`，基线 + 10 臂逐项测 K1/K2/泄漏漂移/GPU；
   判定阈值在看数据前登记（`docs/tasks/m155-perf-features.md` §5.1），结论由 `.bugreview/ab_verdict.py` 机械产出
 - **每一项都先过运行时生效校验**（子进程命令行回显，依据 `field_trial.cc:690` →

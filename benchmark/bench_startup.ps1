@@ -33,28 +33,36 @@ for ($i = 1; $i -le $Runs; $i++) {
     $userDataDir = Join-Path $env:TEMP "mcloud_bench_k1_$PID`_$i"
     if (Test-Path $userDataDir) { Remove-Item -Recurse -Force $userDataDir }
 
-    $sw = [System.Diagnostics.Stopwatch]::StartNew()
-    $proc = Start-Process -FilePath $ChromeExe `
-        -ArgumentList "--user-data-dir=$userDataDir", "--no-first-run", "--no-default-browser-check", "about:blank" `
-        -PassThru
+    $proc = $null
+    try {
+        $sw = [System.Diagnostics.Stopwatch]::StartNew()
+        $proc = Start-Process -FilePath $ChromeExe `
+            -ArgumentList "--user-data-dir=$userDataDir", "--no-first-run", "--no-default-browser-check", "about:blank" `
+            -PassThru
 
-    # 等待主窗口创建与 UI 初始化（最长 60 秒超时保护）
-    $ok = $proc.WaitForInputIdle(60000)
-    $sw.Stop()
+        # 等待主窗口创建与 UI 初始化（最长 60 秒超时保护）
+        $ok = $proc.WaitForInputIdle(60000)
+        $sw.Stop()
 
-    if ($ok) {
-        $ms = $sw.ElapsedMilliseconds
-        $results += $ms
-        Write-Host ("[{0}/{1}] 冷启动: {2} ms" -f $i, $Runs, $ms)
-    } else {
-        Write-Warning ("[{0}/{1}] 超时，丢弃本次结果" -f $i, $Runs)
+        if ($ok) {
+            $ms = $sw.ElapsedMilliseconds
+            $results += $ms
+            Write-Host ("[{0}/{1}] 冷启动: {2} ms" -f $i, $Runs, $ms)
+        } else {
+            Write-Warning ("[{0}/{1}] 超时，丢弃本次结果" -f $i, $Runs)
+        }
+    } finally {
+        # $ErrorActionPreference='Stop' 下任何一步抛错都必须走到这里，
+        # 否则留下孤儿 chrome 与被占用的临时目录，后续轮次被污染（缺陷 D54）。
+        if ($proc) {
+            try { $null = $proc.Kill(); $null = $proc.WaitForExit(10000) } catch {}
+            Start-Sleep -Seconds 2
+        }
+        if (Test-Path $userDataDir) {
+            Remove-Item -Recurse -Force $userDataDir -ErrorAction SilentlyContinue
+        }
+        Start-Sleep -Seconds 3   # 让系统回到冷态
     }
-
-    # 清理进程与临时目录
-    try { $proc.Kill(); $proc.WaitForExit(10000) } catch {}
-    Start-Sleep -Seconds 2
-    if (Test-Path $userDataDir) { Remove-Item -Recurse -Force $userDataDir }
-    Start-Sleep -Seconds 3   # 让系统回到冷态
 }
 
 if ($results.Count -eq 0) {

@@ -106,7 +106,7 @@ def feature_names(text):
 def declared_default(name):
     """在 155 树声明位查默认值；查不到返回 None（= 该名字不存在，必须失败）。"""
     p = subprocess.run([GIT, "grep", "-n", "-A2", "-w", "k" + name, "--", "*.cc", "*.h"],
-                       cwd=SRC155, capture_output=True, text=True, errors="replace")
+                       cwd=SRC155, capture_output=True, text=True, errors="replace", timeout=900)
     body = (p.stdout or "") + (p.stderr or "")
     if "BASE_FEATURE(k%s," % name not in body and "BASE_FEATURE(k%s " % name not in body:
         return None
@@ -159,11 +159,35 @@ def run_ps(script, args, timeout=1200):
     return (p.stdout or b"").decode("utf-8", "replace") + (p.stderr or b"").decode("utf-8", "replace")
 
 
+# 本流水线在 %TEMP% 下创建的 profile 前缀。只允许终止命令行里带这些前缀的 chrome 实例。
+# 缺陷 D55：旧实现 `Get-Process chrome | Stop-Process -Force` 会连带杀掉用户自己开着的浏览器
+# （会话与未保存标签一起丢）。用户默认 profile 在 %LOCALAPPDATA% 而不在 %TEMP%，
+# 因此按临时目录前缀筛选既能收掉本流水线的孤儿进程，又不会误伤。
+OUR_PROFILE_PREFIXES = ("mcloud_bench_k1_", "mcloud_bench_k2_", "leakprobe_", "abact_",
+                        "gpuprobe_", "mcloud_lp_", "frs_", "abverify_", "cmddbg_", "dbg_")
+
+
+def kill_matching(prefixes, settle=3):
+    cond = " -or ".join("$_.CommandLine -like '*%s*'" % x for x in prefixes)
+    try:
+        out = ps("Get-CimInstance Win32_Process -Filter \"Name='chrome.exe'\" | "
+                 "Where-Object { %s } | ForEach-Object { $_.ProcessId }" % cond)
+    except subprocess.TimeoutExpired:
+        print("   [warn] WMI 查询超时，跳过清理（不做机器级强杀）", flush=True)
+        return
+    pids = [x for x in out.split() if x.isdigit()]
+    if pids:
+        try:
+            ps("Get-Process -Id %s -ErrorAction SilentlyContinue | "
+               "Stop-Process -Force -ErrorAction SilentlyContinue" % ",".join(pids))
+        except subprocess.TimeoutExpired:
+            print("   [warn] 终止进程超时", flush=True)
+    if settle:
+        time.sleep(settle)
+
+
 def kill_chrome():
-    subprocess.run([PS, "-NoProfile", "-Command",
-                    "Get-Process chrome -ErrorAction SilentlyContinue | Stop-Process -Force"],
-                   capture_output=True, text=True)
-    time.sleep(3)
+    kill_matching(OUR_PROFILE_PREFIXES)
 
 
 def k1(runs):
@@ -232,9 +256,7 @@ def propagated_sets():
     time.sleep(14)
     lines = ps("Get-CimInstance Win32_Process -Filter \"Name='chrome.exe'\" | "
                "ForEach-Object { $_.CommandLine } | Out-String").splitlines()
-    subprocess.run([PS, "-NoProfile", "-Command",
-                    "Get-Process chrome -ErrorAction SilentlyContinue | Stop-Process -Force"],
-                   capture_output=True)
+    kill_matching([os.path.basename(prof)])
     shutil.rmtree(prof, ignore_errors=True)
     en, dis = set(), set()
     for l in lines:
@@ -246,9 +268,10 @@ def propagated_sets():
     return en, dis
 
 
-def ps(cmd):
+def ps(cmd, timeout=180):
+    # 缺陷 D56：WMI/powershell 调用必须有超时，否则 wmiprvse 卡住时整条流水线无声挂死。
     p = subprocess.run([PS, "-NoProfile", "-Command", cmd], capture_output=True,
-                       text=True, errors="replace")
+                       text=True, errors="replace", timeout=timeout)
     return p.stdout or ""
 
 

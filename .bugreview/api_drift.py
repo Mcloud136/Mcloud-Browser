@@ -92,7 +92,7 @@ MCLOUD_DECLARED = {"is_full_optimization_build", "use_polly", "use_bolt",
 
 def show(rev, path):
     p = subprocess.run(["git", "-C", SRC, "show", "%s:%s" % (rev, path)],
-                       capture_output=True, text=True, errors="replace")
+                       capture_output=True, text=True, errors="replace", timeout=900)
     return p.stdout if p.returncode == 0 else None
 
 

@@ -36,7 +36,8 @@ STEPS = [
 print("=== MCloud deploy: %s -> %s ===" % (os.environ['THOR_DIR'], cr_src))
 for name, _ in STEPS:
     print("\n>>> %s" % name)
-    r = subprocess.run([sys.executable, os.path.join(here, name)])
+    r = subprocess.run([sys.executable, os.path.join(here, name)],
+                           timeout=900)
     if r.returncode != 0:
         print("FAILED at %s (exit %d)" % (name, r.returncode))
         sys.exit(r.returncode)

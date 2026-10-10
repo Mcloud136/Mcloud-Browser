@@ -48,7 +48,7 @@ for label, jsflag in CASES:
         sys.exit(2)
     # 读取必须放线程里做：阻塞式 os.read 会让 RUN_S 超时形同虚设（首版就挂在这里）
     chunks = []
-    def _reader():
+    def _reader(p=p, chunks=chunks):  # 显式绑定当轮的句柄与缓冲（B023 真阳性）
         try:
             while True:
                 data = os.read(p.stderr.fileno(), 1 << 16)

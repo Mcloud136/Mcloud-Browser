@@ -7,6 +7,7 @@
   3) 浏览器进程命令行是否带着我们注入的 GPU 相关开关（--enable-gpu-rasterization 等）。
 """
 import json
+import os
 import subprocess
 import sys
 import tempfile
@@ -18,22 +19,29 @@ PS_PROCESSES = ("Get-CimInstance Win32_Process -Filter \"Name='chrome.exe'\" | "
 
 
 def ps(cmd):
+    # timeout 必需（缺陷 D56：powershell.exe 无 timeout，WMI 仓库服务卡住时探针永久挂起，
+    # 连带整条 A/B 流水线停在一步上且没有任何报错）。
     p = subprocess.run(["powershell.exe", "-NoProfile", "-Command", cmd],
-                       capture_output=True, text=True, errors="replace")
+                       capture_output=True, text=True, errors="replace",
+                       timeout=180)
     return p.stdout or ""
 
 
 def probe(exe, label):
     prof = tempfile.mkdtemp(prefix="gpuprobe_")
+    # 实例指纹用 profile 的**叶子名**，不用完整路径：Python 的 TEMP 可能是 8.3 短名形式，
+    # 而 chrome 命令行里是长名（或反之），整批子串匹配会落空——同 leak_probe 里刚被
+    # 回归测试抓到的那个坑（D52 修复过程中引入的次生缺陷）。
+    key = os.path.basename(prof.rstrip("/\\"))
     proc = subprocess.Popen([exe, "--user-data-dir=" + prof, "--no-first-run",
                              "--no-default-browser-check",
                              "about:blank"],
                             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     time.sleep(14)
-    lines = ps(PS_PROCESSES).splitlines()
+    lines = [l for l in ps(PS_PROCESSES).splitlines() if key in l]
     gpu = [l for l in lines if "--type=gpu-process" in l]
-    key = exe.lower()
-    main = [l for l in lines if key in l.lower() and "--type=" not in l and "Crashpad" not in l]
+    main = [l for l in lines if exe.lower() in l.lower()
+            and "--type=" not in l and "Crashpad" not in l]
 
     txt = (gpu[0] if gpu else "")
     interesting = {
@@ -42,15 +50,30 @@ def probe(exe, label):
         "ANGLE=D3D12": "d3d12" in txt.lower(),
         "Vulkan/SwiftShader 回退": ("swiftshader" in txt.lower() or "vulkan" in txt.lower()),
         "gpu-preferences 片段": txt[txt.find("--gpu-preferences"):][:120] if "--gpu-preferences" in txt else "-",
+        "本实例进程数": len(lines),
     }
-    btxt = main[0] if main else ""
-    interesting["浏览器进程含 --enable-gpu-rasterization"] = "--enable-gpu-rasterization" in btxt
-    interesting["浏览器进程含 enable-features 注入"] = "--enable-features=" in btxt
-    ps("Get-Process chrome -ErrorAction SilentlyContinue | Stop-Process -Force")
-    try:
-        proc.wait(timeout=30)
-    except Exception:                              # noqa: BLE001
-        proc.kill()
+    # 加载器是在**进程内**追加开关的，所以浏览器自身的 OS 命令行里看不到注入结果；
+    # 能看到的是子进程命令行里的 override 回显（base/metrics/field_trial.cc:690）。
+    # 旧断言写成"浏览器进程含 …"，一旦匹配到机器上别的 chrome 进程就是假阳性（D52 同族）。
+    interesting["本实例存在 GPU 光栅化开关"] = any(
+        "--enable-gpu-rasterization" in l for l in lines)
+    interesting["子进程回显含 enable-features（注入生效证据）"] = any(
+        "--type=" in l and "--enable-features=" in l for l in lines)
+    # 缺陷 D55：旧实现 `Get-Process chrome | Stop-Process -Force` 会终止**整台机器**的
+    # chrome（包括用户自己开着的浏览器，会话与未保存标签一起丢）。
+    # 现只终止本次探测启动的实例：命令行里带着我们的临时 profile 的那批 PID。
+    idout = ps("Get-CimInstance Win32_Process -Filter \"Name='chrome.exe'\" | "
+               "Where-Object { $_.CommandLine -like '*%s*' } | "
+               "ForEach-Object { $_.ProcessId }" % key)
+    pids = [x for x in idout.split() if x.isdigit()]
+    if pids:
+        ps("Get-Process -Id %s -ErrorAction SilentlyContinue | "
+           "Stop-Process -Force -ErrorAction SilentlyContinue" % ",".join(pids))
+    if proc.poll() is None:
+        try:
+            proc.wait(timeout=30)
+        except Exception:                              # noqa: BLE001
+            proc.kill()
     shutil.rmtree(prof, ignore_errors=True)
     print("== %s (%s)" % (label, exe))
     for k, v in interesting.items():

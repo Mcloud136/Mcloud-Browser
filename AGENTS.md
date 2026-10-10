@@ -209,6 +209,16 @@ autoninja -C out/mcloud chrome mini_installer
   不含带 params（走 field trial 通道）的条目，"看不到"≠"没生效"。
 - **同名 feature 双写时禁用侧胜出**（`base/feature_list.cc:449-452`，disable 先注册 + emplace 首条生效）。
   要把某项从禁用改为启用，必须**删掉** `--disable-features=` 行，追加 enable 行是无效实验（A/B 曾因此差点误判）。
+- **基准与探针一律按"实例"而非"进程名"取数**（缺陷 D52/D55）。`Get-Process chrome` 会把用户自己开着的
+  浏览器一起算进 K2，`Get-Process chrome | Stop-Process` 会杀掉它的会话。现统一以本次启动的
+  `--user-data-dir` **叶子名**为指纹筛 PID（不要用完整路径：Python 的 TEMP 可能是 8.3 短名，命令行里是长名，
+  整批匹配会落空却照样打印 PASS）。取不到进程必须判 FAIL，不许返回 0。
+- **PowerShell 数字与字符串不能用 `+` 拼接**：`[math]::Round(...)+'|'+$n` 抛
+  "无法将值 '|' 转换为 System.Double"，而宽 `except` 会把它吞成"0 MB"（D66-③ 实测）。格式化一律用 `-f`。
+- **注入器一律"正文比对式升级器"**（缺陷 D62/D64/D67）：禁止用"某标志串是否存在"判定已应用——
+  那会让树内正文永远停在旧版，输出却自称 already up to date。加载器还必须在正文一致时**继续校验调用点**。
+- Python 静态检查已引入 `ruff`（`python -m ruff check --select F,E9,B,SIM win_scripts benchmark .bugreview`）；
+  仓库此前没有任何 Python linter 在跑。真阳性（B023/B905 等）逐条判真伪后再修。
 - **多棵源码树时 `deploy_mcloud.py` 必须显式设 `CR_DIR`**：其默认值是 `D:\wxmuma\chromium-src\src`（M151 树），
   在 155 树下不设变量就会把定制部署到旧树（2026-10-10 实际踩到；因全部步骤幂等未致损）。
 - CI：`.github/workflows/release.yml`（发布，push `v*` tag 触发）+ `.github/workflows/verify.yml`（源码验证，push/PR 触发）。

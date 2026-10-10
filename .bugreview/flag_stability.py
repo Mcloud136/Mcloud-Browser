@@ -66,7 +66,7 @@ def run_check(rev, json_out):
 
 def git_show_head(path):
     return subprocess.run(["git", "-C", REPO, "show", "HEAD:%s" % path],
-                          capture_output=True, text=True, errors="replace").stdout
+                          capture_output=True, text=True, errors="replace", timeout=600).stdout
 
 
 fails = []
@@ -141,7 +141,7 @@ def declared_params(rev, feat):
     out = subprocess.run(
         ["git", "-C", TREE, "grep", "-I", "-h", "-A6", "-E",
          r"BASE_FEATURE(_PARAM)?\(", rev, "--", "*.cc"],
-        capture_output=True, text=True, errors="replace").stdout
+        capture_output=True, text=True, errors="replace", timeout=600).stdout
     names = set()
     # git grep -A6 的续块以 "--" 行分隔，按此重组
     blocks, cur_blk = [], []
@@ -185,6 +185,14 @@ for feat, toks in param_entries:
 if not param_entries:
     print("E 无带参条目")
 
+# F 行内注释防护（D59）：加载器只把"整行以 # 开头"当注释；活动行末尾若写了 ` # 备注`，
+# 注释文本会被并进 feature 名而被 Chromium 忽略 —— 整条静默失效（与 D48 同族）。
+# 运行期解析刻意与 Chromium 保持一致（不多做注释语法），所以在这里静态拦住。
+inline_comment = [l.strip() for l in cur.splitlines()
+                  if l.strip().startswith("--") and "#" in l]
+if inline_comment:
+    fails.append("F 活动行含行内 # 注释（该条会被整条忽略）: %s" % inline_comment)
+print("F 行内注释检查：%s" % ("未发现" if not inline_comment else inline_comment))
 print("\n稳定性结论: %s" % ("PASS — 清理不改变当前行为，且除标记项外全部条目升级后仍生效"
                           if not fails else "FAIL"))
 for f in fails:

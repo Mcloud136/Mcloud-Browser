@@ -30,7 +30,7 @@ fails = []
 
 def git_show(rev, path=REL_GIT):
     return subprocess.run(["git", "-C", TREE, "show", "%s:%s" % (rev, path)],
-                          capture_output=True, text=True, errors="replace").stdout
+                          capture_output=True, text=True, errors="replace", timeout=900).stdout
 
 
 def fake_tree(name, content):

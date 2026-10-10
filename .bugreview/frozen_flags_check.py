@@ -32,7 +32,7 @@ GPU_ORIENTED = ["GpuShaderDiskCache", "IncreasedCmdBufferParseSlice",
 def decl_map(rev):
     out = subprocess.run(["git", "-C", SRC, "grep", "-I", "-h", "-A2", "-E", GIT_DECL,
                           rev, "--", "*.cc", "*.h", "*.mm"],
-                         capture_output=True, text=True, errors="replace").stdout
+                         capture_output=True, text=True, errors="replace", timeout=900).stdout
     m = {}
     for blk in re.split(r"(?m)^--$", out):
         joined = " ".join(ln.strip() for ln in blk.splitlines())
@@ -60,7 +60,7 @@ bad = []
 print("A) MUST-STAY-DISABLED (freeze mitigation, 4 items)")
 for n in MUST_STAY_DISABLED:
     row = [maps[r].get(n) if n in maps[r] else None for r in maps]
-    txt = "  ".join("%s=%s" % (r.split(".")[0], short(v)) for r, v in zip(maps, row))
+    txt = "  ".join("%s=%s" % (r.split(".")[0], short(v)) for r, v in zip(maps, row, strict=True))
     print("  %-36s %s" % (n, txt))
     if "ENABLED" in (row[1] or "") or "ENABLED" in (row[2] or ""):
         bad.append("%s 在 M155/156 已默认启用 → 需显式 --disable-features 才能维持定案" % n)

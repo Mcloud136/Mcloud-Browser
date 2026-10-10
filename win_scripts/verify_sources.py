@@ -94,8 +94,7 @@ def check_pak_syntax():
         checked += 1
         proc = subprocess.run(
             [gcc, "-fsyntax-only", "-I", str(PAK_SRC), str(c_file)],
-            capture_output=True, text=True,
-        )
+            capture_output=True, text=True, timeout=300)
         if proc.returncode != 0:
             failures.append((c_file.name, proc.stderr.strip().splitlines()[0] if proc.stderr.strip() else "unknown"))
     if failures:
