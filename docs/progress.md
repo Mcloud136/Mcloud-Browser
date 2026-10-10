@@ -235,6 +235,21 @@
   （`393456968d948137b362b1a720074ef5e69804856b886ecf7ead937a3abdf049`，123,466,752 B），
   公开下载校验 302→206、首字节 4D 5A、总长一致。
 
+### 4.9 M155 内核升级完成（2026-10-10）
+
+- 在独立第二棵树 `D:/wxmuma/chromium-src-155` 上完成 M151→M155 rebase：`deploy_mcloud.py` 7 步在全新树一次通过，
+  `gn gen --check` 35,747 targets 零告警，全量 58,416 步一次编译通过，重打包 `mini_installer` 127,541,248 B。
+- 定制面从 7 文件降到 **6 文件 / 206 行**（清理 D3D12VideoDecoder 的自相矛盾覆盖）。
+- 同机成对基准：K1 46→45 ms、K2 2590→2563.3 MB（-1.0%）、标签开合泄漏由 +3.7 MB/轮 变为 -2.4 MB/轮、
+  GPU 路径与 `--gpu-preferences` 与 151 逐字一致；A6 通过，`check_features(155)` 53/53，
+  `flag_stability [155,156]` PASS。
+- 新增验证工具：`benchmark/tools/leak_probe.py`（CDP 开合标签看驻留漂移）、
+  `benchmark/tools/gpu_probe.py`（窗口化验证 GPU 进程与 ANGLE 后端，headless 不可用作 GPU 判据）。
+- 新缺陷 **D50**：`SkiaGraphite` 三版均上游默认启用，冻结缓解此前从未真正禁用它 → 已显式 `--disable-features`，
+  并列入 155 上的同方法 A/B（与 GPU 效率有张力）。
+- 待办：Tier A 候选逐项 A/B、发布（push/tag/资产，需授权 + L3）、D49 用 d8 定论。
+  详见 `docs/dev-logs/M155-upgrade-report.md`。
+
 ## 5. 下次编译更新内核时的操作
 
 ### 5.1 编译命令

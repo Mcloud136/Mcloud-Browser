@@ -5,7 +5,7 @@
 
 ## 项目简介
 
-MCloud Browser 是基于 Chromium（当前 M151，151.0.7922.x，硬件基线 AVX2+FMA3）的高性能 Windows 浏览器分支，
+MCloud Browser 是基于 Chromium（当前 M155，155.0.8059.40，硬件基线 AVX2+FMA3）的高性能 Windows 浏览器分支，
 通过 AVX2 原生编译 + 运行时优化标志（`mcloud_flags.txt`，启动时内置加载；
 2026-10-10 (r3) 实测 56 条开关行 = 53 项 feature + 3 项普通开关；r2 时为 63 条 = 60 + 3，差额是 D48 清理掉的 7 条上游不存在的条目）+ 编译时优化栈提供极致流畅体验。
 本仓库**不是完整 Chromium 源码树**，而是存放覆盖文件（override files）、补丁、构建脚本和打包配置。
@@ -15,7 +15,7 @@ MCloud Browser 是基于 Chromium（当前 M151，151.0.7922.x，硬件基线 AV
 
 | 组件 | 说明 |
 |------|------|
-| Chromium M151 | 浏览器内核（tag 151.0.7922.x） |
+| Chromium M155 | 浏览器内核（tag 155.0.8059.40） |
 | GN + Ninja | Chromium 内置构建系统 |
 | Clang (LLVM) | Chromium 内置编译器 |
 | depot_tools | Google 构建工具链（仓库内 `depot_tools/` 固定修订版本） |
@@ -154,13 +154,18 @@ export INCLUDE="C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/VC/
 ### 完整构建流程
 
 ```bash
-# 0. 首次：拉取 Chromium M151 源码（已拉取可跳过）
+# 0. 首次：拉取 Chromium M155 源码（已拉取可跳过）
 fetch --nohooks chromium
-cd src && git checkout tags/151.0.7922.99
+cd src && git checkout tags/155.0.8059.40
 # ⚠ 禁止给 sync 添加 --force --reset --delete_unversioned_trees（实证会清除
 #   全部定制与 buildtools/win CIPD 二进制，见 M151 升级报告故障处置 2）
-gclient sync --shallow --jobs=16 --with_branch_heads --with_tags
+# ⚠ jobs 用 4：--jobs=16 实测会撞 googlesource HTTP 429 限流导致 sync 中断
+gclient sync --shallow --jobs=4 --with_branch_heads --with_tags
 gclient runhooks
+# ⚠ runhooks 会按字面调用 python3：若解析到 WindowsApps 占位程序会全线失败，
+#   需在真实 Python 目录内 mklink /H python3.exe python.exe 并置于 PATH 前
+# ⚠ 首轮编译前必须拉 V8 builtins PGO profile，否则报 x64-rl.profile missing：
+#   python v8/tools/builtins-pgo/download_profiles.py download --depot-tools <depot_tools>
 
 # 1. 定点部署（deploy_mcloud.py 编排全部注入步骤，幂等）+ 生成构建 + 编译 + 安装包
 cd $CR_DIR
@@ -215,4 +220,4 @@ autoninja -C out/mcloud chrome mini_installer
 - **文档位置**：`docs/architecture/`（架构）、`docs/dev-logs/phase{N}-dev-log.md`（开发日志）、`docs/decisions/ADR-{NNN}-{title}.md`（决策记录）、`docs/tasks/`（任务文档）。
 - **修改 build/ 目录前**：必须备份 `compiler_opt.gni` 等自定义文件。
 - **禁止**：不要用 `git checkout -- build/` 批量回退（会删除自定义文件）；修改 GN 参数后必须重新 `gn gen out/mcloud --check`。
-- **已知坑**：V8 flags（--js-flags 内）须用 M151 **下划线**命名格式（`--invocation_count_for_maglev=...` 等），连字符旧格式在 M151 静默失效（mcloud_flags.txt 55-57 行实证注释）；Polly/BOLT 需先接线再启用（见 `win_args_mcloud.gn` 注释；注意 BOLT 官方仅支持 ELF/Mach-O，Windows PE 路线待核实，见规范 10.1 与缺陷档案）。
+- **已知坑（口径已更正 2026-10-10）**：`--js-flags` 内的 V8 标志**统一写下划线形式**（`--invocation_count_for_maglev=...`）。旧断言「连字符写法在 M151 静默失效」与源码不符：`v8/src/flags/flags-impl.h:19` 的 `NormalizeChar` 把 `_` 归一为 `-` 并用于标志名比较，两种写法应等价；Chromium 侧对未知 js-flags 静默忽略，故该点无法用 stderr 反证（缺陷 D49，定论需 `autoninja d8`）。沿用下划线写法是安全的默认，不要再以「连字符会失效」为依据做判断；Polly/BOLT 需先接线再启用（见 `win_args_mcloud.gn` 注释；注意 BOLT 官方仅支持 ELF/Mach-O，Windows PE 路线待核实，见规范 10.1 与缺陷档案）。

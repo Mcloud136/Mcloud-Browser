@@ -436,6 +436,17 @@ detect_leaks 不支持），内存泄漏结论以逐行分配/释放配对审查
 
 | 发布链路 | D47（chrome.release 定制无脚本产生） | ✅ 注入器 + 接线 + 探针五例全过，已随 r3 发布 | 2026-10-10 `.bugreview/d47_probe.py` |
 | 性能清单 | D48（7 条静默失效 + 1 条升级期失效） | ✅ 已清理并发布（改名条目转注释、校验脚本 PASS）；CI 接入待办 | `.bugreview/flag_stability.py`、`check_features.py` 双树 |
+### D50 SkiaGraphite 的「禁用」从未生效（Medium，定案与实现不一致）
+- 事实：窗口拖拽冻结缓解定案要求 4 项永久禁用，但其中 `SkiaGraphite` 在 **151/155/156 上游默认均为
+  `FEATURE_ENABLED_BY_DEFAULT`**，而 `mcloud_flags.txt` 只是把 `--enable-features=SkiaGraphite` 注释掉 ——
+  不启用 ≠ 禁用。其余 3 项（`SkiaGraphitePrecompilation`、`ThrottleUnimportantFrameRate`、
+  `ReduceHardwareVideoDecoderBuffers`）上游默认确为 DISABLED，注释即等效禁用，无此问题。
+- 复核方法（可重复）：`.bugreview/frozen_flags_check.py`（跨 151/155/156 比对声明处默认值）。
+- 处置：2026-10-10 升级时改为显式 `--disable-features=SkiaGraphite`，并同步进 `flag_stability.py` 的
+  「已登记例外」（A 断言只禁止未登记的开启项）。因该项与 GPU 效率存在张力，已列入 155 上的同方法 A/B
+  （拖拽场景复现 + `benchmark/tools/gpu_probe.py`）；未测前不撤销。
+- 一般形式：**凡「永久禁用」清单，都必须核对上游默认值**；默认启用的项只能靠显式 disable 表达。
+
 ## 修复状态汇总（2026-10-09 第2周期更新）
 | 线 | 缺陷 | 修复 | 验证 |
 |----|------|------|------|

@@ -29,8 +29,7 @@
 --enable-gpu-rasterization
 
 # --- Rendering Optimization ---
-# [升级期处置] M151 上真实存在（默认禁用，本行启用）；155 起该 feature 标识符已从源码彻底消失（kFlingSchedulingImprovements 全树 0 命中，无同名后继），升到 155 时必须删除本行并重新评估滚动/合成调度类替代项（见 kResampleScrollEventsForFling、kApplyScrollRailingInRenderer）。
---enable-features=FlingSchedulingImprovements
+# [M155 已移除，2026-10-10 升级时删除] 上游在 M152-M155 之间彻底删掉该 feature（155 全树 0 命中，无同名后继）。滚动/合成调度的接替候选见 docs/tasks/m155-perf-features.md Tier A：ResampleScrollEventsForFling、ApplyScrollRailingInRenderer（需在 155 上逐项 A/B 后再决定是否启用）。
 # [D48 改名候选，r3 不直接启用] 本行原写作 BestEffortTaskInhibitingPolicy，上游并无该 feature（真名 EnableBestEffortTaskInhibitingPolicy，components/performance_manager/public/features.h，151/155 均默认禁用）。
 # 启用前需按规范第 7 章跑 K1/K2/K7 基准；确认收益后再取消下行注释。
 #--enable-features=EnableBestEffortTaskInhibitingPolicy
@@ -66,7 +65,7 @@
 # --- Speculation Rules ---
 
 # --- V8 JavaScript Optimization ---
-# V8 flag 命名使用下划线（M151 确认）；阈值低于默认值以更快进入 JIT
+# V8 flag 命名使用下划线（M151 确认；V8 源码里 _ 与 - 归一化等价，见缺陷 D49）；阈值低于默认值以更快进入 JIT
 # （默认：maglev=400、turbofan=3000；旧连字符写法在 M151 不生效）
 --js-flags="--invocation_count_for_maglev=200 --invocation_count_for_turbofan=1500 --osr-from-maglev --sparkplug-plus"
 
@@ -99,10 +98,11 @@
 # Intel 核显（UHD 770/Raptor Lake，驱动至 32.0.101.7088 仍有此缺陷）的 D3D12 视频
 # 解码器启动头几秒输出绿屏/花屏；独显（GTX 1050 Ti）D3D12 正常（T3 对照实验实证）。
 # 禁用后回退 D3D11VideoDecoder，核显场景实测绿屏消失，硬解能力不受影响。
-# 事实更正：上游 M151 基线该 feature 默认为 DISABLED_BY_DEFAULT（见源码树
-# git diff 审计），本仓库 src/media/base/media_switches.cc 覆盖将其启用，
-# 此处运行时再禁用 —— 二者互相抵消。下次升级清理：移除覆盖文件中该定制
-# 后可删除本行禁用（进度见 docs/progress.md 4.5 与缺陷档案）。
+# 事实更正：上游该 feature 基线一直是 DISABLED_BY_DEFAULT，本仓库过去在
+# media/base/media_switches.cc 把它翻成 ENABLED，再由本行抵回去 —— 二者互相抵消。
+# 【155 升级期已清理 2026-10-10】apply_mcloud_source_defaults.py 不再翻转该默认
+# （改为只校验 + 自愈回退历史覆盖），定制面从 7 文件降到 6 文件；本行因此不再是
+# 「抵消」而是唯一且显式的禁用声明，予以保留（Intel 核显 D3D12 绿屏缺陷要求禁用）。
 --disable-features=D3D12VideoDecoder
 
 # --- GPU Optimization ---
@@ -112,7 +112,10 @@
 #--enable-features=SkiaGraphitePrecompilation
 --enable-features=ResourcePoolPreferExactSizeReuse
 --enable-features=HighFramerateRequestFromClient
-#--enable-features=SkiaGraphite
+# [155 升级期修正，2026-10-10] 实测 SkiaGraphite 在 151/155/156 均为上游默认启用，
+# 仅注释掉启用行并不等于禁用 —— 下面改为显式禁用，维持拖拽冻结缓解定案。
+# 该项与 GPU 效率存在张力，升级后须做一次同方法 A/B（拖拽复现 + chrome://gpu 渲染路径）。
+--disable-features=SkiaGraphite
 
 # --- Media Optimization ---
 --enable-features=PlatformHEVCDecoderSupport

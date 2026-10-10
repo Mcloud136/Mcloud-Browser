@@ -5,7 +5,7 @@
 <h1 align="center">MCloud Browser</h1>
 
 <p align="center">
-  基于 Chromium M151 的高性能浏览器，AVX2 原生编译，66 项运行时优化标志
+  基于 Chromium M155 的高性能浏览器，AVX2 原生编译，56 条运行时优化开关
 </p>
 
 <p align="center">
@@ -17,7 +17,7 @@
 
 ## 📖 简介
 
-MCloud Browser 是基于 [Chromium M151 (151.0.7922.99)](https://www.chromium.org/) 的高性能浏览器，通过 **AVX2 原生编译**、**-O3 + ThinLTO + PGO 三重编译器优化** 和 **66 项运行时优化标志**（见 [mcloud_flags.txt](mcloud_flags.txt)，浏览器启动时由内置加载器自动注入），为用户提供极致流畅的浏览体验。
+MCloud Browser 是基于 [Chromium M155 (155.0.8059.40)](https://www.chromium.org/) 的高性能浏览器，通过 **AVX2 原生编译**、**-O3 + ThinLTO + PGO 三重编译器优化** 和 **56 条运行时优化开关（53 项 feature + 3 项普通开关）**（见 [mcloud_flags.txt](mcloud_flags.txt)，浏览器启动时由内置加载器自动注入），为用户提供极致流畅的浏览体验。
 
 > 仅发布 **Windows x64** 平台（见 [ADR-003](docs/decisions/ADR-003-windows-only-release.md)）。
 
@@ -25,7 +25,7 @@ MCloud Browser 是基于 [Chromium M151 (151.0.7922.99)](https://www.chromium.or
 
 - **AVX2 + FMA3 原生编译** — 充分利用现代 CPU 的 SIMD 指令集（项目硬件基线，见技术规范 1.5）
 - **-O3 + ThinLTO + PGO 编译器优化** — 三重编译器优化已生效（Polly/BOLT 接线已修复，待前置工具链就绪后启用）
-- **66 项运行时优化标志** — 覆盖启动、V8 脚本加速、页面加载、内存、多线程、渲染、MSE 视频缓冲等全链路，全部经源码存活性校验与子进程注入验证
+- **56 条运行时优化开关（53 项 feature + 3 项普通开关）** — 覆盖启动、V8 脚本加速、页面加载、内存、多线程、渲染、MSE 视频缓冲等全链路，全部经源码存活性校验与子进程注入验证
 - **硬件视频解码** — HEVC/VP9/AV1/D3D12 硬件解码（D3D12 解码器默认启用）
 - **Bilibili & YouTube 优化** — MSE 缓冲优化（实测 B 站导航提速 5.6%）、硬件解码链路
 - **完整编解码器支持** — HEVC、AC3、Dolby Vision、DTS
@@ -39,7 +39,7 @@ MCloud Browser 是基于 [Chromium M151 (151.0.7922.99)](https://www.chromium.or
 
 ```powershell
 # 安装前验证完整性（可选）
-(Get-FileHash .\mcloud_151.0.7922.99_win64_mini_installer.exe -Algorithm SHA256).Hash
+(Get-FileHash .\mcloud_155.0.8059.40_win64_mini_installer.exe -Algorithm SHA256).Hash
 ```
 
 ### 系统要求
@@ -222,15 +222,15 @@ cd Mcloud-Browser
 git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git
 export PATH="$PWD/depot_tools:$PATH"
 
-# 3. 拉取 Chromium M151 源码（定向浅拉取目标 tag，避免全量枚举）
+# 3. 拉取 Chromium M155 源码（定向浅拉取目标 tag，避免全量枚举）
 mkdir -p ~/chromium && cd ~/chromium
 git init src && cd src
 git remote add origin https://chromium.googlesource.com/chromium/src.git
-git fetch --depth 1 origin tag 151.0.7922.99
-git checkout 151.0.7922.99
+git fetch --depth 1 origin tag 155.0.8059.40
+git checkout 155.0.8059.40
 cd ..
 # .gclient 放 chromium 根目录（勿放 src 内），然后同步依赖：
-gclient sync --nohooks --jobs 8 --revision src@151.0.7922.99
+gclient sync --nohooks --jobs 8 --revision src@155.0.8059.40
 gclient runhooks
 # ⚠ 禁用 --force --reset --delete_unversioned_trees（会清除定制与 CIPD 二进制）
 
@@ -242,7 +242,8 @@ python3 $THOR_DIR/win_scripts/deploy_mcloud.py
 # 内部按序：compiler_opt.gni 复制 → Polly 接线/定义 → AVX2 基线 →
 # D3D12/后台模式默认值 → flags 加载器注入 → mcloud_flags.txt 复制到 out/mcloud
 
-# 5. 下载 PGO profdata（版本必须与内核匹配：M151=7922 系列）
+# 5. 下载 PGO profdata（版本必须与内核匹配：M155=8059 系列）
+#    另需拉 V8 builtins profile：python v8/tools/builtins-pgo/download_profiles.py download
 python3 tools/update_pgo_profiles.py --target=win64 update \
   --gs-url-base=chromium-optimization-profiles/pgo_profiles
 # V8 builtins profiles（mksnapshot 依赖，版本不匹配会拒绝）：
@@ -282,18 +283,18 @@ pwsh benchmark/tools/verify_builtin_flags.ps1
 
 # 2. 提交代码变更并打 tag
 git add -A
-git commit -m "M151: Chromium 151.0.7922.99"
-git tag -a v151.0.7922.99 -m "MCloud Browser M151 (151.0.7922.99)"
-git push origin main && git push origin v151.0.7922.99
+git commit -m "M155: Chromium 155.0.8059.40"
+git tag -a v155.0.8059.40 -m "MCloud Browser M155 (155.0.8059.40)"
+git push origin main && git push origin v155.0.8059.40
 
 # 3. 生成校验和并以 ADR-003 命名上传到 Release
 # （注意：gh 的 file#newname 重命名语法不可靠，先本地重命名再上传）
-cp mini_installer.exe mcloud_151.0.7922.99_win64_mini_installer.exe
-sha256sum mcloud_151.0.7922.99_win64_mini_installer.exe > mcloud_151.0.7922.99_win64_mini_installer.exe.sha256
-gh release create v151.0.7922.99 \
-  mcloud_151.0.7922.99_win64_mini_installer.exe \
-  mcloud_151.0.7922.99_win64_mini_installer.exe.sha256 \
-  --title "MCloud Browser v151.0.7922.99" \
+cp mini_installer.exe mcloud_155.0.8059.40_win64_mini_installer.exe
+sha256sum mcloud_155.0.8059.40_win64_mini_installer.exe > mcloud_155.0.8059.40_win64_mini_installer.exe.sha256
+gh release create v155.0.8059.40 \
+  mcloud_155.0.8059.40_win64_mini_installer.exe \
+  mcloud_155.0.8059.40_win64_mini_installer.exe.sha256 \
+  --title "MCloud Browser v155.0.8059.40" \
   --notes-file docs/superpowers/specs/2026-08-06-release-notes-m151.md
 ```
 

@@ -6,7 +6,7 @@
 - **关联文档**：可行性证据 `docs/tasks/m155-upgrade-preassessment.md`；性能新特性候选 `docs/tasks/m155-perf-features.md`；流程规范 技术规范第 9 章 14 项清单
 - **稳定性总原则（用户要求）**：升级后当前生效的 flag 必须继续生效。已用 `.bugreview/flag_stability.py` 在升级前就把这条变成机器断言——r3 的 53 条 feature 中 52 条在 151/155/156 三版全部声明存在，唯一例外 `FlingSchedulingImprovements` 已标注升级期处置。
 
-## 阶段 0：预拉取核对（本次已在做，完成后再进阶段 1）
+## 阶段 0：预拉取核对 ✅（已完成，见下表实测）
 
 | 项 | 期望 | 核对命令 |
 |---|---|---|
@@ -70,7 +70,7 @@
 19. 资产 >100 MiB 不能入库，走 GitHub Release 资产上传（D45 现状未变）。
 20. 升级报告归档 `docs/dev-logs/M155-upgrade-report.md`，CHANGELOG 增条，规范第 9 章清单回填本轮偏差（429 限流、jobs=4、DEPOT_TOOLS_UPDATE=0）。
 
-## 验收标准
+## 验收标准（实测：K1/K2/泄漏/GPU 全部达标，报告见 `docs/dev-logs/M155-upgrade-report.md`）
 
 - `deploy_mcloud.py` 7 步在 155 树全部成功且可重复运行（幂等）。
 - `flag_stability.py` 在 `[155, 156]` 集合下 PASS：每条 feature 声明存在，无"当前生效、升级后失效"的条目。

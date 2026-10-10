@@ -28,13 +28,26 @@ def patch_file(path, old, new, desc, ok_if_new_present=None):
 
 print("应用 MCloud 源码级默认值修改：")
 
-# 1. D3D12 视频解码默认启用
-patch_file(
-    SRC + r"\media\base\media_switches.cc",
-    "BASE_FEATURE(kD3D12VideoDecoder, base::FEATURE_DISABLED_BY_DEFAULT);",
-    "BASE_FEATURE(kD3D12VideoDecoder, base::FEATURE_ENABLED_BY_DEFAULT);",
-    "kD3D12VideoDecoder -> ENABLED_BY_DEFAULT",
-)
+# 1. D3D12 视频解码：不再翻转上游默认（阶段 3b 清理，2026-10-10 M155 升级期）
+#
+# 历史做法：把上游 kD3D12VideoDecoder 默认从 DISABLED 翻成 ENABLED，再由
+# mcloud_flags.txt 的 --disable-features=D3D12VideoDecoder 抵回去 —— 净效果等于上游默认，
+# 却多背一个源码 hunk（Intel 核显 D3D12 绿屏缺陷要求该解码器保持禁用）。
+# 现在改为只校验上游默认，并且自愈：若树上还留着历史的 ENABLED 覆盖，回退为 DISABLED。
+msw = SRC + r"\media\base\media_switches.cc"
+DISABLED = "BASE_FEATURE(kD3D12VideoDecoder, base::FEATURE_DISABLED_BY_DEFAULT);"
+ENABLED = "BASE_FEATURE(kD3D12VideoDecoder, base::FEATURE_ENABLED_BY_DEFAULT);"
+_s = io.open(msw, encoding="utf-8").read()
+if ENABLED in _s:
+    _s = _s.replace(ENABLED, DISABLED, 1)
+    io.open(msw, "w", encoding="utf-8", newline="\n").write(_s)
+    print("  [fixed] 回退历史覆盖：kD3D12VideoDecoder 恢复上游 DISABLED_BY_DEFAULT"
+          "（禁用意图改由 mcloud_flags.txt 显式声明）")
+elif DISABLED in _s:
+    print("  [ok] kD3D12VideoDecoder 上游默认 DISABLED（无需覆盖，禁用由 flags 显式保证）")
+else:
+    print("  [WARN] kD3D12VideoDecoder 声明形态已变更，请人工核对 media/base/media_switches.cc")
+    sys.exit(1)
 
 # 2. 后台模式默认关闭（注册与激活两处）
 patch_file(

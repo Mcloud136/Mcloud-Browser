@@ -1,5 +1,38 @@
 # MCloud Browser Changelog
 
+## M155（内核升级 M151 → M155.0.8059.40）— 2026-10-10
+
+### 升级本体
+- 内核 `155.0.8059.40`（当期 stable）；V8 `15.5.35.20`；clang `llvmorg-24-init-7747`；PGO `chrome-win64-8059-…profdata`
+- 定制重放面在升级中进一步缩小为 **6 个上游文件 / 206 行**：
+  `apply_mcloud_source_defaults.py` 不再翻转 `kD3D12VideoDecoder` 默认（改为只校验 + 自愈回退历史覆盖），
+  禁用意图统一由 `mcloud_flags.txt` 显式声明 —— 消除长期存在的「覆盖与运行时禁用互相抵消」自相矛盾（原 D24 遗留项收口）
+- 首轮全量编译 58,416 步一次通过（`autoninja exit=0`）；`gn gen --check` 35,747 targets 无未知参数告警
+
+### 性能 / 内存 / GPU 实测（同一台机器、同一时刻成对测量）
+| 指标 | M151-r3 | M155 | 结论 |
+|---|---|---|---|
+| K1 冷启动中位数 | 46 ms（59,46,46,47,46） | **45 ms**（62,45,47,45,44） | 持平（差异在噪声内） |
+| K2 50 标签驻留中位数 | 2590 MB（56 进程） | **2563.3 MB** | -1.0% 内存 |
+| 标签开合泄漏探针（4 轮 × 25 标签，关标签后驻留） | 872.7→883.8 MB（+3.7 MB/轮） | **957.5→950.3 MB（-2.4 MB/轮）** | 155 无正漂移，回收更好 |
+| GPU 渲染路径（窗口化探针） | GPU 进程在，D3D11+D3D12 ANGLE，无 SwiftShader | **同左，gpu-preferences 逐字一致** | 无回退 |
+- A6 子进程命令行验证通过；`check_features.py` 在 155 源码树上 **53/53 存活**；
+  `flag_stability.py` 以 [155,156] 为版本集合 **PASS**
+
+### 升级期发现并修正的问题
+- **D50（新）**：`SkiaGraphite` 在 151/155/156 均为**上游默认启用**，而拖拽冻结缓解只是注释掉启用行 —— 等于从未禁用。
+  现改为显式 `--disable-features=SkiaGraphite`（`--enable-features=…` 列表不变），并把它列入 155 上的同方法 A/B 复核项
+- `FlingSchedulingImprovements`：M155 起上游彻底移除，已按预评估约定从 flags 删除，接替候选见
+  `docs/tasks/m155-perf-features.md`（`ResampleScrollEventsForFling`、`ApplyScrollRailingInRenderer`）
+- 工具链坑（已写入 AGENTS.md 构建流程）：`gclient sync --jobs=16` 撞 googlesource 429 → 改 `jobs=4`；
+  钩子按字面调用 `python3` 会命中 WindowsApps 占位程序 → 在真实 Python 目录内 `mklink /H python3.exe python.exe`；
+  缺 `v8/tools/builtins-pgo/profiles/x64-rl.profile` 会让 `snapshot_blob.bin` 直接失败 → `download_profiles.py download`
+
+### 发布
+- 安装包：`mcloud_155.0.8059.40_win64_mini_installer.exe`（127,541,248 B）
+- SHA256：``2afdfbdc66a8050badd8811d46b11d6176bb5ae9c3c4fe3a123a70181a9e1f02``
+
+
 ## M151-r3（发布链路完整性 + 优化清单真实性）— 2026-10-10
 
 ### 🔧 发布链路（缺陷 D47，High）
