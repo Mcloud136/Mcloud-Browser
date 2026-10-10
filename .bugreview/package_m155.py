@@ -55,8 +55,8 @@ h = scan(dll, [b"command-line budget", b"mcloud_flags.txt", b"bug-review D40"])
 problems += ["dll 缺加载器证据: %s" % k for k, v in h.items() if not v]
 if sha(deployed) != sha(REPO_FLAGS):
     problems.append("out/mcloud/mcloud_flags.txt 与仓库不一致")
-if "mcloud_flags.txt: %(ChromeDir)s\\" not in io.open(rel_list, encoding="utf-8", errors="replace").read():
-    problems.append("chrome.release 未登记 mcloud_flags.txt")
+# 旧的根目录登记判据已删除：D105 证明"登记到 %(ChromeDir)s"既进不了安装结果，
+# 那条判据只会给一个装不出文件的包打绿灯。现在的判据在下面（VersionDir + 暂存目录位置）。
 # ── 缺陷 D102（2026-10-11 实测）：下面这段"在 chrome.7z 里搜文件名"的判据是**无效量具**。
 # 7z 的文件表是压缩的，原始字节扫描既看不到文件名也证不了伪：对照实验里 chrome.dll、
 # resources.pak、icudtl.dat、chrome_100_percent.pak 这些**必然在包里的文件**在前 16 MB
@@ -67,17 +67,40 @@ if "mcloud_flags.txt: %(ChromeDir)s\\" not in io.open(rel_list, encoding="utf-8"
 # 文件复制到这里，再整体压成 7z —— 它就是载荷本身）。
 STAGING = os.path.join(OUT, "gen", "chrome", "installer", "mini_installer",
                        "mini_installer", "temp_installer_archive")
-staged_flags = os.path.join(STAGING, "Chrome-bin", "mcloud_flags.txt")
+# 载荷真身 = 打包暂存目录（create_installer_archive.py 把 chrome.release 列出的文件
+# 复制到这里，再整体压成 7z）。用递归查找而不是写死路径：D105 之后文件落在
+# Chrome-bin/<版本号>/ 而不是 Chrome-bin/。
+staged_found = [os.path.join(r, f)
+                for r, _d, fs in (os.walk(STAGING) if os.path.isdir(STAGING) else [])
+                for f in fs if f == "mcloud_flags.txt"]
 if not os.path.isdir(STAGING):
     problems.append("找不到打包暂存目录（说明 mini_installer 还没跑过，无法验证载荷）: %s" % STAGING)
-elif not os.path.isfile(staged_flags):
-    problems.append("安装包载荷里没有 mcloud_flags.txt（暂存目录缺 Chrome-bin/mcloud_flags.txt）"
+elif not staged_found:
+    problems.append("安装包载荷里没有 mcloud_flags.txt（暂存目录树里找不到该文件）"
                     "——create_installer_archive.py 对匹配不到的 chrome.release 条目**只在 --verbose 时**"
                     "打印一句，默认静默跳过，所以 autoninja 会 exit=0 而包里没这个文件（D47 同族）")
-elif sha(staged_flags) != sha(REPO_FLAGS):
-    problems.append("暂存目录里的 mcloud_flags.txt 与仓库不一致（打包用的是旧内容）")
+else:
+    for x in staged_found:
+        if sha(x) != sha(REPO_FLAGS):
+            problems.append("暂存目录里的 mcloud_flags.txt 与仓库不一致（打包用的是旧内容）: %s" % x)
 if os.path.exists(z7) and os.path.getmtime(z7) < os.path.getmtime(dll):
     problems.append("chrome.7z 早于 chrome.dll：载荷归档没跟上最后一次编译，需重打")
+
+# D105（2026-10-11 干净系统安装实测）：光验"包里有文件"仍然不够——setup.exe 对
+# Application 根目录只搬固定清单，根级条目**打包成功但不安装**。所以这里再加两条：
+# ① chrome.release 必须把文件登记到 %(VersionDir)s；② 暂存目录里它必须落在版本子目录。
+rel_txt = io.open(rel_list, encoding="utf-8", errors="replace").read()
+if "mcloud_flags.txt: %(VersionDir)s\\" not in rel_txt:
+    problems.append("chrome.release 没有把 mcloud_flags.txt 登记到 %(VersionDir)s —— "
+                    "登记到 %(ChromeDir)s（根目录）的条目会被打包但**永不安装**（D105）")
+for x in staged_found:
+    rel = os.path.relpath(x, STAGING).replace("\\", "/")
+    parts = rel.split("/")
+    # 期望 Chrome-bin/<版本号>/mcloud_flags.txt；Chrome-bin/<文件> 是根级（不会被安装）。
+    if len(parts) < 3:
+        problems.append("暂存目录里的 mcloud_flags.txt 不在版本子目录下（%s）——"
+                        "根级文件不会被 setup.exe 安装（D105）" % rel)
+
 if os.path.getmtime(inst) < os.path.getmtime(dll):
     problems.append("installer 早于 chrome.dll，需重打包")
 # D72：门禁必须能识别"编译失败但产物还在"的情况。本轮实测踩过：
@@ -122,6 +145,7 @@ notes = """# MCloud Browser v%s
 - **冻结缓解真正生效**：`SkiaGraphite` 在上游本就是默认启用，此前仅注释掉启用行并不构成禁用；
   本版改为显式 `--disable-features=SkiaGraphite`（其余 3 项禁用状态不变）。
 - **清单去虚**：删除 `FlingSchedulingImprovements`（M155 起上游已彻底移除该 feature）。
+- **安装版才真正带上优化清单（r4）**：`mcloud_flags.txt` 改由 VersionDir 投递到 `Application/155.0.8059.40/`，加载器 v7 同时支持 exe 同目录（开发树）与版本子目录（安装版）两种位置。此前登记在 Application 根目录的条目会被打包但**不被安装**（setup.exe 对根目录只搬固定三件套），所以 r3 及更早的安装包在干净机器上等于零内置优化（缺陷 D105）。
 
 ## 实测（同一台机器、同一时刻成对测量）
 

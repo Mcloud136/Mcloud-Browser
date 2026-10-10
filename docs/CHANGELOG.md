@@ -62,6 +62,33 @@
 - 产物：加载器升到 v6 需重编 `chrome.dll`；`gn gen --check` 后出现整树重编计划（51,296 步，
   确切成因待查，已列待办），为保持"仓库正文 == 二进制源码"本轮接受该重编
 
+### r4（修 D105/D106：安装版根本不携带 mcloud_flags.txt）— 2026-10-11
+
+- **D105（Critical，发布阻断）**：`chrome.release` 把 `mcloud_flags.txt` 登记在
+  `%(ChromeDir)s`（Application 根），而 `setup.exe` 对根目录只搬固定三件套
+  （chrome.exe / chrome_proxy.exe / chrome.VisualElementsManifest.xml）——
+  文件被打包进 `chrome.7z`（`-mx0` 未压缩，包尾能直接看到它的正文）却**永不安装**。
+  用 `--system-level` 干净安装 + `--verbose-logging` 取证：`C:\Program Files\Chromium\Application\`
+  下只有那三个文件，整棵树搜不到 `mcloud_flags.txt`。
+  ⇒ **r3 及更早的每一个安装包，在干净机器上都不带运行时优化清单**（53 项 feature + 3 项开关全丢），
+  而且不报错。此前所有"包里有没有这个文件"的判据都没能发现：搜 chrome.7z 字节串是无效量具（D102），
+  验打包暂存目录也只证明"进了包"，不证明"装得出来"。
+- 修复三处：① `apply_installer_payload.py` 改为登记 **`%(VersionDir)s`**（版本目录整目录搬迁，必然落地），
+  并做成正文比对式升级器（树上旧的 ChromeDir 条目就地改写）；② 加载器升 **v7**：exe 同目录读不到时
+  回退 `exe_dir\<版本号>\mcloud_flags.txt`（目录须含 chrome.dll，多版本取最新），开发树行为不变；
+  ③ `package_m155.py` 门禁新增"必须登记到 VersionDir + 暂存目录里必须在版本子目录 + 递归 sha256 比对"。
+  第一次编译失败在 API 假设上：M155 的 `base::Version` 没有 `NewFromString()`/`GreaterThan()`。
+- **D106（Critical，工具）**：`flag_runtime_state.py` 收尾是
+  `Get-Process chrome | Stop-Process -Force`——机器级杀进程，门禁每跑一次就把用户正在用的浏览器
+  （含未保存表单）一起干掉；它是 D52/D55 那批探针里唯一漏改的一个。改为按 profile 叶子名筛 PID、
+  6 轮杀到干净、残留即 SystemExit；用**诱饵实例**验证修复后其存活（修复前必被杀）。
+- 端到端复验（干净系统安装）：`Applicationm.0.8059.40\mcloud_flags.txt` 8,186 B 且
+  sha256 与仓库一致；对**安装后的二进制**跑运行时探针得 `enable 51 / disable 2`；测试安装已卸载、
+  用户级安装未受影响。
+- 产物：**127,549,952 B**，SHA256 `54fc59b5ccd3afc43c27f113206ededb8fc0db6c04825f88c53493afd1b228d1`
+  （沿革：`0602cafa…` = r3，带 D105 已知缺陷；`54fc59b5…` = r4 修复后）。
+- 新增纪律（AGENTS.md）：**发布前必须做一次干净安装复验**，只看门禁绿灯不足以证明安装包正确。
+
 ### 第3周期·扩展轮（同日晚，D77–D104：导航基准 / 门禁聚合 / src 参与度 / 步骤文档 / 临时文件）
 
 - **D89（Critical，本轮最重要）**：`benchmark/tools/final_gate_matrix.ps1` 的汇总用函数体内

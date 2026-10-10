@@ -16,7 +16,15 @@ SRC = os.environ.get("CR_DIR", r"D:\wxmuma\chromium-src\src")
 p = os.path.join(SRC, "chrome", "installer", "mini_installer", "chrome.release")
 
 ANCHOR = 'chrome.exe: %(ChromeDir)s\\\n'
-ENTRY = 'mcloud_flags.txt: %(ChromeDir)s\\\n'
+# ⚠ 目标目录必须是 %(VersionDir)s（= Application\<版本号>\），不能是 %(ChromeDir)s
+# （= Application\ 根）。2026-10-11 用 --system-level 干净安装 + --verbose-logging 实测：
+# setup.exe 对根目录只搬固定清单（chrome.exe / chrome_proxy.exe /
+# chrome.VisualElementsManifest.xml），根级 chrome.release 条目会被打包进 chrome.7z
+# 却**永远不被安装**——于是干净机器上 53 项 feature + 3 项开关整体丢失且无任何报错
+# （缺陷 D105；D47 的原始修复方式在这里被证明无效）。版本目录是整目录搬迁，必然落地。
+ENTRY = 'mcloud_flags.txt: %(VersionDir)s\\\n'
+# 历史形态（D105 之前的错误登记），检测到就地改写，不留下重复条目。
+LEGACY_ENTRY = 'mcloud_flags.txt: %(ChromeDir)s\\\n'
 
 if not os.path.isfile(p):
     print("ERROR: %s not found (CR_DIR 指向的树不对？)" % p)
@@ -24,8 +32,17 @@ if not os.path.isfile(p):
 
 s = io.open(p, encoding="utf-8").read()
 
-if ENTRY in s:
-    print("installer payload entry already present, nothing to do")
+if ENTRY in s and LEGACY_ENTRY not in s:
+    print("installer payload entry already present (%(VersionDir)s), nothing to do")
+    sys.exit(0)
+
+if LEGACY_ENTRY in s:
+    # 正文比对式升级器（D62/D64/D67 纪律）：旧条目存在就原位换成正确目标，
+    # 而不是看到"有 mcloud_flags.txt 字样"就宣布已应用。
+    s = s.replace(LEGACY_ENTRY, ENTRY, 1)
+    io.open(p, "w", encoding="utf-8", newline="\n").write(s)
+    print("chrome.release fixed: mcloud_flags.txt moved from %(ChromeDir)s to "
+          "%(VersionDir)s (root-level entries are never installed, D105)")
     sys.exit(0)
 
 if ANCHOR not in s:
@@ -35,4 +52,4 @@ if ANCHOR not in s:
 
 s = s.replace(ANCHOR, ANCHOR + ENTRY, 1)
 io.open(p, "w", encoding="utf-8", newline="\n").write(s)
-print("chrome.release updated: mcloud_flags.txt registered under %(ChromeDir)s")
+print("chrome.release updated: mcloud_flags.txt registered under %(VersionDir)s")

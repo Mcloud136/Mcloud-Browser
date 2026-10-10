@@ -71,6 +71,20 @@ def active_entries(text):
     return en, dis, plain
 
 
+def _instance_pids(prof):
+    """只返回本次 profile 对应的 chrome 进程 PID（缺陷 D106 的修法核心）。"""
+    key = os.path.basename(prof)
+    out = []
+    for line in ps(
+        "Get-CimInstance Win32_Process -Filter \"Name='chrome.exe'\" | "
+        "ForEach-Object { \"$($_.ProcessId)`t$($_.CommandLine)\" } | Out-String"
+    ).splitlines():
+        pid, _, cmd = line.partition("\t")
+        if key and key in cmd and pid.strip().isdigit():
+            out.append(int(pid.strip()))
+    return out
+
+
 def propagate_probe(exe, wait=16):
     """启动一次带窗口 chrome，抓所有子进程命令行，返回 (合并后的 enable 集合, disable 集合, 原始行)。"""
     prof = tempfile.mkdtemp(prefix="frs_")
@@ -81,12 +95,27 @@ def propagate_probe(exe, wait=16):
     lines = [l for l in ps(
         "Get-CimInstance Win32_Process -Filter \"Name='chrome.exe'\" | "
         "ForEach-Object { $_.CommandLine } | Out-String").splitlines() if l.strip()]
-    ps("Get-Process chrome -ErrorAction SilentlyContinue | Stop-Process -Force")
+    # ⚠ 缺陷 D106（2026-10-11 自查发现，Critical 级工具缺陷）：这里原本是
+    #   `Get-Process chrome | Stop-Process -Force`——**机器级**杀进程，会把用户自己
+    #   开着的浏览器（含未保存标签）一起干掉。这与 D52/D55 早已确立的纪律直接冲突，
+    #   而且本文件是唯一没被改过来的那个（其它探针都按实例指纹清理了）。
+    #   现在按本次 profile 的叶子名筛 PID，循环清理到干净；残留即报错，不再假装成功。
+    for _ in range(6):
+        pids = _instance_pids(prof)
+        if not pids:
+            break
+        arg = ",".join(str(x) for x in pids)
+        ps("Get-Process -Id @(%s) -ErrorAction SilentlyContinue | Stop-Process -Force" % arg)
+        time.sleep(1.5)
     try:
         proc.wait(timeout=30)
     except Exception:                       # noqa: BLE001
         proc.kill()
+    leftover = _instance_pids(prof)
     shutil.rmtree(prof, ignore_errors=True)
+    if leftover:
+        raise SystemExit("FAIL: 本工具启动的实例仍有 %d 个进程残留（PID=%s）；"
+                         "继续跑会锁住构建目录（D71 同族）" % (len(leftover), leftover))
 
     en, dis, plain = set(), set(), set()
     for l in lines:
@@ -102,6 +131,36 @@ def propagate_probe(exe, wait=16):
     return en, dis, plain, lines
 
 
+def resolve_flags_path(exe):
+    """按加载器 v7 的同一条规则找 mcloud_flags.txt（缺陷 D105）。
+
+    开发树：exe 同目录；安装版：exe 在 Application\\，文件在 Application\\<版本号>\\
+    （setup.exe 只搬固定根文件，所以注册表目标是 %(VersionDir)s）。
+    多版本目录并存时取版本号最大的那个——与 chrome_main_delegate.cc 里的实现一致。
+    """
+    d = os.path.dirname(os.path.abspath(exe))
+    direct = os.path.join(d, "mcloud_flags.txt")
+    if os.path.isfile(direct):
+        return direct
+    if not os.path.isdir(d):
+        return None
+    best = None
+    best_ver = None
+    for name in os.listdir(d):
+        sub = os.path.join(d, name)
+        cand = os.path.join(sub, "mcloud_flags.txt")
+        if not (os.path.isdir(sub) and os.path.isfile(os.path.join(sub, "chrome.dll"))
+                and os.path.isfile(cand)):
+            continue
+        parts = name.split(".")
+        if len(parts) != 4 or not all(x.isdigit() for x in parts):
+            continue
+        ver = tuple(int(x) for x in parts)
+        if best_ver is None or ver > best_ver:
+            best_ver, best = ver, cand
+    return best
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--chrome", default=DEFAULT_CHROME)
@@ -110,10 +169,15 @@ def main():
     args = ap.parse_args()
 
     exe = args.chrome
-    flags_path = os.path.join(os.path.dirname(exe), "mcloud_flags.txt")
+    flags_path = resolve_flags_path(exe)
     repo_flags = os.path.join(THOR, "mcloud_flags.txt")
-    if not os.path.exists(flags_path):
-        raise SystemExit("找不到 %s" % flags_path)
+    if not flags_path:
+        # 注意：文案里有 %(VersionDir)s 这种字面量，不能用 % 格式化（会被当成命名占位符）。
+        raise SystemExit(
+            "找不到 mcloud_flags.txt（既不在 " + os.path.dirname(os.path.abspath(exe)) +
+            " 也不在其版本子目录）。\n"
+            "  开发树应在 exe 同目录；安装版应在 Application\\<版本号>\\ 下"
+            "（D105 之后由 chrome.release 的 %(VersionDir)s 条目投递，加载器 v7 同址回退）。")
     raw_flags = open(flags_path, "rb").read()
     try:
         base_text = raw_flags.decode("utf-8-sig")

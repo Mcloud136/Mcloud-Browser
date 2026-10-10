@@ -24,6 +24,12 @@
 # v5：逐行解析改用 string_view::substr，消除 -Wunsafe-buffer-usage 告警
 # （v4 的 `line.data() + n` 裸指针运算在 15:43 构建日志中逐行告警）。
 # 同时把"是否需要替换"的判定从版本号标记改为正文比对，避免正文与标记不同步。
+# v6：浏览器进程限定（D58）+ UTF-8 BOM 剥离（D57）。
+# v7（2026-10-11，缺陷 D105）：**安装版布局回退查找**。setup.exe 对 Application 根目录
+# 只搬固定清单（chrome.exe / chrome_proxy.exe / VisualElementsManifest.xml），根级
+# chrome.release 条目不会被安装——实测干净系统安装后包内的 mcloud_flags.txt 根本不落地。
+# 文件改登记到 %(VersionDir)s（版本目录是整目录搬迁），加载器则在 exe 同目录找不到时
+# 到 exe_dir\<版本号>\ 里找（该目录必须同时含 chrome.dll 才算数）。
 import io
 import os
 import re
@@ -67,16 +73,29 @@ if ('#include "base/files/file_util.h"' not in s and
     s = s.replace(anchor, anchor + '#include "base/files/file_util.h"\n', 1)
     print("added include: base/files/file_util.h")
 
+# v7（D105）需要 FileEnumerator（在安装版里找版本目录）与 base::Version
+# （多个版本目录并存时挑最新的那个）。锚点用 file_util.h，它由上面一段保证存在。
+_inc_anchor = None
+for cand in ('#include "base/files/file_util.h"\n', '#include "base/file_util.h"\n'):
+    if cand in s:
+        _inc_anchor = cand
+        break
+assert _inc_anchor, "no file_util include to anchor the v7 includes against"
+for inc in ('#include "base/files/file_enumerator.h"\n', '#include "base/version.h"\n'):
+    if inc not in s:
+        s = s.replace(_inc_anchor, _inc_anchor + inc, 1)
+        print("added include:", inc.strip())
+
 LOADER = r'''
 // --- MCloud Browser: built-in performance startup flags (mcloud_flags.txt) ---
-// loader v6: browser-process-only guard (D58) + UTF-8 BOM strip (D57) on top of
-// v5: line parsing via string_view::substr (no raw pointer arithmetic,
-// clean under -Wunsafe-buffer-usage) on top of v4 (shared command-line byte
-// budget for every appended switch, D40), v3 (merged-feature-list cap, D39)
-// and v2 (single-pass accumulation, user-first merge, capped read).
-// Reads `mcloud_flags.txt` from the executable directory (max 1 MiB) and
-// appends the flags to the current process command line. User-specified
-// switches take precedence:
+// loader v7: installed-layout lookup (D105) on top of
+// v6: browser-process-only guard (D58) + UTF-8 BOM strip (D57), v5: line parsing
+// via string_view::substr (no raw pointer arithmetic, clean under
+// -Wunsafe-buffer-usage), v4 (shared command-line byte budget for every appended
+// switch, D40), v3 (merged-feature-list cap, D39) and v2 (single-pass
+// accumulation, user-first merge, capped read).
+// Reads `mcloud_flags.txt` (max 1 MiB) and appends the flags to the current
+// process command line. User-specified switches take precedence:
 //  - plain switches are skipped when the user already provided them;
 //  - enable/disable-features are merged with the USER list placed FIRST,
 //    because base::FeatureList::RegisterOverride() uses try_emplace()
@@ -88,6 +107,48 @@ LOADER = r'''
 // launch (oversized lists previously made the GPU process unlaunchable =>
 // FATAL "GPU process isn't usable", bug-review D39/D40).
 // See docs/architecture/performance-build-technical-spec.md section 4.1.1.
+
+// D105: in an *installed* build chrome.exe sits in `Application\` while the
+// payload (chrome.dll and everything else registered under %(VersionDir)s) is
+// moved as one directory into `Application\<version>\`. setup.exe copies only a
+// fixed list of root files (chrome.exe / chrome_proxy.exe /
+// chrome.VisualElementsManifest.xml), so a root-level chrome.release entry is
+// packed into chrome.7z and then never installed -- verified with a clean
+// `--system-level` install plus --verbose-logging on 2026-10-11. The file is
+// therefore registered under %(VersionDir)s, and this helper finds it. Returns
+// an empty path when no payload directory carries it.
+base::FilePath FindInstalledMcloudFlagsPath(const base::FilePath& exe_dir) {
+  base::FilePath best;
+  std::string best_version_string;
+  base::FileEnumerator dirs(exe_dir, /*recursive=*/false,
+                            base::FileEnumerator::DIRECTORIES);
+  for (base::FilePath child = dirs.Next(); !child.empty(); child = dirs.Next()) {
+    // A payload directory must hold chrome.dll too; that keeps unrelated
+    // sub-directories (locales/, Dictionaries/) out of consideration.
+    if (!base::PathExists(child.AppendASCII("chrome.dll"))) {
+      continue;
+    }
+    const base::FilePath candidate = child.AppendASCII("mcloud_flags.txt");
+    if (!base::PathExists(candidate)) {
+      continue;
+    }
+    // Multiple versions can coexist after an upgrade; take the newest.
+    // M155's base::Version has no NewFromString()/GreaterThan() -- it is built
+    // from a string_view and compared through the free operators (first build
+    // attempt failed on exactly that, 2026-10-11).
+    const std::string name = child.BaseName().AsUTF8Unsafe();
+    const base::Version version(name);
+    if (!version.IsValid()) {
+      continue;
+    }
+    if (best.empty() || version > base::Version(best_version_string)) {
+      best_version_string = name;
+      best = candidate;
+    }
+  }
+  return best;
+}
+
 void LoadMcloudPerformanceFlags() {
   base::CommandLine* command_line = base::CommandLine::ForCurrentProcess();
 
@@ -107,10 +168,18 @@ void LoadMcloudPerformanceFlags() {
   if (!base::PathService::Get(base::DIR_EXE, &exe_dir)) {
     return;
   }
-  const base::FilePath flags_path = exe_dir.AppendASCII("mcloud_flags.txt");
+  base::FilePath flags_path = exe_dir.AppendASCII("mcloud_flags.txt");
   std::string contents;
   if (!base::ReadFileToStringWithMaxSize(flags_path, &contents, 1u << 20)) {
-    return;
+    // Dev builds keep the file next to chrome.exe; installed builds need the
+    // version directory (D105), so fall back instead of silently running
+    // without any built-in flags.
+    contents.clear();
+    flags_path = FindInstalledMcloudFlagsPath(exe_dir);
+    if (flags_path.empty() ||
+        !base::ReadFileToStringWithMaxSize(flags_path, &contents, 1u << 20)) {
+      return;
+    }
   }
   // D57: strip a UTF-8 BOM. Windows PowerShell 5.1 `Set-Content -Encoding UTF8`
   // and some editors write one; the parser requires lines to start with "--",

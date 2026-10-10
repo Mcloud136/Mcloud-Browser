@@ -649,7 +649,7 @@ PowerShell 5.1（中文必须 UTF-8 BOM，见 D38）、GN（Chromium 构建元�
   （F541 之类）。给它修 lint 是局部最优、全局负收益——正确处置是删除或加 refusal guard（同 ADR-003
   对 Linux legacy 面的处理方式），已列入待办而不是本轮顺手改。
 
-## 第3周期缺陷登记（D52–D105，详版与全部证据见 `docs/tasks/bug-review-cycle3-report.md`）
+## 第3周期缺陷登记（D52–D106，详版与全部证据见 `docs/tasks/bug-review-cycle3-report.md`）
 
 一句话索引（每条的报告里有 file:line、根因、影响、修复与 Red→Green 证据）：
 
@@ -707,11 +707,12 @@ PowerShell 5.1（中文必须 UTF-8 BOM，见 D38）、GN（Chromium 构建元�
 | D103 | **High** | 上游 `chrome/tools/build/win/create_installer_archive.py` | `chrome.release` 里列出的条目若 glob 匹配不到源文件，**默认静默跳过**（只在 `--verbose` 时打印一句 No matches found）→ `autoninja` exit=0、打包「成功」，但包里根本没有那个文件。⚠ 本条的因果后来被 D105 推翻：干净安装日志证明文件**确实进了 7z**，真正的丢件点在**安装侧**（setup.exe 不处理根目录额外条目）。本条仍成立但只是「打包脚本对缺文件不报错」这一半，不是丢件原因 | ✅ 不改上游脚本，改为在我方门禁里加「暂存目录必须含该文件且与仓库字节一致」的硬断言（即 D102 的新判据），把静默跳过变成打包失败 |
 | D104 | Medium | 已安装实例（用户机器实测） | 装完 155 后 `Application\mcloud_flags.txt` 仍是 **9-22 的旧文件**（5,878 B / sha `52e67eab7319`），chrome://version 的命令行里因此是 **D51 修复前的坏 params 形式** `InitialWebUI:without_spellcheck/without_translate/high_stream_priority`（无值 → 参数被丢弃、退回上游默认）；而 `chrome.exe`/`chrome.dll` 与本次构建**逐字节相同**（86b588a485855fd8 / 2c9812e62f16308c），说明浏览器本体装对了、只有那个额外文件没被覆盖 | ✅ 已把旧文件隔离为 `mcloud_flags.txt.stale-20260922` 并放入当前正文（8,186 B / `61b7670856ed`），待用户重启后复核 chrome://version；「安装器为何不覆盖已存在的同名文件」尚未定论，需一次干净位置的安装实验（待用户授权） |
 | D105 | **Critical（发布阻断）** | `chrome.release` 里 `mcloud_flags.txt: %(ChromeDir)s\` + 上游 `install_worker.cc` | 干净系统安装实测：`C:\Program Files\Chromium\Application\` 里只有 chrome.exe / chrome_proxy.exe / chrome.VisualElementsManifest.xml，**没有 mcloud_flags.txt**；详细日志显示 setup.exe 对根目录是**逐个搬固定清单**（只搬这三个），而版本目录 `155.0.8059.40` 是**整个目录搬过去**的。也就是说：打包侧确实把文件放进了 chrome.7z（尾部 8 KB 处能看到它的正文，`-mx0` 未压缩），但安装侧根本不处理根目录的额外条目 ⇒ D47 的修复方式（登记到 ChromeDir）**在真实安装里无效**，干净机器上 53 项 feature + 3 项开关整体丢失。用户机器之所以看起来正常，是因为根目录里躺着一份9-22 手工复制的旧文件 | ✅ 方向：把登记目标从 `%(ChromeDir)s` 改为 `%(VersionDir)s`（版本目录是整目录搬迁，必然落地），同时让加载器在 exe 同目录找不到时再找 `exe_dir\<FileVersion>\mcloud_flags.txt`；需重编 chrome.dll（单 TU + 链接），改完用 `--system-level` 干净安装复验 |
+| D106 | **Critical** | `.bugreview/flag_runtime_state.py` 收尾 | `Get-Process chrome \| Stop-Process -Force` 是**机器级**杀进程：门禁跑一次会把用户正在用的浏览器（含未保存表单）一起干掉；与 D52/D55 已确立的实例级纪律冲突，且是同批探针里唯一漏改的一个 | ✅ 改按 profile 叶子名筛 PID + 6 轮杀到干净 + 残留即 SystemExit；诱饵实例验证修复后存活 |
 
 流程性缺口（不是某一行代码的错）：**本轮之前仓库没有任何 Python 静态检查在跑**。
 现已引入 `ruff`（F/E9/B/SIM）+ `pyflakes`，并把 ruff 的真阳性（B023/B905/F841）逐条判真伪后处置。
 
-## 第3周期·扩展轮（D77–D105：导航基准、门禁聚合、src/ 参与度、步骤文档、临时文件）
+## 第3周期·扩展轮（D77–D106：导航基准、门禁聚合、src/ 参与度、步骤文档、临时文件）
 
 > 编号说明：本段登记 D77–D100，其中 **D98 未启用**（复核后未成立，编号保留不复用），
 > 实际共 23 条。
@@ -1079,6 +1080,58 @@ PowerShell 里 **函数体也可以有自己的 `param(...)`**（惯例缩进 4 
 
 纪律（已写进 AGENTS.md）：**测试不得写入发布产物目录**；会改写被测文件的测试一律在
 硬链接沙箱里跑；写生产位置的动作必须有「特征文件即拒绝」的前门，而不是依赖 finally 恢复。
+
+### D105 修复记录（2026-10-11，加载器 v7 + VersionDir 登记 + 门禁加位置断言）
+
+三处改动，全部由脚本产生（不改仓库副本）：
+
+1. `win_scripts/apply_installer_payload.py`：登记目标从 `%(ChromeDir)s`（Application 根）
+   改为 **`%(VersionDir)s`**（`Application\<版本号>\`），并做成正文比对式升级器——
+   树上若存在旧的 ChromeDir 条目就**就地改写**（实测输出
+   `chrome.release fixed: mcloud_flags.txt moved from %(ChromeDir)s to %(VersionDir)s`），
+   两种形态都不在时才按锚点插入；重复运行为 `already present, nothing to do`（幂等已复验）。
+2. `win_scripts/inject_flags_loader.py` → **加载器 v7**：`LoadMcloudPerformanceFlags()`
+   在 exe 同目录读不到时，回退到 `exe_dir\<版本号>\mcloud_flags.txt`
+   （新增 `FindInstalledMcloudFlagsPath()`：目录必须同时含 `chrome.dll` 才算载荷目录，
+   多版本并存时取版本号最大的）。开发树行为不变（先查同目录）。
+   ⚠ 第一次编译就失败在 API 假设上：M155 的 `base::Version` **没有** `NewFromString()`
+   也**没有** `GreaterThan()`——它是 `Version(std::string_view)` 构造 + 自由运算符 `>`
+   （3 个 error，`autoninja` 真实退出码 1）。教训：注入 C++ 之前要按当前树的头文件核对 API。
+3. `.bugreview/package_m155.py` 门禁：删掉「chrome.release 里有 ChromeDir 条目就算通过」的旧判据，
+   新增三条——① 必须登记到 `%(VersionDir)s`；② 暂存目录里该文件必须落在**版本子目录**
+   （`Chrome-bin/<版本号>/`，根级视为不合格）；③ 递归找文件并逐个与仓库做 sha256 比对。
+   顺带修掉我自己新写代码里的一个 NameError（生成器漏了 `for f in fs`，它当场崩溃而不是假绿）。
+
+端到端复验（干净系统安装，`--system-level`）：
+
+| 检查 | 结果 |
+|------|------|
+| 安装退出码 | 0 |
+| 载荷落地 | `Applicationm.0.8059.40\mcloud_flags.txt` 8,186 B，**sha256 与仓库一致** |
+| 根级副本 | 不存在（符合预期：根目录不投递） |
+| 运行时回显（对**安装后的二进制**跑 `flag_runtime_state.py`） | enable 51 项 / disable 2 项，`SkiaGraphite`/`D3D12VideoDecoder` 已禁用，普通开关 0 缺失 |
+| 新产物 | 127,549,952 B，SHA256 `54fc59b5ccd3afc43c27f113206ededb8fc0db6c04825f88c53493afd1b228d1` |
+| 清理 | 测试安装已卸载，`C:\Program Files\Chromium` 不存在；用户级安装未受影响 |
+
+哈希沿革：`2afdfbdc…`（r1）→ `195f9349…`（r2）→ `cd6f5172…`（作废，D72）→
+`0602cafa…`（r3，**已知缺陷 D105：干净安装不含 flags**）→ `54fc59b5…`（r4，修 D105/D106）。
+
+### D106 `flag_runtime_state.py` 用机器级 Stop-Process 收尾，会杀掉用户自己的浏览器（Critical，工具）
+
+`propagate_probe()` 收尾那行是
+`Get-Process chrome | Stop-Process -Force`——**对本机所有 chrome.exe 无差别开火**。
+这与第3周期早已确立的纪律（D52/D55：按本次 `--user-data-dir` 叶子名筛 PID，只清自己）直接冲突，
+而且它是那批探针里**唯一漏改的一个**：同批的 leak_probe / gpu_probe / ab_flags 都已改成实例级。
+后果不是测量错误，而是**破坏用户状态**：门禁跑一次，用户正在看的标签页（含未保存表单）全没了。
+我是在做 D105 的安装版复验、亲眼看到 5 个测试安装实例在工具跑完后仍存活（说明那次开火连自己的目标
+都没清干净）之后回头读代码才发现的。
+
+修复：新增 `_instance_pids(prof)` 按 profile 叶子名筛 PID，最多 6 轮「杀 → 等 1.5s」，
+仍有残留就 `SystemExit` 硬失败（残留会继续锁构建目录，D71 同族）。
+可证伪验证（关键，因为这类缺陷的代价是"用户数据"）：先用被测二进制以**另一个** profile
+起一个诱饵实例（`decoy_pid=18676 alive=True`），再跑修好的工具——
+结果 `decoy_still_alive_after_tool=True`，工具自身仍正常产出 `enable 51 / disable 2`，
+收尾后 `leftover_chrome_total=0`。修复前同一场景诱饵会被一起杀掉。
 
 ### 扩展轮的全局效率结论（稳定优先，不是局部最优）
 

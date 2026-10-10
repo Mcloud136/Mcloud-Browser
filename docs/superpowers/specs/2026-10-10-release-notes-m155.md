@@ -11,6 +11,7 @@
 - **冻结缓解真正生效**：`SkiaGraphite` 在上游本就是默认启用，此前仅注释掉启用行并不构成禁用；
   本版改为显式 `--disable-features=SkiaGraphite`（其余 3 项禁用状态不变）。
 - **清单去虚**：删除 `FlingSchedulingImprovements`（M155 起上游已彻底移除该 feature）。
+- **安装版才真正带上优化清单（r4）**：`mcloud_flags.txt` 改由 VersionDir 投递到 `Application/155.0.8059.40/`，加载器 v7 同时支持 exe 同目录（开发树）与版本子目录（安装版）两种位置。此前登记在 Application 根目录的条目会被打包但**不被安装**（setup.exe 对根目录只搬固定三件套），所以 r3 及更早的安装包在干净机器上等于零内置优化（缺陷 D105）。
 
 ## 实测（同一台机器、同一时刻成对测量）
 
@@ -32,4 +33,4 @@
 certutil -hashfile mcloud_155.0.8059.40_win64_mini_installer.exe SHA256
 ```
 
-预期值：`0602cafabb94f221e7a6ec5bfd59605fceaceb0b2fa8c4d7e88339ea50717090`
+预期值：`54fc59b5ccd3afc43c27f113206ededb8fc0db6c04825f88c53493afd1b228d1`

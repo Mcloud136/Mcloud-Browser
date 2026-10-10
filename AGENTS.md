@@ -107,8 +107,16 @@ MCloud Browser 是基于 Chromium（当前 M155，155.0.8059.40，硬件基线 A
 6. `apply_mcloud_source_defaults.py` — D3D12/后台模式/DoH 源码级默认修改。
 7. **`inject_flags_loader.py`** — 将 flags 加载器注入 `chrome_main_delegate.cc`。
 8. **`apply_installer_payload.py`** — 向 `chrome/installer/mini_installer/chrome.release` 登记
-   `mcloud_flags.txt: %(ChromeDir)s\`（缺陷 D47 修复）。**这一步不可省略**：少了它，编译与打包
-   全部成功但安装不包含标志文件，63 行运行时优化整体静默丢失（幂等，可重复运行）。
+   **`mcloud_flags.txt: %(VersionDir)s\`**（缺陷 D47 修复；目标目录于 2026-10-11 由 D105 更正）。
+   **这一步不可省略**：少了它，编译与打包全部成功但安装不包含标志文件，运行时优化整体静默丢失。
+   ⚠ **不要改成 `%(ChromeDir)s`（= Application 根目录）**：`setup.exe` 对根目录只搬固定清单
+   （chrome.exe / chrome_proxy.exe / chrome.VisualElementsManifest.xml），根级条目会被打包进
+   `chrome.7z` 却**永不安装**——实测干净系统安装后 `Application\` 下没有该文件，
+   而版本目录 `Application\<版本号>\` 是整目录搬迁、必然落地（D105）。
+   相应地加载器 v7 在 exe 同目录读不到时会回退到 `exe_dir\<版本号>\mcloud_flags.txt`。
+   **发布前必须做一次干净安装复验**（`mini_installer.exe --system-level` 装到 Program Files，
+   断言文件落地 + 与仓库字节一致 + 对安装后的二进制跑 `flag_runtime_state.py` 得到 51+2 回显，
+   然后卸载）。只看门禁绿灯不足以证明安装包正确。
 8. **`build_win.py`** — 执行 gn/autoninja 编译。
 9. 辅助：`version.py`（版本管理）、`clean.py`、`reset_depot_tools.py`、`tot.py`/`trunk.py`（ToT 同步）。
 10. **`verify_sources.py`** — 最小源码验证：win_scripts/ 全部 Python 脚本语法检查 + 关键脚本存在性 + pak_src/ C 源码检查。修改构建脚本后运行 `python3 win_scripts/verify_sources.py`（退出码 0=PASS / 1=FAIL）；已接入 CI（`.github/workflows/verify.yml`，push/PR 自动运行）。
