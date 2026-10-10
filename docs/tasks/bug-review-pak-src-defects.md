@@ -389,8 +389,10 @@ detect_leaks 不支持），内存泄漏结论以逐行分配/释放配对审查
 - 后果：全新树（=任何一次内核升级）按文档执行 `deploy_mcloud.py → gn gen → autoninja chrome mini_installer`，
   编译与打包全绿，但安装包不含 `mcloud_flags.txt` → 63 行运行时标志整体丢失，且无报错。
   当前 v151.0.7922.99-r2 安装包正确，仅因这棵树恰好保留了手工改动。
-- 待决（owner：项目方）：新增第 7 个幂等注入脚本（锚点 `chrome.exe: %(ChromeDir)s\` 后插入），
-  挂入 `deploy_mcloud.py`，并在 `win_scripts/verify_sources.py` 加存在性检查；文档补步骤。
+- **已修复并发布（2026-10-10，M151-r3）**：新增第 7 个幂等注入脚本 `win_scripts/apply_installer_payload.py`
+  （锚点 `chrome.exe: %(ChromeDir)s\` 后插入），挂入 `deploy_mcloud.py` STEPS 与 `win_scripts/verify_sources.py`
+  关键脚本清单；AGENTS.md 第 7 步与 README 口径同步更正。探针 `.bugreview/d47_probe.py` 五例全过，含「干净上游
+  151 文件 + 注入器 == 当前树文件（逐字节）」与「对 M155 的该文件首次注入可用」。
 - 证据：`docs/tasks/m155-upgrade-preassessment.md` §7 D47；
   `git -C chromium-src/src status --porcelain -uno`（7 文件/207 行）与该文件的 `git diff` 单行 hunk。
 
@@ -405,8 +407,10 @@ detect_leaks 不支持），内存泄漏结论以逐行分配/释放配对审查
   `DirectComposition`。升到 155/156 再失效 1 条：`FlingSchedulingImprovements`。
   另有 15 条属冗余（上游默认已等同我们的意图，含 `disable D3D12VideoDecoder`）。
 - 影响：优化清单虚高（"以为开了"），非崩溃类风险；`--enable-features` 未知名被 FeatureList 忽略。
-- 待决（owner：项目方）：改名 1 条、删除 6+1 条（删前按实测收益逐项判断），
-  并把 `benchmark/tools/check_features.py` 的存活校验纳入 `verify_sources.py`/CI。
+- **部分已修复并发布（2026-10-10，M151-r3）**：删除三版均不存在的 6 条；改名条目转注释保留（启用会改行为，
+  待基准）；`FlingSchedulingImprovements` 保留并标「升级期删除」（M151 上真实生效）。断言脚本
+  `.bugreview/flag_stability.py`（A-E 五条）PASS；`check_features.py` 双树实测 M151 53/53、M155 52/53。
+  **剩余待办**：把存活性校验接入 CI。
 - 证据：`.bugreview/survival_check.py` + `survival_{151,155,156}.json`、`flags_table.md` 60 行明细。
 
 ### D49 文档口径"V8 连字符写法在 M151 静默失效"与 V8 源码不符（Low，文档）
@@ -428,6 +432,8 @@ detect_leaks 不支持），内存泄漏结论以逐行分配/释放配对审查
   若要确定性结论，可行路径是在树内 `autoninja d8` 后用 d8 直接跑两种写法对比（尚未执行）。
   实验脚本：`.bugreview/d49_experiment.py`（含"必须用线程读 stderr，否则 os.read 阻塞使超时失效"的修正）。
 
+| 发布链路 | D47（chrome.release 定制无脚本产生） | ✅ 注入器 + 接线 + 探针五例全过，已随 r3 发布 | 2026-10-10 `.bugreview/d47_probe.py` |
+| 性能清单 | D48（7 条静默失效 + 1 条升级期失效） | ✅ 已清理并发布（改名条目转注释、校验脚本 PASS）；CI 接入待办 | `.bugreview/flag_stability.py`、`check_features.py` 双树 |
 ## 修复状态汇总（2026-10-09 第2周期更新）
 | 线 | 缺陷 | 修复 | 验证 |
 |----|------|------|------|
