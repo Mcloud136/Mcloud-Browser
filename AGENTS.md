@@ -114,6 +114,9 @@ MCloud Browser 是基于 Chromium（当前 M155，155.0.8059.40，硬件基线 A
 10. **`verify_sources.py`** — 最小源码验证：win_scripts/ 全部 Python 脚本语法检查 + 关键脚本存在性 + pak_src/ C 源码检查。修改构建脚本后运行 `python3 win_scripts/verify_sources.py`（退出码 0=PASS / 1=FAIL）；已接入 CI（`.github/workflows/verify.yml`，push/PR 自动运行）。
 
 注意：`setup.py` 为遗留全量覆盖脚本，已被定点注入取代，勿在新 Chromium 树上运行（会污染源码树）。
+该约定现已**机器化**（缺陷 D97，2026-10-11）：脚本在没有上游对应动作的位置直接拒绝执行，
+默认 `REFUSED` + 退出码 112 并指向 `deploy_mcloud.py`；只有显式设 `MCLOUD_ALLOW_LEGACY_SETUP=1` 才会继续。
+`--help` 仍正常返回 0。
 
 前置文档：**本文件下面「构建快速参考」一节 + `docs/progress.md` §5.1**（两者一致，是权威步骤）。
 ⚠ `docs/BUILDING_WIN.md` 是**上游 Thorium 遗留文档**（假设 `C:\src\chromium\src`、要 VS 2022、

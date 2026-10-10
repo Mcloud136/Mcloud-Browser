@@ -63,6 +63,26 @@ if "--help" in sys.argv:
     display_help()
     sys.exit(0)
 
+# ── 遗留脚本拒绝闸（bug-review 第3周期扩展轮，缺陷 D37 的收尾；2026-10-11）─────────────
+# 本脚本会把仓库 src/ 下的**整批旧内核副本**覆盖到 Chromium 源码树（含 344 个
+# "与树内不同、无人应用"的惰性副本，见 src/INVENTORY.md 与缺陷 D77/D41），
+# 在新树上运行会直接污染源码树：M155 升级预评估实测这类整份覆盖存在 8 处 API 漂移，
+# 覆盖后构建失败或行为与定制清单不符，而且**没有任何报错指回本脚本**。
+# 现行唯一部署入口是 win_scripts/deploy_mcloud.py 编排的定点幂等注入。
+# 因此这里默认拒绝执行；只有在明确知道自己在做什么时才用环境变量放行。
+if os.getenv("MCLOUD_ALLOW_LEGACY_SETUP") != "1":
+    print(
+        "REFUSED: win_scripts/setup.py 是遗留的全量覆盖脚本，会污染 Chromium 源码树。\n"
+        "  正确做法：python3 <THOR_DIR>/win_scripts/deploy_mcloud.py"
+        "（编排 copy_essentials + apply_* / inject_* 全部定点幂等注入）。\n"
+        "  参考：AGENTS.md「win_scripts/ — Windows 构建流水线」、"
+        "docs/tasks/bug-review-pak-src-defects.md 的 D37 / D41 / D77。\n"
+        "  确需运行本遗留脚本：set MCLOUD_ALLOW_LEGACY_SETUP=1 后重试。",
+        file=sys.stderr,
+    )
+    sys.exit(112)
+# ────────────────────────────────────────────────────────────────────────────────
+
 # Set chromium/src dir from Windows environment variable
 cr_src_dir = os.getenv("CR_DIR", r"C:/src/chromium/src")
 # Set Mcloud Browser dir from Windows environment variable
