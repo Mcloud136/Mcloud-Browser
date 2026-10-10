@@ -649,7 +649,7 @@ PowerShell 5.1（中文必须 UTF-8 BOM，见 D38）、GN（Chromium 构建元�
   （F541 之类）。给它修 lint 是局部最优、全局负收益——正确处置是删除或加 refusal guard（同 ADR-003
   对 Linux legacy 面的处理方式），已列入待办而不是本轮顺手改。
 
-## 第3周期缺陷登记（D52–D100，详版与全部证据见 `docs/tasks/bug-review-cycle3-report.md`）
+## 第3周期缺陷登记（D52–D104，详版与全部证据见 `docs/tasks/bug-review-cycle3-report.md`）
 
 一句话索引（每条的报告里有 file:line、根因、影响、修复与 Red→Green 证据）：
 
@@ -703,11 +703,14 @@ PowerShell 5.1（中文必须 UTF-8 BOM，见 D38）、GN（Chromium 构建元�
 | D97 | Low–Med | `win_scripts/setup.py` | 遗留全量覆盖脚本只靠文档口头约定「勿在新树上运行」，任何人（或 Agent）误跑一次就污染源码树，而且没有报错指回它（D37 的收尾项） | ✅ 加拒绝闸：默认 `REFUSED` + exit 112 并指向 `deploy_mcloud.py`，需 `MCLOUD_ALLOW_LEGACY_SETUP=1` 才继续；`--help` 保持 0（实测三条路径） |
 | D99 | **Critical** | `final_gate_matrix.ps1` + `loader_edge_test2/3.py` | 门禁把 `LOADER_TEST_OUT` 设成**真实构建目录**，而这两个边界测试会改写 `<out>/mcloud_flags.txt`（BOM/空文件/垃圾字节/3000 条合并上限语料），只在 finally 恢复。实测：测试被打断后发布目录里留下 106,890 B 与 300,063 B 的假 flags 文件（其一首字节 0xD6、根本不是 UTF-8），下游 A6 / flag_runtime_state / leak_probe 于是**拿测试垃圾当生产配置**测量，其中一个直接崩在裸 UnicodeDecodeError；若在此状态下跑 `mini_installer`，安装包里就是垃圾语料 | ✅ 门禁改为给测试建**硬链接沙箱** `out/mcloud_loader_test`（链全部运行时文件、跳过 args.gn/.ninja_log/.ninja_deps/build.ninja 与文件数>1000 的构建中间目录；跑完 loader 测试后真实文件 sha256 前后 `61b7670856ed` 不变）；两个测试各加 `REFUSED` 防线（目标目录出现构建特征文件即 exit 2，需 `MCLOUD_ALLOW_LOADER_TEST_ON_BUILD_DIR=1` 才放行） |
 | D100 | Medium | `.bugreview/flag_runtime_state.py` | ① 以 utf-8 硬读构建目录 flags，被污染时抛裸 traceback，看不出真实原因；② 检出「与仓库不一致」只打印一行 `(!)` 就继续测——在这种状态下得到的运行时结论不属于发布配置；③ `--control` 会写生产 flags 文件（虽有 finally 恢复） | ✅ 改按 utf-8-sig 读字节，解码失败给出「产物目录被测试污染」的可执行修复指引；不一致即 exit，只有 `--allow-drift` 才继续看差异 |
+| D102 | **High** | `.bugreview/package_m155.py` 的载荷判据 | 「在 chrome.7z 里搜 `mcloud_flags.txt` 文件名」是**无效量具**：7z 文件表是压缩的，对照实验里 `chrome.dll`、`resources.pak`、`icudtl.dat`、`chrome_100_percent.pak` 这些必然在包内的文件在前 16 MB 命中数**全为 0**；唯一一次命中是 chrome.dll 里加载器自己的字符串（上下文 `MCloud flags: --… skipped by command-line budget`）。于是「载荷已验证」是假的 | ✅ 改为读**打包暂存目录** `…/mini_installer/temp_installer_archive/Chrome-bin/mcloud_flags.txt`（它就是被压进 7z 的那份）并做 sha256 比对；负控制（把暂存文件改名）→ 门禁 FAIL/exit 1，恢复 → 全绿 |
+| D103 | **High** | 上游 `chrome/tools/build/win/create_installer_archive.py` | `chrome.release` 里列出的条目若 glob 匹配不到源文件，**默认静默跳过**（只在 `--verbose` 时打印一句 No matches found）→ `autoninja` exit=0、打包「成功」，但包里根本没有那个文件。D47 的失败模式在构建链里依然存在，只是此前没人能看见 | ✅ 不改上游脚本，改为在我方门禁里加「暂存目录必须含该文件且与仓库字节一致」的硬断言（即 D102 的新判据），把静默跳过变成打包失败 |
+| D104 | Medium | 已安装实例（用户机器实测） | 装完 155 后 `Application\mcloud_flags.txt` 仍是 **9-22 的旧文件**（5,878 B / sha `52e67eab7319`），chrome://version 的命令行里因此是 **D51 修复前的坏 params 形式** `InitialWebUI:without_spellcheck/without_translate/high_stream_priority`（无值 → 参数被丢弃、退回上游默认）；而 `chrome.exe`/`chrome.dll` 与本次构建**逐字节相同**（86b588a485855fd8 / 2c9812e62f16308c），说明浏览器本体装对了、只有那个额外文件没被覆盖 | ✅ 已把旧文件隔离为 `mcloud_flags.txt.stale-20260922` 并放入当前正文（8,186 B / `61b7670856ed`），待用户重启后复核 chrome://version；「安装器为何不覆盖已存在的同名文件」尚未定论，需一次干净位置的安装实验（待用户授权） |
 
 流程性缺口（不是某一行代码的错）：**本轮之前仓库没有任何 Python 静态检查在跑**。
 现已引入 `ruff`（F/E9/B/SIM）+ `pyflakes`，并把 ruff 的真阳性（B023/B905/F841）逐条判真伪后处置。
 
-## 第3周期·扩展轮（D77–D100：导航基准、门禁聚合、src/ 参与度、步骤文档、临时文件）
+## 第3周期·扩展轮（D77–D104：导航基准、门禁聚合、src/ 参与度、步骤文档、临时文件）
 
 > 编号说明：本段登记 D77–D100，其中 **D98 未启用**（复核后未成立，编号保留不复用），
 > 实际共 23 条。

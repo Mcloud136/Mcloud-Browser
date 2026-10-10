@@ -62,7 +62,7 @@
 - 产物：加载器升到 v6 需重编 `chrome.dll`；`gn gen --check` 后出现整树重编计划（51,296 步，
   确切成因待查，已列待办），为保持"仓库正文 == 二进制源码"本轮接受该重编
 
-### 第3周期·扩展轮（同日晚，D77–D100：导航基准 / 门禁聚合 / src 参与度 / 步骤文档 / 临时文件）
+### 第3周期·扩展轮（同日晚，D77–D104：导航基准 / 门禁聚合 / src 参与度 / 步骤文档 / 临时文件）
 
 - **D89（Critical，本轮最重要）**：`benchmark/tools/final_gate_matrix.ps1` 的汇总用函数体内
   `$results +=`，PowerShell 作用域规则使其永不写回脚本级变量 → **无论各门禁成败都输出
@@ -103,6 +103,8 @@
 - D94（High，假绿家族）：`benchmark/run_baseline.ps1`（K1/K2/K7 一键采集器）用 `& 子脚本 | Tee-Object -Variable x` 抓输出，但 PS 5.1 里 `Write-Host` 走 information stream(6)，实测**捕获 0 行**（加 `6>&1` 才有 6 行）→ 生成的基线报告「原始数据」为空、KPI 表恒写「见原始数据」，末尾仍绿色打印「报告已写入」且 exit 0。同文件另有两处口径错：`-Version` 默认写死 `M150`（同时决定报告标题与**文件名**）、`$env:COMPUTER_NAME` 拼错（应为 `COMPUTERNAME`）使「构建机」字段恒空。修复：`6>&1` 捕获 + 正则把 K1/K2/K7 数值填进表 + 版本从被测二进制文件版本推导 + 抽不到数即写入异常记录并 exit 1（报告仍留作取证）+ 捕获后回显保住了控制台进度可见性。全仓 `Tee-Object` 扫描确认该模式只此一处。
 - D97：`win_scripts/setup.py`（遗留全量覆盖脚本）此前只靠文档口头禁令，误跑一次就污染源码树。现加拒绝闸：默认打印 `REFUSED` 并 exit 112、指向 `deploy_mcloud.py`，需显式 `MCLOUD_ALLOW_LEGACY_SETUP=1` 才继续；`--help` 保持可用（三条路径实测）。
 - D99（Critical）+ D100：门禁把 `LOADER_TEST_OUT` 指向**真实构建目录**，而 loader 边界测试会改写 `out/mcloud/mcloud_flags.txt` 做 BOM/空文件/垃圾字节/3000 条语料，只在 finally 恢复。实测打断后发布目录留下 106,890 B / 300,063 B 的假 flags 文件（一首字节 0xD6 非 UTF-8），下游 A6/leak_probe/runtime_state 于是拿测试垃圾当生产配置测量，`flag_runtime_state.py` 直接崩在裸 `UnicodeDecodeError`。修复：门禁改建**硬链接沙箱** `out/mcloud_loader_test`（链运行时文件、跳过构建元数据与文件数>1000 的中间目录）；两个测试加「发现 args.gn/.ninja_log 即 REFUSED/exit 2」前门；`flag_runtime_state.py` 改 utf-8-sig 读 + 解码失败给恢复指引 + 与仓库不一致即 exit（`--allow-drift` 才继续）。隔离验证：沙箱里跑完测试，真实文件 sha256 前后不变。
+- D102/D103（打包门禁的载荷判据是无效量具）：`package_m155.py` 原来靠「在 chrome.7z 里搜 `mcloud_flags.txt` 文件名」证明包里有它，但 7z 文件表是压缩的——对照实验里 `chrome.dll`/`resources.pak`/`icudtl.dat` 命中数全为 0，唯一命中是 chrome.dll 内加载器自己的字符串。上游 `create_installer_archive.py` 对匹配不到的 chrome.release 条目默认**静默跳过**（只有 --verbose 才打印），所以缺文件也能 exit=0。改为断言**打包暂存目录** `temp_installer_archive/Chrome-bin/mcloud_flags.txt` 存在且与仓库字节一致，并用「改名→FAIL、恢复→全绿」证明这条判据能失败。
+- D104（用户机器实测）：装完 155 后 `Application\mcloud_flags.txt` 仍是 9-22 的旧文件，chrome://version 里因此出现 D51 修复前的坏 params 形式；`chrome.exe`/`chrome.dll` 与本次构建逐字节相同（说明装对了、只有额外文件没被覆盖）。已隔离旧文件并放入正文，待重启复核。
 - 本轮**未改动任何浏览器 C++ 源码与 `mcloud_flags.txt`**，故不需重编；产物仍是
   `chrome.dll` 303,440,384 B / installer `0602cafa…7090`。
 
