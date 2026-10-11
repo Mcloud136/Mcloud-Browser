@@ -124,11 +124,26 @@ MCloud Browser 是基于 Chromium（当前 M155，155.0.8059.40，硬件基线 A
 9. **`build_win.py`** — 执行 gn/autoninja 编译。
 10. 辅助：`version.py`（版本管理）、`clean.py`、`reset_depot_tools.py`、`tot.py`/`trunk.py`（ToT 同步）。
 11. **`verify_sources.py`** — 最小源码验证：win_scripts/ 全部 Python 脚本语法检查 + 关键脚本存在性 + pak_src/ C 源码检查。修改构建脚本后运行 `python3 win_scripts/verify_sources.py`（退出码 0=PASS / 1=FAIL）；已接入 CI（`.github/workflows/verify.yml`，push/PR 自动运行）。
+12. **`build_setup_exe.py`** — 编译外层安装包装器 `MCloud-Setup.exe`（源文件 `installer/mcloud_setup.cs`），
+    由 `package_m155.py` 在打包时自动调用并内嵌 mini_installer。**必须用 VS 的 Roslyn csc**：
+    .NET Framework 自带的旧 csc 不支持 `/deterministic`，同一份源码两次编译 SHA 会不同，
+    发布哈希失去意义。脚本会自动优先 Roslyn 并在日志里打印所用编译器与是否可复现。
+    注意复现性验证要**同名不同目录**对比——输出文件名会进元数据。
 
 注意：`setup.py` 为遗留全量覆盖脚本，已被定点注入取代，勿在新 Chromium 树上运行（会污染源码树）。
 该约定现已**机器化**（缺陷 D97，2026-10-11）：脚本在没有上游对应动作的位置直接拒绝执行，
 默认 `REFUSED` + 退出码 112 并指向 `deploy_mcloud.py`；只有显式设 `MCLOUD_ALLOW_LEGACY_SETUP=1` 才会继续。
 `--help` 仍正常返回 0。
+
+### 发布物有两个（缺陷 D119，必读）
+
+| 文件 | 说明 |
+|---|---|
+| `mcloud_<ver>_win64_setup.exe` | **给用户的那个**。外层包装器：优雅关闭正在运行的本产品实例 → 安装 → **复验根 chrome.exe 确实升到本版本** → 清理临时文件与残留进程 → 自动重启浏览器。默认用户级（不弹 UAC），`--system-level` 走系统级并自举提权；`--list-only` 只报告不关闭。 |
+| `mcloud_<ver>_win64_mini_installer.exe` | 上游裸安装器。**浏览器正在运行时双击它，更新会静默不生效**：根启动桩是被锁的映像，上游把它暂存成 `new_chrome.exe` 并把收尾改名委托给 Google Update，而我们不发布 Google Update（实测见 `docs/tasks/bug-review-cycle4-report.md`）。只用于浏览器已完全退出的场景或自动化复验。 |
+
+⚠ 只发裸 mini_installer 等于把"装了但没更新"交给用户；发布说明与任何安装指引都必须指向 setup 那个。
+验收/回归：`.bugreview/setup_wrapper_test.py`（造 151 运行中现场 → 用包装器升 155 → 断言真的升到 155）。
 
 前置文档：**本文件下面「构建快速参考」一节 + `docs/progress.md` §5.1**（两者一致，是权威步骤）。
 ⚠ `docs/BUILDING_WIN.md` 是**上游 Thorium 遗留文档**（假设 `C:\src\chromium\src`、要 VS 2022、

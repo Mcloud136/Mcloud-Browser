@@ -8,6 +8,7 @@ import hashlib
 import io
 import os
 import shutil
+import subprocess
 import sys
 
 THOR = r"d:\wxmuma\thorium"
@@ -132,6 +133,23 @@ with open(RELEASE + ".sha256", "w", newline="\n") as f:
     f.write("%s *%s\n" % (digest, os.path.basename(RELEASE)))
 print("发布物 -> %s  %d B\nSHA256 = %s" % (RELEASE, os.path.getsize(RELEASE), digest))
 
+# ---- 外层安装包装器（缺陷 D119）----
+# 直接双击 mini_installer 时，若浏览器正在运行，更新会**静默不生效**：根启动桩是被锁的
+# 映像，上游把它暂存成 new_chrome.exe，并把收尾改名委托给 Google Update——而我们不发布
+# Google Update（实测见 docs/tasks/bug-review-cycle4-report.md）。所以发布物必须带一个
+# 内嵌 mini_installer 的包装器：优雅关闭 → 安装 → 复验 → 清理 → 重启。
+SETUP = os.path.join(THOR, "mcloud_%s_win64_setup.exe" % VER)
+_build = os.path.join(THOR, "win_scripts", "build_setup_exe.py")
+_r = subprocess.run([sys.executable, _build, "--embed", RELEASE, "--out", SETUP],
+                    capture_output=True, text=True, errors="replace")
+if _r.returncode != 0 or not os.path.isfile(SETUP):
+    print("FAIL 包装器编译失败：\n" + (_r.stdout or "") + (_r.stderr or ""))
+    sys.exit(1)
+_setup_digest = sha(SETUP)
+with open(SETUP + ".sha256", "w", newline="\n") as f:
+    f.write("%s *%s\n" % (_setup_digest, os.path.basename(SETUP)))
+print("发布物 -> %s  %d B\nSHA256 = %s" % (SETUP, os.path.getsize(SETUP), _setup_digest))
+
 notes = """# MCloud Browser v%s
 
 基于 Chromium **M155（%s）**，Windows x64。本版是一次内核升级（M151 → M155），保持既有性能取向与
@@ -145,7 +163,17 @@ notes = """# MCloud Browser v%s
 - **冻结缓解真正生效**：`SkiaGraphite` 在上游本就是默认启用，此前仅注释掉启用行并不构成禁用；
   本版改为显式 `--disable-features=SkiaGraphite`（其余 3 项禁用状态不变）。
 - **清单去虚**：删除 `FlingSchedulingImprovements`（M155 起上游已彻底移除该 feature）。
-- **安装版才真正带上优化清单（r4）**：`mcloud_flags.txt` 改由 VersionDir 投递到 `Application/155.0.8059.40/`，加载器 v7 同时支持 exe 同目录（开发树）与版本子目录（安装版）两种位置。此前登记在 Application 根目录的条目会被打包但**不被安装**（setup.exe 对根目录只搬固定三件套），所以 r3 及更早的安装包在干净机器上等于零内置优化（缺陷 D105）。
+- **安装版才真正带上优化清单（r4）**：`mcloud_flags.txt` 改由 VersionDir 投递到 `Application/155.0.8059.40/`，加载器 v8 按 chrome.dll 所在目录（`base::DIR_MODULE`）优先查找，兼容开发树/便携包的扁平布局与安装版的版本子目录布局。此前登记在 Application 根目录的条目会被打包但**不被安装**（setup.exe 对根目录只搬固定三件套），所以 r3 及更早的安装包在干净机器上等于零内置优化（缺陷 D105）。
+- **加载器路径优先级修正（r5）**：v7 以 exe 同目录为第一候选，会让一份残留的 `Application\\mcloud_flags.txt` 永久静默压掉安装包投递的正式文件（缺陷 D109）。v8 改以 chrome.dll 所在目录为第一候选，与上游 `GetModulePath` 同口径。
+
+## 安装（两个发布物，请用 setup 那个）
+
+| 文件 | 用途 |
+|---|---|
+| `mcloud_155.0.8059.40_win64_setup.exe` | **推荐**。外层安装包装器：优雅关闭正在运行的本产品实例 → 安装 → **复验根 chrome.exe 确实升到本版本** → 清理临时文件与残留进程 → 自动重启浏览器。默认装到用户级目录（不弹 UAC）；加 `--system-level` 走系统级（自举提权）。 |
+| `mcloud_155.0.8059.40_win64_mini_installer.exe` | 上游原生安装器本体。**如果浏览器正在运行，更新会静默不生效**——根启动桩是被锁的映像，上游把它暂存成 `new_chrome.exe` 并把收尾改名委托给 Google Update，而本产品不发布 Google Update（缺陷 D119，已实测）。只在浏览器已完全退出、或你确认自己需要裸安装器时使用。 |
+
+包装器另有 `--list-only`（只报告将关闭哪些实例、不关闭不安装）与 `--no-launch`（装完不重启）两个开关，退出码 0=成功且已复验 / 1=复验未通过 / 2=环境不满足。
 
 ## 实测（同一台机器、同一时刻成对测量）
 

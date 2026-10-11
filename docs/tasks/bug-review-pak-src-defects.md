@@ -720,6 +720,7 @@ PowerShell 5.1（中文必须 UTF-8 BOM，见 D38）、GN（Chromium 构建元�
 | D116 | Low | 同上，渲染进程定位 | 原打算用 CDP `Target.getTargetInfo().processId` 精确杀掉"承载被测标签"的渲染进程，实测 **M155 的 targetInfo 里没有这个字段**（只有 targetId/type/title/url/attached/canAccessOpener/browserContextId），于是定位手段落空；而"随便挑一个 renderer 杀"会让实验前提失效 | ✅ 改**闭环自证**：逐个杀本实例渲染进程，每杀一个就看被测标签是否真的进崩溃态，崩了才说明杀对了（实测第 6 个才命中，前 5 个是备用/其他标签的进程）；顺带把"杀遍全都不崩"记为 env-fail |
 | D117 | Medium | R3 下载步骤的量具（两处自伤） | ① 探针页用 `document.body.innerText='R3-DL-READY'` 打标记 —— **给 innerText 赋值会替换全部子节点**，于是刚写的 `<a download>` 自己把自己删了，随后 `getElementById('d')` 为 null → TypeError，看起来像"下载功能坏了"；② 本地 HTTP 服务用 `type("H",(Handler,),{"directory":root})` 注入目录，而 `SimpleHTTPRequestHandler.__init__` 里 `self.directory = directory or "."` 会**覆盖类属性** → 404 | ✅ 标记改为静态元素 `<p id=m>`；目录改用 `functools.partial(Handler, directory=root)`。修复后真实下载落盘（`r3-payload.txt`）+ `Page.printToPDF` 出 8,459 B 且文件头 `%PDF-` |
 | D118 | Low | R3 的 `MediaCapabilities` 查询 | M155 起 `VideoConfiguration.framerate` 是**必填**：缺了整次调用抛 TypeError，四个 codec 全部变成 err，读起来像"解码能力查询失败"，实际是参数不全 | ✅ 补 `framerate: 30`；随后 h264/hevc/av1/vp9 全部 `supported+smooth+powerEfficient=true`（注意：该字段只证明"被选中"，GTX 1050 Ti 无 AV1 硬解单元，HEVC 硬解证据仍以 K6 4K 播放实测 + chrome://gpu 的 Video Decode 为准） |
+| D119 | **High（发布相关）** | 发布/升级面：`mini_installer.exe` 直接双击安装 | **浏览器正在运行时安装新版，安装器返回 0 但更新完全不生效**，而且没有任何东西会去补完它。实测（`.cycle4/probe_inuse_update.py`，151→155 系统级）：装完根 `chrome.exe` 仍是 `151.0.7922.99`，155 的暂存件 `new_chrome.exe` 出现在安装目录且无人消化；关掉旧实例再双击启动，`chrome://version` 实测仍是 **151.0.7922.99**——而 155 的版本目录与 `mcloud_flags.txt` 都已正确落地，只是没人用它们。机理：载荷走旁路新版本目录（`install_worker.cc:295-306`）不需要覆盖，但根启动桩是被锁的映像，上游因此走 in-use 分支暂存为 `new_chrome.exe` 并写一条 `rename-chrome-exe` AppCommand（`install_worker.cc:867-901`），而**系统级安装的收尾改名整个委托给 Google Update**（`upgrade_util_win.cc:505-506`）——我们不发布 Google Update，所以这一步永远没人执行 | ✅ 新增外层安装包装器 `installer/mcloud_setup.cs` → `MCloud-Setup.exe`（csc.exe 编译，.NET Framework 自带、无需 SDK）：按**可执行文件路径**（不按进程名，D52/D55/D106 纪律）识别本产品实例 → 先发 `WM_CLOSE` 优雅退出（Chrome 自己保存会话），30 秒超时才升级为强制结束 → 再跑 mini_installer（此时根桩不再被锁，走 regular 分支直接覆盖）→ **复验根 chrome.exe 版本 == 包内版本且无 `new_chrome.exe` 残留** → 清理临时目录并断言无 setup/mini_installer 驻留 → 自动重启浏览器。验收测试 `.bugreview/setup_wrapper_test.py`（同一 151→155 现场，包装器路径必须真的升到 155）；`--list-only` 作负向对照（只报告不关闭，且系统级模式下用户级实例必须完全不在集合内）。另注：上游 M155 的 setup.exe **没有任何进度 UI**（`ProgressCalculator::Calculate()` 除单元测试外无消费者），也没有静默/非静默开关，所以"要安装界面"只能由外层提供 |
 
 流程性缺口（不是某一行代码的错）：**本轮之前仓库没有任何 Python 静态检查在跑**。
 现已引入 `ruff`（F/E9/B/SIM）+ `pyflakes`，并把 ruff 的真阳性（B023/B905/F841）逐条判真伪后处置。
@@ -1248,7 +1249,52 @@ breaking tests checking process counts or expecting immediate process exit"*。
    涉及 Wikipedia 的判据在这台机器上不可用。
 
 
+### D119 详细：浏览器运行中安装新版 = 静默不生效（High，发布相关）
+
+**实测过程**（`.cycle4/probe_inuse_update.py`，151 → 155 系统级，全程只碰 Program Files 的测试安装）：
+
+| 步骤 | 观测 |
+|---|---|
+| 装 151 并启动 | 根 `chrome.exe` FileVersion = `151.0.7922.99`，版本目录只有 151 |
+| **运行中**装 155 | mini_installer 返回 **rc=0**（"安装成功"） |
+| 装完快照 | 根 `chrome.exe` **仍是 151.0.7922.99**；`Application
+ew_chrome.exe` **出现**；155 版本目录与 `mcloud_flags.txt` 都已正确落地；151 目录因 in-use 被保留（`delete_old_versions.cc:163-168`） |
+| 关掉旧实例后重新启动 | `chrome://version` 实测 **`Chromium 151.0.7922.99`** —— 用户拿到的是旧版 |
+
+**机理**：载荷走旁路新版本目录（`install_worker.cc:295-306`）所以不需要覆盖；根启动桩是被锁的映像，
+上游因此走 in-use 分支：暂存成 `new_chrome.exe` / `chrome_proxy.new.exe` 并写一条
+`rename-chrome-exe` AppCommand（`install_worker.cc:867-901`）。收尾改名在**系统级安装**下
+整个委托给 Google Update（`upgrade_util_win.cc:505-506` `InvokeGoogleUpdateForRename()`），
+而本产品不发布 Google Update ⇒ 没有任何执行者，`new_chrome.exe` 会一直躺在那里。
+
+**未证实的一点**（如实标注）：探针在 `SOFTWARE\Chromium\Clients\*\Commands` 下没找到 AppCommand
+（`app_commands: []`），但那是**探针猜的注册表路径**（真实路径是
+`install_static::GetClientsKeyPath()\Commands\<name>`），不能据此断言上游没写这条命令。
+
+**修复**：新增外层安装包装器 `installer/mcloud_setup.cs` → `mcloud_<ver>_win64_setup.exe`
+（构建脚本 `win_scripts/build_setup_exe.py`，已接入 `package_m155.py`）。行为：
+按可执行文件路径识别本产品实例（读不到路径的进程一律不算目标）→ 只发 `WM_CLOSE` 优雅退出、
+30 秒超时才升级为强制结束 → 运行内嵌 mini_installer → **复验根 chrome.exe 版本 == 包内版本
+且无 `new_chrome.exe` 残留** → 删临时目录并断言无 setup/mini_installer 驻留 → 自动重启浏览器。
+
+**验收**（`.bugreview/setup_wrapper_test.py`，同一 151→155 现场）：包装器退出码 0、
+1 个 WM_CLOSE 关掉 8 个实例（未动用强制结束）、根 chrome.exe = 155.0.8059.40、
+`new_chrome.exe` 无、151 目录被正常删除、重启后 `actually_running = 155.0.8059.40`、
+零进程驻留、用户自己的用户级安装 sha 未变。负向对照：`--list-only` 只报告不关闭；
+系统级模式下用户级实例完全不在关闭集合内。
+
+**顺带修掉的两处自身问题**：① 包装器首版把"另一个安装位置"的进程也并进关闭集合
+（系统级安装会无故关掉用户正在用的浏览器），已收窄为只针对本次要写的目录；
+② `build_setup_exe.py` 首版用 .NET Framework 自带的旧 csc，**不支持 `/deterministic`**，
+同一份源码两次编译 SHA 不同（实测 `b0bc7652…` → `96376b3c…`），发布哈希失去意义；
+改为优先用 VS 的 Roslyn csc 并加 `/deterministic+`，连跑两次打包 SHA 稳定为
+`106a245452539057685e5fe336c06aae360699933c117b38c1feaa7e0d575e4e`。
+另注意：**输出文件名会进元数据**，所以复现性验证必须用同名不同目录对比
+（首版我用 `rep-a.exe`/`rep-b.exe` 对比，得出"仍然不可复现"的错误结论，差异仅 24 字节且含 `A`/`B` 字符差）。
+
+
 ## 待办（本档案跟踪）
+- [x] D119：外层安装包装器 `mcloud_<ver>_win64_setup.exe` 已实现并验收（运行中升级真的生效）
 - [ ] D109 收口：加载器 v8 重编后必须依次跑 `.bugreview/loader_precedence_test.py`（期望
       `VERSION`）、`benchmark/tools/r1_startup_check.py`、`final_gate_matrix.ps1`、
       `.bugreview/package_m155.py`，最后再做一次 `--system-level` 干净安装复验；

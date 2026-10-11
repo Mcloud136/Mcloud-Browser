@@ -44,3 +44,8 @@ build_repackage.log
 
 # 第4周期 bug-review 的实操证据目录（截图/PDF/下载物），不入库
 .cycle4/
+
+# MCloud-Setup.exe 编译产物（csc 输出，不入库）
+installer/out/
+mcloud_*_win64_setup.exe
+mcloud_*_win64_setup.exe.sha256

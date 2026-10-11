@@ -89,6 +89,32 @@
   （沿革：`0602cafa…` = r3，带 D105 已知缺陷；`54fc59b5…` = r4 修复后）。
 - 新增纪律（AGENTS.md）：**发布前必须做一次干净安装复验**，只看门禁绿灯不足以证明安装包正确。
 
+### r5b（安装面：修 D119 运行中升级静默不生效 + 新增外层安装器）— 2026-10-11 深夜
+
+- **D119（High，发布相关）**：**浏览器正在运行时双击 mini_installer，安装器返回 0 但更新完全不生效**。
+  实测（151→155 系统级）：装完根 `chrome.exe` 仍是 `151.0.7922.99`，`new_chrome.exe` 被暂存后无人消化，
+  重启后 `chrome://version` 仍是 151。机理：载荷走旁路新版本目录不需要覆盖，但根启动桩是被锁的映像，
+  上游因此暂存为 `new_chrome.exe` 并写一条 `rename-chrome-exe` AppCommand，而**系统级安装的收尾改名
+  整个委托给 Google Update**（`upgrade_util_win.cc:505-506`）——我们不发布它，所以这一步永远没人执行。
+- 新增**外层安装包装器** `installer/mcloud_setup.cs` → `mcloud_155.0.8059.40_win64_setup.exe`
+  （构建脚本 `win_scripts/build_setup_exe.py`，已接入 `package_m155.py`）：
+  按可执行文件路径识别本产品实例（读不到路径就不算目标）→ `WM_CLOSE` 优雅退出、30 秒超时才强制结束 →
+  运行内嵌 mini_installer → **复验根 chrome.exe 版本 == 包内版本且无 `new_chrome.exe` 残留** →
+  删临时目录并断言无 setup/mini_installer 驻留 → 自动重启浏览器。
+  开关：`--system-level`（自举提权）/ `--no-launch` / `--list-only` / `--quiet`；
+  退出码 0=成功且已复验 / 1=复验未通过 / 2=环境不满足。**给用户的一律是 setup 那个**。
+- 上游 setup.exe **没有任何进度 UI**（`ProgressCalculator::Calculate()` 除单元测试外无消费者），
+  也没有静默开关，所以"要安装界面"只能由外层提供；本轮按用户决定**只做阶段状态文字，不做进度条**。
+- 验收与对照：`.bugreview/setup_wrapper_test.py` 在同一 151→155 现场下，包装器路径
+  **1 个 WM_CLOSE 关掉 8 个实例（未动用强制结束）**、根 chrome.exe = 155、`new_chrome.exe` 无、
+  151 目录被正常删除、重启后 `actually_running = 155.0.8059.40`、零进程驻留、用户自己的安装未受影响；
+  `--list-only` 只报告不关闭，且系统级模式下用户级实例完全不在集合内（首版会误并进来，已收窄）。
+- 发布可复现性：旧 csc 不支持 `/deterministic` 导致同一源码两次编译 SHA 不同
+  （`b0bc7652…` → `96376b3c…`），改为优先 VS Roslyn csc + `/deterministic+` 后连跑两次打包
+  SHA 稳定。setup 发布物：127,583,232 B / `106a245452539057685e5fe336c06aae360699933c117b38c1feaa7e0d575e4e`。
+- 浏览器本体未变：`mcloud_155.0.8059.40_win64_mini_installer.exe` 仍是
+  `17b3151379dfc1091efe10a05825ce433c58895a27f6d925025dfbbd7517f3b7`（r5），不需要重测浏览器行为。
+
 ### r5（第4周期五轮实操收口：修 D109 加载器路径优先级 + 量具假绿族）— 2026-10-11 晚
 
 本轮口径是**实地操作**而非脚本反馈：每轮真启动独立 profile 实例，真拖窗口、真杀 GPU/渲染进程、
