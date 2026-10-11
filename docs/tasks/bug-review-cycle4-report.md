@@ -22,6 +22,12 @@ GPU/渲染进程、真下载文件、真放 1.18 GB 本地视频，判据一律�
 
 ## 1. 方法学（本轮沉淀的硬规则）
 
+> **关于文中出现的 `.cycle4/...` 路径**：那是本轮的**证据目录**（截图、PDF、下载物、一次性
+> 诊断脚本），已 gitignore、不入库。凡是写成 `.bugreview/...` 的才是随仓库保留的可重跑判据
+> （`loader_precedence_test.py`、`installed_shadowing_test.py`、`inuse_update_probe.py`、
+> `setup_wrapper_test.py`）。看到指向 `.cycle4/` 的引用时，把它当"当时看到的证据清单"，
+> 不要当作还能从仓库里取出的文件。
+
 1. **文本存在性 ≠ 内容正确性**。所有"读到了内容"的判据必须先过 `cdp.is_error_page()`；
    正向标记只能来自**自己生成的本地页**。远端内容会变：example.com 正在改版，不同 CDN 节点
    分别返回 917 字符多语种版（含 `<h1>Example Domain</h1>`）与 156 字符纯段落版（连 h1 都没有，
@@ -150,7 +156,7 @@ GPU/渲染进程、真下载文件、真放 1.18 GB 本地视频，判据一律�
 |---|---|---|---|
 | 判据（可重跑） | `.bugreview/loader_precedence_test.py`：硬链接拼出安装同形沙箱（根目录**无** chrome.dll），两份文件各带不同探针开关，真启动一次从 chrome://version 读回生效的那枚 | `verdict: ROOT` | `verdict: VERSION` |
 | 真安装落地 | `mini_installer.exe --system-level` 干净装到 `C:\Program Files\Chromium\` | — | `Application\155.0.8059.40\mcloud_flags.txt` 8,186 B、sha256 `61b7670856ed…` 与仓库一致；根目录**没有**该文件（正是 D105 的投递路径生效） |
-| 真产品二进制 | `.cycle4/verify_installed_shadowing.py`：往这次测试安装的**根目录**植入一份带 `--mcloud-installed-shadow-probe=ROOT` 的残留文件，启动已安装的 chrome.exe，读 chrome://version | （v7 会读 ROOT） | `installed binary read ROOT: False`、`read VERSION: True` → `VERDICT: FIXED`；探针文件用完即删 |
+| 真产品二进制 | `.bugreview/installed_shadowing_test.py`：往这次测试安装的**根目录**植入一份带 `--mcloud-installed-shadow-probe=ROOT` 的残留文件，启动已安装的 chrome.exe，读 chrome://version | （v7 会读 ROOT） | `installed binary read ROOT: False`、`read VERSION: True` → `VERDICT: FIXED`；探针文件用完即删 |
 
 对安装后二进制的运行时回显：`enable 51 / disable 2`，与开发树一致；解析到的路径就是版本目录那份。
 卸载：`Installer\setup.exe --uninstall --system-level` 返回 **19 = `UNINSTALL_SUCCESSFUL`**
