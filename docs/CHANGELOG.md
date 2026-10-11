@@ -89,6 +89,27 @@
   （沿革：`0602cafa…` = r3，带 D105 已知缺陷；`54fc59b5…` = r4 修复后）。
 - 新增纪律（AGENTS.md）：**发布前必须做一次干净安装复验**，只看门禁绿灯不足以证明安装包正确。
 
+### r5c（D120：包装器改为就地更新，并校验默认浏览器与快捷方式）— 2026-10-11 深夜
+
+- 用户反馈"安装程序先卸载会清掉默认浏览器设置和任务栏快捷方式"。逐链实测**更正了前提**：
+  默认浏览器**没丢**——`HKLM\SOFTWARE\Classes\ChromiumHTM\shell\open\command` 与
+  `StartMenuInternet\Chromium\shell\open\command` 都已被系统级安装重登记到新路径，
+  `UserChoice(http/https)=ChromiumHTM` 仍解析到存在的 exe；真正丢的只有任务栏固定项
+  （`User Pinned\TaskBar` 只剩 File Explorer）与开始菜单 lnk。
+- 真因是**换了安装位置**（先卸用户级、再装系统级），而包装器首版按命令行参数决定装到哪、
+  不检测已有副本 ⇒ 误用一次就会留下两份安装、并把 pin 指向死路径（缺陷 D120）。
+- 改为 **Google Update 式就地更新**：`DetectInstall()` 以"根 chrome.exe 是否存在"判定
+  （注册表有卸载空壳，不可靠），两处都在时以**默认浏览器当前解析到的那份**为准，再退而取版本更高者；
+  只有显式 `--system-level` / `--user-level` 才允许换位置，且换之前打印后果警告。
+- 新增**更新前快照 / 更新后复算**：默认浏览器解析目标与各 .lnk 指向；链"从好变坏"判 FAIL，
+  pin 指向死路径只 WARN 并逐条列出。**不做任务栏 pin 自动恢复**——Windows 7 之后没有公开 API
+  （`ITaskbarList::AddTab` 只是活动按钮），写 `User Pinned\TaskBar` 属非公开做法，按用户决定不采用。
+- 健壮性：`CheckAssociations` 的键访问加守卫、Main 的兜底 catch 补上栈信息（未预期异常不得
+  让 GUI 连失败原因都显示不出来）。
+- 实测：无参数时输出"检测到已安装副本 C:\Program Files\Chromium\Application → 就地更新这一份"；
+  只有系统级却传 `--user-level` 时输出 WARN 并说明后果。上游 setup.exe **不支持自定义安装目录**，
+  所以"完整安装路径"的新增代码段尚未在真机上跑过（见待办）。
+
 ### r5b（安装面：修 D119 运行中升级静默不生效 + 新增外层安装器）— 2026-10-11 深夜
 
 - **D119（High，发布相关）**：**浏览器正在运行时双击 mini_installer，安装器返回 0 但更新完全不生效**。

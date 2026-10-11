@@ -34,6 +34,7 @@ using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Security.Principal;
+using Microsoft.Win32;
 using System.Text;
 using System.Threading;
 using System.Windows.Forms;
@@ -107,6 +108,171 @@ internal static class MCloudSetup
         string pf = Environment.GetEnvironmentVariable("ProgramFiles") ?? @"C:\Program Files";
         return Path.Combine(pf, CompanyDir, AppDirName);
     }
+
+    // 已安装副本的位置。判据用"根 chrome.exe 是否存在"，比只读注册表可靠：
+    // 注册表会留下卸载后的空壳（本机就有 HKCU\Software\Chromium 的残留 pv 为空）。
+    private static string InstalledAppDir(bool system)
+    {
+        string dir = system ? SystemAppDir() : UserAppDir();
+        return File.Exists(Path.Combine(dir, "chrome.exe")) ? dir : null;
+    }
+
+    // 默认浏览器当前解析到哪个 exe —— 那才是"用户真正在用的那一份"。
+    private static string DefaultBrowserTarget()
+    {
+        try
+        {
+            using (RegistryKey uc = Registry.CurrentUser.OpenSubKey(
+                       @"Software\Microsoft\Windows\Shell\Associations\UrlAssociations\https\UserChoice"))
+            {
+                string progId = uc == null ? null : uc.GetValue("ProgId") as string;
+                if (string.IsNullOrEmpty(progId)) return null;
+                foreach (RegistryKey r in new[] { (RegistryKey)Registry.LocalMachine, (RegistryKey)Registry.CurrentUser })
+                {
+                    using (RegistryKey k = r.OpenSubKey(
+                               @"Software\Classes\" + progId + @"\shell\open\command"))
+                    {
+                        string cmd = k == null ? null : k.GetValue(null) as string;
+                        if (string.IsNullOrEmpty(cmd)) continue;
+                        int q1 = cmd.IndexOf('"');
+                        if (q1 >= 0)
+                        {
+                            int q2 = cmd.IndexOf('"', q1 + 1);
+                            if (q2 > q1) return cmd.Substring(q1 + 1, q2 - q1 - 1);
+                        }
+                        return cmd.Split(' ')[0];
+                    }
+                }
+            }
+        }
+        catch (Exception) { /* 读不到就退回位置优先级判断，不因此中止安装 */ }
+        return null;
+    }
+
+    // 返回 (appDir, isSystem, why)。两处都装着时，以"默认浏览器指向的那份"为准——
+    // 这才是 Google Update 式行为：原地更新用户正在用的那份，而不是按命令行参数
+    // 擅自换位置（换位置会让指向旧路径的任务栏固定项与快捷方式失效，并留下第二份）。
+    private static string[] DetectInstall()
+    {
+        string user = InstalledAppDir(false);
+        string sys = InstalledAppDir(true);
+        if (user == null && sys == null) return new[] { null, "", "none" };
+        if (user != null && sys == null) return new[] { user, "false", "only-user-level" };
+        if (sys != null && user == null) return new[] { sys, "true", "only-system-level" };
+        string target = DefaultBrowserTarget();
+        if (target != null)
+        {
+            if (target.StartsWith(sys.TrimEnd('\\'), StringComparison.OrdinalIgnoreCase))
+                return new[] { sys, "true", "both; default-browser points here" };
+            if (target.StartsWith(user.TrimEnd('\\'), StringComparison.OrdinalIgnoreCase))
+                return new[] { user, "false", "both; default-browser points here" };
+        }
+        // 两处都在且默认浏览器不属于任何一处：取版本高的那份（字符串比较对 a.b.c.d 够用）
+        string uv = ProductVersionOf(Path.Combine(user, "chrome.exe"));
+        string sv = ProductVersionOf(Path.Combine(sys, "chrome.exe"));
+        bool pickSystem = string.Compare(sv, uv, StringComparison.OrdinalIgnoreCase) > 0;
+        return new[] { pickSystem ? sys : user, pickSystem ? "true" : "false",
+                       "both; neither owns default browser, picked higher version" };
+    }
+
+    // ------------------------------------------------ 关联与快捷方式快照
+    private static Dictionary<string, string> SnapshotAssociations()
+    {
+        var snap = new Dictionary<string, string>();
+        try
+        {
+            using (RegistryKey uc = Registry.CurrentUser.OpenSubKey(
+                       @"Software\Microsoft\Windows\Shell\Associations\UrlAssociations\https\UserChoice"))
+                snap["UserChoice:https"] = uc == null ? "(none)" : (string)uc.GetValue("ProgId");
+            snap["UserTarget"] = DefaultBrowserTarget() ?? "(unresolved)";
+            snap["TargetExists"] = snap["UserTarget"] == "(unresolved)"
+                                       ? "n/a"
+                                       : (File.Exists(snap["UserTarget"]) ? "yes" : "NO");
+            using (RegistryKey k = Registry.LocalMachine.OpenSubKey(
+                       @"SOFTWARE\Clients\StartMenuInternet\Chromium\shell\open\command"))
+                snap["CMI:Chromium"] = k == null ? "(none)" : (string)k.GetValue(null);
+        }
+        catch (Exception e) { snap["snapshot-error"] = e.Message; }
+        return snap;
+    }
+
+    // 所有指向本产品安装目录的 .lnk（桌面 / 开始菜单 / 快速启动 / 任务栏固定）。
+    private static List<string[]> ShortcutLinks()
+    {
+        var list = new List<string[]>();
+        object shell = null;
+        try { shell = Activator.CreateInstance(Type.GetTypeFromProgID("WScript.Shell")); }
+        catch { return list; }
+        string[] dirs =
+        {
+            Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory),
+            Environment.GetFolderPath(Environment.SpecialFolder.CommonDesktopDirectory),
+            Environment.GetFolderPath(Environment.SpecialFolder.StartMenu) + @"\Programs",
+            Environment.GetEnvironmentVariable("APPDATA")
+                + @"\Microsoft\Internet Explorer\Quick Launch",
+        };
+        foreach (string d in dirs)
+        {
+            if (string.IsNullOrEmpty(d) || !Directory.Exists(d)) continue;
+            IEnumerable<string> files;
+            try { files = Directory.EnumerateFiles(d, "*.lnk", SearchOption.AllDirectories); }
+            catch { continue; }
+            foreach (string lnk in files)
+            {
+                string target = LnkTarget(shell, lnk);
+                if (target == null) continue;
+                if (!target.Contains(CompanyDir + "\\" + AppDirName)) continue;
+                list.Add(new[] { lnk, target, File.Exists(target) ? "ok" : "BROKEN" });
+            }
+        }
+        return list;
+    }
+
+    private static string LnkTarget(object shell, string path)
+    {
+        try
+        {
+            object sc = shell.GetType().InvokeMember("CreateShortcut",
+                        BindingFlags.InvokeMethod, null, shell, new object[] { path });
+            object t = sc.GetType().InvokeMember("TargetPath",
+                        BindingFlags.GetProperty, null, sc, null);
+            return t as string;
+        }
+        catch { return null; }
+    }
+
+    private static bool Has(Dictionary<string, string> d, string k)
+    {
+        return d != null && d.ContainsKey(k) && d[k] != null;
+    }
+
+    // 更新后复算：默认浏览器链是否**从好变坏**（那是回归，判失败）；
+    // 快捷方式是否指向了被我们主动放弃的旧位置（那是用户选择的后果，只报告）。
+    private static bool CheckAssociations(Dictionary<string, string> before,
+                                          List<string[]> linksBefore, List<string> notes)
+    {
+        var after = SnapshotAssociations();
+        foreach (string k in after.Keys)
+            notes.Add(string.Format("关联 {0}: {1} -> {2}", k,
+                                    before.ContainsKey(k) ? before[k] : "?", after[k]));
+
+        bool regressed = Has(before, "TargetExists") &&
+                         before["TargetExists"] == "yes" &&
+                         after["TargetExists"] == "NO";
+        if (regressed)
+            notes.Add("FAIL: 默认浏览器链原本解析到存在的 exe，更新后指向 " + after["UserTarget"] +
+                      " 但该文件不存在 —— 这是回归，需要处理。");
+
+        var linksAfter = ShortcutLinks();
+        foreach (string[] l in linksAfter)
+            if (l[2] == "BROKEN")
+                notes.Add("WARN: 快捷方式目标已不存在：" + l[0] + " -> " + l[1] +
+                          "（任务栏固定项无公开 API 可自动恢复；保持安装位置不变即可不再出现此情况）");
+        if (linksBefore.Count != linksAfter.Count)
+            notes.Add(string.Format("快捷方式数量 前={0} 后={1}", linksBefore.Count, linksAfter.Count));
+        return !regressed;
+    }
+
 
     private static bool IsAdmin()
     {
@@ -338,25 +504,49 @@ internal static class MCloudSetup
     private static int Main(string[] argv)
     {
         bool systemLevel = false, noLaunch = false, listOnly = false;
+        bool explicitLevel = false;
         string externalPackage = null;
         for (int i = 0; i < argv.Length; i++)
         {
             string a = argv[i].ToLowerInvariant();
-            if (a == "--system-level") systemLevel = true;
+            if (a == "--system-level") { systemLevel = true; explicitLevel = true; }
+            else if (a == "--user-level") { systemLevel = false; explicitLevel = true; }
             else if (a == "--no-launch") noLaunch = true;
             else if (a == "--list-only") listOnly = true;
             else if (a == "--quiet") _quiet = true;
             else if (a == "--package" && i + 1 < argv.Length) externalPackage = argv[++i];
             else if (a == "--help" || a == "-h")
             {
-                Console.WriteLine("用法：MCloud-Setup.exe [--system-level] [--no-launch] [--list-only] " +
-                                  "[--quiet] [--package <mini_installer.exe>]");
+                Console.WriteLine("用法：MCloud-Setup.exe [--system-level|--user-level] [--no-launch] " +
+                                  "[--list-only] [--quiet] [--package <mini_installer.exe>]");
                 return 0;
             }
             else { Console.WriteLine("未知参数：" + argv[i]); return 3; }
         }
 
-        string appDir = systemLevel ? SystemAppDir() : UserAppDir();
+        // 位置选择：默认**就地更新已存在的那一份**（Google Update 式）。只有显式给
+        // --system-level / --user-level 才允许换安装位置，换之前把后果讲清楚。
+        string[] det = DetectInstall();
+        string detected = det[0];
+        string wantedDir = systemLevel ? SystemAppDir() : UserAppDir();
+        if (detected == null)
+        {
+            Log("未检测到已安装副本，按" + (systemLevel ? "系统级" : "用户级") + "全新安装。");
+        }
+        else if (!explicitLevel)
+        {
+            systemLevel = det[1] == "true";
+            wantedDir = systemLevel ? SystemAppDir() : UserAppDir();
+            Log("检测到已安装副本：" + detected + "（" + det[2] + "）");
+            Log("  → 就地更新这一份，不换位置（换位置会让旧路径的任务栏固定项失效）。");
+        }
+        else if (!string.Equals(detected.TrimEnd('\\'), wantedDir.TrimEnd('\\'),
+                                StringComparison.OrdinalIgnoreCase))
+        {
+            Log("WARN: 已检测到另一位置的安装 " + detected + "，但命令行显式要求装到 " + wantedDir);
+            Log("      后果：指向旧路径的任务栏固定项与快捷方式会失效，且机器上会留下两份安装。");
+        }
+        string appDir = wantedDir;
 
         // 系统级安装必须提权；用户级不需要（也就不制造多余的 UAC 摩擦）。
         if (systemLevel && !IsAdmin())
@@ -415,6 +605,10 @@ internal static class MCloudSetup
             {
                 Log("无法从安装包读出目标版本号。"); rc = 3; Finish(rc); return rc;
             }
+            var assocBefore = SnapshotAssociations();
+            var linksBefore = ShortcutLinks();
+            Log(string.Format("更新前快照：默认浏览器解析 {0}（目标存在={1}）、指向本产品的快捷方式 {2} 个",
+                              assocBefore["UserTarget"], assocBefore["TargetExists"], linksBefore.Count));
             SetStage("安装 " + wantVersion + "（" + (systemLevel ? "系统级" : "用户级") + "）");
             int irect = RunAndWait(pkg, "--system-level");   // mini_installer 自己会再派生 setup.exe 并等待
             Log("mini_installer 退出码 = " + irect);
@@ -422,6 +616,9 @@ internal static class MCloudSetup
             SetStage("复验：用户下次双击到底得到哪一版");
             List<string> notes = new List<string>();
             bool ok = Verify(appDir, wantVersion, notes);
+            // 默认浏览器链"从好变坏"= 回归，判失败；快捷方式指向旧路径 = 换位置的已知后果，
+            // 只报告不判失败（任务栏固定项没有公开 API 可恢复，唯一可靠的办法是不换位置）。
+            if (!CheckAssociations(assocBefore, linksBefore, notes)) ok = false;
             foreach (string n in notes) Log("  · " + n);
 
             rc = ok ? 0 : 1;
@@ -441,7 +638,14 @@ internal static class MCloudSetup
         }
         catch (Exception e)
         {
-            Log("异常：" + e);
+            // 没有这一层的话，任何未预期异常都会让进程直接崩掉：GUI 版连"为什么失败"
+            // 都显示不出来（D114 同口径：判据与诊断不能被旁路操作带走）。
+            Log("异常：" + e.Message);
+            if (e.StackTrace != null)
+            {
+                string st = e.StackTrace;
+                Log(st.Substring(0, Math.Min(400, st.Length)));
+            }
             rc = 2;
             Finish(rc);
         }
