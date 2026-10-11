@@ -1343,7 +1343,7 @@ WebGL 的 `UNMASKED_RENDERER_WEBGL` 都显示 `NVIDIA GeForce GTX 1050 Ti (0x000
 | D134 | Low | `build_setup_exe.py:69-81` | 不传 `/version` 或 `/win32res`；实测发布物 ProductVersion/FileVersion 均为 `0.0.0.0`，无法从文件属性辨别包装器版本 | ⬜ 待跟进 |
 | D135 | Low | `mcloud_setup.cs:471-476,658-665` | `Verify`（校验函数）里 `File.Delete` 删根目录 flags，校验带副作用且失败时也已删过；残留扫描按机器级进程名匹配会打假 WARN | ⬜ 待跟进 |
 | D136 | Low | `mcloud_setup.cs:130,143` | `DefaultBrowserTarget` 先 HKLM 后 HKCU，两处都注册时系统级胜出，可能绕开 D120 的就地更新；`cmd.Split(' ')[0]` 对无引号含空格路径会截断 | ⬜ 待跟进 |
-| D137 | **High** | 9 个 `.ps1`、**10 处** | "你在测 M151 旧树"护栏正则写成 `chromium-src(\|$)`——`\|` 是转义竖线、匹配字面量 `\|`，**从未在任何地方触发过**。实测：旧写法两树皆 False，改 `(\\|$)` 后 M151=True / M155=False。本机恰好有两棵树，正是 D86/D72 要防的场景 | ✅ 10 处全改 + 留注释防止被"简化"回去 |
+| D137 | **High** | 9 个 `.ps1`、**10 处** | "你在测 M151 旧树"护栏正则写成 `chromium-src(\|$)`——`\|` 是转义竖线、匹配字面量 `\|`，**从未在任何地方触发过**。实测：旧写法两树皆 False，改 `(\\|$)` 后 M151=True / M155=False。本机恰好有两棵树，正是 D86/D72 要防的场景 | ✅ 10 处全改 + 留注释防止被"简化"回去。**已机器化**（同 D38/D83/D97）：`verify_sources.py` 的 `check_powershell_static()` 新增一条闸，非注释行出现该坏正则即 FAIL 并给出正确写法；判据 `.bugreview/test_d137_guard.py`（Green/Red 双向 + 断言探针已删且 `benchmark/` 零改动）。附带修掉一个次生问题：`collect_powershell_files()` 原先会扫到 `.cycle*` 里的一次性取证脚本，而那些脚本**故意**含坏写法以做 Red 验证，导致门禁在自己的取证语料上失败——现已跳过 `.cycle*`（`.diag/`、`.qoder/` 的既有范围未动） |
 | D138 | **High** | `benchmark/bench_memory.ps1:88-96` | K2 取不到进程时 `$null/1MB == 0` ⇒ 输出"内存峰值 0 MB"并 `exit 0`，看起来像巨大改善。违反 AGENTS.md 硬规则"取不到进程必须判 FAIL"；K2 是三大 headline KPI 之一 | ✅ 三处硬失败 + 采样条数自检（D89 教训）+ `exit 0` |
 | D139 | Medium | `benchmark/run_baseline.ps1:92` | `Select-Object -First 1` 取到的是 **MuMu Virtual Display Adapter**（本机 4 个显示适配器里虚拟的排最前）⇒ **每一份归档基线的 GPU 都是错的**，M155 基线写作 MuMu 且**无任何警示** | ✅ 只认 `PNPDeviceID -like 'PCI\*'`，输出名称 + PCI `VEN:DEV` + 驱动 + 是否驱动显示；识别不到即 `throw`；另增逻辑处理器/物理核行 |
 | D140 | Medium | `benchmark/tools/gpu_probe.py:68 vs 80` | 首次查 PID 用 profile **叶子名**，循环内**复检**却用**完整路径**——正是该文件自己第 33-34 行注释警告过的坑。失败模式是**静默**：匹配为空 → `pids` 空 → `break` → 不打 WARN，而进程还活着并锁住 `out` 目录 DLL（D71） | ✅ 复检统一用叶子名（`cdp.kill_instance` 是正确范式） |
@@ -1407,7 +1407,7 @@ CET 硬件影子栈开（`compiler.gni:230`）、libc++ `_LIBCPP_HARDENING_MODE_
       开启后**必须重采基线**，不能与既有数据直接比较。
 - [ ] **D146 需 deploy + 重编译才生效**（LOADER 是注入到 `chrome_main_delegate.cc` 的 C++；
       按 D62/D64/D67 的正文比对式升级器约定，下次 `deploy_mcloud.py` 会自动改写树内正文）。
-      本轮只做了粗粒度自检（`.cycle5/check_loader_syntax.py`：`{}` 32/32、`()` 104/104、
+      本轮只做了粗粒度自检（`.bugreview/check_loader_syntax.py`：`{}` 32/32、`()` 104/104、
       `[]` 5/5 平衡），**不等于编译通过**。
 - [ ] **D142 的 flags 清理已部署到开发树并验证**（`out/mcloud/mcloud_flags.txt` 已更新，
       运行期回显由 `enable 51 / disable 2` 变为 **`enable 49 / disable 2`**，

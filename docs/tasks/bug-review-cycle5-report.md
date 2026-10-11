@@ -33,7 +33,7 @@
 **需要重编译才生效的**：只有 D146（加载器补日志）——LOADER 是注入到
 `chrome_main_delegate.cc` 的 C++，下次 `deploy_mcloud.py` 会按"正文比对式升级器"约定
 自动改写树内正文（D62/D64/D67），随后需重编。本轮只做了粗粒度自检
-（`.cycle5/check_loader_syntax.py`：括号 32/32、104/104、5/5 平衡），**不等于编译通过**。
+（`.bugreview/check_loader_syntax.py`：括号 32/32、104/104、5/5 平衡），**不等于编译通过**。
 
 **需要用户决策的**（本轮**没有**擅自改，理由见 D147/D150）：
 `symbol_level=0` 是否提升（崩溃可归因性 vs 构建时间）、BIOS 超线程是否开启
@@ -115,9 +115,9 @@ ANGLE (NVIDIA, NVIDIA GeForce GTX 1050 Ti (0x00002860) Direct3D11 vs_5_0 ps_5_0,
 
 ## 实测取得的渲染面证据
 
-探针：`.cycle5/gpu_identity_probe.py`（本轮新增，四类证据交叉），被测
+探针：`.bugreview/gpu_identity_probe.py`（本轮新增，四类证据交叉），被测
 `D:\wxmuma\chromium-src-155\src\out\mcloud\chrome.exe`（4,389,888 B，mtime 2026-10-11T20:01）。
-证据：`.cycle5/gpu_identity_result.json`、`.cycle5/gpu_page_full.txt`（chrome://gpu 全文 79,428 B）。
+证据：`.bugreview/gpu_identity_result.json`、`.bugreview/gpu_page_full.txt`（chrome://gpu 全文 79,428 B）。
 
 **Graphics Feature Status**（chrome://gpu）：
 
@@ -268,7 +268,7 @@ D52/D55/D106 纪律；临时目录 `%TEMP%\MCloudSetup-<12位GUID>`，`DeleteTre
 - 全部写成 `-match 'chromium-src(\|$)'`。`\|` 是**转义竖线**，匹配字面量 `|`；`$` 紧随其后。
   任何真实路径都不含 `chromium-src|`，所以**永不匹配**。正确写法是 `'chromium-src(\\|$)'`
   （反斜杠或串尾）。
-- **实测**（`.cycle5/regex_test.ps1`）：
+- **实测**（`.bugreview/test_d137_guard.py`，本轮新增并已入库；一次性版本曾为 `.cycle5/regex_test.ps1`）：
 
   | 写法 | M151 树 | M155 树 |
   |---|---|---|
@@ -284,6 +284,15 @@ D52/D55/D106 纪律；临时目录 `%TEMP%\MCloudSetup-<12位GUID>`，`DeleteTre
   **完全静默**。
 - **修复**：10 处全部改为 `(\\|$)`；在 `bench_memory.ps1` 留注释说明 `\|` 与 `\\|` 的区别，
   防止将来被"简化"回去。BOM 全部保留（D38），`verify_sources.py` 45 个 `.ps1` AST 解析全绿。
+- **已机器化**（同 D38/D83/D97 的做法）：`win_scripts/verify_sources.py` 的
+  `check_powershell_static()` 新增一条闸——非注释行里出现 `chromium-src(\|$)` 即判 FAIL 并
+  给出正确写法。回归判据 `.bugreview/test_d137_guard.py`（Green：无探针时门禁 PASS；
+  Red：放入一个含坏写法的临时 `.ps1` 后门禁 FAIL 且指名该文件；收尾断言探针已删、
+  `benchmark/` 零改动）。
+  ⚠ 该闸第一版把 `.cycle5/regex_test.ps1` 也扫进来了——那是一次性取证脚本，**故意**同时
+  含坏写法与正确写法以证明差异，于是门禁在自己的取证语料上失败。已让
+  `collect_powershell_files()` 跳过 `.cycle*` 目录（AGENTS.md 约定：那是一次性脚本与证据、
+  整目录 gitignore）。`.diag/`（D110 定性为历史材料）与 `.qoder/` 的既有扫描范围未动。
 
 #### [D138] bench_memory.ps1:88-96 — K2 取不到进程时输出"0 MB"并以 0 退出
 - **严重度**：High　**根因**：校验缺失（假绿）
@@ -437,7 +446,7 @@ D52/D55/D106 纪律；临时目录 `%TEMP%\MCloudSetup-<12位GUID>`，`DeleteTre
      - `chrome_pgo_phase=2` 时校验 profdata **确实存在**，不存在则以 111 退出并给出根因与两种修法；
      - **模板 vs 构建树 args.gn 逐项漂移比对**，不一致则 WARN 并逐条列出（注释行不参与比对），
        把"仓库里的配置 ≠ 构建出发布物的配置"这件事变成编译前就能看见的信号。
-- **验证（Red→Green，`.cycle5/test_build_win_preflight.py`）**：
+- **验证（Red→Green，`.bugreview/test_build_win_preflight.py`）**：
   - Green：真实 args.gn → `PGO 预检 OK：phase=2 剖面 484 MB`，且
     **`漂移比对 OK：仓库模板与构建树 args.gn 逐项一致`**（直接证明 D144 已对齐、发布重新可复现）；
   - Red：把路径替换回 M151 树 → **rc=111**，报"chrome_pgo_phase=2 但 PGO 剖面不存在"并列出
@@ -664,16 +673,28 @@ i9-14900HX 规格为 24C/32T，三路 API 一致报 24 ⇒ HT 关闭。这是**�
 | 运行期回显（部署新 flags 后） | `flag_runtime_state.py --chrome …chromium-src-155…\chrome.exe` | **exit 0**，`enable 49 / disable 2`，SHA 与仓库一致 |
 | C# 编译 | `python win_scripts/build_setup_exe.py --console --out .cycle5/MCloud-Setup-verify.exe` | **OK**，Roslyn `/deterministic+`，26,112 B，无警告 |
 | 安装器 `--list-only` 实跑 | `.cycle5/MCloud-Setup-verify.exe --list-only --quiet` | **exit 0**，正确识别 `C:\Program Files\Chromium\Application（only-system-level）`、声明"就地更新不换位置"、"没有本产品实例" |
-| PGO 预检 Red→Green | `python .cycle5/test_build_win_preflight.py` | **PASS / exit 0**：Green `PGO 预检 OK 484 MB` + `漂移比对 OK 逐项一致`；Red rc=111 且未继续；Red2 精确报出漂移项 |
+| PGO 预检 Red→Green | `python .bugreview/test_build_win_preflight.py` | **PASS / exit 0**：Green `PGO 预检 OK 484 MB` + `漂移比对 OK 逐项一致`；Red rc=111 且未继续；Red2 精确报出漂移项 |
 | K2/K2-CPU Red→Green | `powershell -File benchmark/bench_memory.ps1 -Tabs 6 -SettleSeconds 10 -Samples 3 -SampleInterval 4` | Green **exit 0**，内存 679.4 MB / CPU 中位 0.06% 整机、0.02 核；Red（注入 100 倍错误）**exit 1**，自洽断言报"差 7.84" |
-| 正则护栏 | `.cycle5/regex_test.ps1` | 旧写法两树皆 False；新写法 M151=True / M155=False |
-| LOADER C++ 粗检 | `python .cycle5/check_loader_syntax.py` | **PASS / exit 0**：`{}` 32/32、`()` 104/104、`[]` 5/5 平衡；D146 新增行存在且未用 `.value()`（Windows 上 `FilePath::StringType` 是 `std::wstring`，改为直接流 `FilePath`，依据 `base/files/file_path.h:553-554` 的 `operator<<`，经 `base/files/file_util.h:25` 可达）。**注意这只是粗检，不等于编译通过**；另已核实该 TU 内既有 4 处 `LOG(WARNING)` 且 r5 编译成功，故宏可用 |
-| GPU 四路取证 | `python .cycle5/gpu_identity_probe.py` | 独显渲染确认、AV1/HEVC/VP9/H264 硬解确认、清理残留 0；两处 FAIL 是探针段落名需按 M155 校准（量具问题，非产品问题） |
-| ruff（AGENTS.md 选择器） | `python -m ruff check --select F,E9,B,SIM win_scripts benchmark .bugreview` | 全仓 127 项均为**既存**风格问题（100 SIM115、18 F541、7 SIM105、1 SIM102、1 SIM212），**无 B 类真阳性**；本轮改过的 `build_win.py`/`gpu_probe.py` **零错误** |
+| 正则护栏 Red→Green | `python .bugreview/test_d137_guard.py` | **PASS / exit 0**：Green（无探针）门禁 PASS；Red（放入含坏写法的临时 `.ps1`）门禁 FAIL 且指名该文件与 D137；探针已删、`benchmark/` 零改动。另用一次性 `.cycle5/regex_test.ps1` 直接对比过两种正则：旧写法两树皆 False，新写法 M151=True / M155=False |
+| LOADER C++ 粗检 | `python .bugreview/check_loader_syntax.py` | **PASS / exit 0**：`{}` 32/32、`()` 104/104、`[]` 5/5 平衡；D146 新增行存在且未用 `.value()`（Windows 上 `FilePath::StringType` 是 `std::wstring`，改为直接流 `FilePath`，依据 `base/files/file_path.h:553-554` 的 `operator<<`，经 `base/files/file_util.h:25` 可达）。**注意这只是粗检，不等于编译通过**；另已核实该 TU 内既有 4 处 `LOG(WARNING)` 且 r5 编译成功，故宏可用 |
+| GPU 四路取证 | `python .bugreview/gpu_identity_probe.py` | 独显渲染确认、AV1/HEVC/VP9/H264 硬解确认、清理残留 0；两处 FAIL 是探针段落名需按 M155 校准（量具问题，非产品问题） |
+| ruff（AGENTS.md 选择器） | `python -m ruff check --select F,E9,B,SIM win_scripts benchmark .bugreview` | 全仓 127 项均为**既存**风格问题（100 SIM115、18 F541、7 SIM105、1 SIM102、1 SIM212），**无 B 类真阳性**；本轮改过的 `build_win.py`/`gpu_probe.py` **零错误**（`inject_flags_loader.py` 的 3 项 SIM115 经与 HEAD 版本对比确认为既存 backlog） |
 
-**新增取证脚本**（`.cycle5/`，整目录 gitignore，同 `.cycle4/` 约定）：
-`gpu_identity_probe.py`、`test_build_win_preflight.py`、`check_loader_syntax.py`、`regex_test.ps1`；
-证据 `gpu_identity_result.json`、`gpu_page_full.txt`、`gpu_probe_launch.log`。
+**本轮新增并已入库的判据脚本**（放 `.bugreview/`，因为 `.gitignore` 的规则是
+`.bugreview/*` + `!.bugreview/*.py`——**脚本入库、数据与日志不入库**。这与 `a291812`
+"把取证脚本从 gitignore 的证据目录提到 .bugreview，消除悬空引用"是同一条纪律：
+本报告大量按路径引用它们，若只存在于本机工作树，接手方干净检出后一条判据都复现不了）：
+`gpu_identity_probe.py`（GPU 身份与硬解能力四路取证）、
+`test_build_win_preflight.py`（D144 的 Red→Green）、
+`check_loader_syntax.py`（LOADER C++ 粗检）、
+`test_d137_guard.py`（D137 回归闸的 Red→Green）。
+
+**留在 `.cycle5/`（整目录 gitignore，同 `.cycle4/` 约定）的一次性材料与证据**：
+`regex_test.ps1`（两种正则的直接对比，结论已抄进上表）、`MCloud-Setup-verify.exe`
+（仅用于验证编译的产物，发布物需另行重打包）、`gpu_identity_result.json`、
+`gpu_page_full.txt`（chrome://gpu 全文 79,428 B）、`gpu_probe_launch.log`。
+其中 json/txt/log 重跑 `.bugreview/gpu_identity_probe.py` 即可再生（会写到 `.bugreview/` 下，
+同样不入库）。
 
 ---
 
@@ -741,6 +762,11 @@ i9-14900HX 规格为 24C/32T，三路 API 一致报 24 ⇒ HT 关闭。这是**�
 | `win_args_mcloud.gn` | `pgo_data_path` 指回 155 树 + 源码级依据注释 | D144 |
 | `win_scripts/build_win.py` | 新增 `read_args_gn()` / `preflight_args()`：PGO 剖面存在性硬校验 + 模板/构建树漂移比对 | D144 |
 | `win_scripts/inject_flags_loader.py` | LOADER 三级候选全失败处补 `LOG(WARNING)` 并记录"logging 此时尚未初始化"的局限 | D146 |
+| `win_scripts/verify_sources.py` | `check_powershell_static()` 新增 D137 回归闸（非注释行出现坏正则即 FAIL）；`collect_powershell_files()` 跳过 `.cycle*` 一次性取证目录 | D137 |
+| `.bugreview/test_d137_guard.py`（新） | D137 回归闸的 Red→Green 判据；只增删临时探针，**不改写任何已跟踪文件** | D137 |
+| `.bugreview/test_build_win_preflight.py`（新） | PGO 预检与漂移比对的 Red→Green 判据 | D144 |
+| `.bugreview/gpu_identity_probe.py`（新） | GPU 身份与硬解能力四路取证（主机 PCI/nvidia-smi + chrome://gpu + MediaCapabilities + WebGL + 子进程命令行） | D143 D154 |
+| `.bugreview/check_loader_syntax.py`（新） | LOADER C++ 正文粗检（括号平衡 / LOG 收尾 / 未用 `.value()`） | D146 |
 | `mcloud_flags.txt` | 删 2 条平台不可能生效的声明、为 2 条默认已启用的 pin 加注、更正独显身份与 D118 结论 | D142 D143 |
 | `benchmark/bench_memory.ps1` | 三处硬失败 + 采样条数自检 + `exit 0`、指纹改叶子名、新增 K2-CPU 采集与单位自洽断言、修正 `-f`/`+` 优先级、修正 M151 护栏正则 | D137 D138 D145 |
 | `benchmark/run_baseline.ps1` | GPU 只认 PCI 适配器并输出 VEN:DEV/是否驱动显示、排除虚拟适配器、新增逻辑处理器行、识别不到真实显卡即 `throw`、修正护栏正则 ×2 | D137 D139 |

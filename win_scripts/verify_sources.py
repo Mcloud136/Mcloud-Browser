@@ -121,10 +121,17 @@ def check_pak_syntax():
 
 
 def collect_powershell_files():
-    """Every tracked-ish .ps1 in the repo, minus vendored/generated dirs."""
+    """Every tracked-ish .ps1 in the repo, minus vendored/generated dirs.
+
+    `.cycleN/` 也排除：按 AGENTS.md 约定那是每轮 bug-review 的**一次性取证脚本与证据**、
+    整目录 gitignore（同 `.cycle4/`）。它们会刻意包含"坏写法"来做 Red 验证
+    （例如 D137 的 regex_test.ps1 同时写了错误的 `\\|` 与正确的 `\\\\|` 以证明差异），
+    把它们纳入源码门禁会让门禁在自己的取证语料上失败。
+    """
     out = []
     for dirpath, dirnames, filenames in os.walk(REPO_ROOT):
-        dirnames[:] = [d for d in dirnames if d not in PS_SKIP_DIRS]
+        dirnames[:] = [d for d in dirnames
+                       if d not in PS_SKIP_DIRS and not d.startswith(".cycle")]
         for f in filenames:
             if f.lower().endswith(".ps1"):
                 out.append(Path(dirpath) / f)
@@ -176,6 +183,18 @@ def check_powershell_static():
                                   "documented overrides are silently ignored while the "
                                   "script still exits 0 (defect D83)"
                                   % (param_ln, first_txt[:60], first_ln)))
+        # D137 回归闸：M151 回滚树护栏的正则曾写成 chromium-src(\|$)。那里的 \| 是
+        # **转义竖线**（匹配字面量 "|"），任何真实路径都不含它，于是这条护栏在 9 个脚本
+        # 10 处从未触发过——本机恰好有两棵树，正是它要防的场景。正确写法是 (\\|$)。
+        # 只判代码行：bench_memory.ps1 的注释里刻意引用了错误写法来解释这个坑。
+        for i, ln in enumerate(lines, 1):
+            if ln.lstrip().startswith("#"):
+                continue
+            if "chromium-src(\\|$)" in ln:
+                failures.append((rel, "line %d uses the dead M151-tree guard regex "
+                                      "chromium-src(\\|$): '\\|' is an escaped pipe so it "
+                                      "matches a literal '|' and never a real path; use "
+                                      "chromium-src(\\\\|$) instead (defect D137)" % i))
     return len(files), failures
 
 
