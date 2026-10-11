@@ -708,6 +708,18 @@ PowerShell 5.1（中文必须 UTF-8 BOM，见 D38）、GN（Chromium 构建元�
 | D104 | Medium | 已安装实例（用户机器实测） | 装完 155 后 `Application\mcloud_flags.txt` 仍是 **9-22 的旧文件**（5,878 B / sha `52e67eab7319`），chrome://version 的命令行里因此是 **D51 修复前的坏 params 形式** `InitialWebUI:without_spellcheck/without_translate/high_stream_priority`（无值 → 参数被丢弃、退回上游默认）；而 `chrome.exe`/`chrome.dll` 与本次构建**逐字节相同**（86b588a485855fd8 / 2c9812e62f16308c），说明浏览器本体装对了、只有那个额外文件没被覆盖 | ✅ 已把旧文件隔离为 `mcloud_flags.txt.stale-20260922` 并放入当前正文（8,186 B / `61b7670856ed`），待用户重启后复核 chrome://version；「安装器为何不覆盖已存在的同名文件」尚未定论，需一次干净位置的安装实验（待用户授权） |
 | D105 | **Critical（发布阻断）** | `chrome.release` 里 `mcloud_flags.txt: %(ChromeDir)s\` + 上游 `install_worker.cc` | 干净系统安装实测：`C:\Program Files\Chromium\Application\` 里只有 chrome.exe / chrome_proxy.exe / chrome.VisualElementsManifest.xml，**没有 mcloud_flags.txt**；详细日志显示 setup.exe 对根目录是**逐个搬固定清单**（只搬这三个），而版本目录 `155.0.8059.40` 是**整个目录搬过去**的。也就是说：打包侧确实把文件放进了 chrome.7z（尾部 8 KB 处能看到它的正文，`-mx0` 未压缩），但安装侧根本不处理根目录的额外条目 ⇒ D47 的修复方式（登记到 ChromeDir）**在真实安装里无效**，干净机器上 53 项 feature + 3 项开关整体丢失。用户机器之所以看起来正常，是因为根目录里躺着一份9-22 手工复制的旧文件 | ✅ 方向：把登记目标从 `%(ChromeDir)s` 改为 `%(VersionDir)s`（版本目录是整目录搬迁，必然落地），同时让加载器在 exe 同目录找不到时再找 `exe_dir\<FileVersion>\mcloud_flags.txt`；需重编 chrome.dll（单 TU + 链接），改完用 `--system-level` 干净安装复验 |
 | D106 | **Critical** | `.bugreview/flag_runtime_state.py` 收尾 | `Get-Process chrome \| Stop-Process -Force` 是**机器级**杀进程：门禁跑一次会把用户正在用的浏览器（含未保存表单）一起干掉；与 D52/D55 已确立的实例级纪律冲突，且是同批探针里唯一漏改的一个 | ✅ 改按 profile 叶子名筛 PID + 6 轮杀到干净 + 残留即 SystemExit；诱饵实例验证修复后存活 |
+| D107 | Medium | `benchmark/tools/cdp.py` + 各轮探针的文本判据 | ① 只读 `document.body.innerText`：chrome://gpu 的整份报告在 `<info-view>` 的 **shadow root** 里，body.innerText 实测长度 **0**（shadowRoot.textContent 78,108），6 条 GPU 判据全部"不成立"；② 更危险的是同页上的**"不存在型"断言**（`old_broken_params=False`、`fling_gone=True`、`software_fallback=False`）在空页面上**恒成立**——页面一个字没读到，三条反向判据却全绿 | ✅ 加 `Tab.deep_text()`（穿透 shadow root）+ 每页 `*_page_readable` 硬门禁；空页一律判 FAIL，反向断言只在页面可读时才算数 |
+| D108 | Low | 同上（`deep_text` 首版实现） | 穿透表达式对 Document 走了 `root.textContent` —— **DOM 规范规定 Document/DocumentType 的 textContent 恒为空串**，于是 chrome://version 与 example.com 同时读出 0，而 chrome://gpu 因为恰好命中 shadow 分支"看起来是好的"：一次"部分修好"把错误藏了起来 | ✅ Document 分支改用 `document.body.innerText`，并在注释里写死这条规范特判 |
+| D109 | **High** | `win_scripts/inject_flags_loader.py` 加载器 v7 的路径优先级 | v7 先读 **exe 同目录**（`DIR_EXE`）。但上游判定"程序目录"的依据是 **chrome.dll 在哪**（`main_dll_loader_win.cc:175-191`：先试 `exe_dir\<kChromeVersion>\chrome.dll`，找不到才退回 `exe_dir\chrome.dll`）——安装版里根目录只有一个 4 MB 启动桩。于是任何一份**残留的** `Application\mcloud_flags.txt` 会永久、静默地压掉安装包真正投递的版本目录文件；本机 `AppData\Local\Chromium\Application\` 实测就同时存在根文件与版本目录文件（另有 9 月排障留下的 `.bak-20260922`/`.stale-20260922`）。验证链同构地错：`flag_runtime_state.resolve_flags_path()` 照抄 v7 顺序，门禁读的是被压制的那份 ⇒ **全绿而线上跑旧文件** | ✅ 加载器 v8 改以 `base::DIR_MODULE`（= chrome.dll 所在目录）为第一候选，exe 目录次之，最新载荷目录兜底；oracle 同步改序并**打印整条候选链 + 各自 sha256 + 谁压住谁**。负向对照：`.bugreview/loader_precedence_test.py` 用硬链接拼出安装同形沙箱（根目录无 chrome.dll），两份文件各带不同探针开关 → v7 判 `ROOT`（缺陷成立），v8 判 `VERSION`（修复生效） |
+| D110 | Low | `.diag/*.ps1`（13 个文件被 git 跟踪） | 9 月排障的一次性脚本把**绝对用户路径写死**在正文里（`verify_flags_edit.ps1:2` 直指 `C:\Users\Administrator\AppData\Local\Chromium\Application\mcloud_flags.txt`），与 D86/D72 同族。附带更正一处误判：本条最初被记成"该脚本制造了 D109 的残留文件"，逐行核对后确认它**只读**（Select-String），根文件的来源是 D104 期间的一次手工 copy，未脚本化 | ✅ 口径更正并登记；`.diag/` 与 `other/*.patch` 一样定性为"历史材料，不是工具链"，新的一次性脚本不再进 `.diag/`（改用 `.cycleN/` 且 gitignore） |
+| D111 | Medium | `benchmark/tools/r2_interaction_check.py` 的 Win32 输入 | 自定义 `INPUT` 结构体多塞了一个 `pad: c_byte*40` 把联合体撑到 40 → 结构体 **48**，而 x64 上 Windows 的 `sizeof(INPUT)` 是 **40** → `SendInput` 一律返回 0 / `lasterr=87 ERROR_INVALID_PARAMETER`。后果不是"测不了"，而是**拖拽三项判据被记成产品不成立**（假红），且首版还把 87 归因成"会话隔离/注入防护挡住"——一个编出来的解释 | ✅ 去掉多余 pad + `assert ctypes.sizeof(INPUT)==40`；对照实验：同一结构体分别按 cbSize=40/48 发同一事件 → 40 成功、48 报 87。修复后真拖拽位移 132×66 px、期间 rAF 159 帧、`IsHungAppWindow=False` |
+| D112 | Medium | R1/R2/R3 的"页面读到了"类判据 | **文本存在性 ≠ 内容正确性**，三处独立复现：① 恢复判据写成"reload 后文本 > 40 即算恢复"，而 `zh.wikipedia.org` 本机 443 直接超时，错误页本身有几十个字 → **没恢复也判恢复**（假绿）；② 可读性门 `len > 20` 被 `chrome://media`（真名 `chrome://media-internals`，见 `content/public/common/url_constants.h:43`）的"无法访问此网站…ERR_INVALID_URL"满足，我据此差点写下"上游删掉了这个页"的错误结论；③ 远端标记依赖服务端内容：example.com 正在改版，不同 CDN 节点分别返回 917 字符多语种版与 156 字符纯段落版，旧版有 `<h1>Example Domain</h1>`、新版连 h1 都没有（该串只活在 `<title>`）→ 拿正文当标记会永久误判 | ✅ 统一收口：`cdp.is_error_page()` 作为所有可读性门的前置；正向标记改成**自己生成的本地探针页**（`MCLOUD-R2-PROBE-OK`）；网络可达性单独用 `document.title` 判（新旧两版都稳定）；判不出来一律 env-fail 而非绿 |
+| D113 | Medium | `benchmark/tools/cdp.py` `Tab.__init__` | 用 `/json/new?url=X` 建标签时 **X 被丢掉**：target 停在 about:blank，`deep_text` 永远读出 0，看起来像"页面没渲染"，其实是根本没导航（同一 URL 走 `Target.createTarget` + 后台标签实测 6/6 都能出 917 字符，排除了冻结类解释） | ✅ 建标签一律 about:blank，会话就绪后再 `Page.navigate(url)`（与人工路径一致）；顺带证伪了"本分支的冻结开关挡住后台标签加载"这一怀疑 |
+| D114 | Low | 各轮探针的证据采集 | 截图（纯证据）能掀翻整轮判据：全屏中的标签上 `Page.captureScreenshot` 30 秒不返回把 socket 读到超时、刚崩掉的渲染进程返回 `-32603 Internal error`，两处都直接把异常抛出 main()，**已经跑完的判据随之一并丢失** | ✅ `Tab.try_screenshot()` 吞异常并记一行原因；main() 加兜底 except，异常路径也照常打印 JSON 并按退出码 2 报 |
+| D115 | Medium | `benchmark/tools/r4_memory_stability_check.py` 泄漏判据（首版） | 判据写成"后半段进程数最大值 ≤ 基线 + 6"，而"后半段"里含**开着 15 个标签时的峰值**（33）与基线（9~10）——数学上永不成立（假红）。真正的泄漏信号不是"关掉之后立刻回基线"（Chrome 会保留空闲渲染进程供复用，R2 实测 11→4 约 11 秒），而是**跨轮不累积** | ✅ 改为按轮记录峰/谷：`peak_procs` 33/33/33、`trough_procs` 22/22/22、句柄 2273/2281/2286、私有内存 1046/1027/1064 MB —— 三轮完全平稳即无累积；阈值 120 MB 远高于本机 ±8.9 MB 噪声带 |
+| D116 | Low | 同上，渲染进程定位 | 原打算用 CDP `Target.getTargetInfo().processId` 精确杀掉"承载被测标签"的渲染进程，实测 **M155 的 targetInfo 里没有这个字段**（只有 targetId/type/title/url/attached/canAccessOpener/browserContextId），于是定位手段落空；而"随便挑一个 renderer 杀"会让实验前提失效 | ✅ 改**闭环自证**：逐个杀本实例渲染进程，每杀一个就看被测标签是否真的进崩溃态，崩了才说明杀对了（实测第 6 个才命中，前 5 个是备用/其他标签的进程）；顺带把"杀遍全都不崩"记为 env-fail |
+| D117 | Medium | R3 下载步骤的量具（两处自伤） | ① 探针页用 `document.body.innerText='R3-DL-READY'` 打标记 —— **给 innerText 赋值会替换全部子节点**，于是刚写的 `<a download>` 自己把自己删了，随后 `getElementById('d')` 为 null → TypeError，看起来像"下载功能坏了"；② 本地 HTTP 服务用 `type("H",(Handler,),{"directory":root})` 注入目录，而 `SimpleHTTPRequestHandler.__init__` 里 `self.directory = directory or "."` 会**覆盖类属性** → 404 | ✅ 标记改为静态元素 `<p id=m>`；目录改用 `functools.partial(Handler, directory=root)`。修复后真实下载落盘（`r3-payload.txt`）+ `Page.printToPDF` 出 8,459 B 且文件头 `%PDF-` |
+| D118 | Low | R3 的 `MediaCapabilities` 查询 | M155 起 `VideoConfiguration.framerate` 是**必填**：缺了整次调用抛 TypeError，四个 codec 全部变成 err，读起来像"解码能力查询失败"，实际是参数不全 | ✅ 补 `framerate: 30`；随后 h264/hevc/av1/vp9 全部 `supported+smooth+powerEfficient=true`（注意：该字段只证明"被选中"，GTX 1050 Ti 无 AV1 硬解单元，HEVC 硬解证据仍以 K6 4K 播放实测 + chrome://gpu 的 Video Decode 为准） |
 
 流程性缺口（不是某一行代码的错）：**本轮之前仓库没有任何 Python 静态检查在跑**。
 现已引入 `ruff`（F/E9/B/SIM）+ `pyflakes`，并把 ruff 的真阳性（B023/B905/F841）逐条判真伪后处置。
@@ -1172,7 +1184,78 @@ PowerShell 里 **函数体也可以有自己的 `param(...)`**（惯例缩进 4 
 | 遗留风险 R6 | 子进程 feature 列表由 Chromium 归一化（去重+排序），同名双写不保证用户优先 | — | 口径：改 `mcloud_flags.txt` 或用 `--disable-features`，不依赖双写；已实测记录于 D39/D40 之后的方法记录 |
 | 遗留风险 R7 | MSVC ASan 无 leak detector（/fsanitize=address 不支持 detect_leaks） | — | pak_src 泄漏面以 ASan 溢出/UAF + 往返一致性覆盖；泄漏需 WPA/Dr.Mem 另行取证 |
 
+## 第4周期（D107–D118：五轮实操检测，2026-10-11）
+
+用户口径：**"对测试内容使用实地测试，尽可能的实际操作而不是仅依赖脚本反馈"**。
+因此本轮不跑静态断言为主，而是每轮真启动一个独立 profile 的实例，真点、真拖、真杀进程、
+真下载，判据一律取浏览器自己的回答（chrome://version / chrome://gpu /
+chrome://media-internals 的真实 DOM、磁盘上真实落地的文件、Win32 真实窗口位置）。
+
+### 量具方法学（本轮新增的硬规则）
+
+1. **文本存在性 ≠ 内容正确性**。任何"读到了东西"的判据必须先过 `cdp.is_error_page()`；
+   正向标记必须来自**自己生成的本地页**，不能依赖远端内容（D112）。
+2. **不存在型断言必须有可读性前置**。`X not in text` 在空页面上恒真，会把"什么都没读到"
+   报成"确认不存在"（D107）。
+3. **证据采集不得影响判据**。截图/落盘这类旁证一律 try/吞异常，主判据照常输出（D114）。
+4. **实验前提要由结果自证**。定位不到"被测标签的渲染进程"时，改成"杀到被测标签真的崩为止"，
+   崩了才承认前提成立（D116）。
+5. **量具不得污染目标**（沿用 D99 纪律，本轮补两例反向污染）：硬链接沙箱里**写之前必须先删链接**，
+   否则就地 `open(w)` 会截断被测树里的真文件；沙箱默认路径不得落在 `out/` 之下
+   （`.bugreview/loader_precedence_test.py` 首版两条都踩了，均已加前门）。
+
+### 五轮结果
+
+| 轮 | 内容 | 结果 | 关键证据 |
+|----|------|------|----------|
+| R1 | 启动与运行时配置（真实 DOM） | ✅ 17/17 判据成立 | chrome://version 命令行含 `InitialWebUI:without_spellcheck/true/…/high_stream_priority/true`（D51 形式）、`--enable-gpu-rasterization`、`--disable-features=D3D12VideoDecoder,SkiaGraphite`；chrome://gpu 的 Canvas/WebGL/Video Decode/Compositing/Rasterization 全 Hardware accelerated、Skia Graphite Disabled、后端 GaneshGL；`.cycle4/r1_version.png` `r1_gpu.png` `r1_site.png` |
+| R2 | 交互与故障恢复 | ✅ 8/8 | 真拖拽位移 132×66 px、期间 rAF 159 帧、`IsHungAppWindow=False`；杀 GPU 进程 → 1 秒内重建、页面与网络栈均存活；杀被测标签的渲染进程（第 6 个才命中）→ 崩溃页 → reload 恢复；10 标签开合后渲染进程 11→4（约 11 秒） |
+| R3 | 内容与媒体 | ✅ 11/11 | 本地 1.18 GB **2560×1440** H.264 播放 8 秒：483 帧 **0 丢帧**、readyState 4、无 media error；chrome://media-internals 列出该 player 与 `kPlay`；真 PiP 进入、真全屏进入并退出（全屏截图 4.1 MB）；真实下载落盘 `r3-payload.txt`；`Page.printToPDF` 8,459 B 且头为 `%PDF-`；`MediaCapabilities` h264/hevc/av1/vp9 全 `supported+smooth+powerEfficient` |
+| R4 | 内存 / 句柄 / 线程 / 退出残留 | ✅ 6/6 + A/B | 三轮 15 标签开合：峰 33/33/33 进程、谷 22/22/22、谷句柄 2273/2281/2286、谷私有内存 1046/1027/1064 MB —— **跨轮零累积**；线程稳定 56–60；关窗后残留进程 0；`Browser.close` 前页面仍可执行 JS |
+| R5 | 发布与升级面 | 进行中 | 加载器优先级沙箱（v7 判 ROOT → v8 判 VERSION）；重编后需重跑 `package_m155.py` 门禁 + 一次 `--system-level` 干净安装复验 |
+
+### 一处**量化过的取舍**（不是缺陷，但必须留数）
+
+`TransientKeepAlivePolicy`（内置启用）与"关掉标签后渲染进程不退"直接相关。同一台机器、
+同一套 R4 探针，唯一差别是命令行加 `--disable-features=TransientKeepAlivePolicy`：
+
+| | 基线 | 峰值（开 15 标签） | 谷值（关完 8 秒） |
+|---|---|---|---|
+| 启用（当前发布配置） | 10 进程 / 309 MB | 33 进程 / 1.93 GB | **22 进程 / 1.05 GB** |
+| 禁用 | 10 进程 / 310 MB | 27 进程 / 1.80 GB | **12 进程 / 0.68 GB** |
+
+即：**代价约 +10 个进程、约 +360 MB 的关标签后驻留**，换来重开同站点的零冷启动。
+上游自己也在浏览器测试里默认关掉它，理由写得很直白：
+`chrome/test/base/in_process_browser_test.cc:381-385` —— *"delays renderer process cleanup,
+breaking tests checking process counts or expecting immediate process exit"*。
+按 ADR-002（性能优先、体积不作约束）暂**维持启用**，但数字进档；若日后面向小内存机型，
+这一项是第一个该重议的开关。附带收益：这次 A/B 同时验证了"命令行 `--disable-features=X`
+确实压得住内置 enable"（D21 的 user-first 合并在真实场景里成立）。
+
+### 本轮被证伪的四个怀疑（记下来防止重复走）
+
+1. **"本分支的冻结开关会挡住后台标签加载"** —— 不成立：6 个后台标签全部加载出 917 字符
+   （`.cycle4/diag_background_tab.py`）。真因是 D113（`/json/new?url=` 丢 URL）。
+2. **"GPU 进程被杀后 example.com 缺了 `<h1>`，是合成/光栅缺陷"** —— 不成立：该站正在改版，
+   新版正文里根本没有 h1（`<title>` 才有），截图是完整正确的渲染。
+3. **"上游删掉了 chrome://media"** —— 不成立：真名是 `chrome://media-internals`
+   （`content/public/common/url_constants.h:43`），页面存在且可用；我差点把 D112② 写成结论。
+4. **"命令行传 chrome:// URL 当启动页被顶掉，是本分支缺陷"** —— 不成立：上游有意禁止。
+   `startup_tab_provider.cc:342` → `url_util.cc:85-89` 的放行集合只有 web-safe scheme、
+   `file:`、`about:blank`（外加 headless 的 `--allow-chrome-scheme-url` 与 ChromeOS 的
+   settings 重置页），chrome:// 不在其中，防止快捷方式劫持打开特权页。
+   另记一条环境事实：`zh.wikipedia.org` 本机 443 超时（example.com / bing 正常），
+   涉及 Wikipedia 的判据在这台机器上不可用。
+
+
 ## 待办（本档案跟踪）
+- [ ] D109 收口：加载器 v8 重编后必须依次跑 `.bugreview/loader_precedence_test.py`（期望
+      `VERSION`）、`benchmark/tools/r1_startup_check.py`、`final_gate_matrix.ps1`、
+      `.bugreview/package_m155.py`，最后再做一次 `--system-level` 干净安装复验；
+      用户机器 `AppData\Local\Chromium\Application\` 下的根级 `mcloud_flags.txt` 与
+      `.bak-20260922`/`.stale-20260922` 属历史手工残留，v8 之后不再影响读取，但应清掉
+- [ ] 第4周期新增量具进常规门禁：`loader_precedence_test.py`（路径优先级）与
+      `r1..r4_*_check.py`（实操五轮）目前只在轮次内跑，未接入 `final_gate_matrix.ps1`
 - [x] D47：补 `apply_installer_payload.py`（chrome.release 单行幂等注入）并挂入 deploy_mcloud.py + verify_sources.py（r3 已发布）
 - [x] D48：清理失效条目（删 6 / 注释改名 1 / 标记升级期 1）已随 r3 发布；存活性校验已进本地轮次门禁（round_check 门 10），CI 不接入原因见上文 D48
 - [ ] D49：V8 连字符/下划线口径做一次运行时歧义实验后更正文档

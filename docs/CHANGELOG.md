@@ -89,6 +89,50 @@
   （沿革：`0602cafa…` = r3，带 D105 已知缺陷；`54fc59b5…` = r4 修复后）。
 - 新增纪律（AGENTS.md）：**发布前必须做一次干净安装复验**，只看门禁绿灯不足以证明安装包正确。
 
+### r5（第4周期五轮实操收口：修 D109 加载器路径优先级 + 量具假绿族）— 2026-10-11 晚
+
+本轮口径是**实地操作**而非脚本反馈：每轮真启动独立 profile 实例，真拖窗口、真杀 GPU/渲染进程、
+真下载、真放 1.18 GB 本地视频。产物：`docs/tasks/bug-review-cycle4-report.md`，
+缺陷详版 `docs/tasks/bug-review-pak-src-defects.md` 第4周期段（D107–D118）。
+
+- **D109（High，产品）**：加载器 v7 以 **exe 同目录**为第一候选，而上游判定"程序目录"的依据是
+  **chrome.dll 在哪**（`main_dll_loader_win.cc:175-191`）——安装版根目录只有 4 MB 启动桩。
+  于是一份残留的 `Application\mcloud_flags.txt`（本机确有，D104 期间手工 copy 留下）会**永久、
+  静默地**压掉安装包投递的正式文件；而 `flag_runtime_state.resolve_flags_path()` 照抄同一顺序，
+  门禁读被压制的那份、断言那份 ⇒ **全绿而线上跑旧配置**。
+  修复：加载器 **v8** 改以 `base::DIR_MODULE` 为第一候选（exe 目录次之、最新载荷目录兜底），
+  oracle 同步改序并打印**整条候选链 + 各自 sha256 + 谁压住谁**。
+  判据可证伪：`.bugreview/loader_precedence_test.py` 用硬链接拼出安装同形沙箱（根目录无 chrome.dll）、
+  两份文件各带不同探针开关真启动一次 —— **v8 前判 `ROOT`，v8 后判 `VERSION`**。
+- **量具假绿/假红族（D107、D111–D118）**：本轮 12 条里只有 1 条是产品缺陷，其余全在量具自身，
+  且两类都出现过：① 空页面上"不存在型"断言恒成立（D107，chrome://gpu 的正文在 shadow root 里，
+  `body.innerText` 实测 0 长度）；② "reload 后有文本即算恢复"被**错误页**满足（D112，
+  同条还包含把 `chrome://media` 拼错读成"上游删了这个页"——真名 `chrome://media-internals`）；
+  ③ `INPUT` 结构体多一个 pad 字段 → x64 上 48≠40 → `SendInput` 恒 `lasterr=87`，
+  拖拽三项判据被记成产品失败（D111，对照实验 cbSize 40 成功 / 48 报 87）；
+  ④ `/json/new?url=X` 丢参数使标签停在 about:blank（D113）；⑤ 截图失败掀翻整轮已跑完的判据（D114）；
+  ⑥ 泄漏判据拿"开 15 标签时的峰值"比"基线 9 进程"，数学上永不成立（D115）；
+  ⑦ 探针页用 `body.innerText=` 打标记，赋值会替换全部子节点、把要点的 `<a download>` 自己删掉（D117）。
+- **五轮结果**：R1 真实 DOM 17/17（chrome://version 命令行含 D51 形式 params；chrome://gpu
+  Canvas/WebGL/Video Decode/Compositing/Rasterization 全 Hardware accelerated、Graphite Disabled）；
+  R2 8/8（真拖拽位移 132×66 px、期间 rAF 159 帧、`IsHungAppWindow=False`；杀 GPU 进程 1 秒内重建
+  且页面与网络栈存活；杀被测标签渲染进程后 reload 恢复）；R3 11/11（**2560×1440 H.264 播 8 秒
+  483 帧 0 丢帧**、真 PiP/全屏、真实下载落盘、printToPDF 8,459 B、四 codec 能力查询全 supported）；
+  R4 6/6（三轮 15 标签开合：峰 33/33/33 进程、谷 22/22/22、谷句柄 2273/2281/2286、
+  谷私有内存 1046/1027/1064 MB —— **跨轮零累积**；关窗残留 0）。
+- **一处量化过的取舍（不是缺陷，但留数）**：`TransientKeepAlivePolicy` 关掉后同一探针下
+  关标签后的驻留从 **22 进程 / 1.05 GB 降到 12 进程 / 0.68 GB**（约 +10 进程、+360 MB 的代价换重开零冷启动）。
+  上游在浏览器测试里默认禁用它，理由正是 *"delays renderer process cleanup"*
+  （`chrome/test/base/in_process_browser_test.cc:381-385`）。按 ADR-002 暂维持启用。
+- 被证伪的四个怀疑（避免重复走）：冻结开关挡后台标签加载 ✗（6/6 正常加载）、
+  GPU 崩溃后缺 `<h1>` 是渲染缺陷 ✗（该站改版后正文本就没有 h1）、
+  上游删除 chrome://media ✗（URL 写错）、命令行 chrome:// 启动页被顶掉是本分支缺陷 ✗
+  （`url_util.cc:85-89` 有意只放行 web-safe/`file:`/`about:blank`）。
+- 产物：**127,564,288 B**，SHA256 `17b3151379dfc1091efe10a05825ce433c58895a27f6d925025dfbbd7517f3b7`
+  （沿革：`0602cafa…` = r3 带 D105 缺陷；`54fc59b5…` = r4 修 D105；`17b31513…` = r5 修 D109）。
+- 文档口径更新：AGENTS.md（v8 路径规则 + 实操量具清单）、规范 §4.1.1（新增两条【必须】：
+  DIR_MODULE 优先、文本存在性≠内容正确性）。
+
 ### 第3周期·扩展轮（同日晚，D77–D104：导航基准 / 门禁聚合 / src 参与度 / 步骤文档 / 临时文件）
 
 - **D89（Critical，本轮最重要）**：`benchmark/tools/final_gate_matrix.ps1` 的汇总用函数体内

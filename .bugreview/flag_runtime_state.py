@@ -131,34 +131,61 @@ def propagate_probe(exe, wait=16):
     return en, dis, plain, lines
 
 
-def resolve_flags_path(exe):
-    """按加载器 v7 的同一条规则找 mcloud_flags.txt（缺陷 D105）。
-
-    开发树：exe 同目录；安装版：exe 在 Application\\，文件在 Application\\<版本号>\\
-    （setup.exe 只搬固定根文件，所以注册表目标是 %(VersionDir)s）。
-    多版本目录并存时取版本号最大的那个——与 chrome_main_delegate.cc 里的实现一致。
-    """
-    d = os.path.dirname(os.path.abspath(exe))
-    direct = os.path.join(d, "mcloud_flags.txt")
-    if os.path.isfile(direct):
-        return direct
-    if not os.path.isdir(d):
-        return None
+def _newest_payload_dir(d):
+    """exe 同级里"带 chrome.dll 且目录名是四段版本号"的最新一个（安装版布局）。"""
     best = None
     best_ver = None
+    if not os.path.isdir(d):
+        return None
     for name in os.listdir(d):
         sub = os.path.join(d, name)
-        cand = os.path.join(sub, "mcloud_flags.txt")
-        if not (os.path.isdir(sub) and os.path.isfile(os.path.join(sub, "chrome.dll"))
-                and os.path.isfile(cand)):
+        if not (os.path.isdir(sub) and os.path.isfile(os.path.join(sub, "chrome.dll"))):
             continue
         parts = name.split(".")
         if len(parts) != 4 or not all(x.isdigit() for x in parts):
             continue
         ver = tuple(int(x) for x in parts)
         if best_ver is None or ver > best_ver:
-            best_ver, best = ver, cand
+            best_ver, best = ver, sub
     return best
+
+
+def flags_candidates(exe):
+    """加载器 v8 的**完整**读取顺序（缺陷 D109）。
+
+    v8 以 base::DIR_MODULE（= chrome.dll 所在目录）为第一候选，与上游
+    `main_dll_loader_win.cc:175-191 GetModulePath` 同口径。Python 侧拿不到
+    DIR_MODULE，但可以等价地判断：exe 同目录有 chrome.dll → 扁平布局（开发树/便携包），
+    没有 → 安装版布局，程序目录是版本目录。
+    把整条候选链都暴露出来，是为了让"存在多份且内容不同"这种压制场景**看得见**——
+    v7 时代 oracle 与加载器同序且只看第一个，根目录残留能把正式文件压掉而门禁全绿。
+
+    已知边界（刻意不处理）：升级中途若根 chrome.exe 比"最新版本目录"旧，二进制读的是自己
+    编译期写死的那个版本目录（`chrome::kChromeVersion`），而这里只能挑"最新的载荷目录"，
+    两者会差一版。这种混版状态本身是瞬时的，且候选链会**整条打印 + 各带 sha256**，
+    人眼能立刻看出读的是哪一份；为它去调 PowerShell 取 ProductVersion 不值。
+    """
+    d = os.path.dirname(os.path.abspath(exe))
+    payload = _newest_payload_dir(d)
+    module_dir = d if os.path.isfile(os.path.join(d, "chrome.dll")) else (payload or d)
+    dirs = [module_dir, d]
+    if payload and payload not in dirs:
+        dirs.append(payload)
+    seen, out = set(), []
+    for x in dirs:
+        p = os.path.normpath(os.path.join(x, "mcloud_flags.txt"))
+        if p not in seen:
+            seen.add(p)
+            out.append(p)
+    return out
+
+
+def resolve_flags_path(exe):
+    """返回加载器实际会读到的那份（候选链上第一个存在的）。"""
+    for cand in flags_candidates(exe):
+        if os.path.isfile(cand):
+            return cand
+    return None
 
 
 def main():
@@ -177,7 +204,21 @@ def main():
             "找不到 mcloud_flags.txt（既不在 " + os.path.dirname(os.path.abspath(exe)) +
             " 也不在其版本子目录）。\n"
             "  开发树应在 exe 同目录；安装版应在 Application\\<版本号>\\ 下"
-            "（D105 之后由 chrome.release 的 %(VersionDir)s 条目投递，加载器 v7 同址回退）。")
+            "（D105 之后由 chrome.release 的 %(VersionDir)s 条目投递，加载器 v8 同址回退）。")
+    # D109：把整条候选链摊开。存在多份且内容不同时，加载器只会读第一份——
+    # 过去 oracle 与加载器同序且只看第一份，所以"根目录残留压制正式文件"这件事
+    # 在门禁里是完全隐形的。现在至少让人看得见是谁压住了谁。
+    present = [c for c in flags_candidates(exe) if os.path.isfile(c)]
+    if len(present) > 1:
+        import hashlib
+        print("  候选链（加载器按此顺序读取，第一个命中即生效）：")
+        for c in present:
+            digest = hashlib.sha256(open(c, "rb").read()).hexdigest()[:12]
+            print("    %s  sha256=%s  %s"
+                  % (c, digest, "<= 实际生效" if c == present[0] else "<= 被压制"))
+        if len({open(c, "rb").read() for c in present}) > 1:
+            print("  WARN: 多份候选内容不一致（D109）——请删掉被压制之外的那份，"
+                  "否则这份文件改名/删除的瞬间行为就会变。")
     raw_flags = open(flags_path, "rb").read()
     try:
         base_text = raw_flags.decode("utf-8-sig")

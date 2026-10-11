@@ -20,8 +20,11 @@ OUT = os.path.join(WORK, "crafted_out")
 os.makedirs(OUT, exist_ok=True)
 
 # MSVC ASan reports with ASAN_OPTIONS=exitcode=86; 0xC0000005 = access violation.
-CRASH_CODES = {86, 0xC0000005, 3221225477, 0xC0000409, 3221225985,
-               0xC0000374, 3221226092, -999}  # -999 = timeout (hang)
+# 统一写成十六进制：原来同一行里 `0xC0000005` 与 `3221225477` 是**同一个值**的两种写法
+# （ruff B033 抓到），集合实际只有 7 个元素而看起来像 8 个——成员判定结果没错，但会让人
+# 以为多覆盖了一类崩溃码。
+CRASH_CODES = {86, 0xC0000005, 0xC0000409, 0xC0000201, 0xC0000374, 0xC000026C,
+               -999}  # -999 = timeout (hang)
 GRACEFUL = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 32, 33, 34, 111}
 
 os.environ["ASAN_OPTIONS"] = "exitcode=86:abort_on_error=0"

@@ -113,13 +113,17 @@ MCloud Browser 是基于 Chromium（当前 M155，155.0.8059.40，硬件基线 A
    （chrome.exe / chrome_proxy.exe / chrome.VisualElementsManifest.xml），根级条目会被打包进
    `chrome.7z` 却**永不安装**——实测干净系统安装后 `Application\` 下没有该文件，
    而版本目录 `Application\<版本号>\` 是整目录搬迁、必然落地（D105）。
-   相应地加载器 v7 在 exe 同目录读不到时会回退到 `exe_dir\<版本号>\mcloud_flags.txt`。
+   相应地加载器 **v8** 以 `base::DIR_MODULE`（**chrome.dll 所在目录**，与上游
+   `main_dll_loader_win.cc:175-191 GetModulePath` 同口径）为第一候选，exe 同目录次之，
+   最新载荷目录兜底。⚠ 不要退回"先读 exe 同目录"：安装版根目录只有一个 4 MB 启动桩，
+   任何一份残留的 `Application\mcloud_flags.txt` 都会永久、静默地压掉安装包投递的那份
+   （缺陷 D109 已用硬链接沙箱实测复现，回归判据见 `.bugreview/loader_precedence_test.py`）。
    **发布前必须做一次干净安装复验**（`mini_installer.exe --system-level` 装到 Program Files，
    断言文件落地 + 与仓库字节一致 + 对安装后的二进制跑 `flag_runtime_state.py` 得到 51+2 回显，
    然后卸载）。只看门禁绿灯不足以证明安装包正确。
-8. **`build_win.py`** — 执行 gn/autoninja 编译。
-9. 辅助：`version.py`（版本管理）、`clean.py`、`reset_depot_tools.py`、`tot.py`/`trunk.py`（ToT 同步）。
-10. **`verify_sources.py`** — 最小源码验证：win_scripts/ 全部 Python 脚本语法检查 + 关键脚本存在性 + pak_src/ C 源码检查。修改构建脚本后运行 `python3 win_scripts/verify_sources.py`（退出码 0=PASS / 1=FAIL）；已接入 CI（`.github/workflows/verify.yml`，push/PR 自动运行）。
+9. **`build_win.py`** — 执行 gn/autoninja 编译。
+10. 辅助：`version.py`（版本管理）、`clean.py`、`reset_depot_tools.py`、`tot.py`/`trunk.py`（ToT 同步）。
+11. **`verify_sources.py`** — 最小源码验证：win_scripts/ 全部 Python 脚本语法检查 + 关键脚本存在性 + pak_src/ C 源码检查。修改构建脚本后运行 `python3 win_scripts/verify_sources.py`（退出码 0=PASS / 1=FAIL）；已接入 CI（`.github/workflows/verify.yml`，push/PR 自动运行）。
 
 注意：`setup.py` 为遗留全量覆盖脚本，已被定点注入取代，勿在新 Chromium 树上运行（会污染源码树）。
 该约定现已**机器化**（缺陷 D97，2026-10-11）：脚本在没有上游对应动作的位置直接拒绝执行，
@@ -166,6 +170,13 @@ C 语言编写的 Chromium 资源包工具：
 
 - `bench_startup.ps1`、`bench_memory.ps1`、`bench_navigation.ps1`、`bench_size.ps1` — 四维基准。
 - `run_baseline.ps1` — 基线采集。
+- `tools/cdp.py` — **零依赖 CDP 客户端**（stdlib 手搓 WebSocket）。实操轮次的公共底座：
+  `Tab.deep_text()`（穿透 shadow root，WebUI 必需）、`Tab.try_screenshot()`（证据不掀判据）、
+  `activate_tab()`（全屏/PiP 要可信前台）、`kill_instance()`（按 profile 指纹，禁机器级清理）。
+- `tools/r1_startup_check.py` / `r2_interaction_check.py` / `r3_content_media_check.py` /
+  `r4_memory_stability_check.py` — 第4周期的**实操**五轮探针（真 DOM 核对、真拖拽、
+  杀 GPU/渲染进程看恢复、真下载/打印/PiP/全屏、跨轮句柄与内存累积）。退出码统一
+  0=判据成立 / 1=有判据不成立 / 2=环境不满足；**取不到数据一律非 0**（不得空值算绿）。
 - `tools/check_features.py` — 构建产物特性校验；`tools/verify_builtin_flags.ps1` — flags 注入验证；`tools/bolt_pipeline.ps1`、`tools/pgo_collect.ps1` — 编译优化流水线。
 
 ## 构建快速参考

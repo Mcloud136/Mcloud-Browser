@@ -88,7 +88,10 @@ for inc in ('#include "base/files/file_enumerator.h"\n', '#include "base/version
 
 LOADER = r'''
 // --- MCloud Browser: built-in performance startup flags (mcloud_flags.txt) ---
-// loader v7: installed-layout lookup (D105) on top of
+// loader v8: resolve the flags file from base::DIR_MODULE -- the directory that
+// actually hosts chrome.dll, matching upstream GetModulePath -- so a stray
+// root-level copy can no longer shadow the installed payload file (D109), on top
+// of v7: installed-layout lookup (D105);
 // v6: browser-process-only guard (D58) + UTF-8 BOM strip (D57), v5: line parsing
 // via string_view::substr (no raw pointer arithmetic, clean under
 // -Wunsafe-buffer-usage), v4 (shared command-line byte budget for every appended
@@ -168,12 +171,40 @@ void LoadMcloudPerformanceFlags() {
   if (!base::PathService::Get(base::DIR_EXE, &exe_dir)) {
     return;
   }
-  base::FilePath flags_path = exe_dir.AppendASCII("mcloud_flags.txt");
+  // D109: "which directory holds the program" has to be answered the way upstream
+  // answers it -- by where chrome.dll is, not where chrome.exe is.
+  // main_dll_loader_win.cc:175-191 (GetModulePath) tries
+  // `<exe_dir>\<chrome::kChromeVersion>\chrome.dll` first and only then
+  // `<exe_dir>\chrome.dll`, so in an installed build the running program lives in
+  // the version directory while `Application\` holds a 4 MB launcher stub.
+  // base::DIR_MODULE is exactly that directory (base_paths.cc:68 derives it from
+  // FILE_MODULE, and this code is compiled into chrome.dll), so it is the correct
+  // first candidate for every layout: version dir when installed, exe dir when
+  // flat/dev/portable. v7 asked DIR_EXE first, which let a stray
+  // `Application\mcloud_flags.txt` -- and one has existed on this machine since
+  // the D104 investigation, left there by a manual copy -- silently shadow the
+  // packaged file forever; the runtime oracle mirrored the same order, so the
+  // gates read the shadowed copy and stayed green (reproduced by
+  // .bugreview/loader_precedence_test.py, verdict ROOT before v8).
+  base::FilePath module_dir;
+  if (!base::PathService::Get(base::DIR_MODULE, &module_dir)) {
+    module_dir = exe_dir;
+  }
+  base::FilePath flags_path = module_dir.AppendASCII("mcloud_flags.txt");
   std::string contents;
-  if (!base::ReadFileToStringWithMaxSize(flags_path, &contents, 1u << 20)) {
-    // Dev builds keep the file next to chrome.exe; installed builds need the
-    // version directory (D105), so fall back instead of silently running
-    // without any built-in flags.
+  bool loaded = base::ReadFileToStringWithMaxSize(flags_path, &contents, 1u << 20);
+  if (!loaded && module_dir != exe_dir) {
+    // Flat layouts keep the file next to chrome.exe; there DIR_MODULE == DIR_EXE
+    // already, so this branch only runs when the module directory genuinely
+    // lacks the file.
+    flags_path = exe_dir.AppendASCII("mcloud_flags.txt");
+    loaded = base::ReadFileToStringWithMaxSize(flags_path, &contents, 1u << 20);
+    if (!loaded) {
+      contents.clear();
+    }
+  }
+  if (!loaded) {
+    // Last resort: newest payload directory that carries the file (D105).
     contents.clear();
     flags_path = FindInstalledMcloudFlagsPath(exe_dir);
     if (flags_path.empty() ||

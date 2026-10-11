@@ -311,7 +311,22 @@
   注意该集合是 command-line-only：带 params 的条目走 field trial 通道不在其中（见 D51），
   "看不到"不等于"没生效"，反之"看得到"是可靠的注册证据。
 
-### 4.1.2 清单组织与注释
+- 【必须·2026-10-11 补充，缺陷 D109】加载器**定位标志文件的第一候选必须是 `base::DIR_MODULE`**
+  （= chrome.dll 所在目录），而不是 `DIR_EXE`。理由：上游判定"程序目录"的依据就是 chrome.dll 的位置
+  （`chrome/app/main_dll_loader_win.cc:175-191 GetModulePath` 先试 `exe_dir\<kChromeVersion>\chrome.dll`
+  再退 `exe_dir\chrome.dll`），安装版里根目录只有一个 4 MB 启动桩。按 DIR_EXE 优先会让任何一份残留的
+  `Application\mcloud_flags.txt` 永久、静默地压掉安装包投递的正式文件，而运行时 oracle 若与加载器同序
+  就会"读被压制的那份、断言那份"→ 门禁全绿而线上跑旧配置。
+  顺序：**DIR_MODULE → DIR_EXE（便携/开发树扁平布局）→ 最新载荷目录（D105 兜底）**。
+  回归判据：`.bugreview/loader_precedence_test.py`（硬链接拼出安装同形沙箱 + 两份不同探针，
+  真启动一次从 chrome://version 读回实际生效的那份；v7 判 `ROOT`、v8 判 `VERSION`）。
+  oracle 侧必须打印**整条候选链与各自 sha256**，让"谁压住谁"可见，而不是只报第一个命中。
+- 【必须·第4周期】实操轮次的公共量具是 `benchmark/tools/cdp.py`，其三条硬口径：
+  ① 读 WebUI 一律 `Tab.deep_text()`（穿透 shadow root；chrome://gpu 的 body.innerText 实测为 0）；
+  ② 任何"读到了内容"的判据必须先过 `is_error_page()`，正向标记只能来自自己生成的本地页
+  （远端内容会变：example.com 改版导致正文标记永久失效）；
+  ③ 截图等旁证采集不得影响判据（`Tab.try_screenshot()`），取不到数据一律非 0 退出。
+
 
 - 【必须】标志按功能域分组（冷启动/视频/渲染/内存/网络/GPU/媒体/线程等，维持 `mcloud_flags.txt` 现有分区），每条目附单行注释说明预期收益。
 - 【必须】带参数 feature 的语法是 `Feature:param/value/param/value`（值为必需，布尔写 `/true`）；

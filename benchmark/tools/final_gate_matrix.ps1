@@ -84,7 +84,7 @@ if ($linked -lt 50) {
 #   只靠摘要行判断。
 $results = @()
 $script:results = @()
-$EXPECTED_GATES = 8
+$EXPECTED_GATES = 9
 
 function Invoke-Gate($name, $argv) {
     L "--- $name ---"
@@ -118,6 +118,8 @@ Invoke-Gate 'A6 builtin flags'      @('powershell.exe', '-NoProfile', '-Executio
                                       '-ChromeExe', "$OutDir\chrome.exe")
 Invoke-Gate 'flag_runtime_state'    @($PY, '-X', 'utf8', '.bugreview\flag_runtime_state.py',
                                       '--chrome', "$OutDir\chrome.exe")
+Invoke-Gate 'loader_precedence'     @($PY, '-X', 'utf8', '.bugreview\loader_precedence_test.py',
+                                      '--out', "$OutDir")
 Invoke-Gate 'leak_probe(2x15)'      @($PY, '-X', 'utf8', 'benchmark\tools\leak_probe.py',
                                       '--chrome', "$OutDir\chrome.exe", '--rounds', '2',
                                       '--tabs', '15', '--label', 'finalgate')

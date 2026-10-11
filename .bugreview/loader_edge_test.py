@@ -36,7 +36,9 @@ def run_case(name, file_bytes, extra_cli=None, expect=None, timeout=120):
         rc, out = -999, b"TIMEOUT"
     finally:
         shutil.rmtree(udd, ignore_errors=True)
-    ok = (rc == 0) and (b"chrome://version" not in b"" )  # rc==0 primary
+    # 原来这里有一行 `ok = (rc == 0) and (b"chrome://version" not in b"")`：
+    # 后半段是恒真式（任何串都在空字节串里"不存在"），且 ok 从未被使用——真正的判定
+    # 在下面的 verdict 里。留着只会让人以为存在一条 DOM 内容断言。
     dom_has = len(out) > 1000
     verdict = "PASS" if (rc == 0 and dom_has) else f"FAIL(rc={rc},out={len(out)})"
     if expect:
