@@ -6,6 +6,27 @@
 # =============================================================================
 
 # =====================================================================
+# [第6周期核对 2026-10-12，缺陷 D171] 读本清单时的**净收益口径**
+#
+# 本文件 51 项 feature 全部在 M155 中真实声明存在（.bugreview/stab_155.json 逐项核对），
+# 但其中 **14 项上游默认就是 ENABLED**，写在这里不是"打开了一个默认关闭的优化"，
+# 净效果为零，其作用是**显式钉住（pin）**：将来上游翻默认值时本产品行为不跟着变。
+# 统计收益时请把这 14 项剔除，否则会把 49 项启用夸大为 49 项优化（实际 35 项）。
+#
+#   1  SpareRendererForSitePerProcess          8  ConsumeCodeCacheOffThread
+#   2  BackForwardCache                        9  RevokeMediaSourceObjectURLOnAttach
+#   3  CacheControlNoStoreEnterBackForwardCache 10 GpuShaderDiskCache
+#   4  PreloadTopChromeWebUI                  11  HighFramerateRequestFromClient
+#   5  BookmarkTriggerForPreconnect           12  PlatformHEVCDecoderSupport
+#   6  PartitionAllocMemoryReclaimer          13  DirectOpusAudioDecoding
+#   7  PruneOldTransferCacheEntries           14  EncryptedMediaOcclusionTracking
+#
+# 复核方法（内核升级后必须重跑）：
+#   python .bugreview/flag_stability.py        # 生成 stab_<ver>.json
+#   取 stab 中 default == FEATURE_ENABLED_BY_DEFAULT 且 action == enable 的项
+# =====================================================================
+
+# =====================================================================
 # [r3 清理 2026-10-10，缺陷 D48] 按声明位核对 151/155/156 三个版本后，
 # 删除 6 条在上游根本不存在、因而一直被 Chromium 静默忽略的条目：
 #   CanvasOopRasterization / DirectComposition / EarlyData / AVIF /
@@ -17,6 +38,7 @@
 # =====================================================================
 
 # --- Cold Startup Optimization ---
+# pin: SpareRendererForSitePerProcess 上游默认已启用，此行为显式钉住（D171，净效果为零）
 --enable-features=SpareRendererForSitePerProcess
 --enable-features=BrowserProcessAboveNormalPriority
 --enable-features=SendGPUChannelEarly
@@ -52,6 +74,7 @@
 # 所以这两行不是"打开了一个默认关闭的优化"，当前净效果为零。保留它们是**显式钉住**
 # （pin），防止上游将来翻默认值时本产品的行为跟着变——同 SkiaGraphite 那行的处置思路。
 # 读清单时不要把这两项算作已生效的定制收益。
+# pin: PartitionAllocMemoryReclaimer 上游默认已启用，此行为显式钉住（D171，净效果为零）
 --enable-features=PartitionAllocMemoryReclaimer
 --enable-features=DiscardOnCommitLimit
 --enable-features=SustainedPMUrgentDiscarding
@@ -65,12 +88,15 @@
 # chrome.dll**，Chromium 把它当未知 feature 静默忽略。删除不改变任何行为（同 D48 处置）。
 --enable-features=LowerPAMemoryLimitForNonMainRenderers
 --enable-features=ReclaimOldPrepaintTiles
+# pin: PruneOldTransferCacheEntries 上游默认已启用，此行为显式钉住（D171，净效果为零）
 --enable-features=PruneOldTransferCacheEntries
 
 # --- Network Optimization ---
 --enable-features=BookmarkTriggerForPrefetch
 --enable-features=NewTabPageTriggerForPrefetch
+# pin: BackForwardCache 上游默认已启用，此行为显式钉住（D171，净效果为零）
 --enable-features=BackForwardCache
+# pin: CacheControlNoStoreEnterBackForwardCache 上游默认已启用，此行为显式钉住（D171，净效果为零）
 --enable-features=CacheControlNoStoreEnterBackForwardCache
 --enable-features=AsyncDns
 
@@ -90,12 +116,15 @@
 --enable-features=Prerender2WarmUpCompositorForNewTabPage
 --enable-features=Prerender2WarmUpCompositorForBookmarkBar
 --enable-features=LoadingPreconnectToRedirectTarget
+# pin: PreloadTopChromeWebUI 上游默认已启用，此行为显式钉住（D171，净效果为零）
 --enable-features=PreloadTopChromeWebUI
+# pin: BookmarkTriggerForPreconnect 上游默认已启用，此行为显式钉住（D171，净效果为零）
 --enable-features=BookmarkTriggerForPreconnect
 
 # --- Script/Loading Speed ---
 # 已移除 LoadingPredictorPrefetch（内存代价大、收益依赖预测命中率，见上方说明）
 --enable-features=ThreadedPreloadScanner
+# pin: ConsumeCodeCacheOffThread 上游默认已启用，此行为显式钉住（D171，净效果为零）
 --enable-features=ConsumeCodeCacheOffThread
 --enable-features=InlineScriptCache
 --enable-features=PreloadSystemFonts
@@ -103,6 +132,7 @@
 --enable-features=LCPPAutoPreconnectLcpOrigin
 
 # --- MSE/Video Buffer (Bilibili/YouTube) ---
+# pin: RevokeMediaSourceObjectURLOnAttach 上游默认已启用，此行为显式钉住（D171，净效果为零）
 --enable-features=RevokeMediaSourceObjectURLOnAttach
 # [2026-10-08 固化禁用] 见 4.6 冻结缓解说明（与上方四项同组）
 #--enable-features=ReduceHardwareVideoDecoderBuffers
@@ -138,11 +168,13 @@
 --disable-features=D3D12VideoDecoder
 
 # --- GPU Optimization ---
+# pin: GpuShaderDiskCache 上游默认已启用，此行为显式钉住（D171，净效果为零）
 --enable-features=GpuShaderDiskCache
 --enable-features=IncreasedCmdBufferParseSlice
 # [2026-10-08 固化禁用] SkiaGraphite(+Precompilation) 参与冻结缓解实验组，见 4.6
 #--enable-features=SkiaGraphitePrecompilation
 --enable-features=ResourcePoolPreferExactSizeReuse
+# pin: HighFramerateRequestFromClient 上游默认已启用，此行为显式钉住（D171，净效果为零）
 --enable-features=HighFramerateRequestFromClient
 # [155 升级期修正，2026-10-10] 实测 SkiaGraphite 在 151/155/156 均为上游默认启用，
 # 仅注释掉启用行并不等于禁用 —— 下面改为显式禁用，维持拖拽冻结缓解定案。
@@ -150,15 +182,37 @@
 --disable-features=SkiaGraphite
 
 # --- Media Optimization ---
+# pin: PlatformHEVCDecoderSupport 上游默认已启用，此行为显式钉住（D171，净效果为零）
 --enable-features=PlatformHEVCDecoderSupport
 --enable-features=HardwareSecureDecryptionAv1
 --enable-features=DedicatedMediaServiceThread
+# pin: DirectOpusAudioDecoding 上游默认已启用，此行为显式钉住（D171，净效果为零）
 --enable-features=DirectOpusAudioDecoding
+# pin: EncryptedMediaOcclusionTracking 上游默认已启用，此行为显式钉住（D171，净效果为零）
 --enable-features=EncryptedMediaOcclusionTracking
 --enable-features=MediaFoundationBatchRead
 --enable-features=MediaFoundationD3D11VideoCaptureZeroCopy
 
 # --- Threading Optimization ---
+# [第6周期修复 2026-10-12，缺陷 D170] UserBlockingAboveNormalPriority 必须与
+# BrowserProcessAboveNormalPriority **成对**启用，单独启用后者净效果为零。
+# 链路（M155 实证）：
+#   components/performance_manager/graph/policies/process_priority_policy.cc:32-39
+#     启用 BrowserProcessAboveNormalPriority 时，对 BROWSER 进程调用
+#     base::Process::Current().SetPriority(kUserBlocking)；
+#   base/process/process_win.cc:299-304
+#     kUserBlocking 映射为 ABOVE_NORMAL_PRIORITY_CLASS **仅当**
+#     kUserBlockingAboveNormalPriority 也已启用，否则仍是 NORMAL_PRIORITY_CLASS。
+# 缺了这一行，上面那条"提升浏览器进程优先级"就是一条死声明：
+# 安装版实测 chrome 浏览器进程 PriorityClass=Normal（2026-10-12 实测取证）。
+# 附带收益（同一段代码 process_win.cc:283-289）：SetPriority 对 kUserBlocking 会把
+# 该进程的 EcoQoS 置为 kUnset，即**解除 Windows 11 EcoQoS**。EcoQoS 开启时进程被
+# 调度到能效核（E-core）并降频——本机 i9-14900HX 为 8P+16E，浏览器进程一旦被降级，
+# UI 线程就跑在 E-core 上。因此这一条同时是**多核/混合架构**维度的修复。
+# ⚠ 代价：ABOVE_NORMAL 会让浏览器进程在 CPU 争用时优先于其他应用，且解除 EcoQoS
+# 会抬升功耗与发热。这是本项目"极致流畅"定位下的有意取舍；若改为续航优先，
+# 需同时移除本行与下面那行（只留其一等于无效配置）。
+--enable-features=UserBlockingAboveNormalPriority
 --enable-features=IOThreadInteractiveThreadType
 --enable-features=MojoDedicatedThread
 # [第5周期删除 2026-10-12，缺陷 D142] 原此行声明 BaseLockTrySpin。该 feature 整体位于
