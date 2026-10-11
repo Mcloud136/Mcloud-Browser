@@ -25,7 +25,7 @@ try { [Console]::OutputEncoding = New-Object System.Text.UTF8Encoding $false } c
 # 被测对象口径（第3周期 bug-review，缺陷 D86）：默认值曾硬编码为 M151 回滚参考树，
 # 不显式传参就会把结果归属到错误的产物树。现在默认取 $env:MCHROME_OUT，退回当前 155 树。
 if (-not $OutDir) { $OutDir = if ($env:MCHROME_OUT) { $env:MCHROME_OUT } else { 'D:\wxmuma\chromium-src-155\src\out\mcloud' } }
-if ($OutDir -match 'chromium-src(\|$)') { Write-Warning "被测路径属于 M151 回滚参考树，不是当前发布对象（155）。" }
+if ($OutDir -match 'chromium-src(\\|$)') { Write-Warning "被测路径属于 M151 回滚参考树，不是当前发布对象（155）。" }
 
 # 被测对象口径（第3周期 bug-review，缺陷 D86）：旧默认值硬编码在 M151 回滚参考树
 # （chromium-src\src），不传 -ChromeExe 就会量到旧树，而日志里看不出测的是哪个二进制
@@ -38,7 +38,7 @@ $mcloudFlagsNextTo = Join-Path $subject.DirectoryName 'mcloud_flags.txt'
 Write-Host ("被测对象: {0} | {1:N0} B | mtime={2:s} | 内置标志文件={3}" -f `
     $subject.FullName, $subject.Length, $subject.LastWriteTime,
     $(if (Test-Path $mcloudFlagsNextTo) { '同目录存在' } else { '缺失（内置优化不生效，结果无意义）' }))
-if ($subject.FullName -match 'chromium-src(\|$)') {
+if ($subject.FullName -match 'chromium-src(\\|$)') {
     Write-Warning "被测对象位于 M151 回滚参考树，不是当前发布对象（155）。确认这是你要测的目标。"
 }
 
@@ -89,14 +89,50 @@ $report += "## 环境信息"
 $report += ""
 $cpu = Get-CimInstance Win32_Processor | Select-Object -First 1
 $os = Get-CimInstance Win32_OperatingSystem
-$gpu = Get-CimInstance Win32_VideoController | Select-Object -First 1
 $ram = [math]::Round((Get-CimInstance Win32_ComputerSystem).TotalPhysicalMemory / 1GB, 1)
+
+# 缺陷 D139：旧实现 `Get-CimInstance Win32_VideoController | Select-Object -First 1` 取的是
+# WMI 枚举顺序里的**第一个**适配器。本机装了 MuMu / GameViewer 两个虚拟显示器，它们排在
+# 真实显卡前面，于是每一份 KPI 基线的"GPU / 驱动"都被记成虚拟显示器（M155 基线写作
+# "MuMu Virtual Display Adapter"，M150/M151 基线写作 GameViewer），GPU 类指标的环境归属
+# 从建立起就是错的。现改为：只认 PCI 总线上的适配器，并把 PCI 设备号一并记下——
+# 本机的 WMI Name 会被注册表 DeviceDesc 改名污染（独显实为 RTX 4070 Laptop / DEV_2860，
+# Name 却报 GTX 1050 Ti），设备号才是可信身份。
+$allGpu = @(Get-CimInstance Win32_VideoController)
+$realGpu = @($allGpu | Where-Object { $_.PNPDeviceID -like 'PCI\*' })
+$virtualGpu = @($allGpu | Where-Object { $_.PNPDeviceID -notlike 'PCI\*' })
+$activeGpu = @($realGpu | Where-Object { $_.CurrentHorizontalResolution })
+if ($realGpu.Count -eq 0) {
+    # 取不到真实显卡就不能给基线编一个环境（AGENTS.md：取不到数据一律判 FAIL）
+    throw "无法识别任何 PCI 显卡适配器，环境信息不成立；拒绝写出基线报告。"
+}
+$gpuLines = @()
+foreach ($g in $realGpu) {
+    $devId = if ($g.PNPDeviceID -match 'VEN_([0-9A-Fa-f]{4})&DEV_([0-9A-Fa-f]{4})') {
+        '{0}:{1}' -f $Matches[1], $Matches[2]
+    } else { 'unknown' }
+    $role = if ($g.CurrentHorizontalResolution) {
+        '{0}x{1}@{2}Hz 驱动显示' -f $g.CurrentHorizontalResolution, $g.CurrentVerticalResolution, $g.CurrentRefreshRate
+    } else { '未驱动显示（核显/备用）' }
+    $gpuLines += ('{0} [PCI {1}] / 驱动 {2} / {3}' -f $g.Name, $devId, $g.DriverVersion, $role)
+}
+$logicalProcs = [Environment]::ProcessorCount
+
 $report += "| 项目 | 值 |"
 $report += "|------|----|"
 $report += "| CPU | $($cpu.Name) |"
+$report += ("| 逻辑处理器 | {0}（物理核 {1}；两者不等说明超线程开启，相等说明 BIOS 里关闭——直接影响 CPU 类 KPI 的可比性） |" -f `
+    $logicalProcs, $cpu.NumberOfCores)
 $report += "| 内存 | $ram GB |"
 $report += "| OS | $($os.Caption) $($os.Version) |"
-$report += "| GPU / 驱动 | $($gpu.Name) / $($gpu.DriverVersion) |"
+foreach ($line in $gpuLines) { $report += "| GPU / 驱动 | $line |" }
+if ($virtualGpu.Count -gt 0) {
+    $report += ("| 已排除的虚拟显示适配器 | {0}（不参与渲染，旧版基线曾误把它们记成 GPU） |" -f `
+        (($virtualGpu | ForEach-Object { $_.Name }) -join ', '))
+}
+if ($activeGpu.Count -eq 0) {
+    $report += "| 警告 | 没有任何真实显卡报告活动显示模式，GPU 类指标（K5）归属存疑 |"
+}
 $report += "| 电源模式 | 请手工确认已设为高性能 |"
 $report += "| 扩展 | 无（脚本使用全新用户数据目录） |"
 $report += ""

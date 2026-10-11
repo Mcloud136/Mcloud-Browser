@@ -46,11 +46,23 @@
 --enable-features=InfiniteTabsFreezing
 --enable-features=InfiniteTabsFreezingOnMemoryPressure
 --enable-features=PartitionAllocEventuallyZeroFreedMemory
+# [第5周期核对 2026-10-12，缺陷 D142] 下面两项在 M155 里**上游默认就是 ENABLED**：
+#   PartitionAllocMemoryReclaimer  base/allocator/partition_alloc_features.cc:312 FEATURE_ENABLED_BY_DEFAULT
+#   PruneOldTransferCacheEntries   gpu/config/gpu_finch_features.cc:497           FEATURE_ENABLED_BY_DEFAULT
+# 所以这两行不是"打开了一个默认关闭的优化"，当前净效果为零。保留它们是**显式钉住**
+# （pin），防止上游将来翻默认值时本产品的行为跟着变——同 SkiaGraphite 那行的处置思路。
+# 读清单时不要把这两项算作已生效的定制收益。
 --enable-features=PartitionAllocMemoryReclaimer
 --enable-features=DiscardOnCommitLimit
 --enable-features=SustainedPMUrgentDiscarding
 --enable-features=PartitionAllocSortActiveSlotSpans
---enable-features=PartitionAllocUsePriorityInheritanceLocks
+# [第5周期删除 2026-10-12，缺陷 D142] 原此行声明 PartitionAllocUsePriorityInheritanceLocks。
+# 该 feature 的定义被 #if PA_BUILDFLAG(ENABLE_PARTITION_LOCK_PRIORITY_INHERITANCE) 包住
+# （base/allocator/partition_alloc_features.cc:430），而该 buildflag 的定义是
+#   is_android && (current_cpu == "x64" || current_cpu == "arm64")
+# （base/allocator/partition_allocator/partition_alloc.gni:588-589，注释原文"Enabled only on
+# 64-bit Android"）。本构建 target_os="win" ⇒ buildflag 为假 ⇒ **符号根本没编译进
+# chrome.dll**，Chromium 把它当未知 feature 静默忽略。删除不改变任何行为（同 D48 处置）。
 --enable-features=LowerPAMemoryLimitForNonMainRenderers
 --enable-features=ReclaimOldPrepaintTiles
 --enable-features=PruneOldTransferCacheEntries
@@ -96,9 +108,27 @@
 #--enable-features=ReduceHardwareVideoDecoderBuffers
 --enable-features=BackForwardCacheDWCOnJavaScriptExecution
 
-# --- Video Decode Fix (2026-08-21, 实测定位；注释更正 2026-10-08) ---
-# Intel 核显（UHD 770/Raptor Lake，驱动至 32.0.101.7088 仍有此缺陷）的 D3D12 视频
-# 解码器启动头几秒输出绿屏/花屏；独显（GTX 1050 Ti）D3D12 正常（T3 对照实验实证）。
+# --- Video Decode Fix (2026-08-21, 实测定位；注释更正 2026-10-08；硬件身份更正 2026-10-12) ---
+# Intel 核显（Raptor Lake，DEV_A788，驱动至 32.0.101.7088 仍有此缺陷）的 D3D12 视频
+# 解码器启动头几秒输出绿屏/花屏；独显 D3D12 正常（T3 对照实验实证）。
+# 【硬件身份更正，缺陷 D143】原注释把独显记作 "GTX 1050 Ti"，这是错的，且错误一路扩散到
+# D118 的结论里（"GTX 1050 Ti 为 Pascal，无 AV1 硬解单元"）。实测三路口径一致证明本机独显是
+# **NVIDIA GeForce RTX 4070 Laptop GPU（Ada Lovelace，PCI VEN_10DE&DEV_2860，8 GB，驱动 610.62）**：
+#   · nvidia-smi 报 RTX 4070 Laptop / 0x286010DE / 8188 MiB
+#   · 注册表 Class\{4d36e968…}\0000 的 DriverDesc 也是 RTX 4070 Laptop
+#   · chrome://gpu 的硬解清单含 "Decode av1 profile main: 128x128 to 8192x8192"
+#     —— Pascal 根本没有 AV1 硬解单元，这条只可能来自 Ada
+# 唯一报 "GTX 1050 Ti" 的是 WMI Win32_VideoController.Name 与 PnP DeviceDesc，其根因是
+# HKLM\SYSTEM\CurrentControlSet\Enum\PCI\VEN_10DE&DEV_2860&…\4&3a9dcb36&0&0008 的
+# DeviceDesc 被写成了**字面量**（正常驱动安装会是 "@nv_dispi.inf,%…%;名称" 这种间接引用），
+# 即这块卡被人为改过名。该错误名称会经 DXGI_ADAPTER_DESC.Description 传进 Chromium，
+# 于是 chrome://gpu 与 WebGL 的 UNMASKED_RENDERER 都显示 "GTX 1050 Ti (0x00002860)"
+# ——**名字错、设备号对**。好消息是 Chromium 的 software_rendering_list / gpu_driver_bug_list
+# 按 PCI vendor+device ID 匹配，不按名字，所以规避规则命中的是 Ada 的正确条目（实测已应用
+# "Disable VP9 k-SVC video decoding on non-Intel GPUs"，crbug 1508379，说明确实被识别为 non-Intel）。
+# ⚠ 结论：**不要再用显卡名称推断硬件能力**。任何"某卡不支持 X"的判断必须以 PCI 设备号、
+# nvidia-smi 或 chrome://gpu 的能力清单为准，否则会像 D118 那样用错误前提推翻正确的实测值。
+# 下面的禁用决定本身**不变**：绿屏是 Intel 核显侧实测到的，与独显型号无关。
 # 禁用后回退 D3D11VideoDecoder，核显场景实测绿屏消失，硬解能力不受影响。
 # 事实更正：上游该 feature 基线一直是 DISABLED_BY_DEFAULT，本仓库过去在
 # media/base/media_switches.cc 把它翻成 ENABLED，再由本行抵回去 —— 二者互相抵消。
@@ -131,9 +161,21 @@
 # --- Threading Optimization ---
 --enable-features=IOThreadInteractiveThreadType
 --enable-features=MojoDedicatedThread
---enable-features=BaseLockTrySpin
+# [第5周期删除 2026-10-12，缺陷 D142] 原此行声明 BaseLockTrySpin。该 feature 整体位于
+# #if BUILDFLAG(IS_POSIX) 之内（声明 base/features.h:82-83，定义 base/features.cc:219-230，
+# 唯一消费者 base/synchronization/lock.cc:176-180 同样在守卫内），**Windows 构建里它不存在**，
+# 命令行声明被静默忽略。另有第二重无效：即便在 POSIX 上，其参数默认值为
+# spin_count_x86 = 0（base/features.cc:226），裸名启用等于"自旋 0 次"（D51 同族）。
+# 这是本清单里第二条"平台不可能生效"的条目（另一条见上面 Memory 段）。
+# 删除不改变任何行为。Windows 上想调锁自旋没有对应 feature，不要按名字猜。
 --enable-features=BoostClosingTabs
 --enable-features=UnimportantFramesPriority
+# [第5周期核对 2026-10-12] UnimportantFramesPriority 是上面五条里**唯一直接降 CPU** 的：
+# 把视口外/小面积 OOPIF 帧判为不重要并降优先级（components/performance_manager/
+# decorators/important_frame_decorator.cc:32-58，feature 声明 features.cc:263 默认 DISABLED）。
+# 但真正限制这些帧**帧率**的是同文件的 kThrottleUnimportantFrameRate（features.cc:265，
+# 同样默认 DISABLED），它属于 2026-10-08 窗口拖拽冻结缓解的 4 项永久禁用组（见上文 4.6），
+# **不得为补全这半边而恢复**。也就是说"降优先级"开着、"限帧率"关着，是当前定案而非疏漏。
 
 # --- Service Worker Optimization ---
 

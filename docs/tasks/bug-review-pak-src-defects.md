@@ -719,7 +719,7 @@ PowerShell 5.1（中文必须 UTF-8 BOM，见 D38）、GN（Chromium 构建元�
 | D115 | Medium | `benchmark/tools/r4_memory_stability_check.py` 泄漏判据（首版） | 判据写成"后半段进程数最大值 ≤ 基线 + 6"，而"后半段"里含**开着 15 个标签时的峰值**（33）与基线（9~10）——数学上永不成立（假红）。真正的泄漏信号不是"关掉之后立刻回基线"（Chrome 会保留空闲渲染进程供复用，R2 实测 11→4 约 11 秒），而是**跨轮不累积** | ✅ 改为按轮记录峰/谷：`peak_procs` 33/33/33、`trough_procs` 22/22/22、句柄 2273/2281/2286、私有内存 1046/1027/1064 MB —— 三轮完全平稳即无累积；阈值 120 MB 远高于本机 ±8.9 MB 噪声带 |
 | D116 | Low | 同上，渲染进程定位 | 原打算用 CDP `Target.getTargetInfo().processId` 精确杀掉"承载被测标签"的渲染进程，实测 **M155 的 targetInfo 里没有这个字段**（只有 targetId/type/title/url/attached/canAccessOpener/browserContextId），于是定位手段落空；而"随便挑一个 renderer 杀"会让实验前提失效 | ✅ 改**闭环自证**：逐个杀本实例渲染进程，每杀一个就看被测标签是否真的进崩溃态，崩了才说明杀对了（实测第 6 个才命中，前 5 个是备用/其他标签的进程）；顺带把"杀遍全都不崩"记为 env-fail |
 | D117 | Medium | R3 下载步骤的量具（两处自伤） | ① 探针页用 `document.body.innerText='R3-DL-READY'` 打标记 —— **给 innerText 赋值会替换全部子节点**，于是刚写的 `<a download>` 自己把自己删了，随后 `getElementById('d')` 为 null → TypeError，看起来像"下载功能坏了"；② 本地 HTTP 服务用 `type("H",(Handler,),{"directory":root})` 注入目录，而 `SimpleHTTPRequestHandler.__init__` 里 `self.directory = directory or "."` 会**覆盖类属性** → 404 | ✅ 标记改为静态元素 `<p id=m>`；目录改用 `functools.partial(Handler, directory=root)`。修复后真实下载落盘（`r3-payload.txt`）+ `Page.printToPDF` 出 8,459 B 且文件头 `%PDF-` |
-| D118 | Low | R3 的 `MediaCapabilities` 查询 | M155 起 `VideoConfiguration.framerate` 是**必填**：缺了整次调用抛 TypeError，四个 codec 全部变成 err，读起来像"解码能力查询失败"，实际是参数不全 | ✅ 补 `framerate: 30`；随后 h264/hevc/av1/vp9 全部 `supported+smooth+powerEfficient=true`（注意：该字段只证明"被选中"，GTX 1050 Ti 无 AV1 硬解单元，HEVC 硬解证据仍以 K6 4K 播放实测 + chrome://gpu 的 Video Decode 为准） |
+| D118 | Low | R3 的 `MediaCapabilities` 查询 | M155 起 `VideoConfiguration.framerate` 是**必填**：缺了整次调用抛 TypeError，四个 codec 全部变成 err，读起来像"解码能力查询失败"，实际是参数不全 | ✅ 补 `framerate: 30`；随后 h264/hevc/av1/vp9 全部 `supported+smooth+powerEfficient=true`（注意：该字段只证明"被选中"，~~GTX 1050 Ti 无 AV1 硬解单元~~，HEVC 硬解证据仍以 K6 4K 播放实测 + chrome://gpu 的 Video Decode 为准）。**【第5周期更正 2026-10-12，见 D143】划掉的硬件前提有误：本机独显实为 RTX 4070 Laptop（Ada，`DEV_2860`，8 GB），有 AV1 硬解单元；chrome://gpu 硬解清单实测含 `Decode av1 profile main: 128x128 to 8192x8192`。"GTX 1050 Ti" 只出现在被人为改名的 WMI Name / PnP DeviceDesc 里，设备号是对的，Chromium 的规避规则按 ID 匹配故未受影响。结论应翻转为：AV1 硬解真实可用。** |
 | D119 | **High（发布相关）** | 发布/升级面：`mini_installer.exe` 直接双击安装 | **浏览器正在运行时安装新版，安装器返回 0 但更新完全不生效**，而且没有任何东西会去补完它。实测（`.bugreview/inuse_update_probe.py`，151→155 系统级）：装完根 `chrome.exe` 仍是 `151.0.7922.99`，155 的暂存件 `new_chrome.exe` 出现在安装目录且无人消化；关掉旧实例再双击启动，`chrome://version` 实测仍是 **151.0.7922.99**——而 155 的版本目录与 `mcloud_flags.txt` 都已正确落地，只是没人用它们。机理：载荷走旁路新版本目录（`install_worker.cc:295-306`）不需要覆盖，但根启动桩是被锁的映像，上游因此走 in-use 分支暂存为 `new_chrome.exe` 并写一条 `rename-chrome-exe` AppCommand（`install_worker.cc:867-901`），而**系统级安装的收尾改名整个委托给 Google Update**（`upgrade_util_win.cc:505-506`）——我们不发布 Google Update，所以这一步永远没人执行 | ✅ 新增外层安装包装器 `installer/mcloud_setup.cs` → `MCloud-Setup.exe`（csc.exe 编译，.NET Framework 自带、无需 SDK）：按**可执行文件路径**（不按进程名，D52/D55/D106 纪律）识别本产品实例 → 先发 `WM_CLOSE` 优雅退出（Chrome 自己保存会话），30 秒超时才升级为强制结束 → 再跑 mini_installer（此时根桩不再被锁，走 regular 分支直接覆盖）→ **复验根 chrome.exe 版本 == 包内版本且无 `new_chrome.exe` 残留** → 清理临时目录并断言无 setup/mini_installer 驻留 → 自动重启浏览器。验收测试 `.bugreview/setup_wrapper_test.py`（同一 151→155 现场，包装器路径必须真的升到 155）；`--list-only` 作负向对照（只报告不关闭，且系统级模式下用户级实例必须完全不在集合内）。另注：上游 M155 的 setup.exe **没有任何进度 UI**（`ProgressCalculator::Calculate()` 除单元测试外无消费者），也没有静默/非静默开关，所以"要安装界面"只能由外层提供 |
 | D120 | Medium（发布/体验） | `installer/mcloud_setup.cs` 首版的位置选择 + 发布流程 | 包装器首版**按命令行参数决定装到哪**（默认用户级、给 `--system-level` 就装系统级），不检测机器上已有的副本。用户"先卸用户级、再装系统级"之后：任务栏固定项与开始菜单快捷方式全部指向已不存在的 `%LOCALAPPDATA%\Chromium\Application\chrome.exe`，且机器上容易同时留下两份安装、桌面/任务栏到底启动哪一份变得不确定。⚠ 同时更正一个错误前提：**默认浏览器并没有丢**——实测 `HKLM\SOFTWARE\Classes\ChromiumHTM\shell\open\command` 与 `StartMenuInternet\Chromium\shell\open\command` 都已被系统级安装重新登记到新路径，`UserChoice(http/https)=ChromiumHTM` 仍解析到存在的 exe；真正丢的只有任务栏 pin 与开始菜单 lnk | ✅ 改为**默认就地更新已存在的那一份**（Google Update 式）：`DetectInstall()` 以"根 chrome.exe 是否存在"判定（注册表会有卸载后的空壳，不可靠），两处都在时以**默认浏览器当前解析到的那份**为准，再退而取版本更高者；只有显式 `--system-level` / `--user-level` 才允许换位置，且换之前打印后果警告。另加**更新前快照 / 更新后复算**：默认浏览器链"原本解析到存在的 exe、更新后目标不存在"= 回归，判 FAIL；指向死路径的 .lnk 只 WARN 并逐条列出——任务栏固定项自 Windows 7 起**没有公开 API** 可创建（`ITaskbarList::AddTab` 只是活动按钮），唯一可靠的办法就是别换位置。实测两分支：无参数时输出"检测到已安装副本…→ 就地更新这一份"；只有系统级却传 `--user-level` 时输出 WARN 并说明后果 |
 
@@ -1294,7 +1294,151 @@ ew_chrome.exe` **出现**；155 版本目录与 `mcloud_flags.txt` 都已正确�
 （首版我用 `rep-a.exe`/`rep-b.exe` 对比，得出"仍然不可复现"的错误结论，差异仅 24 字节且含 `A`/`B` 字符差）。
 
 
+## 第5周期（D121–D155：全局多维度评审，2026-10-12）
+
+**详版报告与全部证据见 `docs/tasks/bug-review-cycle5-report.md`。**
+评审维度由用户指定：安装、更新、使用、内存占用、内存安全性、运行效率、CPU 占用、
+多核心优化、集成显卡/独立显卡渲染优化。共登记 26 条，**14 条已修复并验证**，12 条记录在案。
+
+### 本轮最重要的一条方法论教训
+
+**D143：全仓库把独显记作 "GTX 1050 Ti（Pascal，无 AV1 硬解）"，实测真机是
+NVIDIA GeForce RTX 4070 Laptop（Ada，PCI `VEN_10DE&DEV_2860`，8 GB，驱动 610.62）。**
+D118 当时测到 `av1 powerEfficient=true` 是**正确的**，却被这个错误前提降级为"只证明被选中"。
+本轮 chrome://gpu 硬解清单实测含 `Decode av1 profile main: 128x128 to 8192x8192`——
+Pascal 不可能有这一条，**结论应翻转为 AV1 硬解真实可用**。
+
+错误名称的根因已定位到注册表：
+`HKLM\SYSTEM\CurrentControlSet\Enum\PCI\VEN_10DE&DEV_2860&SUBSYS_1B931043&REV_A1\4&3a9dcb36&0&0008`
+的 `DeviceDesc` 被写成**字面量** `NVIDIA GeForce GTX 1050 Ti`（同机音频设备是
+`@hdaudbus.inf,%hdaudio.devicedesc%;…` 这种正常的间接引用形式），即这块卡被人为改过名。
+该错误名称经 `DXGI_ADAPTER_DESC.Description` 传进 Chromium，于是 chrome://gpu 与
+WebGL 的 `UNMASKED_RENDERER_WEBGL` 都显示 `NVIDIA GeForce GTX 1050 Ti (0x00002860)`——
+**名字错、设备号对**。所幸 Chromium 的 `software_rendering_list.json` /
+`gpu_driver_bug_list.json` 按 PCI vendor+device ID 匹配而非按名字，规避规则命中的是 Ada 的
+正确条目（实测已应用 `Disable VP9 k-SVC video decoding on non-Intel GPUs`，crbug.com/1508379）。
+
+> **纪律（写进 `mcloud_flags.txt` 对应注释）：不要用显卡名称推断硬件能力。**
+> 任何"某卡不支持 X"的判断必须以 PCI 设备号 / `nvidia-smi` / chrome://gpu 能力清单为准，
+> 否则会像 D118 那样用错误前提推翻正确的实测值。
+> 同理，`benchmark/run_baseline.ps1` 的环境块现在记 PCI `VEN:DEV` 而不只记名称（见 D139）。
+
+### 缺陷索引
+
+| ID | 级别 | 位置 | 一句话 | 状态 |
+|---|---|---|---|---|
+| D121 | **Critical** | `installer/mcloud_setup.cs:613` | 硬编码 `--system-level`，用户级安装路径整体失效（日志/appDir/复验/提权分支全按 `systemLevel` 走，唯独安装调用写死）；上游只认 `--system-level`、**没有 `--user-level`**（`mini_installer/configuration.cc:77-97`） | ✅ 改为条件传参 |
+| D122 | High | `mcloud_setup.cs:488-500,552-561` | 提权自举"发射后不管"，父进程恒 `return 0`，子进程 rc=1/2 全丢 ⇒ AGENTS.md 要求的"干净安装复验"在 `--system-level` 下永远看到 0 | ✅ 改为等待并透传 rc；取不到 rc 也按失败上报（`ELEV_RC_UNAVAILABLE`） |
+| D123 | High（安全） | `mcloud_setup.cs:626-633` | 系统级安装后浏览器在**提权进程内**被 `Process.Start` 拉起 ⇒ 整个浏览会话含全部子进程继承管理员令牌，任何网页侧 RCE 直接等于本机管理员，且 Explorer 拖放被 UIPI 拦死 | ✅ 提权上下文内改经 `explorer.exe` 降回中等完整性级别 |
+| D124 | High | `mcloud_setup.cs:255-257` | 默认浏览器"整条注册丢失"被判为通过（旧判据只认 `after=="NO"`，抹掉 UserChoice 会得到 `"n/a"`）——本文件**唯一的 FAIL 判据**上的假绿 | ✅ `NO` 与 `n/a` 均判回归，两侧都走 `Has()` 守卫 |
+| D125 | Medium | `mcloud_setup.cs:382-390` | `Alive()` 的 `catch { /* 已退出 */ }` 把"查询失败"（跨完整性级别访问被拒）当成已退出 ⇒ 对着仍在运行、仍锁着根启动桩的浏览器执行 setup.exe，**精确复现 D119** | ✅ 异常一律按"仍存活"处理并记 WARN（去重） |
+| D126 | Medium | `mcloud_setup.cs:287,479,584` | 关闭集合只枚举进程名 `chrome`，漏 `chrome_proxy.exe`/`chrome_crashpad_handler.exe`/`elevation_service.exe`；`allowForce` 写死使 343-346 成死代码；GUI 无倒计时、30 s 后无条件强杀 | ⬜ 待跟进 |
+| D127 | Medium | `mcloud_setup.cs:170-173` | 用序数字符串比版本号：`"155.0.8059.40" < "155.0.8059.9"` ⇒ 两处都装时**选中版本更低的那份**去更新 | ✅ 改 `Version.TryParse`，解析失败退回字符串比较并打 WARN |
+| D128 | Low | `mcloud_setup.cs:206-213` | 快捷方式快照漏 `CommonStartMenu` ⇒ 系统级安装的快捷方式失效**永远不会被 WARN**（D120 关心的正是这个） | ✅ 补 `SpecialFolder.CommonStartMenu + \Programs` |
+| D129 | Medium | `mcloud_setup.cs:613-624` | 安装器自身退出码不参与判定，而 `Verify` 只查文件存在性 ⇒ 同版本重跑时"安装失败 + 目录残留"被判 rc=0"已确认更新" | ✅ `irect != 0` 直接 `ok=false`（与 D121 同批） |
+| D130 | Medium | `build_setup_exe.py:59-64`、`package_m155.py:143-151` | 找不到 Roslyn 时无声退回旧 csc（**实测旧 csc 两次编译 SHA 不同**，Roslyn `/deterministic+` 一致），且 `package_m155.py` 成功路径把"用了哪个编译器/是否可复现"整段丢弃，随后照样写 `.sha256` 与发布说明 | ⬜ 待跟进 |
+| D131 | Medium | `mcloud_setup.cs:692-705,752` | `BuildUi` 只等 2 s 让句柄建好；没建成时 `_done.WaitOne()` **无超时永久阻塞**。且发布物是 GUI 版而 `setup_wrapper_test.py` 只测 `--console --quiet` ⇒ UI 分支**从未被任何门禁执行过** | ⬜ 待跟进 |
+| D132 | Medium | 全文件无 `Mutex` | 并发双击两个包装器 ⇒ 两边同时关浏览器、同时对同一棵树跑 mini_installer，工作项列表互相踩 | ⬜ 待跟进 |
+| D133 | Low | `mcloud_setup.cs:76,82,576-582` | 发布形态是 `winexe`，无控制台时 `Console.WriteLine` 落到虚空 ⇒ AGENTS.md 与发布说明都宣传的 `--list-only` **在用户手上是哑的** | ⬜ 待跟进 |
+| D134 | Low | `build_setup_exe.py:69-81` | 不传 `/version` 或 `/win32res`；实测发布物 ProductVersion/FileVersion 均为 `0.0.0.0`，无法从文件属性辨别包装器版本 | ⬜ 待跟进 |
+| D135 | Low | `mcloud_setup.cs:471-476,658-665` | `Verify`（校验函数）里 `File.Delete` 删根目录 flags，校验带副作用且失败时也已删过；残留扫描按机器级进程名匹配会打假 WARN | ⬜ 待跟进 |
+| D136 | Low | `mcloud_setup.cs:130,143` | `DefaultBrowserTarget` 先 HKLM 后 HKCU，两处都注册时系统级胜出，可能绕开 D120 的就地更新；`cmd.Split(' ')[0]` 对无引号含空格路径会截断 | ⬜ 待跟进 |
+| D137 | **High** | 9 个 `.ps1`、**10 处** | "你在测 M151 旧树"护栏正则写成 `chromium-src(\|$)`——`\|` 是转义竖线、匹配字面量 `\|`，**从未在任何地方触发过**。实测：旧写法两树皆 False，改 `(\\|$)` 后 M151=True / M155=False。本机恰好有两棵树，正是 D86/D72 要防的场景 | ✅ 10 处全改 + 留注释防止被"简化"回去 |
+| D138 | **High** | `benchmark/bench_memory.ps1:88-96` | K2 取不到进程时 `$null/1MB == 0` ⇒ 输出"内存峰值 0 MB"并 `exit 0`，看起来像巨大改善。违反 AGENTS.md 硬规则"取不到进程必须判 FAIL"；K2 是三大 headline KPI 之一 | ✅ 三处硬失败 + 采样条数自检（D89 教训）+ `exit 0` |
+| D139 | Medium | `benchmark/run_baseline.ps1:92` | `Select-Object -First 1` 取到的是 **MuMu Virtual Display Adapter**（本机 4 个显示适配器里虚拟的排最前）⇒ **每一份归档基线的 GPU 都是错的**，M155 基线写作 MuMu 且**无任何警示** | ✅ 只认 `PNPDeviceID -like 'PCI\*'`，输出名称 + PCI `VEN:DEV` + 驱动 + 是否驱动显示；识别不到即 `throw`；另增逻辑处理器/物理核行 |
+| D140 | Medium | `benchmark/tools/gpu_probe.py:68 vs 80` | 首次查 PID 用 profile **叶子名**，循环内**复检**却用**完整路径**——正是该文件自己第 33-34 行注释警告过的坑。失败模式是**静默**：匹配为空 → `pids` 空 → `break` → 不打 WARN，而进程还活着并锁住 `out` 目录 DLL（D71） | ✅ 复检统一用叶子名（`cdp.kill_instance` 是正确范式） |
+| D141 | Low | `benchmark/tools/*.py` | AGENTS.md 要求 `benchmark/tools/*` 走 `MCHROME_EXE`/`MCHROME_OUT`，实测 `.ps1` 全合规、**`.py` 基本没落实**（`gpu_probe.py` env=0/硬编码=3、`check_features.py`、`r1_startup_check.py`） | 🔶 部分（`gpu_probe.py` 已改；另两个待跟进） |
+| D142 | Medium | `mcloud_flags.txt` | 4 条无效声明：`BaseLockTrySpin`（整体在 `#if BUILDFLAG(IS_POSIX)` 内，`base/features.h:82-83`、`features.cc:219-230` ⇒ **Windows 构建里不存在**；且参数默认 `spin_count_x86=0`）、`PartitionAllocUsePriorityInheritanceLocks`（`#if PA_BUILDFLAG(ENABLE_PARTITION_LOCK_PRIORITY_INHERITANCE)` = `is_android && (x64\|\|arm64)`，`partition_alloc.gni:588-589` ⇒ **符号未编译进 chrome.dll**）、`PartitionAllocMemoryReclaimer`(`partition_alloc_features.cc:312`) 与 `PruneOldTransferCacheEntries`(`gpu_finch_features.cc:497`) **上游默认已 ENABLED** | ✅ 前两条**删除**（同 D48），后两条**保留但加注为显式 pin**（防上游翻默认，同 SkiaGraphite 处置思路） |
+| D143 | Medium | `mcloud_flags.txt:99-108`、`cycle4-report.md:94`、本档案 D118 行 | 显卡身份错误扩散，并据此推翻了正确的 AV1 实测值（详见上方"方法论教训"） | ✅ 三处更正，历史结论用删除线保留不抹除 |
+| D144 | **High** | `win_args_mcloud.gn:57` | `pgo_data_path` 指向 **M151 树**（那里只有 7871/7922，**没有 8059**），而真正构建出 r5 的 `out/mcloud/args.gn` 早已手工改对 ⇒ **仓库里 committed 的配置根本构建不出已发布的二进制**。两份配置完整 diff 只有 2 行。失败模式：`gn gen --check` 能过（`pgo/BUILD.gn:149` 只断言非空、不校验存在），ninja 才在第 156 行 `inputs +=` 上报 `missing and no known rule to make it`，信息完全不指向根因 | ✅ 路径指回 155 树 + `build_win.py` 新增 `preflight_args()`：编译前硬校验剖面存在（否则 exit 111 并给根因与两种修法）+ 模板/构建树**逐项漂移比对** |
+| D145 | Medium | 全仓库 | **没有任何 CPU 占用率量具**（K1–K7 里没有；只有 `README.md` 写着 K6 手工用任务管理器采样） | ✅ 在 K2 采样循环上新增 **K2-CPU**（`-NoCpu` 可关）：按 PID 分别做差容忍 renderer 起停、墙钟实测、同时给"占整机%"与"折合核数"、计数器取不到即 `throw`（**上游 `task_group_sampler.cc:125` 用 `.value_or(0.0)` 吞失败，本仓不得照抄**）、并加**单位自洽断言** |
+| D146 | Low | `inject_flags_loader.py` LOADER:206-213 | 三级候选全失败时**裸 `return` 无任何日志**，整套运行时优化静默丢失（D105 的形态）。⚠ 已核实该函数在 `BasicStartupComplete`(`chrome_main_delegate.cc:1368-1372`) 运行，而 `InitLogging()` 要到 `PreSandboxStartup`(`:1756`) ⇒ 这条 WARNING **用户看不到**（连 `--enable-logging=stderr` 也不行），权威检测仍是外部探针 | ✅ 补 `LOG(WARNING)`（直接流 `FilePath`，依据 `file_path.h:553`）并把上述局限写进注释 |
+| D147 | Med–High | `win_args_mcloud.gn:28` | `symbol_level = 0` 使发布产物崩溃只能到 `module+offset`，注入的 LOADER 若在用户机出问题**无法归因**。上游 official build 默认 2，注释原文 *"best debug info we can get for in-the-wild crashes"*（`compiler.gni:130-132`）。**Windows 上符号是分离 PDB（`:144-147`）⇒ 改 2 不增发布体积、不影响运行性能**，只增构建时间与磁盘 | ⬜ **需用户决策**（与 D74"全树重编约 3 h"直接冲突）；建议折中 `symbol_level=1`，或另建只用于归因的符号构建 |
+| D148 | Low | `win_args_mcloud.gn:31` | `exclude_unwind_tables = true` 在 Windows 上**双重无效**：① 默认已 true（`compiler.gni:219-220`）；② 唯一 cflags 使用点 `BUILD.gn:505-510` 在 `if ((is_posix && !is_apple) \|\| is_fuchsia)`(`:476`) 内，Windows 走不到。Win x64 的 `.pdata` 是 ABI 强制项 ⇒ 栈回溯机制没被削弱，让栈"没用"的只有 D147 | ⬜ 建议删该行或加注（误导性配置） |
+| D149 | Medium（机会） | `content/browser/gpu/compositor_util.cc:405-438` | `NumberOfRendererRasterThreads()` = `clamp(cores/2, 1, 4)` ⇒ 24 核机器上 12 **被钳到 4**。命令行 `--num-raster-threads`(`cc/base/switches.cc:55`) 写 >4 **无效**（钳制发生在 browser 侧下发之前，`render_process_host_impl.cc:3728-3731`）⇒ **多核心利用最明显的浪费点** | ⬜ 需写 `win_scripts/apply_*.py` 幂等注入改常量 + 重编 + A/B（D41 约定，不加覆盖文件） |
+| D150 | 环境 | BIOS | **超线程已关闭**：i9-14900HX 规格 24C/32T，三路 API 一致报 24 核/24 线程 ⇒ "多核心优化"最大单点（+8 逻辑处理器 / +33%） | ⬜ **需用户操作**；开启后必须重采基线（会改变 ThreadPool 上限与所有 CPU 类 KPI 的可比性） |
+| D151 | 环境/机会 | `base/task/thread_pool/thread_pool_instance.cc:93-95` | 前台 worker 上限 = `max(3, cores-1)` = **23/进程**，browser+GPU+每 renderer 各一份 ⇒ 聚合远超 24 核（惰性创建，非静态超额订阅，但高负载下为抢占型）。**无命令行开关、无 feature 可调该上限** | ⬜ 可试 `UseHighPriorityThreadGroup`(`task_features.cc:27`)、`ThreadPoolForegroundBlockingTimeouts`(`:53`)；注意 `RunTasksByBatches`(`:46`) 等**已默认启用**，声明无效 |
+| D152 | 环境 | `content/browser/render_process_host_impl.cc:1504-1578` | renderer 进程上限 = **82**，与本机 32 GB 内存无关：`GetPlatformProcessLimit()` 在 **Windows 直接返回 0**(`:1202-1215`，仅 Linux/CrOS 实现) ⇒ 落到 fallback 常量 82(`:1485-1495`) | ⬜ 记录备查 |
+| D153 | 环境 | `content/browser/cpu_performance/cpu_performance.cc:225-236` | `GetTierFromCores()`：**≥13 核 = `Tier::kUltra`**，本机命中并经 `render_process_host_impl.cc:2020-2029` 下发 renderer。**未找到**任何以"大核数"为条件的锁竞争/work-stealing/调度调优开关 | ⬜ 记录备查 |
+| D154 | 环境 | `HKCU\…\DirectX\UserGpuPreferences` | 悬空条目 `AppData\Local\Chromium\Application\chrome.exe = GpuPreference=1`（**1 = 省电 = 优先集显**），而该 exe **已不存在**（只剩空的 `155.0.8059.40\` 测试残留）。风险：将来装回该用户级路径会被 Windows **钉在 Intel 核显**上——而核显正是 D3D12 绿屏那一侧，且所有既有 GPU 基准都是在无该条目的开发树产物上测的（实测走独显），两者不可比 | ⬜ 建议清掉；若做用户级安装，装完核对该键应为 `GpuPreference=2` |
+| D155 | 观察 | `win_args_mcloud.gn:113` + `out/mcloud/` | `enable_vulkan=false` 但仍构建出 `VkICD_mock_icd.dll`(673 KB) 与 `VkLayer_khronos_validation.dll`(20.3 MB) | ⬜ 按 ADR-002 体积不作约束，仅需确认没被打进安装包 |
+
+### 内存安全维度的正面结论（本轮逐行核验）
+
+注入 `chrome_main_delegate.cc` 的加载器 C++（本仓**唯一进入浏览器进程的自有 C++**）
+**未发现越界 / UAF / 泄漏 / 未初始化 / 竞态**；M155 API **无 D41 类漂移**。
+构建配置的内存安全面全部处于安全侧：PartitionAlloc PA-E + BRP/raw_ptr 开、
+CET 硬件影子栈开（`compiler.gni:230`）、libc++ `_LIBCPP_HARDENING_MODE_EXTENSIVE`、
+`/guard:cf` 实测在 `toolchain.ninja` 中（`win_enable_cfg_guards` 与 `init_stack_vars_zero`
+其实都是 no-op，因为默认已 true，但方向正确）。
+详见 cycle5 报告"加载器 C++ 内存安全审查"与"正面确认"两节。
+
+### 本轮顺带发现的 PowerShell 新陷阱（D66 家族变体）
+
+`"A{0}" + "B{1}" -f $x, $y` 中 **`-f` 的优先级高于 `+`** ⇒ 格式化只作用在 `B` 那一段，
+`A` 里的占位符**原样印出来**。必须写成 `(("A" + "B") -f $x, $y)`。
+本轮是给 K2-CPU 的单位自洽断言做 Red 验证时，靠"报错里 `{0:N3}` 没被替换"这个现象发现的
+（首版把 `$cores*100` 存进"核数"数组，两个数字并排印出来才自相矛盾）。
+已用多行正则全仓扫描 `.ps1`，**无既存同类问题**。
+
 ## 待办（本档案跟踪）
+
+### 第5周期新增（2026-10-12）
+
+- [ ] **D121–D129 的安装器修复尚未进发布物**：已用 Roslyn `/deterministic+` 编译验证通过
+      （26,112 B，`--list-only` 实跑 exit 0 且正确识别既有系统级安装），但
+      `installer/out/*.exe` 与 `mcloud_155.0.8059.40_win64_setup.exe` **仍是旧版**。
+      需重跑 `build_setup_exe.py` + `.bugreview/package_m155.py` 重新内嵌并生成 `.sha256`。
+- [ ] **`setup_wrapper_test.py` 必须补一条不带 `--system-level` 的用户级用例**：
+      现有测试第 84、102 行永远传 `--system-level`，**唯一被验收的分支恰好是 D121 硬编码
+      碰对了的那个**，所以门禁全绿而用户级路径整体失效。这是本轮最该记住的教训形态。
+- [ ] **D142 的门禁盲区根因未修**：`flag_stability.py` 的不变式只判"三版**声明存在**"，
+      看不见 `#if BUILDFLAG(IS_*)` / `#if PA_BUILDFLAG(*)` 条件编译；
+      `survival_check.py` **已采集** `default` 字段（`:18`、`:108`）但 C 断言（`:158-168`）
+      **从不读它**；`check_features.py:70-78` 是全树纯文本正则扫描，同样不评估守卫。
+      建议：采集声明点时向上扫最近的 `#if` 守卫并记录平台条件，再由 `flag_stability.py`
+      对 `target_os="win"` 判可行性；同时把 `default` 接进 C 断言，让"上游默认已启用"的 pin
+      被显式标注而不是算作收益。
+- [ ] **D147 `symbol_level` 需用户决策**（不增发布体积/不影响运行性能，只增构建时间与磁盘；
+      与 D74"全树重编约 3 h"直接冲突）。折中：`symbol_level=1`（函数级，足够定位到函数名）。
+- [ ] **D149 raster 线程在 24 核上被钳到 4**：需写 `win_scripts/apply_*.py` 幂等注入改
+      `compositor_util.cc` 的 `kMaxRasterThreads` + 重编 + A/B（多核心维度最大单点收益）。
+- [ ] **D150 超线程在 BIOS 中关闭**（24 核/24 线程，规格 24C/32T）：需用户操作；
+      开启后**必须重采基线**，不能与既有数据直接比较。
+- [ ] **D146 需 deploy + 重编译才生效**（LOADER 是注入到 `chrome_main_delegate.cc` 的 C++；
+      按 D62/D64/D67 的正文比对式升级器约定，下次 `deploy_mcloud.py` 会自动改写树内正文）。
+      本轮只做了粗粒度自检（`.cycle5/check_loader_syntax.py`：`{}` 32/32、`()` 104/104、
+      `[]` 5/5 平衡），**不等于编译通过**。
+- [ ] **D142 的 flags 清理已部署到开发树并验证**（`out/mcloud/mcloud_flags.txt` 已更新，
+      运行期回显由 `enable 51 / disable 2` 变为 **`enable 49 / disable 2`**，
+      `flag_stability.py` PASS 且独立确认删除项净行为为 0），但**要进安装包需重新打包**。
+      ⚠ 发布说明与 AGENTS.md 里的"51+2 回显"口径对新包应改为"**49+2**"。
+- [ ] **集显（iGPU）侧渲染仍未实测**：本轮确认了独显渲染路径与 AV1/HEVC/VP9/H264 硬解，
+      但 Intel 核显侧只做了静态识别；`benchmark/tools/diag_igpu_green_screen.ps1` 的 T1–T4
+      二分**至今无缺陷编号、无复验记录**（第4周期已记为空白）。由于本机显示器由**独显**驱动
+      （只有 NVIDIA 适配器报告活动显示模式），要测核显需显式切换（Windows 图形首选项 /
+      `GpuPreference` / `--use-angle`），属独立一轮。注意 D154 那条悬空的 `GpuPreference=1`。
+- [ ] **`SkiaGraphite` 的 A/B 仍未做**（`mcloud_flags.txt` 自己写着"该项与 GPU 效率存在张力，
+      升级后须做一次同方法 A/B"）。它属 2026-10-08 窗口拖拽冻结缓解的 **4 项永久禁用**组，
+      **即使测出收益也不得自动恢复**。
+- [ ] **CPU 量具只覆盖驻留态**（挂在 K2 上）。冷启动峰值 CPU、导航期 CPU 仍无采集。
+      同一套"按 PID 做差"的采集可挂到 `bench_startup.ps1` 与
+      `r4_memory_stability_check.py:38-52 proc_stats()`（后者已每 10 s 采本实例每进程指标，
+      WMI 同一行即可带出 `KernelModeTime`/`UserModeTime`）。
+- [ ] **未跑 `final_gate_matrix.ps1` 九门收口矩阵**：本轮只跑了受影响的三门
+      （`verify_sources` / `flag_stability` / `flag_runtime_state`）+ `ruff` + C# 编译 +
+      三组 Red→Green。`r1..r4` 四条实操探针也仍未接入矩阵（第4周期遗留）。
+- [ ] **未做干净安装复验**（AGENTS.md 步骤 8 的硬性要求，会改动用户机器上的真实安装，
+      **需用户授权**）。注意复验判据里的回显数应从"51+2"改为"**49+2**"。
+- [ ] `.qoder/repowiki/` 与 `docs/repowiki/` 里的错误 GPU 型号未改（生成物，
+      `性能优化.md:299` 仍写"独显（GTX 1050 Ti）"），宜随下次 wiki 重生成修正，不手改。
+- [ ] `docs/dev-logs/M155-benchmark.md:17` 的错误 GPU 行**故意未改**——它是已归档的历史基线，
+      本轮选择在 cycle5 报告 D139 表格中列明受损范围，而不回改历史数据；
+      下次重采基线会自动带上正确的 PCI 设备号。
+
+### 既有待办
+
+
 - [x] D120：包装器改为默认就地更新已存在副本；新增更新前/后关联与快捷方式快照比对
 - [x] D119：外层安装包装器 `mcloud_<ver>_win64_setup.exe` 已实现并验收（运行中升级真的生效）
 - [ ] D109 收口：加载器 v8 重编后必须依次跑 `.bugreview/loader_precedence_test.py`（期望

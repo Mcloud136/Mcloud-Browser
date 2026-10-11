@@ -49,3 +49,6 @@ build_repackage.log
 installer/out/
 mcloud_*_win64_setup.exe
 mcloud_*_win64_setup.exe.sha256
+
+# 第5周期 bug-review 的一次性取证脚本与证据（整目录不入库，同 .cycle4/）
+.cycle5/

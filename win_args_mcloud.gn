@@ -54,7 +54,15 @@ chrome_pgo_phase = 2
 # profdata 须与内核大版本严格匹配（M151=7922，M155=8059），升级时同步更新；
 # 由 version.sh / tools/update_pgo_profiles.py 下载到 chromium/src/chrome/build/pgo_profiles/。
 # 注：GN 不支持环境变量展开，此处为构建机标准 Chromium 源码位置，换机时须同步修改（规范 A1）。
-pgo_data_path = "D:/wxmuma/chromium-src/src/chrome/build/pgo_profiles/chrome-win64-8059-1790681878-a5a326a93a5b6da6820b51c3dd27c598393c85c9-bafd721ba752e4b3753f103970251e378ca171d6.profdata"
+# ⚠ 缺陷 D144（2026-10-12 修正）：此行曾指向 M151 回滚树 D:/wxmuma/chromium-src/src/…，
+#   而该树的 pgo_profiles/ 里只有 7871 与 7922 两份，**没有 8059 这份**。实际构建用的
+#   out/mcloud/args.gn 早已被手工改成 155 树路径，于是"仓库模板"与"真正构建出 r5 的配置"
+#   发生了漂移：照 AGENTS.md 的 `cp win_args_mcloud.gn out/mcloud/args.gn` 走一遍，
+#   gn gen 能过（build/config/compiler/pgo/BUILD.gn:149 只断言路径非空、不校验存在），
+#   但第 156 行 `inputs += [ pgo_data_path ]` 会让 ninja 立刻报
+#   "missing and no known rule to make it" —— 换机/重配即构建失败，且失败信息不指向根因。
+#   现已指回 155 树，并由 win_scripts/build_win.py 的预检在编译前校验该文件确实存在。
+pgo_data_path = "D:/wxmuma/chromium-src-155/src/chrome/build/pgo_profiles/chrome-win64-8059-1790681878-a5a326a93a5b6da6820b51c3dd27c598393c85c9-bafd721ba752e4b3753f103970251e378ca171d6.profdata"
 
 # --- V8 JavaScript Engine Optimizations ---
 v8_enable_fast_torque = true

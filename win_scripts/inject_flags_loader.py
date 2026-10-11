@@ -209,6 +209,22 @@ void LoadMcloudPerformanceFlags() {
     flags_path = FindInstalledMcloudFlagsPath(exe_dir);
     if (flags_path.empty() ||
         !base::ReadFileToStringWithMaxSize(flags_path, &contents, 1u << 20)) {
+      // D146: this used to be a bare `return`, so losing the whole runtime
+      // optimisation set produced *no* in-process signal at all -- exactly the
+      // D105 release blocker (build and packaging both succeeded, the installed
+      // browser simply ran without any of the flags, silently).
+      // Caveat, verified against M155: this runs from
+      // ChromeMainDelegate::BasicStartupComplete (chrome_main_delegate.cc:1372),
+      // while InitLogging() only happens later in PreSandboxStartup
+      // (chrome_main_delegate.cc:1756). So this warning reaches
+      // OutputDebugString/a attached debugger, NOT the user's console, even with
+      // --enable-logging=stderr. The authoritative detection therefore remains
+      // the external oracle .bugreview/flag_runtime_state.py; this line exists
+      // so the failure is at least diagnosable rather than invisible.
+      LOG(WARNING) << "MCloud flags: mcloud_flags.txt not found (tried module dir "
+                   << module_dir << ", exe dir " << exe_dir
+                   << ", and installed payload dirs) -- starting with upstream "
+                      "defaults, all built-in performance flags are INACTIVE.";
       return;
     }
   }

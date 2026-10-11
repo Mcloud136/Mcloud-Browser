@@ -167,10 +167,23 @@ internal static class MCloudSetup
             if (target.StartsWith(user.TrimEnd('\\'), StringComparison.OrdinalIgnoreCase))
                 return new[] { user, "false", "both; default-browser points here" };
         }
-        // 两处都在且默认浏览器不属于任何一处：取版本高的那份（字符串比较对 a.b.c.d 够用）
-        string uv = ProductVersionOf(Path.Combine(user, "chrome.exe"));
-        string sv = ProductVersionOf(Path.Combine(sys, "chrome.exe"));
-        bool pickSystem = string.Compare(sv, uv, StringComparison.OrdinalIgnoreCase) > 0;
+        // 两处都在且默认浏览器不属于任何一处：取版本高的那份。
+        // 不能用序数字符串比较——"155.0.8059.40" 按字符比会小于 "155.0.8059.9"
+        // （第 4 段首字符 '4' < '9'），于是选中版本更低的那份去更新（缺陷 D127）。
+        string uv = ProductVersionOf(Path.Combine(user, "chrome.exe")).Split(' ')[0];
+        string sv = ProductVersionOf(Path.Combine(sys, "chrome.exe")).Split(' ')[0];
+        Version uVer, sVer;
+        bool pickSystem;
+        if (Version.TryParse(sv, out sVer) && Version.TryParse(uv, out uVer))
+        {
+            pickSystem = sVer > uVer;
+        }
+        else
+        {
+            // 版本号读不出来时没有更好的信号，退回字符串比较并留痕（不得静默）。
+            Log("WARN: 版本号无法解析（用户级='" + uv + "' 系统级='" + sv + "'），退回字符串比较。");
+            pickSystem = string.Compare(sv, uv, StringComparison.OrdinalIgnoreCase) > 0;
+        }
         return new[] { pickSystem ? sys : user, pickSystem ? "true" : "false",
                        "both; neither owns default browser, picked higher version" };
     }
@@ -208,6 +221,10 @@ internal static class MCloudSetup
             Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory),
             Environment.GetFolderPath(Environment.SpecialFolder.CommonDesktopDirectory),
             Environment.GetFolderPath(Environment.SpecialFolder.StartMenu) + @"\Programs",
+            // 系统级安装的快捷方式落在全机器开始菜单（C:\ProgramData\Microsoft\Windows\
+            // Start Menu\Programs）。漏掉它会让 D120 关心的"快捷方式指向死路径"在系统级
+            // 路径上永远 WARN 不到（缺陷 D128）。
+            Environment.GetFolderPath(Environment.SpecialFolder.CommonStartMenu) + @"\Programs",
             Environment.GetEnvironmentVariable("APPDATA")
                 + @"\Microsoft\Internet Explorer\Quick Launch",
         };
@@ -256,12 +273,19 @@ internal static class MCloudSetup
             notes.Add(string.Format("关联 {0}: {1} -> {2}", k,
                                     before.ContainsKey(k) ? before[k] : "?", after[k]));
 
-        bool regressed = Has(before, "TargetExists") &&
-                         before["TargetExists"] == "yes" &&
-                         after["TargetExists"] == "NO";
+        bool wasGood = Has(before, "TargetExists") && before["TargetExists"] == "yes";
+        string afterExists = Has(after, "TargetExists") ? after["TargetExists"] : "n/a";
+        // "指向死文件"(NO) 与"整条注册丢失"(n/a) 都是回归，后者其实更严重——用户彻底失去
+        // 默认浏览器。旧判据只认 NO，把 n/a 静默放过，而这是本文件唯一的 FAIL 判据（缺陷 D124）。
+        bool regressed = wasGood && (afterExists == "NO" || afterExists == "n/a");
         if (regressed)
-            notes.Add("FAIL: 默认浏览器链原本解析到存在的 exe，更新后指向 " + after["UserTarget"] +
-                      " 但该文件不存在 —— 这是回归，需要处理。");
+            notes.Add(afterExists == "n/a"
+                ? "FAIL: 默认浏览器注册在更新后整条丢失（更新前解析到 " +
+                  (Has(before, "UserTarget") ? before["UserTarget"] : "?") +
+                  "）—— 用户已失去默认浏览器，这是回归，需要处理。"
+                : "FAIL: 默认浏览器链原本解析到存在的 exe，更新后指向 " +
+                  (Has(after, "UserTarget") ? after["UserTarget"] : "?") +
+                  " 但该文件不存在 —— 这是回归，需要处理。");
 
         var linksAfter = ShortcutLinks();
         foreach (string[] l in linksAfter)
@@ -379,13 +403,33 @@ internal static class MCloudSetup
         return Alive(procs).Count == 0;
     }
 
+    // 已被报告过"查不到状态"的 pid，避免 500ms 轮询把同一条 WARN 刷满日志
+    private static readonly HashSet<int> UnqueryableLogged = new HashSet<int>();
+
     private static List<Process> Alive(List<Process> procs)
     {
         List<Process> live = new List<Process>();
         foreach (Process p in procs)
         {
-            try { p.Refresh(); if (!p.HasExited) live.Add(p); }
-            catch { /* 已退出 */ }
+            try
+            {
+                p.Refresh();
+                if (!p.HasExited) live.Add(p);
+            }
+            catch (Exception e)
+            {
+                // 查询失败 ≠ 已退出。最常见原因是跨完整性级别访问被拒（安装器未提权而浏览器
+                // 进程提权），此时进程活得好好的、还锁着根启动桩。旧实现把任何异常一律当
+                // "已退出"，WaitForExit 于是立刻返回 true，安装器随即对着仍在运行的浏览器跑
+                // setup.exe —— 精确复现 D119 的静默无效更新（缺陷 D125）。
+                // 按 D100/D115 纪律：取不到数据一律判"仍在"，宁可超时中止也不假绿。
+                int pid = -1;
+                try { pid = p.Id; } catch (Exception) { /* 句柄已失效，仅影响日志可读性 */ }
+                if (UnqueryableLogged.Add(pid))
+                    Log("WARN: 无法查询 pid=" + pid + " 的状态（" + e.Message +
+                        "），按仍存活处理；若持续到此超时，说明安装器权限低于浏览器进程。");
+                live.Add(p);
+            }
         }
         return live;
     }
@@ -485,18 +529,43 @@ internal static class MCloudSetup
     }
 
     // ------------------------------------------------------- 提权自举
-    private static bool RelaunchElevated(string args)
+    // 提权子进程的退出码语义（缺陷 D122）：旧实现 Process.Start 之后不等待、调用方直接
+    // return 0，把子进程的 rc=1（复验未通过）/ rc=2（异常）全部丢掉。后果是任何脚本、CI
+    // 或 AGENTS.md 要求的"干净安装复验"在 --system-level 下永远只看到 0——正是本仓库
+    // 反复出现的假绿形态（D89/D100/D115）。取不到退出码同样不得当成成功。
+    private const int ELEV_LAUNCH_FAILED = -1;    // 根本没启动起来（例如用户在 UAC 点了"否"）
+    private const int ELEV_RC_UNAVAILABLE = -2;   // 启动了，但父进程无权读取其退出码
+
+    private static int RelaunchElevated(string args)
     {
+        Process p = null;
         try
         {
             ProcessStartInfo psi = new ProcessStartInfo(Application.ExecutablePath, args);
             psi.Verb = "runas";
             psi.UseShellExecute = true;
-            Process.Start(psi);
-            return true;
+            p = Process.Start(psi);
         }
-        catch (Win32Exception) { return false; }   // 用户在 UAC 上点了"否"
-        catch (Exception e) { Log("提权重启失败：" + e.Message); return false; }
+        catch (Win32Exception) { return ELEV_LAUNCH_FAILED; }   // 用户在 UAC 上点了"否"
+        catch (Exception e) { Log("提权重启失败：" + e.Message); return ELEV_LAUNCH_FAILED; }
+        if (p == null) return ELEV_LAUNCH_FAILED;
+        try
+        {
+            p.WaitForExit();
+            return p.ExitCode;
+        }
+        catch (Exception e)
+        {
+            // 非提权父进程拿到的提权子进程句柄通常只有 SYNCHRONIZE、没有
+            // PROCESS_QUERY_INFORMATION，ExitCode 会抛 Access Denied。
+            Log("WARN: 提权实例已结束，但取不到它的退出码（" + e.Message + "）；" +
+                "无法据此判定安装成功，按失败上报。");
+            return ELEV_RC_UNAVAILABLE;
+        }
+        finally
+        {
+            try { p.Dispose(); } catch (Exception) { /* 句柄可能已无效，无需上报 */ }
+        }
     }
 
     // ------------------------------------------------------------------ main
@@ -552,12 +621,18 @@ internal static class MCloudSetup
         if (systemLevel && !IsAdmin())
         {
             string rest = string.Join(" ", RebuildArgs(argv, "--system-level"));
-            if (!RelaunchElevated("--system-level " + rest))
+            int elevatedRc = RelaunchElevated("--system-level " + rest);
+            if (elevatedRc == ELEV_LAUNCH_FAILED)
             {
                 Console.WriteLine("未获得管理员权限，系统级安装取消。");
                 return 2;
             }
-            return 0;   // 提权后的那个实例接管
+            if (elevatedRc == ELEV_RC_UNAVAILABLE)
+            {
+                Console.WriteLine("提权实例已运行，但取不到其退出码，无法判定安装结果；按失败上报。");
+                return 2;
+            }
+            return elevatedRc;   // 提权后的那个实例接管：把它的真实结论原样透传出去
         }
 
         if (!_quiet) BuildUi(systemLevel, appDir);
@@ -610,12 +685,25 @@ internal static class MCloudSetup
             Log(string.Format("更新前快照：默认浏览器解析 {0}（目标存在={1}）、指向本产品的快捷方式 {2} 个",
                               assocBefore["UserTarget"], assocBefore["TargetExists"], linksBefore.Count));
             SetStage("安装 " + wantVersion + "（" + (systemLevel ? "系统级" : "用户级") + "）");
-            int irect = RunAndWait(pkg, "--system-level");   // mini_installer 自己会再派生 setup.exe 并等待
+            // mini_installer 只认 --system-level；用户级是"不传该开关"的默认行为，
+            // 上游并没有 --user-level 这种开关（chrome/installer/mini_installer/
+            // configuration.cc:77-97）。此处曾硬编码 --system-level，使第 612 行宣布的
+            // "用户级"实际装进 Program Files，而 appDir 仍指向用户目录 → Verify 必然失败；
+            // 非管理员双击时第 552 行的提权分支又因 systemLevel=false 不触发（缺陷 D121）。
+            int irect = RunAndWait(pkg, systemLevel ? "--system-level" : "");
             Log("mini_installer 退出码 = " + irect);
 
             SetStage("复验：用户下次双击到底得到哪一版");
             List<string> notes = new List<string>();
             bool ok = Verify(appDir, wantVersion, notes);
+            // Verify 只查文件是否存在，同版本重跑时它们本来就在，所以安装器自身的
+            // 退出码必须参与判定，否则"装失败 + 目录残留"会被判成"已确认更新"（缺陷 D129）。
+            if (irect != 0)
+            {
+                ok = false;
+                notes.Add("FAIL: 安装器自身返回 " + irect + "（非 0）。目录里可能只是上一版的残留，" +
+                          "不能据文件存在判定更新成功。");
+            }
             // 默认浏览器链"从好变坏"= 回归，判失败；快捷方式指向旧路径 = 换位置的已知后果，
             // 只报告不判失败（任务栏固定项没有公开 API 可恢复，唯一可靠的办法是不换位置）。
             if (!CheckAssociations(assocBefore, linksBefore, notes)) ok = false;
@@ -626,11 +714,27 @@ internal static class MCloudSetup
             if (ok && !noLaunch && File.Exists(Path.Combine(appDir, "chrome.exe")))
             {
                 SetStage("重启浏览器");
+                string chromeExe = Path.Combine(appDir, "chrome.exe");
                 try
                 {
-                    ProcessStartInfo psi = new ProcessStartInfo(Path.Combine(appDir, "chrome.exe"));
-                    psi.UseShellExecute = true;
-                    Process.Start(psi);
+                    if (IsAdmin())
+                    {
+                        // 绝不让浏览会话继承管理员令牌：提权进程里直接 Process.Start 会让
+                        // 全部 renderer/GPU/utility 子进程以 admin 运行，任何网页侧 RCE 直接
+                        // 等于本机管理员，且 Explorer→浏览器拖放被 UIPI 拦死（缺陷 D123）。
+                        // 经 explorer.exe 启动可把新进程落回交互用户的中等完整性级别。
+                        ProcessStartInfo deElevated = new ProcessStartInfo("explorer.exe",
+                                                                          "\"" + chromeExe + "\"");
+                        deElevated.UseShellExecute = false;
+                        Process.Start(deElevated);
+                        Log("当前处于提权上下文，改由 explorer.exe 启动浏览器，避免继承管理员令牌。");
+                    }
+                    else
+                    {
+                        ProcessStartInfo psi = new ProcessStartInfo(chromeExe);
+                        psi.UseShellExecute = true;
+                        Process.Start(psi);
+                    }
                 }
                 catch (Exception e) { Log("自动重启失败（可手动打开）：" + e.Message); }
             }

@@ -75,9 +75,14 @@ def probe(exe, label):
         ps("Get-Process -Id %s -ErrorAction SilentlyContinue | "
            "Stop-Process -Force -ErrorAction SilentlyContinue" % ",".join(pids))
         time.sleep(2)
+        # 复检必须与首检用**同一个**指纹（profile 叶子名）。旧实现这里用完整路径 prof，
+        # 而 prof 可能是 8.3 短名形式、chrome 命令行里是长名（或反之），整批匹配会落空 →
+        # pids 变空 → 循环 break → 不打印任何 WARN，进程其实还活着（缺陷 D140）。
+        # 后果不只是"报告失真"：残留 chrome 会锁住 out 目录里的 DLL，让下一次链接以
+        # lld-link permission denied 失败（D71 实测）。
         idout = ps("Get-CimInstance Win32_Process -Filter \"Name='chrome.exe'\" | "
                    "Where-Object { $_.CommandLine -like '*%s*' } | "
-                   "ForEach-Object { $_.ProcessId }" % prof)
+                   "ForEach-Object { $_.ProcessId }" % key)
         pids = [x for x in idout.split() if x.isdigit()]
     if pids:
         print("   WARN: 本探测实例仍有 %d 个进程未退出（可能锁住 out 目录）" % len(pids))
@@ -95,8 +100,14 @@ def probe(exe, label):
 
 def main(argv=None):
     import argparse
+    # 被测对象口径（AGENTS.md 缺陷 D86/D72 纪律）：benchmark/ 与 benchmark/tools/* 的默认
+    # 对象必须取 $env:MCHROME_EXE / $env:MCHROME_OUT，再退回当前 155 树。本机同时存在
+    # chromium-src（M151 回滚参考树）与 chromium-src-155（发布树），写死就会把结果归属到
+    # 错误的产物树，而日志里看不出来。旧实现直接写死 155 树，没走环境变量（缺陷 D141）。
+    fallback = r"D:\wxmuma\chromium-src-155\src\out\mcloud\chrome.exe"
+    default_exe = os.environ.get("MCHROME_EXE") or fallback
     ap = argparse.ArgumentParser()
-    ap.add_argument("--chrome", default=r"D:\wxmuma\chromium-src-155\src\out\mcloud\chrome.exe")
+    ap.add_argument("--chrome", default=default_exe)
     ap.add_argument("--label", default="build")
     ap.add_argument("--json", action="store_true", help="只输出一行 JSON，供脚本消费")
     args = ap.parse_args(argv)
@@ -109,9 +120,14 @@ def main(argv=None):
 if __name__ == "__main__":
     if len(sys.argv) > 1:
         sys.exit(main())
+    fallback = r"D:\wxmuma\chromium-src-155\src\out\mcloud\chrome.exe"
     out = {}
-    for label, exe in (("M155", r"D:\wxmuma\chromium-src-155\src\out\mcloud\chrome.exe"),
+    for label, exe in (("M155", os.environ.get("MCHROME_EXE") or fallback),
                        ("M151", r"D:\wxmuma\chromium-src\src\out\mcloud\chrome.exe")):
+        if not os.path.isfile(exe):
+            print("SKIP %s：产物不存在（%s）" % (label, exe))
+            continue
         out[label] = probe(exe, label)
-    print("\n对比结论：两版 GPU 进程均存在且走同一 ANGLE 后端 →",
-          "一致" if bool(out["M155"]["gpu-process 存在"]) == bool(out["M151"]["gpu-process 存在"]) else "不一致")
+    if len(out) == 2:
+        print("\n对比结论：两版 GPU 进程均存在且走同一 ANGLE 后端 →",
+              "一致" if bool(out["M155"]["gpu-process 存在"]) == bool(out["M151"]["gpu-process 存在"]) else "不一致")

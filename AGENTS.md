@@ -7,7 +7,14 @@
 
 MCloud Browser 是基于 Chromium（当前 M155，155.0.8059.40，硬件基线 AVX2+FMA3）的高性能 Windows 浏览器分支，
 通过 AVX2 原生编译 + 运行时优化标志（`mcloud_flags.txt`，启动时内置加载；
-2026-10-10 (r3) 实测 56 条开关行 = 53 项 feature + 3 项普通开关；r2 时为 63 条 = 60 + 3，差额是 D48 清理掉的 7 条上游不存在的条目）+ 编译时优化栈提供极致流畅体验。
+2026-10-12 (第5周期) 实测 54 条开关行 = 51 项 feature + 3 项普通开关；
+2026-10-10 (r3) 时为 56 条 = 53 + 3，差额是 D142 清理掉的 2 条**平台上根本编译不进来**的条目
+（`BaseLockTrySpin` 在 `#if BUILDFLAG(IS_POSIX)` 内、`PartitionAllocUsePriorityInheritanceLocks`
+在 `#if PA_BUILDFLAG(ENABLE_PARTITION_LOCK_PRIORITY_INHERITANCE)` 内，而该 buildflag 是
+`is_android && (x64||arm64)`）；r2 时为 63 条 = 60 + 3，差额是 D48 清理掉的 7 条上游不存在的条目。
+⚠ 51 项里有 2 项（`PartitionAllocMemoryReclaimer`、`PruneOldTransferCacheEntries`）**上游默认就是
+ENABLED**，那两行是显式钉住（pin）而非"打开了默认关闭的优化"，不要算作已生效的定制收益）
++ 编译时优化栈提供极致流畅体验。
 本仓库**不是完整 Chromium 源码树**，而是存放覆盖文件（override files）、补丁、构建脚本和打包配置。
 完整构建需先将本仓库文件复制到外部 Chromium 源码树（`$CR_DIR`，默认 `D:\wxmuma\chromium-src\src`）再编译。
 
@@ -119,9 +126,18 @@ MCloud Browser 是基于 Chromium（当前 M155，155.0.8059.40，硬件基线 A
    任何一份残留的 `Application\mcloud_flags.txt` 都会永久、静默地压掉安装包投递的那份
    （缺陷 D109 已用硬链接沙箱实测复现，回归判据见 `.bugreview/loader_precedence_test.py`）。
    **发布前必须做一次干净安装复验**（`mini_installer.exe --system-level` 装到 Program Files，
-   断言文件落地 + 与仓库字节一致 + 对安装后的二进制跑 `flag_runtime_state.py` 得到 51+2 回显，
+   断言文件落地 + 与仓库字节一致 + 对安装后的二进制跑 `flag_runtime_state.py` 得到回显，
    然后卸载）。只看门禁绿灯不足以证明安装包正确。
-9. **`build_win.py`** — 执行 gn/autoninja 编译。
+   ⚠ **回显条数口径已变（第5周期 D142，2026-10-12）**：清理掉 2 条平台上根本编译不进来的
+   死声明后，期望值由 `enable 51 / disable 2` 变为 **`enable 49 / disable 2`**。
+   发布说明与本文件里所有"51+2"的旧口径对新包都要改。
+9. **`build_win.py`** — 执行 gn/autoninja 编译。**编译前有 `preflight_args()` 预检**（第5周期 D144 新增）：
+   ① `chrome_pgo_phase=2` 时硬校验 `pgo_data_path` 指向的 profdata **确实存在**，不存在即以 111 退出
+   并给出根因与两种修法（GN 只 `assert(pgo_data_path != "")`、**不校验存在**，见
+   `build/config/compiler/pgo/BUILD.gn:149`，所以 `gn gen --check` 会过、ninja 才在第 156 行
+   `inputs +=` 上报一句完全不指向根因的 `missing and no known rule to make it`）；
+   ② **仓库模板 `win_args_mcloud.gn` 与构建树 `out/mcloud/args.gn` 逐项漂移比对**，不一致即 WARN
+   并逐条列出——D144 就是两边静默漂移，导致"仓库里 committed 的配置根本构建不出已发布的二进制"。
 10. 辅助：`version.py`（版本管理）、`clean.py`、`reset_depot_tools.py`、`tot.py`/`trunk.py`（ToT 同步）。
 11. **`verify_sources.py`** — 最小源码验证：win_scripts/ 全部 Python 脚本语法检查 + 关键脚本存在性 + pak_src/ C 源码检查。修改构建脚本后运行 `python3 win_scripts/verify_sources.py`（退出码 0=PASS / 1=FAIL）；已接入 CI（`.github/workflows/verify.yml`，push/PR 自动运行）。
 12. **`build_setup_exe.py`** — 编译外层安装包装器 `MCloud-Setup.exe`（源文件 `installer/mcloud_setup.cs`），
@@ -184,7 +200,20 @@ C 语言编写的 Chromium 资源包工具：
 ## benchmark/ — 性能基准
 
 - `bench_startup.ps1`、`bench_memory.ps1`、`bench_navigation.ps1`、`bench_size.ps1` — 四维基准。
-- `run_baseline.ps1` — 基线采集。
+  **`bench_memory.ps1` 除 K2 内存外，第5周期起同时输出 K2-CPU 驻留占用**（D145 填补了
+  "仓库此前完全没有任何 CPU 占用率量具"的空白；`-NoCpu` 可关）。实现要点，改它之前先读：
+  复用同一批 PID 与同一次 `Get-Process` 快照（**不引入第二套进程枚举**，避免重犯 D52/D55）；
+  `TotalProcessorTime` 是累计值且本实例 PID 会在采样间变动，故用 Hashtable **按 PID 分别做差**；
+  同时输出"占整机%"与"折合核数"两个口径，**跨机器比较必须看折合核数**（否则 24 核机器上的
+  同一负载会显得比 8 核机器"轻"三倍）；计数器取不到即 `throw`——
+  ⚠ 上游 Chromium 自己在这类地方用 `.value_or(0.0)` 把失败吞成 0
+  （`chrome/browser/task_manager/sampling/task_group_sampler.cc:125`），**本仓不得照抄**；
+  并有一道**单位自洽断言**（`|折合核数/逻辑核*100 − 占整机%| > 0.5` 即 FAIL），
+  它拦住过首版把核数错存成"单核百分比"的 100 倍错误。
+  K2 侧另有三处硬失败 + 采样条数自检（D138/D89）：取不到进程时旧实现会因 `$null/1MB == 0`
+  输出"内存峰值 0 MB"并 `exit 0`，看起来像巨大改善。
+- `run_baseline.ps1` — 基线采集。环境块的 GPU 字段**只认 PCI 适配器**并记 `VEN:DEV`（D139：
+  旧实现 `Select-Object -First 1` 取到的是 MuMu 虚拟显示器，导致每份归档基线的 GPU 都是错的）。
 - `tools/cdp.py` — **零依赖 CDP 客户端**（stdlib 手搓 WebSocket）。实操轮次的公共底座：
   `Tab.deep_text()`（穿透 shadow root，WebUI 必需）、`Tab.try_screenshot()`（证据不掀判据）、
   `activate_tab()`（全屏/PiP 要可信前台）、`kill_instance()`（按 profile 指纹，禁机器级清理）。
@@ -302,7 +331,7 @@ autoninja -C out/mcloud chrome mini_installer
 - **PowerShell 编码**：含中文的 `.ps1` 必须存为 **UTF-8 with BOM**（PowerShell 5.1 对无 BOM 文件按 GBK 解析会直接语法失败；benchmark/ 与 tools/ 已批量修复，见 `docs/tasks/bug-review-pak-src-defects.md` D38）。
   该约定现已机器化：`python3 win_scripts/verify_sources.py` 会检查全部 `.ps1` 的 BOM、`param` 位置并用
   PowerShell 的 AST 解析器实跑一遍（非 Windows 平台自动 SKIP，空输入一律判 FAIL）。
-- **PowerShell 三条语言坑（第3周期扩展轮实测，D81/D82/D83/D89）**：
+- **PowerShell 四条语言坑（第3周期扩展轮 D81/D82/D83/D89；第4条为第5周期 D145 实测新增）**：
   ① **`param(...)` 必须是脚本第一条语句**（前面只能有注释/空行）。写在赋值语句之后不会报语法错，
   而是把 `param` 当命令名抛非终止错误 → **参数块整体作废、传入的 `-OutDir/-ChromeExe` 被静默丢弃，
   脚本仍退出 0**。
@@ -313,14 +342,49 @@ autoninja -C out/mcloud chrome mini_installer
   ③ **`[System.Diagnostics.Process]` 没有 `Wait(int)`**，只有 `WaitForExit(int)`；
   中文输出被管道/文件捕获时需显式
   `[Console]::OutputEncoding = New-Object System.Text.UTF8Encoding $false`，且要排在**首条中文输出之前**。
+  ④ **`-f` 的优先级高于 `+`**：`"A{0}" + "B{1}" -f $x, $y` 只会格式化 `B` 那一段，
+  **`A` 里的占位符原样印出来**（不报错）。必须写成 `(("A" + "B") -f $x, $y)`。
+  这是 D66-① 的同族变体，第5周期给 K2-CPU 的报错文案做 Red 验证时靠"占位符没被替换"发现。
+  另：正则里 `\|` 是**转义竖线**（匹配字面量 `|`），要匹配"反斜杠或串尾"必须写 `(\\|$)`——
+  D137 就是这个错，导致"你在测 M151 旧树"的护栏在 9 个脚本 10 处**从未触发过**。
 - **测试不得写入发布产物目录（缺陷 D99 纪律）**：会改写被测文件的测试（`loader_edge_test2/3` 要重写 `mcloud_flags.txt`）必须在**硬链接沙箱**里跑，不能把 `LOADER_TEST_OUT` 指到 `out/mcloud`。`final_gate_matrix.ps1` 会自动建 `out/mcloud_loader_test`（链运行时文件、跳过 args.gn/.ninja_log/build.ninja 与文件数>1000 的构建中间目录）。中断的测试曾在发布目录留下 106 KB/300 KB 的假 flags 文件，让后续门禁拿测试语料当生产配置测量。测试脚本里有「发现构建特征文件即 REFUSED/exit 2」的前门；确需在生产目录上跑，显式设 `MCLOUD_ALLOW_LOADER_TEST_ON_BUILD_DIR=1`。
 - **基准/工具脚本不得写死被测树**：`benchmark/*.ps1` 与 `benchmark/tools/*` 的默认对象改为
   `$env:MCHROME_EXE` / `$env:MCHROME_OUT`（再退回 `D:\wxmuma\chromium-src-155\src\out\mcloud`），
   并在开头打印**被测身份**（exe/dll 绝对路径、字节数、mtime、同目录 `mcloud_flags.txt` 是否存在），
   路径命中 M151 回滚树特征时 `Write-Warning`。多棵源码树并存时，"结果归属到哪棵树的产物"
   必须写在日志里，不能靠调用者记得自己传了什么（缺陷 D86/D72 同族）。
+  ⚠ 该护栏的正则曾写成 `chromium-src(\|$)`（`\|` 是转义竖线，匹配字面量 `|`）而**从未触发过**，
+  第5周期 D137 已在 9 个脚本 10 处改为 `(\\|$)`；`benchmark/tools/*.py` 侧的 `MCHROME_EXE`
+  纪律仍只部分落实（D141）。
+- **本机硬件身份（第5周期 D143 实测钉死，勿再按名称推断）**：
+  | 项目 | 值 |
+  |---|---|
+  | CPU | Intel i9-14900HX，**24 核 / 24 逻辑处理器**（规格 24C/32T ⇒ **超线程在 BIOS 中关闭**，D150） |
+  | 独显 | **NVIDIA GeForce RTX 4070 Laptop GPU**（Ada，PCI `VEN_10DE&DEV_2860`，8 GB，驱动 610.62） |
+  | 核显 | Intel UHD Graphics（Raptor Lake，`DEV_A788`，驱动 32.0.101.6790） |
+  | 显示器 | 由**独显**驱动（只有 NVIDIA 适配器报告活动显示模式）；AOC2703 外接 2560x1440@170Hz + TMA2021 内嵌 |
+  | 另有 | MuMu / GameViewer 两个**虚拟显示适配器**（`ROOT\DISPLAY\*`，非 PCI），排在真实显卡之前 |
+
+  ⚠ **本机 WMI `Win32_VideoController.Name` 与 PnP `DeviceDesc` 都错报 "NVIDIA GeForce GTX 1050 Ti"**，
+  根因是注册表 `Enum\PCI\VEN_10DE&DEV_2860&…\4&3a9dcb36&0&0008` 的 `DeviceDesc` 被写成**字面量**
+  （正常驱动安装是 `@inf,%key%;名称` 间接形式），即这块卡被人为改过名。该错误名称经
+  `DXGI_ADAPTER_DESC.Description` 传进 Chromium，所以 chrome://gpu 与 WebGL 的
+  `UNMASKED_RENDERER_WEBGL` 都显示 `NVIDIA GeForce GTX 1050 Ti (0x00002860)`——**名字错、设备号对**。
+  Chromium 的 `software_rendering_list.json` / `gpu_driver_bug_list.json` 按 **PCI vendor+device ID**
+  匹配而非按名字，故规避规则命中的是 Ada 的正确条目（实测已应用
+  `Disable VP9 k-SVC video decoding on non-Intel GPUs`，crbug.com/1508379）。
+  > **纪律：不要用显卡名称推断硬件能力。** 任何"某卡不支持 X"的判断必须以 PCI 设备号 /
+  > `nvidia-smi` / chrome://gpu 的能力清单为准。D118 曾据错误名称把**实测正确的**
+  > `av1 powerEfficient=true` 判为"不足以采信"，而 chrome://gpu 硬解清单里明确有
+  > `Decode av1 profile main: 128x128 to 8192x8192`——Pascal 不可能有这条。
+  > 同理，`Get-CimInstance Win32_VideoController | Select-Object -First 1` 取到的是
+  > **MuMu 虚拟显示器**，D139 之前每份 KPI 基线的 GPU 字段都是错的。
 - **补丁位置**：`other/` 目录，命名 `feature-name.patch`。
 - **文档位置**：`docs/architecture/`（架构）、`docs/dev-logs/phase{N}-dev-log.md`（开发日志）、`docs/decisions/ADR-{NNN}-{title}.md`（决策记录）、`docs/tasks/`（任务文档）。
+  缺陷档案：`docs/tasks/bug-review-pak-src-defects.md`（D1–D155 索引）+ 各周期详版
+  `bug-review-cycle{3,4,5}-report.md`。**第5周期（D121–D155，2026-10-12）详版见
+  `docs/tasks/bug-review-cycle5-report.md`**，含硬件取证、chrome://gpu 实测、Red→Green 验证记录
+  与 12 条待跟进项。
 - **修改 build/ 目录前**：必须备份 `compiler_opt.gni` 等自定义文件。
 - **禁止**：不要用 `git checkout -- build/` 批量回退（会删除自定义文件）；修改 GN 参数后必须重新 `gn gen out/mcloud --check`。
 - **已知坑（口径已更正 2026-10-10）**：`--js-flags` 内的 V8 标志**统一写下划线形式**（`--invocation_count_for_maglev=...`）。旧断言「连字符写法在 M151 静默失效」与源码不符：`v8/src/flags/flags-impl.h:19` 的 `NormalizeChar` 把 `_` 归一为 `-` 并用于标志名比较，两种写法应等价；Chromium 侧对未知 js-flags 静默忽略，故该点无法用 stderr 反证（缺陷 D49，定论需 `autoninja d8`）。沿用下划线写法是安全的默认，不要再以「连字符会失效」为依据做判断；Polly/BOLT 需先接线再启用（见 `win_args_mcloud.gn` 注释；注意 BOLT 官方仅支持 ELF/Mach-O，Windows PE 路线待核实，见规范 10.1 与缺陷档案）。

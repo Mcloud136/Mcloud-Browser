@@ -91,9 +91,28 @@ GPU/渲染进程、真下载文件、真放 1.18 GB 本地视频，判据一律�
 - **真打印**：`Page.printToPDF` → 8,459 B 且文件头 `%PDF-`。
 - **解码能力**：`MediaCapabilities.decodingInfo` 对 h264 / hevc / av1 / vp9 全部
   `supported + smooth + powerEfficient`。
-  ⚠ 该字段只证明"被选中"，不证明"硬件单元存在"（GTX 1050 Ti 为 Pascal，无 AV1 硬解单元）；
+  ⚠ 该字段只证明"被选中"，不证明"硬件单元存在"（~~GTX 1050 Ti 为 Pascal，无 AV1 硬解单元~~）；
   HEVC 硬解的可靠证据仍是 K6 下用户 4K HEVC 播放时浏览器 CPU 2.3% + chrome://gpu 的
   `Video Decode: Hardware accelerated`。
+  > **【第5周期更正 2026-10-12，缺陷 D143】上面括号里的硬件前提是错的，结论要翻过来。**
+  > 本机独显实测不是 GTX 1050 Ti（Pascal），而是 **NVIDIA GeForce RTX 4070 Laptop GPU
+  > （Ada Lovelace，PCI `VEN_10DE&DEV_2860`，8 GB，驱动 610.62）**。三路独立口径一致：
+  > `nvidia-smi` 报 RTX 4070 Laptop / `0x286010DE` / 8188 MiB；注册表
+  > `Class\{4d36e968…}\0000` 的 `DriverDesc` 同为 RTX 4070 Laptop；chrome://gpu 的硬解清单里
+  > 明确列有 `Decode av1 profile main: 128x128 to 8192x8192 pixels`——Pascal 根本没有 AV1
+  > 硬解单元，这条只可能来自 Ada。
+  > 唯一报 "GTX 1050 Ti" 的是 WMI `Win32_VideoController.Name` 与 PnP `DeviceDesc`，根因是
+  > `Enum\PCI\VEN_10DE&DEV_2860&…\4&3a9dcb36&0&0008` 的 `DeviceDesc` 被写成了**字面量**
+  > （正常驱动安装是 `@inf,%key%;名称` 间接引用形式），即这块卡被人为改过名。该错误名称经
+  > `DXGI_ADAPTER_DESC.Description` 传进 Chromium，于是 chrome://gpu 与 WebGL 的
+  > `UNMASKED_RENDERER_WEBGL` 都显示 `NVIDIA GeForce GTX 1050 Ti (0x00002860)`——**名字错、
+  > 设备号对**。Chromium 的 software_rendering_list / gpu_driver_bug_list 按 PCI vendor+device
+  > ID 匹配而非按名字，所以规避规则命中的是 Ada 的正确条目（实测已应用
+  > "Disable VP9 k-SVC video decoding on non-Intel GPUs"，crbug 1508379，说明确被识别为 non-Intel）。
+  > **因此 AV1 硬件解码在本机是真实可用的**，`powerEfficient=true` 不是"只证明被选中"。
+  > 教训（已写进 `mcloud_flags.txt` 的对应注释）：不要用显卡**名称**推断硬件能力，
+  > 必须以 PCI 设备号 / nvidia-smi / chrome://gpu 能力清单为准，否则会像这里一样
+  > 用错误前提推翻正确的实测值。
 - 远端 HEVC 源本机不可达（`test-videos.co.uk` 三个 URL 全部失败），故记
   `SOURCE-UNREACHABLE`，**不计入判据也不记为通过**。
 

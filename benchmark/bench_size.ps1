@@ -25,7 +25,7 @@ $dll = Join-Path $OutDir 'chrome.dll'
 Write-Host ("被测产物目录: {0} | chrome.dll={1} | mtime={2:s}" -f `
     $OutDir, $(if (Test-Path $dll) { '{0:N0} B' -f (Get-Item $dll).Length } else { '缺失' }),
     $(if (Test-Path $dll) { (Get-Item $dll).LastWriteTime } else { [datetime]::MinValue }))
-if ($OutDir -match 'chromium-src(\|$)') {
+if ($OutDir -match 'chromium-src(\\|$)') {
     Write-Warning "被测目录属于 M151 回滚参考树，不是当前发布对象（155）。"
 }
 

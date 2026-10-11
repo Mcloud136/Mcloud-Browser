@@ -32,7 +32,7 @@ $mcloudFlagsNextTo = Join-Path $subject.DirectoryName 'mcloud_flags.txt'
 Write-Host ("被测对象: {0} | {1:N0} B | mtime={2:s} | 内置标志文件={3}" -f `
     $subject.FullName, $subject.Length, $subject.LastWriteTime,
     $(if (Test-Path $mcloudFlagsNextTo) { '同目录存在' } else { '缺失（内置优化不生效，结果无意义）' }))
-if ($subject.FullName -match 'chromium-src(\|$)') {
+if ($subject.FullName -match 'chromium-src(\\|$)') {
     Write-Warning "被测对象位于 M151 回滚参考树，不是当前发布对象（155）。确认这是你要测的目标。"
 }
 
