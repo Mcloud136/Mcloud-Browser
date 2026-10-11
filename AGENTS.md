@@ -125,9 +125,20 @@ ENABLED**，那两行是显式钉住（pin）而非"打开了默认关闭的优�
    最新载荷目录兜底。⚠ 不要退回"先读 exe 同目录"：安装版根目录只有一个 4 MB 启动桩，
    任何一份残留的 `Application\mcloud_flags.txt` 都会永久、静默地压掉安装包投递的那份
    （缺陷 D109 已用硬链接沙箱实测复现，回归判据见 `.bugreview/loader_precedence_test.py`）。
-   **发布前必须做一次干净安装复验**（`mini_installer.exe --system-level` 装到 Program Files，
-   断言文件落地 + 与仓库字节一致 + 对安装后的二进制跑 `flag_runtime_state.py` 得到回显，
-   然后卸载）。只看门禁绿灯不足以证明安装包正确。
+   **发布前必须做一次干净安装复验**，非交互口径已实测确定（照下面的命令做，否则会卡在弹窗上，
+   缺陷 D162）：
+   ```
+   # 装（外层包装器；必须 --quiet，否则 GUI 形态会停在"完成"按钮等人点 = D131）
+   mcloud_<ver>_win64_setup.exe --quiet --system-level        # 期望 rc=0
+   # 卸（必须 --force-uninstall：不带它时上游会启动 chrome.exe --uninstall 弹确认框并死等）
+   "C:\Program Files\Chromium\Application\<ver>\Installer\setup.exe" --uninstall --system-level --force-uninstall
+   #                                                             期望退出码 19 = UNINSTALL_SUCCESSFUL
+   ```
+   断言四件事：版本目录里文件落地 + 与仓库字节一致 + 对**安装后的二进制**跑
+   `flag_runtime_state.py` 得到回显 + 根目录无残留 `mcloud_flags.txt`。只看门禁绿灯不足以证明安装包正确。
+   ⚠ 卸载会**连带删掉** `User Pinned\TaskBar` 里指向自己的 .lnk（实测：任务栏固定项消失）；
+   `UserChoice` 的 `ProgId` 保持 `ChromiumHTM` 不变，所以重装后默认浏览器会**自行恢复**
+   （实测 `TargetExists: n/a -> yes`），但任务栏固定项没有 API 可恢复，需手工重新固定。
    ⚠ **回显条数口径已变（第5周期 D142，2026-10-12）**：清理掉 2 条平台上根本编译不进来的
    死声明后，期望值由 `enable 51 / disable 2` 变为 **`enable 49 / disable 2`**。
    发布说明与本文件里所有"51+2"的旧口径对新包都要改。
@@ -143,7 +154,11 @@ ENABLED**，那两行是显式钉住（pin）而非"打开了默认关闭的优�
 12. **`build_setup_exe.py`** — 编译外层安装包装器 `MCloud-Setup.exe`（源文件 `installer/mcloud_setup.cs`），
     由 `package_m155.py` 在打包时自动调用并内嵌 mini_installer。**必须用 VS 的 Roslyn csc**：
     .NET Framework 自带的旧 csc 不支持 `/deterministic`，同一份源码两次编译 SHA 会不同，
-    发布哈希失去意义。脚本会自动优先 Roslyn 并在日志里打印所用编译器与是否可复现。
+    发布哈希失去意义。**现已硬失败**（缺陷 D130，2026-10-12 r6）：找不到 Roslyn 时不再静默退回旧 csc，
+    而是 exit 113 并给出两种修法——旧写法随后照样写 `.sha256` 与发布说明，等于把"核对哈希"这条验收作废。
+    确需本机排错才用 `--allow-nondeterministic`，发布路径禁用。
+    `package_m155.py` 侧同步改为**无条件转印**子编译器日志（旧写法 `capture_output=True` 且只在失败时打印，
+    成功路径把"用了哪个编译器/是否可复现"整段丢掉）。
     注意复现性验证要**同名不同目录**对比——输出文件名会进元数据。
 
 注意：`setup.py` 为遗留全量覆盖脚本，已被定点注入取代，勿在新 Chromium 树上运行（会污染源码树）。
@@ -159,7 +174,24 @@ ENABLED**，那两行是显式钉住（pin）而非"打开了默认关闭的优�
 | `mcloud_<ver>_win64_mini_installer.exe` | 上游裸安装器。**浏览器正在运行时双击它，更新会静默不生效**：根启动桩是被锁的映像，上游把它暂存成 `new_chrome.exe` 并把收尾改名委托给 Google Update，而我们不发布 Google Update（实测见 `docs/tasks/bug-review-cycle4-report.md`）。只用于浏览器已完全退出的场景或自动化复验。 |
 
 ⚠ 只发裸 mini_installer 等于把"装了但没更新"交给用户；发布说明与任何安装指引都必须指向 setup 那个。
-验收/回归：`.bugreview/setup_wrapper_test.py`（造 151 运行中现场 → 用包装器升 155 → 断言真的升到 155）。
+验收/回归（两条，覆盖面不同，**都要跑**）：
+- `.bugreview/setup_wrapper_test.py` — 端到端：造 151 运行中现场 → 用包装器升 155 → 断言真的升到 155。
+  ⚠ 它第 84/102/144 行**永远传 `--system-level`**，所以它验的恰好是"硬编码也能碰对"的那一支（缺陷 D121
+  就是从这里漏掉的），而且它会真的装到 Program Files 并在收尾卸载 ⇒ 属"改动真实安装"的操作，需授权。
+- `.bugreview/installer_arg_test.py` — **参数级**（r6 新增，不需要授权）：用一个假安装包（stub）把
+  包装器实际传给 mini_installer 的 argv 录进文件，因此 `--user-level` 这一支能被**真正执行**：
+  A（HEAD + `--user-level` → 收到空参数）/ A'（`68838c1` 那版跑同一条 → 收到 `--system-level`，
+  这条不成立就说明 A 的通过毫无意义）/ B（stub 返回 3 → 日志出现"安装器自身返回 3"且 rc=1，D129）/
+  C（`--system-level` → 收到 `--system-level`；目标目录下有正在运行的实例时**按设计跳过**并整体判
+  PARTIAL/exit 2，不允许两半通过冒充全绿）。四条污染自检（两个安装目录指纹、实例数、残留临时目录）
+  每次都跑——这是 D99 那族"测试自己污染被测目标"的对策。
+  ⚠ **不要**把它简化成"给 setup_wrapper_test.py 加一条 `--user-level`"：那会真的往
+  `%LOCALAPPDATA%\Chromium\Application` 装一份，而注册表 `UserGpuPreferences` 里有一条指向该路径的
+  `GpuPreference=1`（= 优先核显，缺陷 D154），测试会把用户级安装钉在 Intel 核显上，而核显正是
+  D3D12 绿屏那一侧，与所有既有 GPU 基准不可比。
+
+⚠ `--list-only` 在**发布形态（`/target:winexe`）下并非完全哑**：stdout 被重定向时能读到正文
+（r6 实测 149 B），只有双击打开的用户看不到。D133 原记为"用户手上是哑的"，严重度按此收窄。
 
 前置文档：**本文件下面「构建快速参考」一节 + `docs/progress.md` §5.1**（两者一致，是权威步骤）。
 ⚠ `docs/BUILDING_WIN.md` 是**上游 Thorium 遗留文档**（假设 `C:\src\chromium\src`、要 VS 2022、
@@ -356,6 +388,19 @@ autoninja -C out/mcloud chrome mini_installer
   ⚠ 该护栏的正则曾写成 `chromium-src(\|$)`（`\|` 是转义竖线，匹配字面量 `|`）而**从未触发过**，
   第5周期 D137 已在 9 个脚本 10 处改为 `(\\|$)`；`benchmark/tools/*.py` 侧的 `MCHROME_EXE`
   纪律仍只部分落实（D141）。
+- **Python 判据脚本三条语言坑（r6，2026-10-12 实测）**：
+  ① **`subprocess.run(..., errors="replace")` 会隐式打开文本模式**——CPython 里
+  `encoding`/`errors`/`text`/`universal_newlines` 任一给定即 `text_mode=True`，于是 `stdout` 变成
+  `str`，后面那句 `.decode()` 直接 `AttributeError`。想要字节就**什么都别传**；
+  这也是 `build_setup_exe.py` 里"用 `errors="replace"` 兜住奇数字节"那段注释的真实前提（它确实在文本模式下工作）。
+  ② **打印超出代码页的字符会抛 `UnicodeEncodeError` 并把已缓冲的日志整段吞掉**：本机默认 stdout 是 cp936，
+  `⇒`（U+21D2）不在其中 → 脚本崩在 print，而 stdout 有缓冲，**崩溃前跑出来的结论一行都看不到**。
+  判据脚本要么开头 `sys.stdout.reconfigure(encoding="utf-8", errors="replace")`，要么把断言用的
+  needle 与展示文字分开——**判据本身不依赖控制台编码**（`installer_arg_test.py` 对同一句中文
+  同时试 utf-8 / gbk 两种字节，所以它在任何代码页下都不会假红，这族问题的源头见 D66-①）。
+  ③ **`Where-Object` 只匹配到一条时返回标量字符串**，`$names[0]` 取到的是**第一个字符**而不是元素，
+  于是 `GetManifestResourceStream("m")` 返回 null，看起来像"资源不存在"。PowerShell 里凡是
+  "管道结果按下标取"的位置都要 `@(...)` 强制成数组（同族：D83 函数内 `+=` 不写回、D140 首检复检指纹不一致）。
 - **本机硬件身份（第5周期 D143 实测钉死，勿再按名称推断）**：
   | 项目 | 值 |
   |---|---|
@@ -381,10 +426,13 @@ autoninja -C out/mcloud chrome mini_installer
   > **MuMu 虚拟显示器**，D139 之前每份 KPI 基线的 GPU 字段都是错的。
 - **补丁位置**：`other/` 目录，命名 `feature-name.patch`。
 - **文档位置**：`docs/architecture/`（架构）、`docs/dev-logs/phase{N}-dev-log.md`（开发日志）、`docs/decisions/ADR-{NNN}-{title}.md`（决策记录）、`docs/tasks/`（任务文档）。
-  缺陷档案：`docs/tasks/bug-review-pak-src-defects.md`（D1–D155 索引）+ 各周期详版
+  缺陷档案：`docs/tasks/bug-review-pak-src-defects.md`（D1–D163 索引）+ 各周期详版
   `bug-review-cycle{3,4,5}-report.md`。**第5周期（D121–D155，2026-10-12）详版见
   `docs/tasks/bug-review-cycle5-report.md`**，含硬件取证、chrome://gpu 实测、Red→Green 验证记录
-  与 12 条待跟进项。
+  与 12 条待跟进项；该文件末尾的 **「续：r6 收口轮执行记录」** 登记 D156–D163，
+  是对第5周期交接件的复核（哪些成立、哪些要打折）、**重打包后的新发布物哈希**、
+  "7 条安装器修复当时一条都没执行过"的处置（`installer_arg_test.py`），以及
+  **干净安装复验的实测结果**（D162 卸载必卡、D163 本机 `EnableLUA=0` 的结论边界）。
 - **修改 build/ 目录前**：必须备份 `compiler_opt.gni` 等自定义文件。
 - **禁止**：不要用 `git checkout -- build/` 批量回退（会删除自定义文件）；修改 GN 参数后必须重新 `gn gen out/mcloud --check`。
 - **已知坑（口径已更正 2026-10-10）**：`--js-flags` 内的 V8 标志**统一写下划线形式**（`--invocation_count_for_maglev=...`）。旧断言「连字符写法在 M151 静默失效」与源码不符：`v8/src/flags/flags-impl.h:19` 的 `NormalizeChar` 把 `_` 归一为 `-` 并用于标志名比较，两种写法应等价；Chromium 侧对未知 js-flags 静默忽略，故该点无法用 stderr 反证（缺陷 D49，定论需 `autoninja d8`）。沿用下划线写法是安全的默认，不要再以「连字符会失效」为依据做判断；Polly/BOLT 需先接线再启用（见 `win_args_mcloud.gn` 注释；注意 BOLT 官方仅支持 ELF/Mach-O，Windows PE 路线待核实，见规范 10.1 与缺陷档案）。

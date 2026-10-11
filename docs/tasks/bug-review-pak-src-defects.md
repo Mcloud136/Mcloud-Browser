@@ -1381,17 +1381,89 @@ CET 硬件影子栈开（`compiler.gni:230`）、libc++ `_LIBCPP_HARDENING_MODE_
 （首版把 `$cores*100` 存进"核数"数组，两个数字并排印出来才自相矛盾）。
 已用多行正则全仓扫描 `.ps1`，**无既存同类问题**。
 
+## r6 收口轮（D156–D163：让发布物跟上源码 + 补可执行验收 + 干净安装复验，2026-10-12 凌晨）
+
+**执行记录与全部实测输出见 `docs/tasks/bug-review-cycle5-report.md` 的「续：r6 收口轮执行记录」一节。**
+本轮不找新功能缺陷，做的是：复核第5周期的结论、把它改了但没打进发布物的东西重打、
+给"改了却没执行过"的分支补能失败的验收。6 条里有 4 条**是复核交接件时发现的报告级问题**，
+这本身说明"报告写了自己没跑的分支"是本仓反复出现的形态（D89 → D121 → D157 一脉）。
+
+| ID | 级别 | 位置 | 问题 | 状态 |
+|---|---|---|---|---|
+| D156 | Low | cycle5 报告「本轮已执行的验证」表 | "PowerShell 静态 lint **45** 个 `.ps1`"与现实跑 **44** 差一个，差的就是 `.cycle5/regex_test.ps1`：那一栏记的是**加了 `.cycle` 跳过之前**（即门禁在自己的取证语料上失败的那一次）的计数。结论没错，数字来自旧一次运行 | 已更正 |
+| D157 | **High** | cycle5 报告「摘要」"14 条已修复并验证" | D121–D129 这 7 条安装器修复**一条都没有真实执行过**：验证表里与安装器有关的只有编译（且只编 console 形态）与 `--list-only`。用户级安装、提权 rc 透传、降权重启、`Alive()` 异常路径零执行——**与 D121 本身病因同构**（改了分支没配可执行验收），报告批评了前者却没自查后者 | **已修**：`installer_arg_test.py` 的 A/A'/B/C 四条 12/12 PASS；仍剩 `RelaunchElevated`（需非提权父进程）与 D123 降权重启（需真实安装成功）两支 |
+| D158 | Medium | `mcloud_setup.cs:539-565`（D122 修法） | 非提权父进程读提权子进程的 `ExitCode` 跨完整性级别常常取不到；实现取不到即 `return -2` → 主流程 `return 2`"按失败上报"。方向符合"宁假红不假绿"，但**后果是系统级安装即使成功也可能报失败并返回 2**，脚本/CI 据此判红。须真机确认走哪一支，并把 rc 语义写进指引（2 = 未能判定 ≠ 没装上） | 未修，属干净安装复验的输出 |
+| D159 | Medium | `HKCU\...\UserGpuPreferences` × D121 | D154 被记为"环境观察"，但它与 D121 是**同一件事的前后两半**：D121 修好后用户级路径第一次可用，而该路径正对着一条 `GpuPreference=1`（优先**核显**）。本轮实测条目仍在、目标 exe 不存在、`Application\155.0.8059.40\` 是空壳残留 ⇒ 清理应作为 **D121 的收尾步骤**。也正是据此**否决**了"给 `setup_wrapper_test.py` 加 `--user-level` 用例"的做法（见 D157 的修法） | 已写入 AGENTS.md 判据分工 |
+| D160 | Low | D133 定性 | 发布形态 `/target:winexe` 的 `--list-only` **并非完全哑**：stdout 被重定向时读得到正文（实测 149 B）⇒ 对脚本/CI 可用，只有**双击**的用户看不到。修法应聚焦"双击时把日志写文件" | 口径已更正 |
+| D161 | Medium | `setup_wrapper_test.py:63` 默认 `WRAPPER` | 端到端验收的默认被测对象 `installer/out/MCloud-Setup-embedded.exe` **全仓库没有任何脚本生产它**（唯一引用是那条 help 文本）。实测重打包后它 mtime 仍停在上一日 ⇒ "跑验收"实际跑的是**内嵌旧载荷**的包装器，结论与发布物不是同一个东西（D86/D72 同族：归属不能靠人记得） | 已修：并入 `package_m155.py` 同批产出并打印 SHA |
+| D162 | **High**（流程阻断） | `AGENTS.md` 复验条目 + `setup_wrapper_test.py:142-144` | "然后卸载"这一步在**无人值守下必卡**。源码：`chrome/installer/setup/uninstall.cc:884-890`——不带 `--force-uninstall` 时走 `IsChromeActiveOrUserCancelled()`，它会 `LaunchChromeAndWait(target_path, --uninstall)` **启动 chrome.exe 弹确认框等用户点**；带 `--force-uninstall` 才走静默分支。实测：第一次卸载 `WaitForExit(240000)` 超时判 FAIL，现场零删除但残留 2 个 setup.exe + 1 个带 `--uninstall` 的 chrome.exe；加上开关后 **0 s 返回 19**。旧测试写法会挂满 `timeout=600` 再从 `finally` 抛 `TimeoutExpired`，**把清理和结论一起丢**。另注：`.cycle4/inuse_utf8.json` 的 `uninstall_rc:"19"` 无法判断走的哪条分支（`LaunchChromeAndWait` 失败时 PLOG 分支也直接确认）⇒ 那是个不确定判据 | 已修：测试加 `--force-uninstall`；AGENTS.md 复验改成可粘贴的非交互命令 + 期望退出码 19 |
+| D163 | Medium（结论边界） | 本机 `HKLM\...\Policies\System\EnableLUA=0`，账户为内置 `Administrator`（SID 尾号 -500） | 全机无 UAC 分令牌 ⇒ **所有进程都在 High**。对照实验：本 shell 直接启动 `S-1-16-12288`，**经 `explorer.exe` 启动仍是 `S-1-16-12288`**。三条后果：① 包装器"改由 explorer.exe 启动以避开管理员令牌"在本机是**空头承诺**，故 **不能**把 r6 复验写成"D123 已验证降权"（修法在正常 UAC 机器上成立，本机既不能证实也不能证伪）；② `systemLevel && !IsAdmin()` 恒假 ⇒ **`RelaunchElevated` 分支在本机不可达**，**D158 在这台机器上测不了**；③ "浏览器以管理员运行"的真因是这台机器的 UAC 配置（与 D150 的 BIOS 超线程同类：环境事实，不是仓库缺陷），真正的缓解是打开 `EnableLUA` 而非改安装器 | 未修（需一台 `EnableLUA=1` 的机器复验）；已要求所有提权/降权类结论标注取证机器的 UAC 状态 |
+
+### r6 的方法论产出（不进缺陷编号，进 AGENTS.md）
+
+- **判据不得依赖控制台编码**：`installer_arg_test.py` 对同一句中文同时试 utf-8 与 gbk 两种字节。
+  起因是本轮两次真实误判——我给他的 `test_build_win_preflight.py` 判了假红（我自己加了 `-X utf8`），
+  以及我写的临时脚本因打印 `⇒`（不在 cp936）崩在 `print` 上、**缓冲里的结论整段丢失**看起来像"什么都没跑"。
+- **`subprocess.run(..., errors="replace")` 会隐式打开文本模式**：CPython 中 `encoding`/`errors`/`text`
+  任一给定即 `text_mode=True`，`stdout` 变 `str`，后续 `.decode()` 直接 `AttributeError`。想要字节就什么都别传。
+- **PowerShell `Where-Object` 只命中一条时返回标量**：`$names[0]` 取到的是**第一个字符**而不是元素，
+  于是 `GetManifestResourceStream("m")` 返回 null，表现得像"资源不存在"。管道结果按下标取的一律 `@(...)`。
+- **载荷校验的正确做法**：把内嵌资源**还原出来单独算哈希**（`MATCH=True`），而不是看体积差、
+  更不是在压缩归档里搜文件名字节串（D102 的反例）。
+- **重编/重打包前先数步数**：`ninja -n` 实测本次只有 3 步（archive → RC → LINK）才动手，
+  避免把"flags 文件变了"误当成需要全树重编（D74）。
+
 ## 待办（本档案跟踪）
+
+### r6 收口轮新增（2026-10-12 凌晨）
+
+- [x] **干净安装复验**（AGENTS.md 步骤 8 硬性要求，r6 已做，2026-10-12 02:2x，用户选 B：
+      卸载 → 全新安装 → 复验 → **保留安装**）。实测结果：包装器 `--quiet --system-level` rc=0（8 s，
+      全程无需点按钮）；安装后 `mcloud_flags.txt` 与仓库**逐字节一致**（`d71d988ca2d2ab`）；
+      对**安装后的二进制**跑 `flag_runtime_state.py` 得 **`enable 49 / disable 2`、exit 0**，
+      `D3D12VideoDecoder`/`SkiaGraphite` 禁用完好、普通开关零缺失；根目录无残留、无 `.new.exe` 暂存件、
+      无 setup/mini_installer 驻留；`UserChoice` 重装后自愈（`TargetExists: n/a -> yes`）。
+      过程登记 **D162**（卸载缺 `--force-uninstall` 必卡）与 **D163**（本机 `EnableLUA=0`
+      ⇒ 降权修法与 `RelaunchElevated` 在此不可验证）。
+      遗留：任务栏固定项被卸载器删除且无 API 恢复，需手工重新固定。
+      这一步剩下的是**两条录参数判据够不着的分支**：`RelaunchElevated`（要**非提权父进程**
+      才走得到，也正是判定 **D158** 的场合）与 D123 的 `explorer.exe` 降权重启（要真实安装
+      成功才触发）。用例 C（D121 系统级分支）已另行补齐，见上表 D157。
+      顺带会执行 `Verify()` 里"删根目录残留 flags"的副作用分支（D135）——本轮用 stub 故意没触发它。
+- [ ] **D146 进二进制**：`deploy_mcloud.py` + 重编译。**不要为它单开一次全树重编**
+      （零行为收益，D74：config/正文改动即 51,296 步 ≈3 h）——与 D149 raster 线程 A/B
+      或 D147 `symbol_level` 绑同一批。
+- [ ] **`installer_arg_test.py` 接入 `final_gate_matrix.ps1` 之前先定 rc=2 语义**：
+      它退出 2 是合法结论（PARTIAL：环境不满足，系统级那一半没跑），既不是失败也不是通过。
+      直接进矩阵会让"环境不满足"和"门禁失败"混成一种颜色，反而是新的假绿形态（D89 同族）。
+- [ ] **D158 的后续修法**：若实测确认跨完整性级别取不到 `ExitCode`，应改成
+      让提权实例把结论写进日志/结果文件、父进程读文件，而不是靠猜退出码——
+      并保持"读不到结果 = 非 0 退出"。
+- [ ] **D154 / D159 收尾**：清掉 `HKCU\Software\Microsoft\DirectX\UserGpuPreferences` 里指向
+      已删除安装的 `GpuPreference=1` 悬空条目（改注册表，需授权）；用户级安装后顺手核对为 `GpuPreference=2`。
 
 ### 第5周期新增（2026-10-12）
 
-- [ ] **D121–D129 的安装器修复尚未进发布物**：已用 Roslyn `/deterministic+` 编译验证通过
-      （26,112 B，`--list-only` 实跑 exit 0 且正确识别既有系统级安装），但
-      `installer/out/*.exe` 与 `mcloud_155.0.8059.40_win64_setup.exe` **仍是旧版**。
-      需重跑 `build_setup_exe.py` + `.bugreview/package_m155.py` 重新内嵌并生成 `.sha256`。
-- [ ] **`setup_wrapper_test.py` 必须补一条不带 `--system-level` 的用户级用例**：
-      现有测试第 84、102 行永远传 `--system-level`，**唯一被验收的分支恰好是 D121 硬编码
-      碰对了的那个**，所以门禁全绿而用户级路径整体失效。这是本轮最该记住的教训形态。
+- [x] **D121–D129 的安装器修复尚未进发布物**（r6 已收口，2026-10-12 01:45）：
+      先 `ninja -n` 数过步数确认只需 3 步（archive → RC → LINK，**不触发重编译**），
+      `autoninja -C out/mcloud mini_installer` 让清理后的 `mcloud_flags.txt` 进 `chrome.7z`，
+      再重跑 `build_setup_exe.py` + `.bugreview/package_m155.py`。
+      新发布物 setup `9600c425…` / mini_installer `488e604b…`，sidecar `sha256sum -c` 双双 OK；
+      **连跑两次打包 SHA 逐字节不变**（复现性在真实管线上成立，不只是孤立实验）；
+      并从发布出的 setup.exe 里把内嵌资源**还原出来算哈希** == `RELEASE`（`MATCH=True`）。
+      顺带修 D130（找不到 Roslyn 改 exit 113 硬失败）与 D161（验收用包装器并入同批产出）。
+- [x] **`setup_wrapper_test.py` 必须补一条不带 `--system-level` 的用户级用例**
+      （r6 已补，但**换成了参数级判据** `.bugreview/installer_arg_test.py`，原因见 D159）：
+      在 `setup_wrapper_test.py` 里直接加 `--user-level` 会真的往 `%LOCALAPPDATA%\Chromium\Application`
+      装一份浏览器，而注册表 `UserGpuPreferences` 恰有一条指向该路径的 `GpuPreference=1`（= 优先核显），
+      测试会把用户级安装钉在 Intel 核显上（核显 = D3D12 绿屏那一侧，且与既有 GPU 基准不可比），
+      收尾卸载又是一次真实安装变更 —— 违 D99"测试不得污染被测目标"。
+      新判据用假安装包录 argv，**A（HEAD 收到空参数）/ A'（`68838c1` 那版收到 `--system-level`）**
+      双向成立，B（stub rc=3 → 日志"安装器自身返回 3"且 rc=1）触发 D129 分支，
+      C（`--system-level` → 收到 `--system-level`、跑完 rc=0）在用户关闭浏览器后补齐，
+      外加四条污染自检 —— **两次运行 12/12 断言全成立、exit 0**（第 1 次因系统级目录下有 13 个
+      正在运行的实例而按设计 SKIP 并判 PARTIAL/exit 2，绝不"两半通过"冒充全绿）。
+      ⚠ 教训形态保持原文：**唯一被验收的分支恰好是硬编码碰对了的那个**。
 - [ ] **D142 的门禁盲区根因未修**：`flag_stability.py` 的不变式只判"三版**声明存在**"，
       看不见 `#if BUILDFLAG(IS_*)` / `#if PA_BUILDFLAG(*)` 条件编译；
       `survival_check.py` **已采集** `default` 字段（`:18`、`:108`）但 C 断言（`:158-168`）

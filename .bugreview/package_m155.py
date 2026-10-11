@@ -142,6 +142,9 @@ SETUP = os.path.join(THOR, "mcloud_%s_win64_setup.exe" % VER)
 _build = os.path.join(THOR, "win_scripts", "build_setup_exe.py")
 _r = subprocess.run([sys.executable, _build, "--embed", RELEASE, "--out", SETUP],
                     capture_output=True, text=True, errors="replace")
+# 缺陷 D130：旧写法只在失败时打印子进程输出，于是成功路径上"用的是哪个编译器、
+# 产物是否可复现"整段被丢掉，随后照样写 .sha256 与发布说明。现在无条件转印。
+print((_r.stdout or "").rstrip())
 if _r.returncode != 0 or not os.path.isfile(SETUP):
     print("FAIL 包装器编译失败：\n" + (_r.stdout or "") + (_r.stderr or ""))
     sys.exit(1)
@@ -149,6 +152,21 @@ _setup_digest = sha(SETUP)
 with open(SETUP + ".sha256", "w", newline="\n") as f:
     f.write("%s *%s\n" % (_setup_digest, os.path.basename(SETUP)))
 print("发布物 -> %s  %d B\nSHA256 = %s" % (SETUP, os.path.getsize(SETUP), _setup_digest))
+
+# 缺陷 D161：端到端验收 setup_wrapper_test.py 的**默认被测对象**是
+# installer/out/MCloud-Setup-embedded.exe，但仓库里没有任何脚本生产它——实测重打包后
+# 它的 mtime 仍停在上一日，于是"跑验收"实际跑的是**内嵌旧载荷**的那份包装器，
+# 结论与被发布的那个不是同一个东西（D86/D72 同族：归属不能靠人记得）。
+# 现在同批产一份，并且直接断言它内嵌的就是刚发布的 RELEASE。
+TESTWRAP = os.path.join(THOR, "installer", "out", "MCloud-Setup-embedded.exe")
+_r2 = subprocess.run([sys.executable, _build, "--console", "--embed", RELEASE, "--out", TESTWRAP],
+                     capture_output=True, text=True, errors="replace")
+print((_r2.stdout or "").rstrip())
+if _r2.returncode != 0 or not os.path.isfile(TESTWRAP):
+    print("FAIL 验收用包装器编译失败：\n" + (_r2.stdout or "") + (_r2.stderr or ""))
+    sys.exit(1)
+print("验收对象 -> %s  %d B  SHA256 = %s（非发布物，仅给 setup_wrapper_test.py 当默认目标）"
+      % (TESTWRAP, os.path.getsize(TESTWRAP), sha(TESTWRAP)))
 
 notes = """# MCloud Browser v%s
 
@@ -180,9 +198,38 @@ notes = """# MCloud Browser v%s
 **最重要的一条：以前的安装包在干净机器上根本不带运行时优化清单。**
 `mcloud_flags.txt` 此前登记在安装包**不会安装**的位置——D47 修的是"打包侧没登记"，
 而 D105 才查清真正丢件的环节在**安装侧**：`setup.exe` 对 Application 根目录只搬固定三件套。
-所以 r3 及更早的每一个包，装到干净系统上时那 53 项 feature + 3 项普通开关**整体静默丢失且不报错**。
+所以 r3 及更早的每一个包，装到干净系统上时那 51 项 feature + 3 项普通开关**整体静默丢失且不报错**。
 现在它随版本目录投递，并已用一次真实的 `--system-level` 干净安装复验：文件落地、与仓库逐字节一致、
-对**安装后的二进制**回显 enable 51 / disable 2。
+对**安装后的二进制**回显 enable 49 / disable 2（第5周期 D142 清理掉 2 条平台上根本编译不进来的
+死声明之后的新口径；此前是 51 / 2）。
+
+## 本包相对上一份 r5 包的差异（第5周期 D121–D155）
+
+- **用户级安装此前整体失效（D121，Critical）**：包装器把 `--system-level` 写死传给 mini_installer。
+  后果是选"用户级"时既不提权（提权分支按 systemLevel=false 判断，不触发），又**真的装进
+  Program Files**，而复验查的是用户目录 ⇒ 必然报"复验未通过"。现已按 `systemLevel` 条件传参
+  （上游 mini_installer 只认 `--system-level`，用户级就是"不传该开关"）。
+  判据：`.bugreview/installer_arg_test.py` —— 用假安装包把收到的 argv 录进文件，
+  **不触碰任何真实安装位置**；同一条用例跑在修复前的源码上会录到 `--system-level`，
+  Red 与 Green 双向都成立，所以这条判据有区分力，不是"两边都恰好通过"。
+- **系统级安装后浏览器不再继承管理员令牌（D123，安全）**：此前在提权进程内直接
+  `Process.Start` 拉起浏览器，整个浏览会话（含全部 renderer / GPU / utility 子进程）以
+  admin 运行——任何网页侧 RCE 直接等于本机管理员，且 Explorer→浏览器拖放被 UIPI 拦死。
+  现改经 `explorer.exe` 启动，落回交互用户的中等完整性级别。
+- **两处"假绿"的复验判据改正**：默认浏览器注册**整条丢失**此前不算回归（D124——丢失比
+  "指向死文件"更严重，用户彻底失去默认浏览器，却静默放过）；进程状态查不到此前按
+  "已退出"处理（D125——跨完整性级别访问被拒时进程活得好好的还锁着根启动桩，于是对着
+  仍在运行的浏览器执行安装，精确复现 D119 的静默无效更新）。现两者都按失败处理。
+- **判定与定位细节**：安装器自身退出码参与最终判定（D129，否则"装失败 + 目录残留"会被
+  判成"已确认更新"）；提权实例的退出码原样透传而不再一律报 0（D122）；两处都装着不同
+  版本时按 `System.Version` 逐段比较，不再用序数字符串（D127：`"155.0.8059.40"` 按字符比
+  会小于 `"155.0.8059.9"`，于是选中更低的那份）；快捷方式快照补上全机器开始菜单
+  （D128，系统级安装的 .lnk 恰在那里，此前"指向死路径"根本 WARN 不到）。
+- **优化清单去虚（D142）**：删掉 2 条在本平台**根本编译不进来**的声明——`BaseLockTrySpin`
+  整体在 `#if BUILDFLAG(IS_POSIX)` 内，`PartitionAllocUsePriorityInheritanceLocks` 的门是
+  `is_android && (x64 || arm64)`；另有 2 条上游默认已启用的条目
+  （`PartitionAllocMemoryReclaimer`、`PruneOldTransferCacheEntries`）**保留但加注**，
+  它们是显式钉住（pin）以防上游翻默认值，不应算作定制收益。删除的 2 条净行为为 0。
 
 **新增外层安装程序 `mcloud_%s_win64_setup.exe`（请用这个）**：
 
@@ -213,8 +260,9 @@ notes = """# MCloud Browser v%s
 | 标签开合后的驻留漂移 | +3.7 MB/轮 | -2.4 MB/轮（无正漂移） |
 | GPU 渲染路径 | GPU 进程 + D3D11/D3D12 ANGLE | 同左，gpu-preferences 逐字一致 |
 
-内置启动标志 53 项 feature + 3 项普通开关在 M155 源码树逐项存活（`check_features` 53/53），
-并通过子进程命令行验证（A6）确认实际注入。
+内置启动标志 51 项 feature + 3 项普通开关在 M155 源码树逐项存活（`.bugreview/flag_stability.py`
+51/51，并确认第5周期删除的 2 条在 M151 上同样是无效声明，净行为为 0），
+并通过子进程命令行验证（`flag_runtime_state.py`，回显 enable 49 / disable 2）确认实际注入。
 
 ## 已知限制
 

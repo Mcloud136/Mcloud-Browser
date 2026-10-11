@@ -44,6 +44,8 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--embed", default=None, help="要内嵌进 EXE 的 mini_installer 路径（发布用）")
     ap.add_argument("--console", action="store_true", help="编译成控制台程序（测试用）")
+    ap.add_argument("--allow-nondeterministic", action="store_true",
+                    help="明知产物不可复现仍继续（仅供本机排错，发布路径禁止使用）")
     ap.add_argument("--out", default=None)
     args = ap.parse_args()
 
@@ -62,6 +64,17 @@ def main():
     if csc is None:
         fail("既找不到 VS 的 Roslyn csc，也找不到 %s" % LEGACY_CSC)
     print("编译器：%s（%s）" % (csc, "支持 /deterministic" if deterministic else "旧版，产物不可复现"))
+    # 缺陷 D130：这里曾经"退回旧 csc 并继续"，于是发布脚本照样写 .sha256、照样出发布说明，
+    # 而那份哈希每次重编都会变——同一份源码两次编译实测 c4c5da27… vs 2025fcdd…，
+    # 用 Roslyn /deterministic+ 跨目录同名两次一致 2e25c93e…。发布物的 SHA 一旦不可复现，
+    # "核对哈希"这条验收就整个作废，而它在日志里只表现为一句可以被划过去的提示。
+    # 所以不可复现必须让构建失败，而不是让下游拿到一个每次都不一样的期望值。
+    if not deterministic and not args.allow_nondeterministic:
+        fail("找不到支持 /deterministic 的 Roslyn csc，旧 csc 编出的 EXE 每次 SHA 都不同（缺陷 D130）。"
+             "\n  根因：发布流程随后会写 %s.sha256 与发布说明里的预期值，不可复现的哈希等于没有验收。"
+             "\n  修法一（推荐）：安装 VS BuildTools（本机为 Microsoft Visual Studio/18/BuildTools），"
+             "使 MSBuild\\Current\\Bin\\Roslyn\\csc.exe 存在。"
+             "\n  修法二：仅在本机排错时使用，显式加 --allow-nondeterministic（发布路径禁止）。", 113)
     os.makedirs(OUTDIR, exist_ok=True)
     out = args.out or os.path.join(
         OUTDIR, "MCloud-Setup-console.exe" if args.console else "MCloud-Setup.exe")

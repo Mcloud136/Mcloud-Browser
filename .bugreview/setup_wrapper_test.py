@@ -140,8 +140,15 @@ def main():
         cdp.kill_instance(prof + "2")
         if os.path.isdir(APP):
             setup = os.path.join(APP, NEW_VER, "Installer", "setup.exe")
+            # 必须带 --force-uninstall（缺陷 D162，2026-10-12 r6 实测）：不带它时
+            # uninstall.cc:884-890 走的是 IsChromeActiveOrUserCancelled() —— setup.exe 会
+            # 启动 `chrome.exe --uninstall` 弹确认框并 LaunchChromeAndWait **等人点**。
+            # 本轮没有这个开关时 WaitForExit(240000) 直接超时，现场零删除、
+            # 残留 1 个 setup.exe + 1 个 crashpad + 1 个带 --uninstall 的 chrome.exe。
+            # 带上它走静默分支（源码注释：自行 CloseAllChromeProcesses），实测 0 s 返回 19。
+            # 旧写法会在这里挂满 600 s 然后从 finally 里抛 TimeoutExpired 把整个测试炸掉。
             subprocess.run(PS + ["Start-Process -FilePath '%s' -ArgumentList "
-                                 "'--uninstall','--system-level' -Wait" % setup],
+                                 "'--uninstall','--system-level','--force-uninstall' -Wait" % setup],
                            capture_output=True, timeout=600)
         time.sleep(3)
         res["program_files_gone"] = not os.path.isdir(APP)

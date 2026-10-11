@@ -776,3 +776,229 @@ i9-14900HX 规格为 24C/32T，三路 API 一致报 24 ⇒ HT 关闭。这是**�
 | `docs/tasks/bug-review-cycle4-report.md` | D118 的 AV1 结论更正（保留删除线，不抹历史） | D143 |
 | `docs/tasks/bug-review-pak-src-defects.md` | D118 行更正 | D143 |
 | `.gitignore` | 新增 `.cycle5/` | — |
+
+---
+
+## 续：r6 收口轮执行记录（接手方 Qoder 侧，2026-10-12 01:30–02:30）
+
+上面那份报告是交接件。本节只写**我实际执行过、且有输出可查**的动作（含 §7 的破坏性复验）；复核意见与新增编号在前，
+便于回审时逐条对表。所有实测都是在真机上跑的命令，不是对报告的转述。
+
+### 0. 对上面报告的复核
+
+独立确认（重跑或重读源码，不采信文字）：
+
+| 条目 | 我的复核方式 | 结果 |
+|---|---|---|
+| D121 | `git show 68838c1:installer/mcloud_setup.cs` 第 613 行 vs HEAD 第 693 行 | 成立，且是**我上一轮写下的**缺陷 |
+| D123 / D124 / D125 / D127 / D128 / D122 / D129 | 逐条读 `git diff 68838c1..HEAD -- installer/mcloud_setup.cs` | 修法成立。D127 那句"字符串比较对 a.b.c.d 够用"的原注释是我的，判错无误 |
+| D137 | 实跑 `.bugreview/test_d137_guard.py` | VERDICT: PASS（Green rc=0 / Red rc=1 指名探针 / 探针自删、`benchmark/` 零改动） |
+| D138 / D145 | 读 `bench_memory.ps1` diff | 三处 `throw` + 条数自检 + 单位自洽断言齐备 |
+| D139 | 读 `run_baseline.ps1` diff，并**特意核 `throw` 的位置** | 第 107 行的硬失败发生在第 143 行起浏览器**之前** ⇒ 中止不会留下锁 DLL 的实例（D71 类风险，报告未提，我确认安全） |
+| D140 / D141 | 读 `gpu_probe.py` diff | 复检指纹统一为叶子名、`MCHROME_EXE` 落实（`check_features.py`/`r1` 他自己标了待跟进） |
+| D142 | 自己重数仓库 flags | 54 活动行 = 51 feature 项 + 3 普通开关；enable **49** / disable **2**，逐项吻合 |
+| D143 | `nvidia-smi` + PCI 枚举 | 成立，且**推翻的是我今天对你说的话**（我曾说 AV1 `powerEfficient` 只证明被选中） |
+| D144 | 比对 `win_args_mcloud.gn:65` 与 `out/mcloud/args.gn:57`；实跑预检测试 | 已对齐，PASS（我先前报它失败是**我自己加了 `-X utf8`**） |
+| D146 | 额外验了他没验的可编译性：`base/files/file_path.h:553` 的 `operator<<` 是**非模板** `std::ostream&`，该头文件只 include `<iosfwd>`，但 `base/logging.h` include `<sstream>` 带进完整 `<ostream>`；`module_dir`/`exe_dir` 在插入点确在作用域内 | 编译安全（仍不等于已重编，见 §5） |
+| 安装器 GUI 形态 | 实编 `/target:winexe`（他只编了 console 形态） | Roslyn `/deterministic+`，26,112 B，无警告；临时产物已删 |
+| 正面确认（LOADER 内存安全、PartitionAlloc/CET/libcxx 档位、A5） | 抽读源码依据 | 同意，未动作 |
+
+需要打折的四处，登记为新编号（见 §1）。
+
+### 1. 本轮登记的缺陷（D156–D161）
+
+| ID | 级别 | 位置 | 问题 | 状态 |
+|---|---|---|---|---|
+| D156 | Low | 本报告「本轮已执行的验证」表 | 表中"PowerShell 静态 lint **45** 个 `.ps1`"与现状差一个：现实跑是 **44**，差的就是 `.cycle5/regex_test.ps1`。那一栏是**加了 `.cycle` 跳过之前**那一次运行的计数——即失败的那次被记成了结论。结论没错，数字来自旧一次运行 | 已在此节更正 |
+| D157 | **High** | 本报告「摘要」的"14 条已修复并验证" | D121–D129 这 7 条安装器修复**一条都没有被真实执行过**：验证表里与安装器有关的只有两行——编译（还只是 console 形态）和 `--list-only` 实跑。用户级安装、提权 rc 透传、降权重启、`Alive()` 异常路径全部零执行。**这与 D121 本身的病因同构**（改了分支却没配可执行验收），报告批评了前者却没自查后者 | **已修**：`installer_arg_test.py` 的 A / A' / B / C 四条 12/12 PASS（见 §3）。仍剩 `RelaunchElevated`（需非提权父进程）与 D123 的降权重启（需真实安装成功）两支，属 §5 第 1 项 |
+| D158 | Medium | `mcloud_setup.cs:539-565`（D122 的修法） | 非提权父进程读**提权子进程**的 `ExitCode`，跨完整性级别时常常取不到；他的实现取不到就 `return ELEV_RC_UNAVAILABLE` → 主流程 `return 2` 并打印"按失败上报"。方向符合本仓"宁假红不假绿"，但**后果是系统级安装即使成功也可能对用户报失败、返回 2**，脚本/CI 会据此判红。必须真机跑一次系统级安装确认到底走哪一支，并把 rc 语义写进指引（2 = 未能判定 ≠ 没装上） | 未修，属 §5 那一步的输出 |
+| D159 | Medium | `HKCU\Software\Microsoft\DirectX\UserGpuPreferences` × D121 | D154 被记为"环境观察"，但它与 D121 是**同一件事的前后两半**：D121 修好后，用户级安装路径**第一次真正可用**，而该路径正对着一条 `GpuPreference=1`（= 优先**核显**）。本轮实测：条目仍在，目标 `C:\Users\Administrator\AppData\Local\Chromium\Application\chrome.exe` **不存在**，`Application\155.0.8059.40\` 是个空壳残留。⇒ 清掉悬空条目（或用户级装完核对为 `GpuPreference=2`）应作为 **D121 的收尾步骤**，而不是独立观察项 | 已据此改判据设计（见 §2 步骤 3） |
+| D160 | Low | D133 的定性 | 发布形态 `/target:winexe` 的 `--list-only` **并非完全哑**：stdout 被重定向时能读到正文（本轮实测 149 B："检测到已安装副本：C:\Program Files\Chromium\Application（only-system-level）… 就地更新这一份，不换位置"）。所以它对脚本/CI 可用，**只有双击的用户看不到** ⇒ 严重度下调，修法应聚焦"双击时把日志写文件"，而不是"输出丢了" | 已在 AGENTS.md 更正口径 |
+| D161 | Medium | `setup_wrapper_test.py:63` 默认 `WRAPPER` × `package_m155.py` | 端到端验收的**默认被测对象** `installer/out/MCloud-Setup-embedded.exe` 在全仓库**没有任何脚本生产它**（唯一的引用就是那条 help 文本）。实测第5周期重打包后它的 mtime 仍停在上一日 22:42 ⇒ "跑验收"实际跑的是**内嵌旧载荷**的包装器，结论与发布物不是同一个东西。属 D86/D72 同族：产物归属不能靠人记得手动重建 | 已修：并入 `package_m155.py` 同批产出并打印其 SHA |
+
+另有一条只在 AGENTS.md 立约定、不占缺陷编号（因为仓库里没有对应既存代码，是我这轮写临时脚本时踩的）：
+`subprocess.run(..., errors="replace")` 会**隐式打开文本模式**（CPython 中 `encoding`/`errors`/`text`
+任一给定即 `text_mode=True`），想要字节就不能传；打印超出 cp936 的字符（如 `⇒`）会抛
+`UnicodeEncodeError` 且**缓冲中的日志整段丢失**；PowerShell 的 `Where-Object` 只命中一条时返回标量，
+`$names[0]` 取到的是第一个字符 —— 这三条已写进 AGENTS.md「Python 判据脚本三条语言坑」。
+
+### 2. 已执行的操作（按序，含实测输出）
+
+1. **对齐状态取证**（不采信"发布物可能是旧的"这种推测）：
+   源码 mtime `mcloud_setup.cs 00:19` / `mcloud_flags.txt 00:27` / `win_args_mcloud.gn 00:29`，
+   提交 `e08ba06 00:58`、`bf4e63f 01:05`；产物 `installer/out/*.exe 10-11 22:42–22:46`、
+   根 setup `10-11 23:04`。flags 三处哈希：仓库 `d71d988ca2d2`、构建树 `d71d988ca2d2`、
+   **已安装 `61b7670856ed`** ⇒ 落后确证。
+2. **重打载荷**：先 `ninja -n -C out/mcloud mini_installer` 数过步数（**3 步**：
+   `mini_installer_archive` → RC `packed_files.res` → `LINK mini_installer.exe`，
+   不触发任何重编译，按 D74 纪律确认后才动手）；跑前实测 `out/mcloud` 下实例数 0（避免 D71 锁 DLL）。
+   `autoninja` exit=0 → `chrome.7z` 445,012,281 B @01:43、`mini_installer.exe` 127,519,744 B @01:44，
+   打包暂存目录（= 载荷真身）里的 `mcloud_flags.txt` 哈希 **`d71d988ca2d2`，与仓库一致**。
+3. **补 D121/D129 的可执行验收**（新判据 `.bugreview/installer_arg_test.py`，见 §3）。
+4. **修 D130**：`build_setup_exe.py` 找不到支持 `/deterministic` 的 Roslyn 时改为 exit 113
+   并给出两种修法（新增 `--allow-nondeterministic` 仅供本机排错）；
+   `package_m155.py` 改为无条件转印子编译器日志。
+5. **修 D161**：`package_m155.py` 同批产出 `installer/out/MCloud-Setup-embedded.exe`（console + `--embed`）
+   并打印其 SHA，让端到端验收的默认目标不可能再落在旧载荷上。
+6. **发布说明模板更新**：`package_m155.py` 里的 notes 模板原写死"53 项 feature"、"回显 enable 51 / disable 2"
+   —— 那是 D142 之前的口径，重新打包会把旧口径原样印回去。已改为 **51 项 feature + 3 项普通开关 /
+   回显 49+2**，并新增「本包相对上一份 r5 包的差异（D121–D155）」整节（D121/D123/D124/D125/D122/D127/
+   D128/D129/D142 逐条），历史哈希（r3/r4/r5）不回改。
+7. **重打包**：`python .bugreview/package_m155.py` → 门禁全绿，产出见 §4。
+8. **发布物装配校验**：从**发布出的 setup.exe** 里把内嵌清单资源取出来单独算哈希——
+   `EMBED_SIZE=127519744 == RELEASE_SIZE`、`EMBED_SHA=488e604b… == RELEASE_SHA`、`MATCH=True`。
+   （这是 D102 的正例做法：不看体积差、不在压缩归档里搜字节串，而是把载荷**还原出来称重**。）
+9. **发布形态实跑** `mcloud_155.0.8059.40_win64_setup.exe --list-only`：rc=0、stdout 149 B、
+   两个安装目录指纹前后逐项一致（系统级 262 条目、用户级 1 条目）⇒ 零副作用（D160 由此得出）。
+10. **复现性实测**：连跑两次打包，两个发布物 SHA **逐字节不变**
+    （`9600c425…` / `488e604b…`）⇒ Roslyn `/deterministic+` 这条链在真实发布管线上成立，
+    不只是 `build_setup_exe.py` 的孤立实验。
+11. **回归门禁重跑**：`verify_sources.py` PASS / exit 0（Python 18 文件、关键脚本 11/11、
+    pak_src 14/14、`.ps1` 静态 lint **44** + AST 44 全绿）；`flag_stability.py` PASS / exit 0
+    （A 基线 51、B 移除 0、C 51/51 存活、D/E/F 通过）。
+
+### 3. 新判据 `installer_arg_test.py`：设计与实跑
+
+**为什么不做成交接文档建议的那样**：给 `setup_wrapper_test.py` 补一条不带 `--system-level` 的用例，
+会真的往 `%LOCALAPPDATA%\Chromium\Application` 装一份浏览器——而 D159 实测那条
+`GpuPreference=1` 正埋伏在这个路径上，测试会把机器上的用户级安装钉在 Intel 核显上（核显 = D3D12 绿屏那一侧，
+且与所有既有 GPU 基准不可比），收尾卸载又是一次真实安装变更。按 D99 纪律（测试不得污染被测目标）
+改成**录参数**：D121 的缺陷面只是"传给 mini_installer 的参数"，所以用一个假安装包 stub 把收到的 argv
+落到文件里，就能不碰任何安装位置而**真正执行到**那条分支。
+
+实跑输出（本机，提权 = 是）：
+
+| 用例 | 断言 | 结果 |
+|---|---|---|
+| A（HEAD + `--user-level`） | stub 收到**空参数**；包装器 rc≠0（用户目录本来没装东西，复验必须判不过） | PASS / PASS |
+| A'（`68838c1` 那一版跑同一条） | stub 收到 `--system-level` | PASS —— **这条不成立，A 的通过就毫无意义** |
+| B（stub 以 rc=3 退出） | 参数仍为空；日志出现"安装器自身返回 3"；包装器 rc=1 | PASS / PASS / PASS（D129 分支被真实触发） |
+| C（`--system-level`） | stub 收到 `--system-level`；跑完 rc=0（stub 返回 0，且真实系统级目录的复验逐项通过） | 第一次跑 **SKIP**（`C:\Program Files\Chromium\Application` 下有 13 个正在运行的本产品实例，执行会先 `WM_CLOSE` 掉用户正在用的浏览器，D52/D55 禁止）；用户关闭浏览器后重跑 → **PASS / PASS** |
+| 污染自检 ×4 | 用户级目录指纹、系统级目录指纹、实例数、残留 `MCloudSetup-*` 目录 | 4 项全 PASS |
+
+两次运行的判据总览（完整日志：`.cycle5/r6_installer_arg_test.log`，gitignore 目录）：
+
+| 运行 | 环境 | 断言 | 跳过 | 结论 |
+|---|---|---|---|---|
+| 第 1 次（01:50） | 提权=是，系统级实例=**13** | 10 / 10 成立 | 1（C） | **`VERDICT: PARTIAL` / exit 2** —— 系统级那一半没跑就不报全绿，不允许"两半通过"冒充结论 |
+| 第 2 次（02:0x） | 提权=是，系统级实例=**0** | **12 / 12 成立** | 0 | **`VERDICT: PASS` / exit 0** —— D121 的用户级与系统级两条参数分支、D129 的判定分支**都被真实执行**，且未污染任何安装位置 |
+
+⇒ **D157 的"7 条安装器修复一条都没执行过"就此收口**（A/A'/B/C 四条覆盖到用户级参数、Red 参照、
+安装器返回码参与判定、系统级参数）。仍**没被覆盖**的只剩两支，都不是本判据能达到的：
+① `RelaunchElevated` 这支需要**非提权父进程**（本机 shell 已提权，走的是内联路径）——
+也正是 **D158 的假红风险所在**；② D123 的 `explorer.exe` 降权重启需要真实安装成功才触发。
+两者都要靠 §5 第 1 项那一步来判定。
+
+### 4. 新的发布物
+
+| 文件 | 体积 | SHA256 |
+|---|---|---|
+| `mcloud_155.0.8059.40_win64_setup.exe` | 127,545,856 B | `9600c425cfd632541110ad600adecc06137adae15bfdbe3700fc347224437d43` |
+| `mcloud_155.0.8059.40_win64_mini_installer.exe` | 127,519,744 B | `488e604be2f4ab8f54f74649124858c1f5117606e23eebf69bde3fd5bc87ebc6` |
+| `installer/out/MCloud-Setup-embedded.exe`（非发布物，验收默认目标，D161） | 127,545,856 B | `e7de33d5df7a7397820784376be7e41741913955a067e1fd40778f05027fc05b` |
+
+两个 sidecar 用 `sha256sum -c` 双双 OK。mini_installer 沿革：
+`0602cafa…`(r3, 带 D105) → `54fc59b5…`(r4, 修 D105) → `17b31513…`(r5, 修 D109) → **`488e604b…`(r6, 载荷跟上 D142 + 安装器修复进入发布物)**。
+
+### 5. 本轮仍未做（不要读成"已完成"）
+
+1. ~~**干净安装复验未做**~~ ⇒ **已做，见 §7**（用户选 B：卸载 → 全新安装 → 复验 → 保留安装）。
+   结果：安装 rc=0、flags 与仓库**逐字节一致**、对安装后的二进制回显 **`enable 49 / disable 2` / exit 0**、
+   根目录无残留、无暂存件、默认浏览器自愈。过程中登记 **D162**（卸载缺 `--force-uninstall` 必卡）
+   与 **D163**（本机 `EnableLUA=0` ⇒ D123 降权与 `RelaunchElevated` 在此**不可验证也不生效**）。
+   ⇒ 原本列在这里的"两条够不着的分支"结论要**改写**：`RelaunchElevated` 与 D123 的降权实效
+   在本机**不是"等这一步"，而是"这台机器测不了"**——需要一台 UAC 开启的机器。
+2. **D146 未进二进制**：需要 `deploy_mcloud.py` + 重编译。本轮**没有**为它单开一次全树重编
+   （D74：config/正文改动即 51,296 步 ≈3 h，而它零行为收益），建议与 D149 raster 线程 A/B
+   或 D147 `symbol_level` 绑在同一批重编里。
+3. **未跑 `final_gate_matrix.ps1` 九门收口矩阵**，也没把 `installer_arg_test.py` 接进去——
+   它 exit 2 是合法结论（PARTIAL），直接进矩阵会让"环境不满足"与"门禁失败"混成一种颜色，
+   接线时需先定矩阵对 rc=2 的语义。
+4. **未跑 r1–r4 四条实操探针**（第4周期遗留，本就尚未接入矩阵）。
+5. **`installer/out/*.exe` 与 `out/mcloud` 之外的中间态未纳入版本控制**，本节表格外的产物
+   （如 `.cycle5/MCloud-Setup-verify.exe`）仍是上一轮的旧件，只作取证用，不要当发布物比对。
+
+### 6. 本轮改动的文件
+
+| 文件 | 改动 | 对应 |
+|---|---|---|
+| `.bugreview/installer_arg_test.py`（新） | 参数级 Red→Green 判据：假安装包录 argv + rc 参与判定 + 四条污染自检；SKIP 记 PARTIAL/exit 2 | D121 D129（D157 的修复） |
+| `win_scripts/build_setup_exe.py` | 找不到 Roslyn 即 exit 113 + 两种修法；新增 `--allow-nondeterministic` | D130 |
+| `.bugreview/package_m155.py` | 无条件转印子编译器日志；同批产出验收用包装器（D161）；notes 模板改 49+2 口径并新增「相对 r5 差异」整节 | D130 D142 D157 |
+| `mcloud_155.0.8059.40_win64_{setup,mini_installer}.exe` + `.sha256` | 重打包 | D121–D129 D142 进入发布物 |
+| `installer/out/MCloud-Setup{,-console,-embedded}.exe` | 全部重建到当前源码（gitignore，不入库） | D161 |
+| `docs/superpowers/specs/2026-10-10-release-notes-m155.md` | 由模板重生成：新口径 + 新哈希 + 差异节 | D142 D157 |
+| `docs/CHANGELOG.md` | 新增 **r6** 段（历史 r3/r4/r5 哈希不回改） | — |
+| `AGENTS.md` | D130 现状、两条验收判据分工与"不要简化成 `--user-level` 用例"的原因、D160 口径、Python/PowerShell 三条语言坑 | D130 D157 D159 D160 D161 |
+| `docs/tasks/bug-review-pak-src-defects.md` | r6 段（D156–D161）+ 勾掉两条第5周期待办 | — |
+
+### 7. 干净安装复验（用户选 B：卸载→全新安装→复验→保留）执行记录
+
+用户授权后按 B 走完。**过程中撞到两条新缺陷 D162 / D163，都在下面。**
+
+前置只读快照（`b_pre.ps1`）：`RUNNING_INSTANCES=0`、根 exe `155.0.8059.40`、
+已安装 flags `61b7670856ed`（旧）、根目录无残留 flags、暂存件 0、目录 262 条目、
+`UserChoice=ChromiumHTM`（→ `C:\Program Files\Chromium\Application\chrome.exe`，即**默认浏览器就是本产品**）、
+4 个 .lnk 指向它（含 `User Pinned\TaskBar`）。
+
+| 步骤 | 命令 | 实测 |
+|---|---|---|
+| 卸载（第一次，**错**） | `setup.exe --uninstall --system-level` | `WaitForExit(240000)` **超时判 FAIL**。现场零删除（目录仍 262 条目），残留 2 个 setup.exe + 1 个带 `--uninstall` 的 chrome.exe（就是确认框宿主）⇒ 按 pid 清掉自己启动的这三个 |
+| 卸载（第二次，**对**） | `setup.exe --uninstall --system-level --force-uninstall` | **0 s 返回 19 = UNINSTALL_SUCCESSFUL**；`APP_DIR_EXISTS=False`、`HKCR\ChromiumHTM` 已删、**任务栏固定项被连带删除**、`UserChoice` 仍写 `ChromiumHTM`（悬空）、chrome 进程 0、setup 残留 0 |
+| 全新安装 | `mcloud_155.0.8059.40_win64_setup.exe --quiet --system-level`（stdout 重定向） | **8 s 走完，rc=0**，全程无一次需要人点按钮。日志关键行：`已从自身解出安装包…127,519,744 字节` / `启动：mcloud_mini_installer.exe --system-level` / `mini_installer 退出码 = 0` / 四项复验 True / `关联 UserTarget: (unresolved) -> …chrome.exe`、`TargetExists: n/a -> yes` / `快捷方式数量 前=1 后=3` / `完成：已确认更新到 155.0.8059.40` / `确认：无 setup.exe / mini_installer.exe 驻留` |
+| 安装面断言 | 目录与注册表实测 | `ROOT_EXE=155.0.8059.40`、`FLAGS_IN_VERDIR=True`、**根目录无残留 `mcloud_flags.txt`**（D109 遮蔽源为零）、`STAGING_LEFTOVERS=0`、`HKCR\ChromiumHTM=True`、桌面/开始菜单 .lnk 由安装器重建、**任务栏固定项未恢复**（无 API，需手工重新固定） |
+| **flags 字节一致性** | `sha256sum` | 安装后 `Application\155.0.8059.40\mcloud_flags.txt` = **`d71d988ca2d2ab`** == 仓库那份，逐字节一致 |
+| **运行期回显（headline）** | `flag_runtime_state.py --chrome "C:\Program Files\Chromium\Application\chrome.exe"` | **exit 0**，`运行时 override：enable 49 项 / disable 2 项；子进程命令行 18 条`，并打印 `[与仓库一致]`；`[C]` 确认 `D3D12VideoDecoder`、`SkiaGraphite` **已禁用**（拖拽冻结缓解定案完好）；`[D]` 普通开关缺失 0 |
+| 默认浏览器 | 注册表复查 | `DEFAULT_PROGID=ChromiumHTM` → `C:\Program Files\Chromium\Application\chrome.exe`，**`DEFAULT_TARGET_EXISTS=True`** ⇒ 悬空状态被重装自愈，无需用户重新设默 |
+
+⇒ **AGENTS.md 步骤 8 的"干净安装复验"这一条，r6 包首次满足**，且回显口径确认为 **49+2**。
+
+#### [D162] 复验/验收里的"卸载"步骤缺 `--force-uninstall`，无人值守必卡　**High（流程阻断）**
+- `AGENTS.md` 原文只写"…然后卸载"，`setup_wrapper_test.py:142-144` 更是把
+  `--uninstall --system-level` 直接写死。**上游源码**：`chrome/installer/setup/uninstall.cc:884-890`
+  —— 不带 `--force-uninstall` 时走 `IsChromeActiveOrUserCancelled()`，它
+  `LaunchChromeAndWait(target_path, --uninstall)` **启动 chrome.exe 弹确认框并等用户点**；
+  带 `--force-uninstall` 才走静默分支（注释原文"Try to close all running Chrome instances"）。
+- 本轮实测代价：第一次卸载 240 s 超时判 FAIL（现场零删除，但残留 3 个进程要手工清）；
+  旧 `setup_wrapper_test.py` 若走到那一行会挂满 `timeout=600` 再从 `finally` 里抛
+  `TimeoutExpired`，把整个测试炸掉——而它在 `finally`，所以**清理和结论一起丢**。
+- `.cycle4/inuse_utf8.json` 里 `uninstall_rc: "19"` 说明那次确实走通了，但**无法据此判断走的是哪条分支**
+  （`LaunchChromeAndWait` 失败时 PLOG 分支也会直接 `UNINSTALL_CONFIRMED`）——
+  也就是说"卸载成功"取决于确认框弹不弹得出来，是个**不确定判据**。
+- **修复**：`setup_wrapper_test.py` 加 `--force-uninstall`（含源码依据注释）；
+  AGENTS.md 复验条目改为可直接粘贴的两条命令 + 期望退出码 19。
+
+#### [D163] 本机 `EnableLUA=0` ⇒ D123 的降权修法与 `RelaunchElevated` 分支**在此机器上不可验证、也不生效**　**Medium（结论边界）**
+- 实测：`HKLM\...\Policies\System\EnableLUA = 0`、`ConsentPromptBehaviorAdmin = 0`，
+  账户是内置 `Administrator`（`whoami /user` → SID 尾号 **-500**）。
+  ⇒ 全机没有 UAC 分令牌，**所有进程都在 High Mandatory Level**（`whoami /groups` 对照实验：
+  直接从本 shell 启动 = `S-1-16-12288`；**经 `explorer.exe` 启动仍是 `S-1-16-12288`**）。
+- 三条后果：
+  1. 包装器日志那句"当前处于提权上下文，改由 explorer.exe 启动浏览器，避免继承管理员令牌"
+     在本机是**空头承诺**——Explorer 自己就是 High，绕过去拿到的还是完整管理员令牌。
+     ⚠ 所以**不能**把本轮写成"D123 已验证降权"：D123 的代码修法在正常 UAC 机器上是对的
+     （那里 Explorer 是 Medium），但在本机上无法证伪也无法证实。
+  2. `if (systemLevel && !IsAdmin())` 恒为假 ⇒ **`RelaunchElevated` 这条分支在本机不可达**，
+     因此 **D158（跨 IL 取不到 ExitCode 会把成功报成失败）在本机测不了**，需要一台 UAC 开启的机器。
+  3. "浏览器以管理员运行"的真因是这台机器的 UAC 配置（与 D150 的 BIOS 超线程同类：环境事实，
+     不是仓库代码缺陷）。真正的缓解是把 `EnableLUA` 打开，而不是改安装器。
+- 建议：任何"提权/降权/完整性级别"类结论都要标注取证机器的 `EnableLUA`；
+  本仓现有结论里 D123、D158、`installer_arg_test.py` 的 C 用例都属"仅在本机取证，需 UAC 机器复验"。
+
+#### r6 复验后新增的待办
+- [ ] 需要**一台 UAC 开启（`EnableLUA=1`）的机器**才能收口：D158（提权子进程 `ExitCode` 是否取得到）、
+      D123 的降权实效、`RelaunchElevated` 分支。
+- [ ] 任务栏固定项被卸载器删除且无 API 可恢复 ⇒ 发布说明里应写"升级走 setup 就地更新可保留固定项，
+      **先卸载再装**会丢"（D120 的"别换位置"结论在这里再加一条"别卸载"）。
+- [ ] 用户需手工把 `Chromium.lnk` 重新固定到任务栏（本机现状：桌面与开始菜单快捷方式已由安装器重建，
+      默认浏览器已自愈，任务栏无固定项）。
+
+### 8. 复验后改动的文件（在 §6 之外）
+
+| 文件 | 改动 | 对应 |
+|---|---|---|
+| `AGENTS.md` | 干净安装复验改成**可直接粘贴的非交互命令**（装 `--quiet`、卸 `--force-uninstall`、期望退出码 19）+ 断言四件事 + 卸载会删任务栏固定项的实测后果 | D162 D131 |
+| `.bugreview/setup_wrapper_test.py` | 收尾卸载加 `--force-uninstall` 并写下源码依据（旧写法会挂满 600 s 再从 `finally` 抛 `TimeoutExpired`，把清理和结论一起丢） | D162 |
+| `docs/tasks/bug-review-cycle5-report.md` | 本节（§7–§8） | D156–D163 |
+| `docs/tasks/bug-review-pak-src-defects.md` | D162 / D163 入索引 + 勾掉"干净安装复验"待办 | D162 D163 |
+| 机器上的真实安装 | 已全新装到 `C:\Program Files\Chromium\Application`，flags 与仓库字节一致，**保留不卸载** | — |
