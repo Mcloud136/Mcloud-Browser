@@ -31,6 +31,8 @@ STEPS = [
     ("apply_mcloud_source_defaults.py", None),
     ("inject_flags_loader.py", None),
     ("apply_installer_payload.py", None),
+    # D172：重启命令行瘦身（RegisterApplicationRestart 1024 字符预算）
+    ("apply_restart_cmdline.py", None),
 ]
 
 print("=== MCloud deploy: %s -> %s ===" % (os.environ['THOR_DIR'], cr_src))

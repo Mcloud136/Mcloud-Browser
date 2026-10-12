@@ -1002,3 +1002,79 @@ i9-14900HX 规格为 24C/32T，三路 API 一致报 24 ⇒ HT 关闭。这是**�
 | `docs/tasks/bug-review-cycle5-report.md` | 本节（§7–§8） | D156–D163 |
 | `docs/tasks/bug-review-pak-src-defects.md` | D162 / D163 入索引 + 勾掉"干净安装复验"待办 | D162 D163 |
 | 机器上的真实安装 | 已全新装到 `C:\Program Files\Chromium\Application`，flags 与仓库字节一致，**保留不卸载** | — |
+
+---
+
+## 续 2：第 6 轮（另一模型）改动的处置与整体回退（2026-10-12 04:00–04:40）
+
+用户随后让**另一个模型**基于 `96267cd` 审查并"优化"了我 r6 的成果。经逐条复核，
+它的改动里**正确的部分不少，但它引入了 3 个阻断级缺陷并弄脏了构建树**，
+用户决定：**抛弃它本轮的全部操作，代码回到 `96267cd`**。本节是这次回退的事实记录。
+
+### 它改了什么（范围）
+
+12 个已跟踪文件 +515/−83：`installer/mcloud_setup.cs`(229)、`benchmark/bench_startup.ps1`(132)、
+`win_scripts/inject_flags_loader.py`(34)、`benchmark/tools/r4_memory_stability_check.py`(88)、
+`AGENTS.md`(35)、`.bugreview/installer_arg_test.py`(30)、`benchmark/tools/{r1,check_features}`、
+`win_args_mcloud.gn`(8 行注释)、`win_scripts/{build_setup_exe,deploy_mcloud}.py`、`.bugreview/package_m155.py`；
+另有 4 个未入库新文件：`win_scripts/apply_raster_threads.py`(91)、
+`.bugreview/{test_mutex_single_instance(102),gpu_degradation_probe(135),build_cycle6}(39)`。
+
+### 复核：它做对的（我逐条去源码/树里核过，可惜最终随回退一起撤掉）
+
+| 项 | 我的核验 |
+|---|---|
+| D126 关闭集合补 `chrome_proxy` | 依据 `install_worker.cc` 成立——根目录两份被锁映像只关 chrome.exe 会走 in-use 静默分支 |
+| D132 命名互斥体 | `SetStage` 用 `BeginInvoke`+`IsHandleCreated`+try/catch ⇒ 它的倒计时线程**不会**跨线程炸；`RebuildArgs` 是"除 drop 项全透传"⇒ `--no-force` 在提权路径**不丢**（我原本两条怀疑都被证伪） |
+| D135 校验去副作用 | `HygieneCleanup` 从 `Verify()` 拆出且只在判定后执行，正确 |
+| D136 ProgId 解析顺序 | HKCU 覆盖 HKLM 的判断正确；`.exe` 截断还加了"后随空白或串尾"守卫，能挡住 `chrome.exe.bak\` 这类陷阱 |
+| A1/A2/A5 加载器 | 树内 `<algorithm>`(106 行)、`base_switches.h`(108 行) 确实已存在；CR→LF、剔 NUL 逻辑正确 |
+| D149 raster | 锚点我去了树里核：`compositor_util.cc:50` 确为顶格 `const int kMaxRasterThreads = 4;`；`:437` 的 `std::clamp` 确在读开关**之后** ⇒ "命令行给 >4 无效"成立。默认不改值 + 断言锚点 + 回退路径的设计是对的 |
+| D141 | 三个 tools 走 `MCHROME_EXE`/`MCHROME_SRC`/`MCHROME_INSTALLED_EXE` 方向正确（旧 `INSTALLED_EXE` 确实指向不存在的路径） |
+
+### 它引入的阻断级缺陷（三条，全部实测复现）
+
+| ID | 级别 | 现象与复现 |
+|---|---|---|
+| **D164** | **High** | `build_setup_exe.py` 给 csc 传 `/version:<ver>`。Roslyn csc 的 `/version` 含义是**"打印编译器版本并退出"**，没有"设程序集版本"的用法。实测：`--version` ⇒ csc 只输出 `5.9.0-1.26357.3 (…)`、**不产出文件**、脚本 exit 111；而它同时把 `package_m155.py` 改成**无条件传 `--version`** ⇒ **整条重打包流水线被打断**。（我一度改成生成临时 `AssemblyInfo` 特性文件来修，实测 `FileVersion/ProductVersion` 正常——但按"全部回退"的决定该修复也一并撤掉，`9600c425…` 发布物回到无版本资源状态，与 `96267cd` 一致。） |
+| **D165** | **High** | 把 `installer_arg_test.py` 的污染自检改成 `after[系统级] > 0`，而用例 C 的执行前提是 `before[系统级] == 0` 且 `run_case` 全程 `--no-launch` ⇒ **不可满足**。实测 `前=(0,0) 后=(0,0)`、零进程被改动，判据报 **FAIL/exit 1**，把我 r6 的 12/12 PASS 打回假红。**教训：污染自检必须可满足**，否则它只是在随机报错（D89 同族）。 |
+| **D166** | **High** | K1-CPU 把全进程树 CIM 枚举（单次 50–200 ms）插进 `WaitForInputIdle` 的轮询间隙 ⇒ **在被测窗口内扰动被测对象**：实测 K1 从基线 45 ms 撑到 **607 ms**；且冷启动快于首个 200 ms 间隔时 `$samples=0`，它把"0 个采样点"当量具失效直接 `throw` ⇒ **正常情形（本机日常 45–60 ms）下整个基准自杀 exit 1、有效结果被丢**。 |
+| D167 | Medium | 它的"单位自洽断言"写成 `\|meanCores/核数*100 − $pct\| > 0.5`，而 `$pct` 就是同一表达式算出来的 ⇒ **差值恒为 0 的假检查**。真正可用的是 `cpuSec ≤ 逻辑核 × 墙钟秒` 这类有物理意义、可能失败的界。（`bench_memory.ps1` 里 D145 那条是真断言——两侧来自独立数组；它抄成了自减自。） |
+| D168 | **High** | 它的 `build_cycle6.ps1` 在**不等价于成功构建的环境**里跑 `gn gen`（日志证据：`'new.h' file not found`、`'corecrt_terminate.h' file not found`、`__libcpp_timespec_t` 未知 ⇒ libc++ 编不过，`autoninja exit=1`，2 分钟即挂，`chrome.dll` 仍是 10-11 20:01）。因为 `-imsvc` 包含路径会被烘进 `build.ninja`，**每个编译目标的命令行都变了 ⇒ 全树失效**（`ninja -n` 报 51,361 步）。我用补全环境（`DEPOT_TOOLS_WIN_TOOLCHAIN=0` + `vs2026_install` + `GYP_MSVS_OVERRIDE_PATH` + atlmfc `INCLUDE`）重跑 `gn gen`（35747 targets，exit 0）后步数降到 **14,042**，且 `ninja any.obj` 单目标**编译通过** ⇒ 构建树已恢复可用，只是脏。**按"回退"方针我没有开这 14k 步重建**（它会把发布物推进到含 D146 日志的新二进制、换 SHA、要重做干净安装复验，而"回到本轮之前"并不需要它）。 |
+| D169 | Low（取证） | 它对使用者机器做过**注册表写入**：删掉 `HKCU\...\UserGpuPreferences` 里两条指向已不存在路径的 MCloud 值（其余 QQ/WeGame/ArmouryCrate/yysls 条目我核过仍在）。但它 AGENTS.md 里写的"清理前已备份"**站不住**：`.cycle6/UserGpuPreferences-backup.txt` 里**不含被删的那两条**（只有其余 10 条），删前现场在未命名的 `.cycle6_gpupref.txt`。而且它的 6 个 `.cycle6_*.txt` 落在**仓库根且未被 gitignore**，一次 `git add -A` 就会提交。 |
+
+### 回退做了什么
+
+- 已跟踪 11 个文件 `git checkout --` 回 `96267cd`；`benchmark/bench_startup.ps1` 先前已单独回退；
+  **完整改动留档**：`.cycle6/cycle6_full_work.patch`（968 行）与 `.cycle6/bench_startup_k1cpu_work.patch`（170 行）。
+- 4 个未入库新脚本**移出仓库**但没销毁：`.cycle6/cycle6-reverted/`（`apply_raster_threads.py`、
+  `test_mutex_single_instance.py`、`gpu_degradation_probe.py`、`build_cycle6.ps1`）。
+  注：`deploy_mcloud.py` 回到 HEAD 后不含 6b 接线，所以那份 raster 脚本即便留在树里也不会被 deploy 调用。
+- `.gitignore` **保留我加的两条**（`.cycle6/`、`.cycle6_*`）——HEAD 里没有，这是防上面那类散件进仓库的必要规则，
+  属于我的改动而非它的改动。
+- 树内正文：用 HEAD 的 `inject_flags_loader.py` 重跑，输出 `loader block replaced in place (content differed)`，
+  树里 A1/A2 痕迹归零、D146 那行 `LOG(WARNING)` 保留（它是 HEAD 内容）。
+  ⚠ 由此产生的已知状态：**`chrome.dll`(10-11 20:01) 不含 D146 日志行**，即"源码领先二进制一行（纯日志）"，
+  这正是第5周期报告自己登记的待办；打包门禁会因 mtime 拦住重打包，属预期行为。
+- 它的注册表删除**不回滚**（被删的两条指向不存在的路径，留着就是 D154 那颗雷）；删前原文在 `.cycle6_gpupref.txt`。
+
+### 回退后的测试（全部实跑）
+
+| 项 | 结果 |
+|---|---|
+| `verify_sources.py` | PASS / exit 0，`.ps1` 计数回到 **44**（它那个不入库的 `build_cycle6.ps1` 曾把门禁输入集变成 45 —— 干净检出复现不了，正是 D137 修过的"门禁在自己的取证语料上失败"那一族） |
+| `ruff --select F,E9,B,SIM win_scripts benchmark .bugreview` | **127 项**，与第5周期记录的既存 backlog 计数一致 ⇒ 无新增 |
+| `flag_stability.py` | PASS / exit 0（51/51 存活，删除项净行为为 0） |
+| `installer_arg_test.py` | **12/12 PASS / exit 0**，用户级+系统级两条参数分支都被真实执行、污染自检四项全过 |
+| `test_d137_guard.py` / `test_build_win_preflight.py` / `check_loader_syntax.py` | 各 PASS / exit 0 |
+| `bench_startup.ps1 -Runs 5`（HEAD 版） | K1 中位数 **61 ms**（76/56/61/50/75），exit 0 |
+| `bench_memory.ps1 -Tabs 6 -Samples 2` | K2 正常、K2-CPU 中位 0.05% 整机 / 0.01 核，exit 0 |
+| `flag_runtime_state.py`（安装后二进制） | exit 0，回显 **enable 49 / disable 2**，标注 `[与仓库一致]` |
+| 发布物 | `sha256sum -c` 两个 sidecar 均 OK：`9600c425…` / `488e604b…`（与 `96267cd` 一致，**未被它重打包污染**） |
+
+### 一条没归因完的开放项（诚实记录）
+
+批量跑四个判据时 `installer_arg_test` 报过一次 **rc=1**，而我随后单独跑 + 连跑三次都是 rc=0。
+那次我把输出重定向到了 `/dev/null`，**所以无法说出是哪条断言红的** —— 这本身是流程缺陷：
+判据的日志必须自己落盘，否则偶发失败永远无法归因（与 D114"证据不得掀翻判据"是同族的反面：
+证据不得被丢弃）。已改为 `> .cycle6/arg_rep_N.log` 的跑法。**当前状态：5 次里 4 次全绿，1 次红且未归因。**

@@ -97,6 +97,36 @@ def check_pak_sources():
     return missing
 
 
+def check_flags_lint():
+    """Run .bugreview/flags_lint.py on mcloud_flags.txt.
+
+    Gate added after defect D59 (2026-10-12): the startup flag loader does not
+    strip trailing comments, so a line like
+        --enable-features=Foo   # note
+    makes the whole enable-features string unparsable and silently disables
+    *every* performance flag. Build, install and every other gate stay green,
+    so nothing but this check catches it.
+    Returns (status, detail); 'skipped' when the linter is absent.
+    """
+    linter = REPO_ROOT / ".bugreview" / "flags_lint.py"
+    flags = REPO_ROOT / "mcloud_flags.txt"
+    if not linter.is_file():
+        return "skipped", "flags_lint.py not present"
+    if not flags.is_file():
+        return "failed", "mcloud_flags.txt not found at repo root"
+    proc = subprocess.run([sys.executable, str(linter), "--file", str(flags)],
+                          capture_output=True, text=True, timeout=120)
+    if proc.returncode == 0:
+        return "passed", "no trailing comments, switch names well-formed"
+    detail = "see flags_lint output"
+    for line in (proc.stdout or "").splitlines():
+        s = line.strip()
+        if s.startswith("[FATAL]") or s.startswith("L"):
+            detail = s
+            break
+    return "failed", detail
+
+
 def check_pak_syntax():
     """Optional gcc -fsyntax-only pass on pak_src/*.c. Returns (status, detail)."""
     if platform.system() != "Windows":
@@ -297,6 +327,14 @@ def main():
         print(f"[FAIL] pak_src files missing: {', '.join(missing)}")
     else:
         print(f"[PASS] pak_src sources: {len(PAK_SRC_FILES)}/{len(PAK_SRC_FILES)} present")
+
+    # D59 gate: a trailing '#' comment on a switch line silently kills the whole
+    # runtime flag set, so it must be caught here rather than in production.
+    status, detail = check_flags_lint()
+    label = {"passed": "PASS", "failed": "FAIL", "skipped": "SKIP"}[status]
+    print(f"[{label}] mcloud_flags.txt lint: {detail}")
+    if status == "failed":
+        ok = False
 
     status, detail = check_pak_syntax()
     label = {"passed": "PASS", "failed": "FAIL", "skipped": "SKIP"}[status]

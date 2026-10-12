@@ -198,10 +198,10 @@ notes = """# MCloud Browser v%s
 **最重要的一条：以前的安装包在干净机器上根本不带运行时优化清单。**
 `mcloud_flags.txt` 此前登记在安装包**不会安装**的位置——D47 修的是"打包侧没登记"，
 而 D105 才查清真正丢件的环节在**安装侧**：`setup.exe` 对 Application 根目录只搬固定三件套。
-所以 r3 及更早的每一个包，装到干净系统上时那 51 项 feature + 3 项普通开关**整体静默丢失且不报错**。
+所以 r3 及更早的每一个包，装到干净系统上时那 52 项 feature + 3 项普通开关**整体静默丢失且不报错**。
 现在它随版本目录投递，并已用一次真实的 `--system-level` 干净安装复验：文件落地、与仓库逐字节一致、
-对**安装后的二进制**回显 enable 49 / disable 2（第5周期 D142 清理掉 2 条平台上根本编译不进来的
-死声明之后的新口径；此前是 51 / 2）。
+对**安装后的二进制**回显 enable 50 / disable 2（第6周期 D170 补上 `UserBlockingAboveNormalPriority`
+之后的口径；D142 之后曾为 49 / 2，再早是 51 / 2）。
 
 ## 本包相对上一份 r5 包的差异（第5周期 D121–D155）
 
@@ -230,6 +230,24 @@ notes = """# MCloud Browser v%s
   `is_android && (x64 || arm64)`；另有 2 条上游默认已启用的条目
   （`PartitionAllocMemoryReclaimer`、`PruneOldTransferCacheEntries`）**保留但加注**，
   它们是显式钉住（pin）以防上游翻默认值，不应算作定制收益。删除的 2 条净行为为 0。
+
+## 本包相对 r6 包的差异（第6周期 D170–D172）
+
+- **浏览器进程优先级提升此前从未生效（D170，性能）**：清单里只有 `BrowserProcessAboveNormalPriority`，
+  而它只负责把浏览器进程标成 `kUserBlocking`；`kUserBlocking` 映射到哪个 Windows 优先级由
+  `UserBlockingAboveNormalPriority` 决定（`base/features.cc:205` 默认禁用，
+  `base/process/process_win.cc:299-304`）。两项必须成对，缺后者等于什么都没提。
+  现已补齐，安装版实测根进程 `PriorityClass` 由 `Normal` 变 `AboveNormal`（gpu-process 同升，
+  renderer 仍 `Idle`，符合上游语义）。
+- **EcoQoS 与优先级是同一处判定（多核 / 混合架构）**：`process_win.cc:283-289` 只在优先级为
+  `kUserBlocking` 时解除 EcoQoS。本机的 14900HX 是 8P+16E，未解除时浏览器线程会被 Windows 11
+  调度到能效核并降频。代价是功耗与发热上升——这与本产品"极致流畅"的定位一致（性能优先，见 ADR-002）。
+- **Windows 更新重启后不再自动恢复（D172）**：上游用 `RegisterApplicationRestart` 注册恢复，
+  命令行上限 1024 字符，而我们的 `--enable-features` 单项就约 1.4 KB ⇒ 返回 `E_INVALIDARG`，
+  上游只打一条 `LOG(WARNING)` 后继续，**完全静默**。现由 `win_scripts/apply_restart_cmdline.py`
+  在重启命令行里剔除 `enable-features` / `disable-features` / `js-flags`（三项都由加载器每次启动
+  从 `mcloud_flags.txt` 重新注入，无需命令行接力），修剪后约 260 字符。
+- **净收益口径（D171）**：52 项 feature 中 14 项上游默认即启用，属显式钉住，已在清单内逐条标注。
 
 **新增外层安装程序 `mcloud_%s_win64_setup.exe`（请用这个）**：
 
@@ -260,9 +278,11 @@ notes = """# MCloud Browser v%s
 | 标签开合后的驻留漂移 | +3.7 MB/轮 | -2.4 MB/轮（无正漂移） |
 | GPU 渲染路径 | GPU 进程 + D3D11/D3D12 ANGLE | 同左，gpu-preferences 逐字一致 |
 
-内置启动标志 51 项 feature + 3 项普通开关在 M155 源码树逐项存活（`.bugreview/flag_stability.py`
-51/51，并确认第5周期删除的 2 条在 M151 上同样是无效声明，净行为为 0），
-并通过子进程命令行验证（`flag_runtime_state.py`，回显 enable 49 / disable 2）确认实际注入。
+内置启动标志 52 项 feature + 3 项普通开关在 M155 源码树逐项存活（`.bugreview/flag_stability.py`
+52/52，并确认第5周期删除的 2 条在 M151 上同样是无效声明，净行为为 0），
+并通过子进程命令行验证（`flag_runtime_state.py`，回显 enable 50 / disable 2）确认实际注入。
+⚠ 52 项里有 14 项上游默认即 ENABLED（D171），那 14 行是**显式钉住（pin）**而非"打开了默认
+关闭的优化"，真正的定制启用项是 34 项——别按 50 去理解收益。
 
 ## 已知限制
 

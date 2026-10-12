@@ -257,9 +257,20 @@ def main():
 
         after = snapshot(cwd, ps_path)
         for key, label in (("user", "用户级安装目录"), ("sys", "系统级安装目录")):
-            diff = sorted(x[0] for x in after[key] ^ before[key])
+            diff = after[key] ^ before[key]
+            if diff:
+                # 明细必须打印**变化的字段**，只打印名字等于没诊断（实测：一次 FAIL 只显示
+                # 两条同名条目，看不出是 size 还是 mtime 变了，只能靠猜）
+                det = []
+                for rel in sorted(set(x[0] for x in diff)):
+                    b = [x for x in before[key] if x[0] == rel]
+                    a = [x for x in after[key] if x[0] == rel]
+                    det.append("%s: 前=%s 后=%s" % (rel, b[0][1:] if b else "无",
+                                                    a[0][1:] if a else "无"))
+            else:
+                det = []
             v.check("污染." + label, "测试前后目录指纹逐项一致（未写入/删除任何文件）",
-                    not diff, "差异 %d 项：%s" % (len(diff), diff[:4]))
+                    not diff, "；".join(det[:4]))
         v.check("污染.进程", "本产品实例数量前后不变（没有关闭用户正在用的浏览器）",
                 before["counts"] == after["counts"], "前=%s 后=%s" % (before["counts"], after["counts"]))
         newtmp = sorted(after["tempsets"] - before["tempsets"])

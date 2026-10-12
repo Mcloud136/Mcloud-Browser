@@ -52,3 +52,8 @@ mcloud_*_win64_setup.exe.sha256
 
 # 第5周期 bug-review 的一次性取证脚本与证据（整目录不入库，同 .cycle4/）
 .cycle5/
+
+# 第6周期一次性取证输出（整目录不入库，同 .cycle4/.cycle5）
+.cycle6/
+# cycle 6 误写在仓库根的一次性取证文件，同样不入库
+.cycle6_*

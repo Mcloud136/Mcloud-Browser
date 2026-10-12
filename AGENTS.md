@@ -7,13 +7,25 @@
 
 MCloud Browser 是基于 Chromium（当前 M155，155.0.8059.40，硬件基线 AVX2+FMA3）的高性能 Windows 浏览器分支，
 通过 AVX2 原生编译 + 运行时优化标志（`mcloud_flags.txt`，启动时内置加载；
-2026-10-12 (第5周期) 实测 54 条开关行 = 51 项 feature + 3 项普通开关；
+2026-10-12 (第6周期) 实测 55 条开关行 = 52 项 feature + 3 项普通开关（第6周期新增
+`UserBlockingAboveNormalPriority`，缺陷 D170；2026-10-12 (第5周期) 时为 54 条 = 51 + 3）；
 2026-10-10 (r3) 时为 56 条 = 53 + 3，差额是 D142 清理掉的 2 条**平台上根本编译不进来**的条目
 （`BaseLockTrySpin` 在 `#if BUILDFLAG(IS_POSIX)` 内、`PartitionAllocUsePriorityInheritanceLocks`
 在 `#if PA_BUILDFLAG(ENABLE_PARTITION_LOCK_PRIORITY_INHERITANCE)` 内，而该 buildflag 是
 `is_android && (x64||arm64)`）；r2 时为 63 条 = 60 + 3，差额是 D48 清理掉的 7 条上游不存在的条目。
-⚠ 51 项里有 2 项（`PartitionAllocMemoryReclaimer`、`PruneOldTransferCacheEntries`）**上游默认就是
-ENABLED**，那两行是显式钉住（pin）而非"打开了默认关闭的优化"，不要算作已生效的定制收益）
+⚠ 52 项里有 **14 项**（`SpareRendererForSitePerProcess`、`BackForwardCache`、
+`CacheControlNoStoreEnterBackForwardCache`、`PreloadTopChromeWebUI`、
+`BookmarkTriggerForPreconnect`、`PartitionAllocMemoryReclaimer`、
+`PruneOldTransferCacheEntries`、`ConsumeCodeCacheOffThread`、
+`RevokeMediaSourceObjectURLOnAttach`、`GpuShaderDiskCache`、
+`HighFramerateRequestFromClient`、`PlatformHEVCDecoderSupport`、
+`DirectOpusAudioDecoding`、`EncryptedMediaOcclusionTracking`）**上游默认就是 ENABLED**
+（第6周期核对，缺陷 D171；此前只标注了其中 2 项）。这些行是显式钉住（pin）而非
+"打开了默认关闭的优化"，不要算作已生效的定制收益——真正生效的启用项只有 **34 项**）
+⚠ `mcloud_flags.txt` **不支持行尾注释**：加载器只跳过整行注释，一行
+`--enable-features=Foo   # note` 会让整串 feature 被拒、全部优化静默失效（**缺陷 D59**，
+不是新缺陷；`flag_stability.py` 的 F 断言专拦此项）。
+注释必须独占一行。已由 `.bugreview/flags_lint.py` + `verify_sources.py` 拦截）
 + 编译时优化栈提供极致流畅体验。
 本仓库**不是完整 Chromium 源码树**，而是存放覆盖文件（override files）、补丁、构建脚本和打包配置。
 完整构建需先将本仓库文件复制到外部 Chromium 源码树（`$CR_DIR`，默认 `D:\wxmuma\chromium-src\src`）再编译。
@@ -136,12 +148,29 @@ ENABLED**，那两行是显式钉住（pin）而非"打开了默认关闭的优�
    ```
    断言四件事：版本目录里文件落地 + 与仓库字节一致 + 对**安装后的二进制**跑
    `flag_runtime_state.py` 得到回显 + 根目录无残留 `mcloud_flags.txt`。只看门禁绿灯不足以证明安装包正确。
+   ⚠ **不要用安装目录的 mtime 判断"装的是不是本轮产物"**（第6周期收口轮实测）：7z 归档保留原始
+   时间戳，版本目录 `chrome.dll` 显示 Oct 6 08:16 而 SHA1 与 15:50 的构建产物完全一致。
+   判据只能是哈希，且 `chrome.dll` 与根 `chrome.exe` **各比一次**。
+   ⚠ 另：`chrome.release` 把 `chrome.exe` 登记为 `%(ChromeDir)s\`，所以**版本目录里本来就没有
+   `chrome.exe`**，根目录那个 4,389,888 B 的 exe 就是产物本体（不是"启动桩"）——别据此判"安装不完整"。
    ⚠ 卸载会**连带删掉** `User Pinned\TaskBar` 里指向自己的 .lnk（实测：任务栏固定项消失）；
    `UserChoice` 的 `ProgId` 保持 `ChromiumHTM` 不变，所以重装后默认浏览器会**自行恢复**
    （实测 `TargetExists: n/a -> yes`），但任务栏固定项没有 API 可恢复，需手工重新固定。
-   ⚠ **回显条数口径已变（第5周期 D142，2026-10-12）**：清理掉 2 条平台上根本编译不进来的
-   死声明后，期望值由 `enable 51 / disable 2` 变为 **`enable 49 / disable 2`**。
-   发布说明与本文件里所有"51+2"的旧口径对新包都要改。
+   ⚠ **回显条数口径（第6周期 D170，2026-10-12）**：新增 UserBlockingAboveNormalPriority 后，
+   期望值为 **`enable 50 / disable 2`**。
+   历史：第5周期 D142 清理掉 2 条平台上根本编译不进来的死声明后为 `enable 49 / disable 2`；
+   再早是 `enable 51 / disable 2`。发布说明与本文件里所有旧口径对新包都要改。
+   ⚠ **安装版启动日志里曾稳定出现 `Command line too long for RegisterApplicationRestart`**
+   （缺陷 D172）：命令行超 Windows 的 1024 字符上限，导致浏览器不被 Windows 重启管理器恢复。
+   修复脚本 `win_scripts/apply_restart_cmdline.py` **需要重新编译才生效**；发布前应在启动日志中
+   确认该 WARNING 已消失。
+   ✅ **r7（2026-10-12）已编入并实测消失，且有正向对照**：对安装后的二进制用
+   `--enable-logging --log-file=<路径> --v=1` + 一次性 `--user-data-dir` 采集，
+   日志 **135,082 B**（证明日志通道开着）而该 WARNING **0 次**；再在同一份二进制上
+   多加一个 **1300 字符的未知开关**，WARNING **复现** ⇒ 这条判据**能红**，"0 次"才是测量结果。
+   ⚠ 用 `--v=0` 会采到 **0 B 空日志**——"空日志 + 0 hits"是空数据上的缺席判据，**不作证据**；
+   缺席型判据必须同时给出"日志非空"和"同类输入能让它失败"两条旁证。
+   命令行长度算术：Red 时 **1911 字符** → 修剪后 **≈284 字符** < 1024。
 9. **`build_win.py`** — 执行 gn/autoninja 编译。**编译前有 `preflight_args()` 预检**（第5周期 D144 新增）：
    ① `chrome_pgo_phase=2` 时硬校验 `pgo_data_path` 指向的 profdata **确实存在**，不存在即以 111 退出
    并给出根因与两种修法（GN 只 `assert(pgo_data_path != "")`、**不校验存在**，见
@@ -363,7 +392,7 @@ autoninja -C out/mcloud chrome mini_installer
 - **PowerShell 编码**：含中文的 `.ps1` 必须存为 **UTF-8 with BOM**（PowerShell 5.1 对无 BOM 文件按 GBK 解析会直接语法失败；benchmark/ 与 tools/ 已批量修复，见 `docs/tasks/bug-review-pak-src-defects.md` D38）。
   该约定现已机器化：`python3 win_scripts/verify_sources.py` 会检查全部 `.ps1` 的 BOM、`param` 位置并用
   PowerShell 的 AST 解析器实跑一遍（非 Windows 平台自动 SKIP，空输入一律判 FAIL）。
-- **PowerShell 四条语言坑（第3周期扩展轮 D81/D82/D83/D89；第4条为第5周期 D145 实测新增）**：
+- **PowerShell 五条语言坑（第3周期扩展轮 D81/D82/D83/D89；第4条第5周期 D145；第5条第6周期收口轮实测）**：
   ① **`param(...)` 必须是脚本第一条语句**（前面只能有注释/空行）。写在赋值语句之后不会报语法错，
   而是把 `param` 当命令名抛非终止错误 → **参数块整体作废、传入的 `-OutDir/-ChromeExe` 被静默丢弃，
   脚本仍退出 0**。
@@ -379,6 +408,11 @@ autoninja -C out/mcloud chrome mini_installer
   这是 D66-① 的同族变体，第5周期给 K2-CPU 的报错文案做 Red 验证时靠"占位符没被替换"发现。
   另：正则里 `\|` 是**转义竖线**（匹配字面量 `|`），要匹配"反斜杠或串尾"必须写 `(\\|$)`——
   D137 就是这个错，导致"你在测 M151 旧树"的护栏在 9 个脚本 10 处**从未触发过**。
+  ⑤ **变量名大小写不敏感 ⇒ typed `param` 会被自己的局部变量反噬**：
+  `param([int]$Pad)` 之后再写 `$pad = "a" * $Pad`，`$pad` 与 `$Pad` 是**同一个变量**，
+  于是把 1300 个字符往 `[int]` 上强转，报 `无法将值"aaaa…"转换为类型 System.Int32`
+  （`$ErrorActionPreference='Stop'` 下整个脚本停在第 11 行）。第6周期收口轮的取证脚本实测；
+  同族：D83（函数内 `+=` 不写回脚本作用域）。写取证脚本时局部名与参数名不要只差大小写。
 - **测试不得写入发布产物目录（缺陷 D99 纪律）**：会改写被测文件的测试（`loader_edge_test2/3` 要重写 `mcloud_flags.txt`）必须在**硬链接沙箱**里跑，不能把 `LOADER_TEST_OUT` 指到 `out/mcloud`。`final_gate_matrix.ps1` 会自动建 `out/mcloud_loader_test`（链运行时文件、跳过 args.gn/.ninja_log/build.ninja 与文件数>1000 的构建中间目录）。中断的测试曾在发布目录留下 106 KB/300 KB 的假 flags 文件，让后续门禁拿测试语料当生产配置测量。测试脚本里有「发现构建特征文件即 REFUSED/exit 2」的前门；确需在生产目录上跑，显式设 `MCLOUD_ALLOW_LOADER_TEST_ON_BUILD_DIR=1`。
 - **基准/工具脚本不得写死被测树**：`benchmark/*.ps1` 与 `benchmark/tools/*` 的默认对象改为
   `$env:MCHROME_EXE` / `$env:MCHROME_OUT`（再退回 `D:\wxmuma\chromium-src-155\src\out\mcloud`），
@@ -401,6 +435,25 @@ autoninja -C out/mcloud chrome mini_installer
   ③ **`Where-Object` 只匹配到一条时返回标量字符串**，`$names[0]` 取到的是**第一个字符**而不是元素，
   于是 `GetManifestResourceStream("m")` 返回 null，看起来像"资源不存在"。PowerShell 里凡是
   "管道结果按下标取"的位置都要 `@(...)` 强制成数组（同族：D83 函数内 `+=` 不写回、D140 首检复检指纹不一致）。
+- **第6轮回退登记（2026-10-12，D164–D169，勿重犯）**：另一模型 r6 之后的改动经复核后**整体回退**
+  （详录 `docs/tasks/bug-review-cycle5-report.md`「续 2」；其完整改动留在 `.cycle6/cycle6_full_work.patch`）。
+  可复用的五条：
+  ① **`csc` 的 `/version` 是"打印编译器版本并退出"**，没有 `/version:x.y.z` 设程序集版本的用法——
+     要写文件版本必须生成 `Assembly*Version` 特性文件同批编译（否则 csc 返回 0 却**不产出文件**）。
+  ② **判据的污染自检必须可满足**：不能要求一个被它自己前提排除的状态
+     （它把进程检查写成 `after[系统级] > 0`，而用例 C 的前提就是 `before[系统级] == 0`）。
+  ③ **量具不得在被测窗口内采样**：全进程树 CIM 枚举 50–200 ms/次，插进 `WaitForInputIdle`
+     轮询间隙会把 K1 从 45 ms 撑到实测 607 ms，并在启动快于轮询间隔时让基准自杀。
+     某指标给不出来就不要用恒等式假装给出来了（它那条"单位自洽"是 `x − x`，永不触发；
+     可用的是 `cpuSec ≤ 逻辑核 × 墙钟秒` 这类有物理意义、可能失败的界）。
+  ④ **`gn gen` 必须用与成功构建一致的环境**（`DEPOT_TOOLS_WIN_TOOLCHAIN=0` + `vs2026_install` +
+     `GYP_MSVS_OVERRIDE_PATH` + atlmfc `INCLUDE`）。`-imsvc` 包含路径会被烘进 `build.ninja`，
+     环境不对 ⇒ 每个编译命令行都变 ⇒ **全树失效**（实测 `ninja -n` 51,361 步 + libc++
+     `'new.h' file not found`）。动手前先 `ninja -n` 数步数（D74）。
+  ⑤ **门禁的输入集合必须能从干净检出复现**：`.bugreview/` 下只入库 `*.py`，
+     放一份 `.ps1` 进那里会让 `verify_sources.py` 的 `.ps1` 计数 44→45，
+     接手方一条判据都复现不了（同 `a291812`/`bf4e63f` 的"悬空引用"族）。
+     另：判据日志必须自己落盘——我批量跑时那次 rc=1 因为把输出丢进 `/dev/null` 而至今无法归因。
 - **本机硬件身份（第5周期 D143 实测钉死，勿再按名称推断）**：
   | 项目 | 值 |
   |---|---|
@@ -426,13 +479,16 @@ autoninja -C out/mcloud chrome mini_installer
   > **MuMu 虚拟显示器**，D139 之前每份 KPI 基线的 GPU 字段都是错的。
 - **补丁位置**：`other/` 目录，命名 `feature-name.patch`。
 - **文档位置**：`docs/architecture/`（架构）、`docs/dev-logs/phase{N}-dev-log.md`（开发日志）、`docs/decisions/ADR-{NNN}-{title}.md`（决策记录）、`docs/tasks/`（任务文档）。
-  缺陷档案：`docs/tasks/bug-review-pak-src-defects.md`（D1–D163 索引）+ 各周期详版
-  `bug-review-cycle{3,4,5}-report.md`。**第5周期（D121–D155，2026-10-12）详版见
+  缺陷档案：`docs/tasks/bug-review-pak-src-defects.md`（D1–D176 索引）+ 各周期详版
+  `bug-review-cycle{3,4,5,6}-report.md`。**第5周期（D121–D155，2026-10-12）详版见
   `docs/tasks/bug-review-cycle5-report.md`**，含硬件取证、chrome://gpu 实测、Red→Green 验证记录
   与 12 条待跟进项；该文件末尾的 **「续：r6 收口轮执行记录」** 登记 D156–D163，
   是对第5周期交接件的复核（哪些成立、哪些要打折）、**重打包后的新发布物哈希**、
   "7 条安装器修复当时一条都没执行过"的处置（`installer_arg_test.py`），以及
   **干净安装复验的实测结果**（D162 卸载必卡、D163 本机 `EnableLUA=0` 的结论边界）。
+  再往后的 **「续 2：第 6 轮改动的处置与整体回退」** 登记 D164–D169：另一模型的 12 文件改动
+  里哪些我核过是对的、哪 3 条是阻断级缺陷（含实测复现）、以及为什么整体回退到 `96267cd`
+  与回退后的全套测试结果。
 - **修改 build/ 目录前**：必须备份 `compiler_opt.gni` 等自定义文件。
 - **禁止**：不要用 `git checkout -- build/` 批量回退（会删除自定义文件）；修改 GN 参数后必须重新 `gn gen out/mcloud --check`。
 - **已知坑（口径已更正 2026-10-10）**：`--js-flags` 内的 V8 标志**统一写下划线形式**（`--invocation_count_for_maglev=...`）。旧断言「连字符写法在 M151 静默失效」与源码不符：`v8/src/flags/flags-impl.h:19` 的 `NormalizeChar` 把 `_` 归一为 `-` 并用于标志名比较，两种写法应等价；Chromium 侧对未知 js-flags 静默忽略，故该点无法用 stderr 反证（缺陷 D49，定论需 `autoninja d8`）。沿用下划线写法是安全的默认，不要再以「连字符会失效」为依据做判断；Polly/BOLT 需先接线再启用（见 `win_args_mcloud.gn` 注释；注意 BOLT 官方仅支持 ELF/Mach-O，Windows PE 路线待核实，见规范 10.1 与缺陷档案）。

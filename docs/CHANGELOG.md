@@ -2,6 +2,52 @@
 
 ## M155（内核升级 M151 → M155.0.8059.40）— 2026-10-10
 
+### r7（第6周期收口：D170/D171/D172 落地 + 重编重打包 + 干净安装复验）— 2026-10-12 下午
+
+- **D170（High，CPU/多核）**：`BrowserProcessAboveNormalPriority` 单独启用**完全无效**——它只把根进程
+  标成 `kUserBlocking`，而 `kUserBlocking → ABOVE_NORMAL_PRIORITY_CLASS` 由
+  `UserBlockingAboveNormalPriority` 决定（`base/features.cc:205` 默认禁用、
+  `base/process/process_win.cc:299-304`，上游注释要求两者成对）。补齐后实测
+  **安装版与开发树根进程 `PriorityClass` 均为 `AboveNormal`**（gpu-process 同升、renderer 仍 `Idle`）。
+  副作用是同时解除 Windows 11 的 EcoQoS（`process_win.cc:283-289` 以"是否为 kUserBlocking"为判据），
+  本机 8P+16E ⇒ 浏览器不再被调度到能效核；代价是功耗/发热上升，与 ADR-002 一致。
+- **D171（口径）**：52 项 feature 中 **14 项上游默认即 ENABLED**（净效果为零，属显式钉住），
+  此前只标注 2 项 ⇒ 真正生效的启用项是 **34**，别按 50 理解收益。
+- **D172（中，安装/更新）**：`RegisterApplicationRestart` 命令行上限 1024 字符，我们的
+  `--enable-features` 单项约 1.4 KB ⇒ `E_INVALIDARG`，上游只 `LOG(WARNING)` 后继续 ⇒
+  **构建/安装/门禁全绿而浏览器不被 Windows 更新恢复**。新增 `win_scripts/apply_restart_cmdline.py`
+  在 `GetRestartCommandLine()` 剔除三项直传开关（加载器每次启动重注入，无需接力）。
+  Red 硬证据：r6 旧二进制 `chrome_debug.log` 1998 B 内含
+  `chrome_browser_main_win.cc:832] Command line too long for RegisterApplicationRestart: …`
+  （该条命令行实测 **1911 字符** > 1024）。
+  **Green + 正向对照（16:33–16:55）**：① 对安装后的新版二进制用同一采集方法
+  （`--enable-logging --log-file --v=1` + 一次性 profile）启动，日志 **135,082 B**（证明日志通道开着）
+  而该 WARNING **0 次**；② 同一份二进制只多加一个 1300 字符的未知开关，WARNING **复现（hits=1，
+  日志 86,166 B）** ⇒ 判据可失败，"0 次"不是量具坏了的结果；③ 算术核对：按现剔除规则重算
+  修剪后命令行 **≈284 字符** < 1024。⚠ 我第一版用 `--v=0` 采到的是 **0 B 空日志**，
+  "空日志 + 0 hits"属空数据上的缺席判据，不能当证据——已改为"非空日志里 0 次 + 正向对照"。
+- **构建环境（D173）**：`autoninja` 满并行时 `cc_bindings_from_rs.exe` spawn `clang-format.exe`
+  撞 `os error 231 = ERROR_PIPE_BUSY`，三次尝试同一目标同一错误；`clang-format` 本体正常、
+  同一目标 `-j 1/-j 2` 一次通过 ⇒ 判定为 spawn 竞态而非代码问题。
+  **两段式修法**：先 `ninja -j 2` 做掉 12 个 `*_crubit_action`，再全速 `autoninja`（6830 步，60 分钟，
+  其中 `chrome.dll` ThinLTO 链接约 10 分钟、24 核打满、RSS 13.4 GB）。
+- **发布物（新）**：setup **127,589,888 B / `8e59c4580e95bef278bef517da210c6b104598ad5ba2152bfda70bfef3d5d746`**；
+  mini_installer 同步重打。载荷 `mcloud_flags.txt` = `b737605e6d9806d3…`（LF, 17,194 B），
+  与仓库/构建树/暂存目录四处一致 ⇒ 上一轮"手工 copy 进安装目录"造成的断链（D175）由本次真装闭合。
+- **干净安装复验**（非交互口径）：卸载 rc=19 → 全新安装 rc=0（13 s）→ 根 exe 155.0.8059.40、
+  flags 落版本目录且与仓库逐字节一致、根目录无残留、无 `.new.exe` 暂存件、无 setup/mini_installer 驻留、
+  默认浏览器链自愈（`TargetExists: n/a → yes`）、快捷方式 1 → 3；对**安装后的二进制**回显
+  **`enable 50 / disable 2`**、`D3D12VideoDecoder` 与 `SkiaGraphite` 禁用完好。
+  ⚠ 任务栏固定项仍被卸载器删除且无 API 恢复，需手工重钉。
+- 门禁：`verify_sources` PASS（`.ps1` 44）、`flag_stability` PASS、`flags_lint`（第6周期新增闸门）PASS、
+  `test_build_win_preflight` PASS、`installer_arg_test` 12/12 PASS。
+  ⚠ `installer_arg_test` 出现过一次 `污染.用户级安装目录` 红（空目录指纹瞬态变化，事后 mtime 仍是旧值、
+  无法复现也未归因）；已把明细改成打印**变化的字段**，复跑 5 次全绿。
+- 我自己本轮的两处操作失误已登记：**D174**（按进程名机器级清理，误杀用户其它软件的
+  `crashpad_handler`，无数据损失）、以及 `Start-Process -PassThru` + 重定向取不到 `ExitCode`
+  的采集缺陷（两次复现，改为 `cmd /c` 读 errorlevel 的路上又因 GUI 程序等待而挂住 —— 见 D158 备注）。
+
+
 ### 升级本体
 - 内核 `155.0.8059.40`（当期 stable）；V8 `15.5.35.20`；clang `llvmorg-24-init-7747`；PGO `chrome-win64-8059-…profdata`
 - 定制重放面在升级中进一步缩小为 **6 个上游文件 / 206 行**：
@@ -180,8 +226,16 @@
     ⚠ 顺带**收窄 D133 的口径**：winexe 形态在 stdout 被重定向时**是有输出的**（本轮实测 149 B 正文），
     所以 `--list-only` 对脚本/CI 并不哑，只有**双击**的用户看不到——D133 的严重度应按此下调。
 - **仍未做（需授权）**：干净安装复验。要把新版装进 Program Files、对**安装后的二进制**跑
-  `flag_runtime_state.py` 断言回显 **`enable 49 / disable 2`**（口径已随 D142 变更，旧文档写的是 51+2）
+  `flag_runtime_state.py` 断言回显 **`enable 50 / disable 2`**（口径已随 D170 变更：D142 后为
+  49+2、更早为 51+2；**不要再按 49+2 判新包**）
   再卸载；且必须先关掉正在运行的浏览器 ⇒ 同时这也是补齐 D121 系统级分支（用例 C）的唯一路径。
+- ⚠ **r6 的"干净安装复验"对新 flags 已不再成立（2026-10-12 第6周期补充）**：r6 之后
+  `mcloud_flags.txt` 又变了（D170 新增 `UserBlockingAboveNormalPriority`、D171 pin 标注），
+  但**打包暂存目录里的载荷仍是旧内容**（`d71d988ca2d2ab`，仓库侧已是 `b737605e6d9806`）。
+  ⇒ 机器上安装实例的 flags 现在**无法从任何发布物复现**（同 D109 遮蔽形态）。
+  修复顺序：`deploy` → 重跑 mini_installer 打包（刷新载荷）→ 重新做干净安装复验。
+  期间**不要**手工把新 flags 拷进 `Program Files` 下已安装的版本目录——那会造出
+  "跑着的 flags 装不出来"的偏差，正是 D109 当年被遮蔽的原因。
 - 历史哈希不回改：r3 / r4 / r5 的记录保持原样。mini_installer 沿革：
   `0602cafa…`=r3（带 D105 缺陷）→ `54fc59b5…`=r4（修 D105）→ `17b31513…`=r5（修 D109）→
   `488e604b…`=r6（载荷跟上 D142 清理 + 安装器修复进入发布物）。

@@ -1413,6 +1413,77 @@ CET 硬件影子栈开（`compiler.gni:230`）、libc++ `_LIBCPP_HARDENING_MODE_
 - **重编/重打包前先数步数**：`ninja -n` 实测本次只有 3 步（archive → RC → LINK）才动手，
   避免把"flags 文件变了"误当成需要全树重编（D74）。
 
+## 第6轮（D164–D169：另一模型的改动，经复核后整体回退，2026-10-12 凌晨）
+
+**执行与实测记录见 `docs/tasks/bug-review-cycle5-report.md` 的「续 2」一节。**
+用户在 r6 之后让另一个模型审查并"优化"我的改动。它 12 个文件 +515/−83，**方向对的部分不少**
+（D126/D132/D135/D136/A1-A2-A5/D141/D148/D149 的默认不改值，我逐条去了源码与树里核），
+但引入 3 条阻断级、并把构建树搞到全树失效。用户决定整体回退到 `96267cd`，
+故这些缺陷的状态一律记为**「已回退」**——不是「已修」；将来若要采纳其中正确的部分，
+从 `.cycle6/cycle6_full_work.patch`（968 行）里拣，别重写。
+
+| ID | 级别 | 位置（它改动处） | 问题 | 状态 |
+|---|---|---|---|---|
+| D164 | **High** | `win_scripts/build_setup_exe.py` 新增 `--version` | 给 csc 传 `/version:<ver>`。但 Roslyn csc 的 `/version` 是**"打印编译器版本并退出"**，没有设程序集版本的用法。实测：csc 只输出 `5.9.0-1.26357.3 (…)`、**不产出文件**、脚本 exit 111；它同时让 `package_m155.py` **无条件**传 `--version` ⇒ **重打包流水线被打断** | 已回退（正解：生成临时 `AssemblyInfo` 特性文件，我曾实测 `FileVersion/ProductVersion` 正常） |
+| D165 | **High** | `.bugreview/installer_arg_test.py` 污染自检 | 断言改成 `after[系统级] > 0`，而用例 C 的前提是 `before[系统级] == 0` 且全程 `--no-launch` ⇒ **不可满足**。实测 `前=(0,0) 后=(0,0)`、零进程被改动却判 FAIL/exit 1，把 r6 的 12/12 PASS 打回假红 | 已回退（正解：`(after>0)==(before>0)` 的"存活状态前后一致"） |
+| D166 | **High** | `benchmark/bench_startup.ps1` K1-CPU | 全进程树 CIM 枚举（50–200 ms/次）插进 `WaitForInputIdle` 轮询间隙 ⇒ **在被测窗口内扰动被测对象**：K1 实测 45 ms → **607 ms**；且冷启动快于 200 ms 时 `$samples=0` 被当量具失效直接 `throw` ⇒ 正常情形下基准自杀 exit 1 | 已回退（正解：阻塞等待→停表→**窗口外**取快照，代价是单快照给不出峰值——宁缺不伪） |
+| D167 | Medium | 同上，"单位自洽断言" | `\|meanCores/核数*100 − $pct\| > 0.5`，而 `$pct` 正是同一表达式算出的 ⇒ **恒为 0 的假检查**。`bench_memory.ps1` 里 D145 那条是真断言（两侧来自独立数组），它抄成了自减自 | 已回退（正解：`cpuSec ≤ 逻辑核 × 墙钟秒` 这类有物理意义、可能失败的界） |
+| D168 | **High** | `.bugreview/build_cycle6.ps1`（未入库） | 在**不等价于成功构建的环境**里跑 `gn gen`：日志证据 `'new.h' file not found` / `'corecrt_terminate.h' file not found` / `__libcpp_timespec_t` 未知 ⇒ libc++ 编不过，`autoninja exit=1`（2 分钟即挂，`chrome.dll` 未更新）。`-imsvc` 包含路径被烘进 `build.ninja` ⇒ **每个编译目标命令行都变 ⇒ 全树失效（`ninja -n` 51,361 步）**。我用补全环境（含 `GYP_MSVS_OVERRIDE_PATH`）重跑 `gn gen` 后降到 14,042 步且单目标 `any.obj` 编过 ⇒ 树已恢复可用 | 已缓解（树可用）；**14,042 步脏状态仍在**，下次真要编译前先看 `ninja -n` 步数（D74 纪律） |
+| D169 | Low | `HKCU\Software\Microsoft\DirectX\UserGpuPreferences` | 它删了 2 条指向不存在路径的 MCloud 值（其余应用条目我核过仍在），但 AGENTS.md 声称的"清理前已备份"**不成立**：`UserGpuPreferences-backup.txt` 不含被删的那两条，删前现场在未命名的 `.cycle6_gpupref.txt`；且它的 6 个 `.cycle6_*.txt` 落在**仓库根且未被 gitignore** | 注册表删除**不回滚**（那是 D154 的雷）；散件已移入 `.cycle6/` 并补 `.gitignore` 两条规则 |
+
+### 本轮的方法论产出（已入 AGENTS.md「第6轮回退登记」条）
+
+- **csc 没有 `/version:x.y.z`**；设程序集版本只能写 `Assembly*Version` 特性。
+- **污染自检必须可满足**——判据不能要求一个由它自己前提排除的状态。
+- **量具不得在被测窗口内采样**；给不出某个指标，就不要用恒等式假装给出了。
+- **`gn gen` 的环境必须与成功构建一致**，否则 `-imsvc` 变化会让全树失效，代价是小时级重编。
+- **门禁的输入集合必须能从干净检出复现**（它那个不入库的 `build_cycle6.ps1` 让 `.ps1` 数 44→45）。
+- **判据日志必须自己落盘**：我批量跑时那次 rc=1 因为重定向到 `/dev/null` 而**至今无法归因**
+  （5 次里 4 绿 1 红）。这是 D114 的反面形态——不是证据掀翻判据，而是证据被我丢掉。
+
+## 第6周期（D170–D176：优先级配对失效、净收益口径、重启命令行，2026-10-12）
+
+**详版见 `docs/tasks/bug-review-cycle6-report.md`。** 编号从 D170 起，与本档案 D164–D169
+（上一节"第6轮改动整体回退"记录）**不重叠**——前一轮曾把这三条误编为 D163–D166，与回退记录撞号，已改。
+
+| ID | 级别 | 位置 | 问题 | 状态 |
+|---|---|---|---|---|
+| D170 | 高（性能） | `mcloud_flags.txt` | `BrowserProcessAboveNormalPriority` **单独启用完全无效**：它只把根进程标成 `kUserBlocking`，而 `kUserBlocking → ABOVE_NORMAL` 由另一个 feature 决定（`base/process/process_win.cc:299-304` + `base/features.cc:205` `FEATURE_DISABLED_BY_DEFAULT`）。上游注释原文要求"should be used together with kUserBlockingAboveNormalPriority"。⇒ 我们宣称的浏览器进程提权**从未生效** | 已修：补 `UserBlockingAboveNormalPriority`。安装版实测根进程 `Normal → AboveNormal`（gpu-process 同升、renderer 仍 `Idle`，符合语义）；回显 49 → **50/2** |
+| D171 | 中（口径） | `mcloud_flags.txt` | 52 项 feature 里 **14 项上游默认即 `ENABLED`**，净效果为零，此前只标注了 2 项 ⇒ 读清单会把"50 项启用"高估成"50 项优化"（真正生效的启用项 **34**） | 已标注（文件头口径块 + 逐条 `# pin:` 独立注释行） |
+| D172 | 中（安装/更新） | `chrome/browser/chrome_browser_main_win.cc:827-838` | `RegisterApplicationRestart` 命令行上限 1024 字符，我们的 `--enable-features` 单项就约 1.4 KB ⇒ `E_INVALIDARG`，上游只 `LOG(WARNING)` 后继续 ⇒ **构建/安装/门禁全绿，但浏览器从此不被 Windows 重启管理器恢复**。`GetRestartCommandLine()` 只调 `about_flags::RemoveFlagsSwitches()`，管不到我们**命令行直传**的 flags | 已修并**实测消失（含正向对照）**：`win_scripts/apply_restart_cmdline.py` 幂等剔除 `enable-features`/`disable-features`/`js-flags`（三项都由加载器每次启动从 `mcloud_flags.txt` 重注入，安全）。收口轮对**安装后的二进制**用 `--enable-logging --log-file --v=1` + 一次性 profile 采集：日志 **135,082 B 非空**而该 WARNING **0 次**；**正向对照**——同一份二进制多加一个 1300 字符的未知开关 ⇒ WARNING **复现（hits=1，日志 86,166 B）**，证明这条判据能失败。算术：Red 那条 **1911 字符** → 修剪后 **≈284 字符** < 1024。⚠ 第一版用 `--v=0` 采到 0 B 空日志，"空日志 + 0 hits"是空数据上的缺席判据，已作废重做 |
+| D173 | 中（构建环境） | `autoninja` 默认并行度 | `cc_bindings_from_rs.exe` 在 spawn `clang-format.exe` 时撞 **`os error 231` = `ERROR_PIPE_BUSY`（"所有的管道范例都在使用中"）**，报 `exited with a non-zero exit code: 101`。三次尝试（`build_d172.log` 到 1325 步、`_r2` 到 36 步、`_r3`）同一目标同一错误，**是 spawn 风暴下的竞态、不是代码缺陷**：判别证据是同一目标 `ninja -j 1` / `-j 2` **一次通过**，且 `clang-format.exe` 本体 3.8 MB、`--version` 正常 | 已定策：**两段式** —— 先 `ninja -j 2 <全部 *_crubit_action>`（本机 12 个）把易碎步骤落盘，再 `autoninja -j 16 chrome mini_installer`。教训：报"编译不过"先做单目标 + 降并行判别，别改代码 |
+| D174 | 中（我自己制造，诚实记录） | 进程清理操作 | 我用 `Get-Process -Name crashpad_handler` **按进程名机器级清理**，杀掉的 11 个其实全是用户其它软件的（MuMu / GameViewer / 微信 / QQNT / QQGameTempest / QQLive 的崩溃上报器），**不是本仓探针残留**。正是本仓 D52/D55 明令禁止的形态。影响核实：各应用主进程与服务仍存活（Weixin×6、QQ×10、MuMuNxService、GameViewerService=Running），仅丢崩溃上报助手且不自动重生 | 无数据损失，但**须向用户告知**；清理他人进程必须按**可执行路径 + 由谁启动**限定，不能按名字 |
+| D175 | 中（发布链，另一模型留下） | 安装目录与发布物 | 它把新 `mcloud_flags.txt` **手工 copy 进 `C:\Program Files\Chromium\Application\155.0.8059.40\`**，绕开安装器 ⇒ 仓库/构建树/已安装三处一致，而**打包暂存目录（发布物载荷）仍是旧 `d71d988ca2d2ab`**：机器上跑的 flags 无法从任何发布包装出来，D105/D109 的遮蔽形态复发，"干净安装复验"结论对新 flags 失效 | **已闭合（收口轮 16:04）**：重编 6830/6830 → 重跑打包 → 三处 flags 全部 `b737605e6d9806d3`（仓库 / 打包暂存载荷 / 已安装版本目录）；安装产物按**哈希**核对确为本轮构建（`chrome.dll` `a0e06d99…`、根 `chrome.exe` `14e82f36…`，与 `out/mcloud` 同源）；回显 **50/2**、根进程 `AboveNormal` |
+| D176 | 中（假绿，收口轮复核其新增门禁时发现） | `.bugreview/flags_lint.py:91-95,150-161` | `--stab` 指向的文件不存在时，`check_against_stab()` 返回一条"找不到 stab 文件…（跳过存在性核对）"的 note，而 `main()` 只用 `"未声明" in m` 挑致命项 ⇒ note 不匹配 ⇒ 打印**"存在性核对（stab_MISSING.json）：全部声明存在"** 并 **返回 0**。即"核对根本没跑"被显示成"全部通过"，正是本仓 D89/D138 反复登记的"量具失效不得当成绿"。触发条件真实存在：`stab_*.json` **未入库**（生成物），换机器/干净检出后按 §9 第 7 步跑必然走到这条假绿路径 | **已修（Red→Green 实测）**：`main()` 在调用前 `os.path.isfile(args.stab)` 否则 `[FAIL] … 存在性核对未执行，不得判为通过` + rc=1；同时删掉函数内那条现在不可达的"跳过"分支。复跑：缺文件 rc=1（原 rc=0）、真实 `stab_155.json` 仍 rc=0 且 pin=14（与 D171 口径一致）、正向对照（塞入不存在的 feature 名）rc=1"1 项未声明" ⇒ 判据**可失败**；`verify_sources.py` 不带 `--stab` 的 CI 路径不受影响，仍 PASS |
+
+### 本轮方法论产出
+
+- **成对 feature 的验收必须看运行态**：清单里"声明了 `XxxAboveNormalPriority`"和"根进程真的
+  `AboveNormal`"是两件事；只有 `flag_runtime_state.py` 的回显 + 进程 `PriorityClass` 实测能区分。
+  静态"声明位存在"这条老盲区（D142 已认定）在 CPU 维度又命中一次。
+- **构建报"编译失败"先分清是不是环境竞态**：`os error 231` / `ERROR_PIPE_BUSY`、
+  `a specified executable path does not contain a valid executable` 之类，
+  用"单目标 + `-j 1`"两步就能定性地排除代码问题（本次实测即如此）。
+- **日志编码**：PowerShell `Start-Transcript`/重定向写出的构建日志是 **UTF-16**，
+  按 UTF-8 读会看到字符间夹 NUL 的乱码（我第一遍就误判成"没有 FAILED 行"）；
+  取证据要先试 `utf-16` 解码。
+- **安装目录的 mtime 不能用来判断"装的是不是本轮产物"**（收口轮实测）：版本目录里
+  `chrome.dll` 的时间戳是 **Oct 6 08:16**（7z 归档保留原始时间戳），而它的 SHA1
+  `a0e06d99…` 与 15:50 构建的 `out/mcloud/chrome.dll` **完全一致**。我据 mtime 差点判成
+  "装了旧包"。纪律：安装是否为本轮产物**只能用哈希比对**（dll 与根 `chrome.exe` 各比一次）。
+- **`Application\` 根目录的 `chrome.exe` 就是构建产物本体**，不是"启动桩"（收口轮实测：
+  4,389,888 B，SHA1 `14e82f36…` == `out/mcloud/chrome.exe`；`chrome.release` 把它登记为
+  `chrome.exe: %(ChromeDir)s\`，而版本目录里反而**没有** `chrome.exe`——我据此差点判成
+  "安装不完整"）。D109 的结论不受影响（加载器仍以 `DIR_MODULE` 为先，因为根级
+  `mcloud_flags.txt` 是跨版本残留物），但其"根目录只有一个 4 MB 启动桩"的措辞不准确，
+  别据此推断"版本目录里应该也有 exe"。
+- **缺席型判据的三档证据强度**（D172 的收口方式，由弱到强）：`LOG(WARNING)` 只在失败时出现，
+  "日志里没有它"本身什么都不是说。① 最弱：**空日志 + 0 hits**——我第一版 `--v=0` 就是这个形态，
+  直接作废；② 及格：**非空日志 + 0 hits**，且同批日志里有别条（证明日志通道开着、执行流走过）；
+  ③ 最强：**正向对照**——在同一份被测二进制上制造一个"应当失败"的同类输入
+  （本次是加一个 1300 字符的未知开关把修剪后的命令行重新顶过 1024），让它**红一次**，
+  这才排除"量具坏了/判据根本没接上"。凡缺席型判据，优先争取 ③，做不到再退到 ②，绝不停在 ①。
+
 ## 待办（本档案跟踪）
 
 ### r6 收口轮新增（2026-10-12 凌晨）
