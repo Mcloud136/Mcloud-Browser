@@ -14,6 +14,7 @@
     ⇒ 两个判据同时为 True，而这从不能证明后端。现在改成经 CDP 打开 chrome://gpu 取
     gl_renderer / VENDOR_ID / DEVICE_ID，取不到就判量具失效（rc=2），不再退回字符串猜测。
 """
+import contextlib
 import json
 import os
 import re
@@ -59,17 +60,22 @@ def gpu_identity(port):
     if not tid:
         raise GpuInstrumentError("/json/new?chrome://gpu 没返回 target id：%s" % new)
     tab = _cdp.Tab(port=port, target_id=tid, timeout=40.0)
-    # 正文一开始只有内联 CSS，`wait_for_text` 会被它满足 ⇒ 读到的不是驱动信息（实测首条
-    # 900 字符全是样式）。必须等 GL_RENDERER 出现，等不到就判量具失效（D184 同族）。
     text = ""
-    for _ in range(60):
-        try:
-            text = tab.deep_text()
-        except _cdp.CDPError as exc:
-            raise GpuInstrumentError("读取 chrome://gpu 正文失败：%s" % exc) from exc
-        if "GL_RENDERER" in text:
-            break
-        time.sleep(0.5)
+    try:
+        # 正文一开始只有内联 CSS，`wait_for_text` 会被它满足 ⇒ 读到的不是驱动信息（实测首条
+        # 900 字符全是样式）。必须等 GL_RENDERER 出现，等不到就判量具失效（D184 同族）。
+        for _ in range(60):
+            try:
+                text = tab.deep_text()
+            except _cdp.CDPError as exc:
+                raise GpuInstrumentError("读取 chrome://gpu 正文失败：%s" % exc) from exc
+            if "GL_RENDERER" in text:
+                break
+            time.sleep(0.5)
+    finally:
+        # 审计别人的泄漏时我自己漏了一个：WebSocket 不关就每次探测留一个套接字。
+        with contextlib.suppress(Exception):
+            tab.close()
     if "GL_RENDERER" not in text:
         raise GpuInstrumentError("chrome://gpu 正文 30 秒内没出现 GL_RENDERER（读到 %d 字符）"
                                  % len(text))

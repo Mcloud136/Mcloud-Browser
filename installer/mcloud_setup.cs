@@ -726,14 +726,16 @@ internal static class MCloudSetup
                         ProcessStartInfo deElevated = new ProcessStartInfo("explorer.exe",
                                                                           "\"" + chromeExe + "\"");
                         deElevated.UseShellExecute = false;
-                        Process.Start(deElevated);
+                        // 返回的 Process 组件带着进程/线程句柄，接了不 Dispose 就是每次启动漏一对
+                        // （第7周期 D185；安装器寿命短、影响小，但这是本周期要清零的同一类问题）。
+                        using (System.Diagnostics.Process.Start(deElevated)) { }
                         Log("当前处于提权上下文，改由 explorer.exe 启动浏览器，避免继承管理员令牌。");
                     }
                     else
                     {
                         ProcessStartInfo psi = new ProcessStartInfo(chromeExe);
                         psi.UseShellExecute = true;
-                        Process.Start(psi);
+                        using (System.Diagnostics.Process.Start(psi)) { }
                     }
                 }
                 catch (Exception e) { Log("自动重启失败（可手动打开）：" + e.Message); }
