@@ -281,6 +281,14 @@ C 语言编写的 Chromium 资源包工具：
   `.bugreview/pak_gate_red_control.py` 在**临时副本**上证明（不改工作树）。
   另有 `.bugreview/pak_fixed_verify.py`（MSVC + ASan + Red 对照）与
   `.bugreview/pak_fixed_diff.py`（19 组边界索引的新旧行为差分）。
+- ⚠ **CI 上 SKIPPED 不等于通过**（缺陷 D197，就落在我上面这套门禁自己身上）：
+  `GITHUB_ACTIONS=true` 时 `check_pak_roundtrip` 落到 SKIPPED 即判 **FAIL**（ubuntu runner
+  必有 `cc`；真没有就修 runner，别放宽门禁）；`check_pak_asan` 只 WARN——runner 是否带
+  libasan 未经证实，把没验证的前提写成硬失败只会造出一条没人敢信的红。
+  CI 日志要仓库管理员权限才能取（`403 Must have admin rights to Repository`），所以
+  "看 CI 绿"不能替代"看判据跑过"。判据文案一律 ASCII：cp936 控制台里一个 `⇒` 就能让
+  门禁抛 `UnicodeEncodeError` 崩掉并把已缓冲的结论整段吞掉（入口已有
+  `stdout.reconfigure(errors="replace")` 兜底，但别依赖它）。
 - ⚠ **Windows 的 ASan 没有 LeakSanitizer**（实测 `ASAN_OPTIONS=detect_leaks=1` 直接以
   `detect_leaks is not supported on this platform` 退出）⇒ 本机"ASan clean"只证明**无越界**，
   不得写成"无泄漏"；泄漏判据只能在 POSIX 侧下。
@@ -568,7 +576,7 @@ autoninja -C out/mcloud chrome mini_installer
   > **MuMu 虚拟显示器**，D139 之前每份 KPI 基线的 GPU 字段都是错的。
 - **补丁位置**：`other/` 目录，命名 `feature-name.patch`。
 - **文档位置**：`docs/architecture/`（架构）、`docs/dev-logs/phase{N}-dev-log.md`（开发日志）、`docs/decisions/ADR-{NNN}-{title}.md`（决策记录）、`docs/tasks/`（任务文档）。
-  缺陷档案：`docs/tasks/bug-review-pak-src-defects.md`（D1–D196 索引）+ 各周期详版
+  缺陷档案：`docs/tasks/bug-review-pak-src-defects.md`（D1–D197 索引）+ 各周期详版
   `bug-review-cycle{3,4,5,6}-report.md`。**第5周期（D121–D155，2026-10-12）详版见
   `docs/tasks/bug-review-cycle5-report.md`**，含硬件取证、chrome://gpu 实测、Red→Green 验证记录
   与 12 条待跟进项；该文件末尾的 **「续：r6 收口轮执行记录」** 登记 D156–D163，

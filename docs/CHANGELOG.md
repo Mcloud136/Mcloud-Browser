@@ -2,6 +2,21 @@
 
 ## M155（内核升级 M151 → M155.0.8059.40）— 2026-10-10
 
+### r12（D197：CI 绿灯不能代表 gcc 判据跑过）— 2026-10-12 深夜
+
+- 推送 `20ab337` 后 CI 显示 `Source Verification: success`，但日志需要仓库管理员权限才能取
+  （`403 Must have admin rights to Repository`），所以**无法证明**新加的
+  `check_pak_roundtrip` / `check_pak_asan` 真跑过而不是 SKIPPED。而当时 `main()` 只把
+  `failed` 计为失败 ⇒ "没测"与"通过"共用退出码 0。这条假绿是我自己上一轮引入的。
+- 修法：`GITHUB_ACTIONS=true` 时 `compile+round-trip` 落到 SKIPPED **直接 FAIL**
+  （ubuntu runner 必有 `cc`；真没有就修 runner，不放宽门禁）。ASan 检查只 WARN——
+  runner 是否带 libasan 我在这台机器上证实不了，把未验证的前提写成硬失败只会造出没人敢信的红。
+- 做红灯对照时又踩到一条同源坑：新失败文案里的 `U+21D2` 在 cp936 控制台抛
+  `UnicodeEncodeError`，stdout 缓冲把已跑出的结论整段吞掉，`rc=1` 看似门禁在响，实为门禁被自己的输出打死。
+  文案改 ASCII，并在入口加 `contextlib.suppress` 的 `stdout/stderr.reconfigure(errors="replace")`。
+- **三向实测**：本机普通运行 `RESULT: PASS` rc=0；`GITHUB_ACTIONS=true` 且无编译器 ⇒ 真红且结论完整 rc=1；
+  `GITHUB_ACTIONS=true` 且 MSVC 在 PATH ⇒ 恢复绿 + ASan WARN rc=0。ruff（`F,E9,B,SIM`）全绿。
+
 ### r11（D196 处置：用修好的源码重建 Windows 侧 pak 二进制）— 2026-10-12 深夜
 
 用户定案：**本项目只发布 Windows x64（ADR-003），不编译其它平台**，所以只重建 Windows 那两份。

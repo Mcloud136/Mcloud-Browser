@@ -1587,6 +1587,8 @@ CPU 调度效率与占用、核显与独显渲染。
 
 **D196 的处置（r11，用户定案：本项目只发布 Windows x64）**：Windows 侧已用 `pak_src_fixed/pak.c` 重建并落盘 —— 入口 `pak_src/binaries/rebuild_win.bat` → `.bugreview/pak_rebuild.py`，产出 `pak_msvc64.exe`(193,536 B, sha256 `7ab0ae23d2958c13…`) / `pak_msvc32.exe`(160,768 B, `b8007d96a79d5df5…`)，并把 4 个包装器脚本改为首选 msvc。落盘前必须过的判据（全绿）：/W4 零警告、/MT 静态 CRT（实测无 VCRUNTIME140 导入）、/Brepro 连编两次字节相同、对 out/mcloud 的 4 个真实 v5 pak（含 24 MB resources.pak）解包→再打包**与原文件逐字节相同**、与 `pak_src/*.c` 参考实现产物相同、x86==x64 产物。清单 `pak_src/binaries/BUILDINFO.json` 不含时间戳⇒重建零 diff。**Linux/ARM 那两份 ELF 不重建**（ADR-003 只发布 Windows x64）。实测附带查清：在库的 MinGW 版对真实 pak 再打包也能还原出逐字节相同的原文件，它唯一的功能差距是**解包时不给 gzip 资源加 .gz 后缀**（resources.pak 里 3199 个），即早于仓库 `pak_get_file_type.c` 的魔数表。 |
 
+| D197 | **中（CI 假绿 + 门禁被自己的输出打死）** | `win_scripts/verify_sources.py:main()` | 两件事同源：① 推送后 CI 在 `20ab337` 上绿，但**绿不等于新加的 gcc 判据跑过**——`check_pak_roundtrip()` / `check_pak_asan()` 在找不到编译器时返回 `skipped`，而 `main()` 只把 `failed` 计为失败 ⇒ "没测"与"通过"共用一个退出码（本仓反复登记的假绿族，这次落在我自己刚写的门禁上）。日志又需要登录才能取（`403 Must have admin rights`），所以本机**无法**用日志证明它跑过——不可证明的绿灯最危险。② 做红灯对照时脚本直接崩溃：新加的失败文案里有 `U+21D2`，cp936 控制台编不出来 ⇒ `UnicodeEncodeError`，而 stdout 有缓冲，**已跑出来的结论整段丢失**，`rc=1` 看起来像门禁在响，实际是门禁自己被打死。 | 已修：① `GITHUB_ACTIONS=true` 时 `compile+round-trip` 若为 SKIPPED **直接判 FAIL**（ubuntu runner 应有 `cc`；真没有就修 runner，不放宽门禁），ASan 因"runner 是否带 libasan 我无法证实"只 WARN——把未验证的前提写成硬失败只会造一条没人敢信的红。② 文案去掉非 ASCII 符号，并在入口加 `contextlib.suppress` 的 `reconfigure(errors="replace")`，代码页装不下的字符只替换不崩。**三向实测**：本机普通运行 `RESULT: PASS`(rc=0)；伪装 CI + 无编译器 ⇒ 真红并给出完整结论行(rc=1)；伪装 CI + MSVC 在 PATH ⇒ 恢复绿并打 ASan WARN(rc=0) |
+
 ### 本轮新增/改动的量具与判据（都可从干净检出复现）
 
 - `.bugreview/pak_fixed_verify.py` — 从零编译新旧两个工具（**判据用本轮时间戳，不复用 `.cycle7` 里遗留的二进制**）、编码旗标 [1a–1d]、三组样本（v5+别名 / v4 / 64 KB 含 `0x80 0xFF`）的确定性 + 与原始工具字节一致 + 交叉解包清单与载荷多重集、11 组 ASan 用例、删掉 D191 修复的 Red 对照。实测 `FAILED-CHECKS: none`。
@@ -1721,6 +1723,8 @@ CPU 调度效率与占用、核显与独显渲染。
 - [x] 复核另一位 C 工程师的 `pak_src_fixed/`（D190–D196，第7周期深夜）：4 条真实缺陷（脏堆填充、越界读、警告行号错位、v4 别名静默丢弃）+ 2 条交付/口径问题全部修复或更正，判据入库 `.bugreview/pak_fixed_{verify,diff}.py`、`.bugreview/pak_gate_red_control.py`、`pak_src_fixed/{Makefile,run_test.sh}`，并接入 `win_scripts/verify_sources.py`
 - [x] D196 处置（r11）：用 `pak_src_fixed/pak.c` 重建 Windows 侧 `binaries/pak-win/pak_msvc{64,32}.exe`，
       4 个真实 pak 逐字节对拍通过后落盘，包装器首选改为 msvc；Linux/ARM ELF 按 ADR-003 不重建
+- [x] D197（r12）：`verify_sources` 在 CI 上把 SKIPPED 当通过 + 非 ASCII 文案让门禁自己崩溃；
+      已改为 CI 上 compile+round-trip 跳过即 FAIL、ASan 缺运行时只 WARN，并加 stdout 兜底
 - [x] pak 修复后语料回归：8 组畸形输入优雅报错 + v4/v5 真实往返字节一致（ASan，failures=0）
 - [x] flags 加载器合并顺序缺陷 D21/D22/D23：注入器 v2 + 树内升级（重编译验证进行中）
 - [x] win_scripts/*.py 深审（D28-D31 修复，verify_sources 通过）

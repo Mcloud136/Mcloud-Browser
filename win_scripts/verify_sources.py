@@ -28,6 +28,7 @@ Checks:
 Exit code 0 = PASS, 1 = FAIL. Usage: python3 win_scripts/verify_sources.py
 """
 
+import contextlib
 import io
 import os
 import platform
@@ -37,6 +38,14 @@ import subprocess
 import sys
 import tempfile
 from pathlib import Path
+
+# 控制台代码页（本机 cp936）装不下的字符必须被替换而不是抛 UnicodeEncodeError：
+# 实测过一次这样的崩溃把已缓冲的结论整段吞掉，rc 还非 0，看起来像门禁在响，实际是
+# 门禁自己被输出打死（第7周期 r11）。
+for _stream in (sys.stdout, sys.stderr):
+    with contextlib.suppress(AttributeError, ValueError):
+        _stream.reconfigure(errors="replace")
+
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 WIN_SCRIPTS = REPO_ROOT / "win_scripts"
@@ -519,17 +528,31 @@ def main():
         print(f"[PASS] pak_src_fixed sources: {len(PAK_FIXED_FILES)}"
               f"/{len(PAK_FIXED_FILES)} present")
 
+    # CI 上"没编译器"不能算通过：GitHub 的 ubuntu runner 必带 cc，所以
+    # compile+round-trip 若在 CI 上是 SKIPPED，就说明判据根本没跑，而不是"没问题"。
+    # ASan 则只 WARN——runner 上是否装了 libasan 我在这台机器上无法证实，
+    # 把一个未验证的前提写成硬失败，只会制造一条没人敢信的红。
+    on_ci = os.environ.get("GITHUB_ACTIONS", "").lower() == "true"
+
     status, detail = check_pak_roundtrip()
     label = {"passed": "PASS", "failed": "FAIL", "skipped": "SKIP"}[status]
     print(f"[{label}] pak_src_fixed compile+round-trip: {detail}")
     if status == "failed":
         ok = False
+    elif status == "skipped" and on_ci:
+        ok = False
+        print("[FAIL] CI skipped pak_src_fixed compile+round-trip => the criteria never "
+              "ran, which is not a pass (an ubuntu runner is expected to provide cc; if it "
+              "genuinely does not, fix the runner instead of loosening this gate)")
 
     status, detail = check_pak_asan()
     label = {"passed": "PASS", "failed": "FAIL", "skipped": "SKIP"}[status]
     print(f"[{label}] pak_src_fixed ASan+LSan: {detail}")
     if status == "failed":
         ok = False
+    elif status == "skipped" and on_ci:
+        print("[WARN] no ASan runtime on the runner => this round has no "
+              "overflow/leak evidence (not a failure, but do not call it verified)")
 
     checked, ps_failures = check_powershell_static()
     if ps_failures:
