@@ -28,10 +28,12 @@ try { [Console]::OutputEncoding = New-Object System.Text.UTF8Encoding $false } c
 if (-not $ChromeExe) { $ChromeExe = if ($env:MCHROME_EXE) { $env:MCHROME_EXE } else { 'D:\wxmuma\chromium-src-155\src\out\mcloud\chrome.exe' } }
 if (-not (Test-Path $ChromeExe)) { throw "chrome.exe 不存在: $ChromeExe" }
 $subject = Get-Item $ChromeExe
-$mcloudFlagsNextTo = Join-Path $subject.DirectoryName 'mcloud_flags.txt'
-Write-Host ("被测对象: {0} | {1:N0} B | mtime={2:s} | 内置标志文件={3}" -f `
-    $subject.FullName, $subject.Length, $subject.LastWriteTime,
-    $(if (Test-Path $mcloudFlagsNextTo) { '同目录存在' } else { '缺失（内置优化不生效，结果无意义）' }))
+# D183：判据必须按加载器口径找清单（安装版在版本目录里，不在 chrome.exe 同目录）
+. (Join-Path $PSScriptRoot 'tools\mcloud_flags_lookup.ps1')
+$flagsProbe = Get-McloudFlagsProbe $subject
+$flagsText = if ($flagsProbe.Found) { '可读到（' + $flagsProbe.Where + '）' } else { '读不到（' + $flagsProbe.Where + '，内置优化不生效，结果无意义）' }
+Write-Host ("被测对象: {0} | {1:N0} B | mtime={2:s} | 内置标志文件={3} -> {4}" -f `
+    $subject.FullName, $subject.Length, $subject.LastWriteTime, $flagsText, $flagsProbe.Path)
 if ($subject.FullName -match 'chromium-src(\\|$)') {
     Write-Warning "被测对象位于 M151 回滚参考树，不是当前发布对象（155）。确认这是你要测的目标。"
 }

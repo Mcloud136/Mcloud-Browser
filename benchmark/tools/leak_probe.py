@@ -23,6 +23,11 @@ import urllib.request
 DEV_PORT = 9333
 
 
+class InstrumentError(RuntimeError):
+    """量具自身失效（取不到数据）。必须让本次测量**非 0 退出**，
+    不许把"没测到"折算成"没问题"（缺陷 D179/D180）。"""
+
+
 def ps(cmd, timeout=120):
     p = subprocess.run(["powershell.exe", "-NoProfile", "-Command", cmd],
                        capture_output=True, text=True, errors="replace",
@@ -59,9 +64,16 @@ def instance_pids(udd):
 
 
 def workset_mb(udd):
+    """返回 (工作集 MB, 进程数)。取不到数据一律抛错，不得返回 0（缺陷 D179）。
+
+    旧实现在指纹失配 / WMI 失败 / 实例已死时返回 (0.0, 0)。基线处虽然检查了
+    nb == 0，但**逐轮采样没检查**：residuals 里一旦混进 0.0，
+    drift = residuals[-1] - residuals[0] 会变成负数 ⇒ 探针在实例死掉时输出
+    "PASS — 关闭标签后驻留无单调增长"，即"泄漏探针测不到泄漏时宣布没有泄漏"。
+    """
     pids = instance_pids(udd)
     if not pids:
-        return 0.0, 0
+        raise InstrumentError("实例进程筛选为空（指纹失效或浏览器已退出）")
     # PowerShell 里 `double + '|'+…` 会抛"无法将值 '|' 转换为 System.Double"
     # （+ 的左操作数是数字时右操作数会被强制转数字），必须用 -f 格式化。
     # 本函数第一版踩了这个坑：表达式静默失败 → stdout 为空 → 解析成 0.0 MB / 0 进程。
@@ -72,9 +84,12 @@ def workset_mb(udd):
              "$p.Count)}" % ",".join(str(x) for x in pids))
     try:
         mb, n = out.split("|")
-        return float(mb), int(n)
-    except ValueError:
-        return 0.0, 0
+        mb, n = float(mb), int(n)
+    except ValueError as exc:
+        raise InstrumentError("工作集查询输出不可解析：%r" % out[:80]) from exc
+    if n == 0 or mb <= 0.0:
+        raise InstrumentError("工作集查询返回空值（%r）——不得当成 0 MB 继续" % out[:80])
+    return mb, n
 
 
 def stop_instance(udd, proc):
@@ -174,29 +189,41 @@ def main():
             return 2
 
         baseline, nb = workset_mb(profile)
-        print("%s  基线工作集 = %.1f MB（本实例 %d 个进程，调试端口 %d）"
-              % (args.label, baseline, nb, DEV_PORT))
-        if nb == 0:
-            # 采不到任何本实例进程 = 指纹/查询失效，绝不能继续输出 0.0 MB 的"PASS"
-            print("FAIL: 实例进程筛选为 0（指纹或 WMI 查询失效），本次结果不可信")
-            stop_instance(profile, proc)
-            return 2
+        bl = cdp("/json/list")
+        baseline_pages = len([x for x in (bl or []) if x.get("type") == "page"])
+        print("%s  基线工作集 = %.1f MB（本实例 %d 个进程，调试端口 %d，基线 page=%d）"
+              % (args.label, baseline, nb, DEV_PORT, baseline_pages))
         for r in range(1, args.rounds + 1):
             opened = []
             for _i in range(args.tabs):
                 j = cdp("/json/new?about:blank", "PUT")
                 if j and j.get("id"):
                     opened.append(j["id"])
+            # D180：一个标签都没开成功时，峰值≈基线、驻留≈基线，旧实现会输出
+            # "PASS — 无单调增长"。空转不是证据，必须当失败（缺席型判据不得在空数据上过）。
+            if len(opened) < args.tabs:
+                print("FAIL: 第 %d 轮只开了 %d/%d 个标签（CDP /json/new 失效），"
+                      "本次不构成泄漏判据" % (r, len(opened), args.tabs))
+                stop_instance(profile, proc)
+                return 2
             peak, np_ = workset_mb(profile)
             for tid in opened:
                 cdp("/json/close/" + tid)
             time.sleep(6)                              # 等回收/延迟释放稳定
+            # 关完必须真的少了标签：否则"驻留没涨"可能只是"没开上去"（D180 同族）
+            lst = cdp("/json/list")
+            pages_after = len([x for x in (lst or []) if x.get("type") == "page"])
+            if lst is None or pages_after > baseline_pages:
+                print("FAIL: 第 %d 轮关闭后仍有 %s 个 page（开 %d 个），关闭动作未生效"
+                      % (r, "?" if lst is None else pages_after, len(opened)))
+                stop_instance(profile, proc)
+                return 2
             resid, nr = workset_mb(profile)
             residuals.append(resid)
             print("  第 %d/%d 轮：开 %d 关 %d  峰值 %.1f MB（%d 进程）→ 驻留 %.1f MB"
-                  "（相对基线 %+.1f MB，当前 %d 进程）"
+                  "（相对基线 %+.1f MB，当前 %d 进程，剩余 page=%d）"
                   % (r, args.rounds, len(opened), len(opened), peak, np_, resid,
-                     resid - baseline, nr))
+                     resid - baseline, nr, pages_after))
             time.sleep(3)
 
         drift = residuals[-1] - residuals[0]
@@ -208,6 +235,10 @@ def main():
               % (args.label, drift, per_round, verdict))
         print("采样序列:", " → ".join("%.1f" % x for x in residuals), "MB")
         code = 0 if per_round <= limit else 1
+    except (InstrumentError, subprocess.TimeoutExpired) as exc:
+        # 量具失效 ≠ 通过，也 ≠ 泄漏。用 2（环境/量具类）与 1（判据不成立）区分开。
+        print("FAIL（量具失效）: %s" % exc)
+        code = 2
     finally:
         stop_instance(profile, proc)
         shutil.rmtree(profile, ignore_errors=True)

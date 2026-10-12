@@ -6,24 +6,35 @@
 # =============================================================================
 
 # =====================================================================
-# [第6周期核对 2026-10-12，缺陷 D171] 读本清单时的**净收益口径**
+# [第6周期核对 2026-10-12，缺陷 D171；第7周期修正 2026-10-12，缺陷 D177]
+# 读本清单时的**净收益口径**
 #
-# 本文件 51 项 feature 全部在 M155 中真实声明存在（.bugreview/stab_155.json 逐项核对），
-# 但其中 **14 项上游默认就是 ENABLED**，写在这里不是"打开了一个默认关闭的优化"，
-# 净效果为零，其作用是**显式钉住（pin）**：将来上游翻默认值时本产品行为不跟着变。
-# 统计收益时请把这 14 项剔除，否则会把 49 项启用夸大为 49 项优化（实际 35 项）。
+# 本文件 52 项 feature 全部在 M155 中真实声明存在且在本构建**编译得进来**
+# （.bugreview/guard_audit.py：平台守卫 + 已生成 buildflags 逐项判定，52/52 ACTIVE），
+# 但其中 **15 项上游在 Windows 上的默认值就是 ENABLED**，写在这里不是"打开了一个默认
+# 关闭的优化"，净效果为零，其作用是**显式钉住（pin）**：将来上游翻默认值时本产品行为
+# 不跟着变。统计收益时把这 15 项剔除：50 项启用 ≠ 50 项优化，**真正新增生效的启用项是 35**。
 #
-#   1  SpareRendererForSitePerProcess          8  ConsumeCodeCacheOffThread
-#   2  BackForwardCache                        9  RevokeMediaSourceObjectURLOnAttach
-#   3  CacheControlNoStoreEnterBackForwardCache 10 GpuShaderDiskCache
-#   4  PreloadTopChromeWebUI                  11  HighFramerateRequestFromClient
-#   5  BookmarkTriggerForPreconnect           12  PlatformHEVCDecoderSupport
-#   6  PartitionAllocMemoryReclaimer          13  DirectOpusAudioDecoding
-#   7  PruneOldTransferCacheEntries           14  EncryptedMediaOcclusionTracking
+#   1  SpareRendererForSitePerProcess          9  ConsumeCodeCacheOffThread
+#   2  BackForwardCache                       10  GpuShaderDiskCache
+#   3  CacheControlNoStoreEnterBackForwardCache 11 HighFramerateRequestFromClient
+#   4  PreloadTopChromeWebUI                  12  PlatformHEVCDecoderSupport
+#   5  BookmarkTriggerForPreconnect           13  DirectOpusAudioDecoding
+#   6  PartitionAllocMemoryReclaimer          14  EncryptedMediaOcclusionTracking
+#   7  PruneOldTransferCacheEntries           15  AsyncDns          ← 第7周期补（D177）
+#   8  RevokeMediaSourceObjectURLOnAttach
 #
-# 复核方法（内核升级后必须重跑）：
-#   python .bugreview/flag_stability.py        # 生成 stab_<ver>.json
-#   取 stab 中 default == FEATURE_ENABLED_BY_DEFAULT 且 action == enable 的项
+# ⚠ 为什么第 15 项以前没被发现：AsyncDns 的默认值写在 `#if BUILDFLAG(IS_CHROMEOS)||…||
+# BUILDFLAG(IS_WIN)||BUILDFLAG(IS_LINUX)` 里面，旧抽取器只看声明行 ±2 行 ⇒ 读出空值，
+# 空值被当成"不是 pin"静默放过。同一机制还把 **SkiaGraphite 的默认值报错**：它的声明是
+# `#if BUILDFLAG(IS_APPLE) ENABLED #else DISABLED`，Windows 走 #else ⇒ **上游默认就是禁用**，
+# 而 stab 报 ENABLED（第6周期"三版默认启用"的说法由此而来，是错的，见下面 disable-features 段）。
+#
+# 复核方法（内核升级后必须重跑，两条都要）：
+#   python .bugreview/flag_stability.py                 # 生成 stab_<ver>.json（存在性）
+#   python .bugreview/guard_audit.py --json g.json      # 平台有效默认值 + 守卫可达性
+#   python .bugreview/flags_lint.py --file mcloud_flags.txt --stab …stab_155.json --guard g.json
+#   （不带 --guard 时默认值取不到即判致命，不再静默放过）
 # =====================================================================
 
 # =====================================================================
@@ -98,6 +109,8 @@
 --enable-features=BackForwardCache
 # pin: CacheControlNoStoreEnterBackForwardCache 上游默认已启用，此行为显式钉住（D171，净效果为零）
 --enable-features=CacheControlNoStoreEnterBackForwardCache
+# pin: AsyncDns 上游在 Windows 上默认已启用（默认值写在 #if IS_CHROMEOS||IS_MAC||IS_ANDROID||IS_WIN||IS_LINUX 里，
+#      旧抽取器读不到 ⇒ 第6周期漏标；平台有效默认值由 .bugreview/guard_audit.py 判定，见 D177）
 --enable-features=AsyncDns
 
 # --- Image Optimization ---
@@ -134,7 +147,18 @@
 # --- MSE/Video Buffer (Bilibili/YouTube) ---
 # pin: RevokeMediaSourceObjectURLOnAttach 上游默认已启用，此行为显式钉住（D171，净效果为零）
 --enable-features=RevokeMediaSourceObjectURLOnAttach
-# [2026-10-08 固化禁用] 见 4.6 冻结缓解说明（与上方四项同组）
+# [2026-10-08 固化禁用 → **归因状态更正 2026-10-12 第7周期，缺陷 D182**]
+# 窗口拖拽缩小播放视频时整浏览器 UI 冻结（无崩溃/TDR/内存耗尽痕迹，当时判定为
+# UI 线程同步等待合成器）。"禁用清单（4 项）"的实际情况经 guard_audit 逐项核对：
+#   ReduceHardwareVideoDecoderBuffers —— 声明整体在 `#if BUILDFLAG(IS_CHROMEOS) || IS_LINUX`
+#       内，**Windows 构建里根本没有这个 feature**（D142 同族的死声明，只是它没在清单里、
+#       只存在于注释与文档，所以此前未被发现）；
+#   ThrottleUnimportantFrameRate / SkiaGraphite / SkiaGraphitePrecompilation
+#       —— 在 Windows 上上游默认值都是 FEATURE_DISABLED_BY_DEFAULT。
+# ⇒ 这四项**没有一项是"我们关掉的"**：保持它们不启用是正确的，但把"拖拽不再冻结"归因给
+# 这组禁用没有证据；当时是整组实验观察到的缓解，**未做二分归因**，具体哪一项（或是否
+# 与同期其它改动有关）仍未证实。定案维持（不得顺手恢复），归因待复现 —— 见任务 #27。
+# 详见 docs/progress.md 4.6
 #--enable-features=ReduceHardwareVideoDecoderBuffers
 --enable-features=BackForwardCacheDWCOnJavaScriptExecution
 
@@ -163,8 +187,11 @@
 # 事实更正：上游该 feature 基线一直是 DISABLED_BY_DEFAULT，本仓库过去在
 # media/base/media_switches.cc 把它翻成 ENABLED，再由本行抵回去 —— 二者互相抵消。
 # 【155 升级期已清理 2026-10-10】apply_mcloud_source_defaults.py 不再翻转该默认
-# （改为只校验 + 自愈回退历史覆盖），定制面从 7 文件降到 6 文件；本行因此不再是
-# 「抵消」而是唯一且显式的禁用声明，予以保留（Intel 核显 D3D12 绿屏缺陷要求禁用）。
+# （改为只校验 + 自愈回退历史覆盖），定制面从 7 文件降到 6 文件；本行因此不是
+# 「抵消」而是**显式钉住**：上游基线 `FEATURE_DISABLED_BY_DEFAULT`（155 实测，
+# media/base/media_switches.cc:1704 同一形态），所以在当前构建这一行**净操作为零**，
+# 它的价值在于挡住 Finch 远程下发或 chrome://flags 把它打开（核显绿屏缺陷要求它保持禁用）。
+# ⚠ 不要把它读成"绿屏是靠这行挡住的"——真正的现状是上游默认就关着（第7周期 D178 更正）。
 --disable-features=D3D12VideoDecoder
 
 # --- GPU Optimization ---
@@ -176,8 +203,13 @@
 --enable-features=ResourcePoolPreferExactSizeReuse
 # pin: HighFramerateRequestFromClient 上游默认已启用，此行为显式钉住（D171，净效果为零）
 --enable-features=HighFramerateRequestFromClient
-# [155 升级期修正，2026-10-10] 实测 SkiaGraphite 在 151/155/156 均为上游默认启用，
-# 仅注释掉启用行并不等于禁用 —— 下面改为显式禁用，维持拖拽冻结缓解定案。
+# [155 升级期修正 2026-10-10 → **事实更正 2026-10-12 第7周期，缺陷 D178**]
+# 原写"实测 SkiaGraphite 在 151/155/156 均为上游默认启用"是错的：该声明是
+# `#if BUILDFLAG(IS_APPLE) FEATURE_ENABLED_BY_DEFAULT #else FEATURE_DISABLED_BY_DEFAULT`，
+# **Windows 走 #else ⇒ 上游默认就是禁用**（151 与 155 同一结构，已逐树核对）。
+# 错误来源是旧抽取器只看声明行、取到了 Apple 那一支（见 D177）。
+# 因此这一行在当前构建是**无操作**，保留它的意义只有一个：万一上游翻默认值、
+# 或 Finch 远程下发启用时，本产品仍维持禁用。不得把它当成冻结缓解的生效手段。
 # 该项与 GPU 效率存在张力，升级后须做一次同方法 A/B（拖拽复现 + chrome://gpu 渲染路径）。
 --disable-features=SkiaGraphite
 

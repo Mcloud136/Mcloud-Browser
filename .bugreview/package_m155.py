@@ -247,7 +247,8 @@ notes = """# MCloud Browser v%s
   上游只打一条 `LOG(WARNING)` 后继续，**完全静默**。现由 `win_scripts/apply_restart_cmdline.py`
   在重启命令行里剔除 `enable-features` / `disable-features` / `js-flags`（三项都由加载器每次启动
   从 `mcloud_flags.txt` 重新注入，无需命令行接力），修剪后约 260 字符。
-- **净收益口径（D171）**：52 项 feature 中 14 项上游默认即启用，属显式钉住，已在清单内逐条标注。
+- **净收益口径（D171 → 第7周期 D177 修正）**：52 项 feature 中 **15 项**在 Windows 上上游默认即启用，
+  属显式钉住，已在清单内逐条标注 ⇒ 50 项启用里真正新增生效的是 **35 项**。
 
 **新增外层安装程序 `mcloud_%s_win64_setup.exe`（请用这个）**：
 
@@ -281,8 +282,9 @@ notes = """# MCloud Browser v%s
 内置启动标志 52 项 feature + 3 项普通开关在 M155 源码树逐项存活（`.bugreview/flag_stability.py`
 52/52，并确认第5周期删除的 2 条在 M151 上同样是无效声明，净行为为 0），
 并通过子进程命令行验证（`flag_runtime_state.py`，回显 enable 50 / disable 2）确认实际注入。
-⚠ 52 项里有 14 项上游默认即 ENABLED（D171），那 14 行是**显式钉住（pin）**而非"打开了默认
-关闭的优化"，真正的定制启用项是 34 项——别按 50 去理解收益。
+⚠ 52 项里有 **15 项**在 Windows 上上游默认即 ENABLED（D171 提出、第7周期 D177 用
+平台有效默认值核定），那 15 行是**显式钉住（pin）**而非"打开了默认关闭的优化"，
+真正的定制启用项是 **35 项**——别按 50 去理解收益。
 
 ## 已知限制
 

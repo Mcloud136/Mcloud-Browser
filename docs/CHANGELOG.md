@@ -2,6 +2,25 @@
 
 ## M155（内核升级 M151 → M155.0.8059.40）— 2026-10-10
 
+### 第7周期（源码侧，未重打包）— 2026-10-12 晚
+
+- **内存/CPU/GPU 全局审查**（D177–D184，详版 `docs/tasks/bug-review-cycle7-report.md`）。
+- 口径更正：52 项 feature 中上游默认已启用的是 **15 项**（不是 14），真正新增生效 **35 项**（不是 34）。
+  漏掉的是 `AsyncDns`（默认值写在 `#if BUILDFLAG(...)` 里，旧抽取器读不到就静默放过）。
+- 翻案两条"禁用"：`D3D12VideoDecoder`、`SkiaGraphite` 在 Windows 上上游默认即 DISABLED
+  ⇒ 它们是防 Finch 远程下发/防上游翻默认的 **pin**，不是当前生效的禁用手段（D178）。
+  拖拽冻结缓解的"4 项禁用"归因不成立：其中 `ReduceHardwareVideoDecoderBuffers`
+  在本构建**根本不存在**（`#if IS_CHROMEOS||IS_LINUX`），另 3 项默认即禁用（D182，定案不变）。
+- 实测：无泄漏（25 标签×4 轮开合，轮间驻留漂移 +0.7 MB）；50 标签静置 CPU **0.01 折合核**
+  （D170 的 ABOVE_NORMAL 无可见空转代价）；渲染走 **ANGLE D3D11 + 独显 0x00002860**。
+- 新工具：`.bugreview/guard_audit.py` + `.bugreview/feature_decl.py`（平台有效默认值与守卫可达性，
+  三条正例可失败）、`.bugreview/release_chain_check.py`（发布链三处指纹一致性；本周期改注释
+  触发第 4 次断裂，脚本现为 RED，需重打包闭合）、`benchmark/tools/mcloud_flags_lookup.ps1`
+  （按加载器口径查清单，`.ps1` 计数 44→45）。
+- 修掉的假绿判据：`leak_probe` 实例死掉仍 PASS（D179）、标签没开成也 PASS（D180）、
+  `r4` 内存量具坏了仍 PASS（D181）、三个 bench 对安装版误报"内置优化不生效"（D183）、
+  `gpu_probe` 把 feature 名当 ANGLE 后端（D184）。
+
 ### r7（第6周期收口：D170/D171/D172 落地 + 重编重打包 + 干净安装复验）— 2026-10-12 下午
 
 - **D170（High，CPU/多核）**：`BrowserProcessAboveNormalPriority` 单独启用**完全无效**——它只把根进程
@@ -11,8 +30,8 @@
   **安装版与开发树根进程 `PriorityClass` 均为 `AboveNormal`**（gpu-process 同升、renderer 仍 `Idle`）。
   副作用是同时解除 Windows 11 的 EcoQoS（`process_win.cc:283-289` 以"是否为 kUserBlocking"为判据），
   本机 8P+16E ⇒ 浏览器不再被调度到能效核；代价是功耗/发热上升，与 ADR-002 一致。
-- **D171（口径）**：52 项 feature 中 **14 项上游默认即 ENABLED**（净效果为零，属显式钉住），
-  此前只标注 2 项 ⇒ 真正生效的启用项是 **34**，别按 50 理解收益。
+- **D171（口径）→ 第7周期 D177 修正**：52 项 feature 中 **15 项在 Windows 上上游默认即 ENABLED**（净效果为零，属显式钉住；第6周期数成 14 项是漏了默认值写在 `#if` 里的 `AsyncDns`），
+  此前只标注 2 项 ⇒ 真正新增生效的启用项是 **35**，别按 50 理解收益（第6周期的 14/34 由 D177 更正）。
 - **D172（中，安装/更新）**：`RegisterApplicationRestart` 命令行上限 1024 字符，我们的
   `--enable-features` 单项约 1.4 KB ⇒ `E_INVALIDARG`，上游只 `LOG(WARNING)` 后继续 ⇒
   **构建/安装/门禁全绿而浏览器不被 Windows 更新恢复**。新增 `win_scripts/apply_restart_cmdline.py`

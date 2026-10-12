@@ -66,6 +66,15 @@ def proc_types(rows):
 
 
 def private_mb(pids):
+    """本实例私有内存（MB）+ **实际读到数据的进程数**。
+
+    修的是 D181：旧实现 `if not h: continue` 与 GetProcessMemoryInfo 失败都静默计入 0，
+    返回单个 int；全部失败时得到 0，而判据 `last <= first + 120` 在两边都是 0 时**必然成立**
+    ⇒ 内存量具坏了会伪装成"没有累积泄漏"（D138 同族：K2 侧第5周期已修，Python 侧漏了）。
+    现在把"读到几个进程"一起返回，汇总处据此硬失败。
+    （访问掩码保持 0x1010：实测 QUERY_LIMITED_INFORMATION|VM_READ 对同用户子进程
+      同样能取到 PrivateUsage，改成 0x0410 没有证据支持，不做无依据改动。）
+    """
     import ctypes
     import ctypes.wintypes
     k32 = ctypes.windll.kernel32
@@ -79,6 +88,7 @@ def private_mb(pids):
                         "QuotaNonPagedPoolUsage", "PagefileUsage", "PeakPagefileUsage",
                         "PrivateUsage")]
     total = 0
+    measured = 0
     for pid in pids:
         h = k32.OpenProcess(0x1010, False, pid)
         if not h:
@@ -87,19 +97,23 @@ def private_mb(pids):
         c.cb = ctypes.sizeof(c)
         if ps.GetProcessMemoryInfo(h, ctypes.byref(c), c.cb):
             total += c.PrivateUsage
+            measured += 1
         k32.CloseHandle(h)
-    return total // (1024 * 1024)
+    return total // (1024 * 1024), measured
 
 
 def sample(key, log):
     rows = proc_stats(key)
     kinds = proc_types(rows)
     br = [p for p in kinds.get("browser", [])]
+    priv, npriv = private_mb([p for p, _a, _b, _c, _d in rows])
     entry = {"t": round(log["elapsed"](), 1),
              "procs": len(rows),
              "browser_handles": max([h for p, _pp, h, _t, _c in rows if p in br], default=0),
              "browser_threads": max([t for p, _pp, _h, t, _c in rows if p in br], default=0),
-             "private_mb": private_mb([p for p, _a, _b, _c, _d in rows]),
+             "private_mb": priv,
+             # D181：记下"真正读到数据的进程数"，让汇总处能区分"内存确实是 0"与"量具坏了"
+             "private_measured": npriv,
              "kinds": {k: len(v) for k, v in sorted(kinds.items())}}
     log["samples"].append(entry)
     return entry
@@ -231,7 +245,14 @@ def main():
         res["no_memory_accumulation"] = (last["trough_private_mb"]
                                          <= first["trough_private_mb"] + 120)
         res["trough_returns_near_baseline"] = last["trough_procs"] <= res["baseline"]["procs"] + 12
-    hard = [k for k in ("no_proc_accumulation", "no_handle_accumulation",
+    # D181：量具自检 —— 任何一次采样没读到进程、或一个进程的内存都没读到，本次就不构成判据。
+    # 少了这一条，private_mb 全 0 时 `last <= first + 120` 数学上必然成立（0 ≤ 120），
+    # "内存量具坏了"会伪装成"没有累积泄漏"——正是 K2 侧第5周期修掉的形态（D138）。
+    dead = [s["t"] for s in samples if s["procs"] == 0 or s.get("private_measured", 0) == 0]
+    res["instrument_valid"] = bool(samples) and not dead
+    if dead:
+        print("  量具失效的采样时刻(t 秒): %s" % dead[:8])
+    hard = [k for k in ("instrument_valid", "no_proc_accumulation", "no_handle_accumulation",
                         "no_memory_accumulation", "trough_returns_near_baseline",
                         "responsive_before_close", "exit_clean") if not res.get(k)]
     if res.get("leftover_procs"):

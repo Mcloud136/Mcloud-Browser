@@ -49,10 +49,16 @@ def gg(args, pathspec=None):
 
 
 # ---- A: declaration sites (both legacy string-name and modern form) -----
+# 保持 -A2：**不能**为了读跨行默认值把窗口放大（试过 -A8：git grep 的上下文会把
+# 邻居声明的 `kDefault*Param` 一并卷进同一个块，于是 SkiaGraphite 之类的值被串台，
+# 40 条默认值发生"变化"，绝大多数是错的）。
+# 平台**有效**默认值由 guard_audit.py 负责（它读整个文件并按括号配平截取声明体），
+# 这里只报"声明行本身可读到的默认值"，读不到就留空 + 记 note，让下游硬失败（缺陷 D177）。
 raw = gg(["-A2", "-E", GIT_DECL], pathspec=["*.cc", "*.h", "*.mm", "*.cpp"])
 named = {}          # "Name" -> default (legacy explicit-string form)
 decl_ids = set()    # every kIdent appearing at a declaration site
 id_default = {}
+id_note = {}        # ident -> 为什么读不到默认值（跨行/守卫内）
 DEFAULT_RE = r"(FEATURE_[A-Z_]+_BY_DEFAULT|feature_default::k[A-Za-z]+|kDefault[A-Za-z]*)"
 for blk in re.split(r"(?m)^--$", raw):
     joined = " ".join(ln.strip() for ln in blk.splitlines())
@@ -61,6 +67,9 @@ for blk in re.split(r"(?m)^--$", raw):
         decl_ids.add(ident)
         d = re.search(DEFAULT_RE, rest)
         default = d.group(1) if d else ""
+        if not default:
+            id_note[ident] = ("默认值不在声明行上（写在 #if/#else 里或跨续行）；"
+                              "有效默认值须用 guard_audit.py --json 取")
         if default:
             id_default.setdefault(ident, default)
         if name:
@@ -106,6 +115,7 @@ for f in features:
         "name": f,
         "action": "enable" if f in inv["features_enable"] else "disable",
         "state": state, "default": default,
+        "default_note": id_note.get(ident, ""),
         "declared_by_identifier": ident in decl_ids,
         "declared_by_string": f in named,
         "weak_occurrence": ident in weak_ids or f in weak_lit,

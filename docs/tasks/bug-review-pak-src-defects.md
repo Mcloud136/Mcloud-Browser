@@ -1449,7 +1449,7 @@ CET 硬件影子栈开（`compiler.gni:230`）、libc++ `_LIBCPP_HARDENING_MODE_
 | ID | 级别 | 位置 | 问题 | 状态 |
 |---|---|---|---|---|
 | D170 | 高（性能） | `mcloud_flags.txt` | `BrowserProcessAboveNormalPriority` **单独启用完全无效**：它只把根进程标成 `kUserBlocking`，而 `kUserBlocking → ABOVE_NORMAL` 由另一个 feature 决定（`base/process/process_win.cc:299-304` + `base/features.cc:205` `FEATURE_DISABLED_BY_DEFAULT`）。上游注释原文要求"should be used together with kUserBlockingAboveNormalPriority"。⇒ 我们宣称的浏览器进程提权**从未生效** | 已修：补 `UserBlockingAboveNormalPriority`。安装版实测根进程 `Normal → AboveNormal`（gpu-process 同升、renderer 仍 `Idle`，符合语义）；回显 49 → **50/2** |
-| D171 | 中（口径） | `mcloud_flags.txt` | 52 项 feature 里 **14 项上游默认即 `ENABLED`**，净效果为零，此前只标注了 2 项 ⇒ 读清单会把"50 项启用"高估成"50 项优化"（真正生效的启用项 **34**） | 已标注（文件头口径块 + 逐条 `# pin:` 独立注释行） |
+| D171 | 中（口径） | `mcloud_flags.txt` | 52 项 feature 里 **14 项上游默认即 `ENABLED`**，净效果为零，此前只标注了 2 项 ⇒ 读清单会把"50 项启用"高估成"50 项优化"（真正生效的启用项 **34**） | 已标注（文件头口径块 + 逐条 `# pin:` 独立注释行）。**⚠ 第7周期 D177 更正：实为 15 项 pin / 35 项真正新增**（漏掉的是默认值写在 `#if BUILDFLAG(...)` 里的 `AsyncDns`），本行的 14/34 是当时的口径，保留不改以留痕 |
 | D172 | 中（安装/更新） | `chrome/browser/chrome_browser_main_win.cc:827-838` | `RegisterApplicationRestart` 命令行上限 1024 字符，我们的 `--enable-features` 单项就约 1.4 KB ⇒ `E_INVALIDARG`，上游只 `LOG(WARNING)` 后继续 ⇒ **构建/安装/门禁全绿，但浏览器从此不被 Windows 重启管理器恢复**。`GetRestartCommandLine()` 只调 `about_flags::RemoveFlagsSwitches()`，管不到我们**命令行直传**的 flags | 已修并**实测消失（含正向对照）**：`win_scripts/apply_restart_cmdline.py` 幂等剔除 `enable-features`/`disable-features`/`js-flags`（三项都由加载器每次启动从 `mcloud_flags.txt` 重注入，安全）。收口轮对**安装后的二进制**用 `--enable-logging --log-file --v=1` + 一次性 profile 采集：日志 **135,082 B 非空**而该 WARNING **0 次**；**正向对照**——同一份二进制多加一个 1300 字符的未知开关 ⇒ WARNING **复现（hits=1，日志 86,166 B）**，证明这条判据能失败。算术：Red 那条 **1911 字符** → 修剪后 **≈284 字符** < 1024。⚠ 第一版用 `--v=0` 采到 0 B 空日志，"空日志 + 0 hits"是空数据上的缺席判据，已作废重做 |
 | D173 | 中（构建环境） | `autoninja` 默认并行度 | `cc_bindings_from_rs.exe` 在 spawn `clang-format.exe` 时撞 **`os error 231` = `ERROR_PIPE_BUSY`（"所有的管道范例都在使用中"）**，报 `exited with a non-zero exit code: 101`。三次尝试（`build_d172.log` 到 1325 步、`_r2` 到 36 步、`_r3`）同一目标同一错误，**是 spawn 风暴下的竞态、不是代码缺陷**：判别证据是同一目标 `ninja -j 1` / `-j 2` **一次通过**，且 `clang-format.exe` 本体 3.8 MB、`--version` 正常 | 已定策：**两段式** —— 先 `ninja -j 2 <全部 *_crubit_action>`（本机 12 个）把易碎步骤落盘，再 `autoninja -j 16 chrome mini_installer`。教训：报"编译不过"先做单目标 + 降并行判别，别改代码 |
 | D174 | 中（我自己制造，诚实记录） | 进程清理操作 | 我用 `Get-Process -Name crashpad_handler` **按进程名机器级清理**，杀掉的 11 个其实全是用户其它软件的（MuMu / GameViewer / 微信 / QQNT / QQGameTempest / QQLive 的崩溃上报器），**不是本仓探针残留**。正是本仓 D52/D55 明令禁止的形态。影响核实：各应用主进程与服务仍存活（Weixin×6、QQ×10、MuMuNxService、GameViewerService=Running），仅丢崩溃上报助手且不自动重生 | 无数据损失，但**须向用户告知**；清理他人进程必须按**可执行路径 + 由谁启动**限定，不能按名字 |
@@ -1483,6 +1483,33 @@ CET 硬件影子栈开（`compiler.gni:230`）、libc++ `_LIBCPP_HARDENING_MODE_
   ③ 最强：**正向对照**——在同一份被测二进制上制造一个"应当失败"的同类输入
   （本次是加一个 1300 字符的未知开关把修剪后的命令行重新顶过 1024），让它**红一次**，
   这才排除"量具坏了/判据根本没接上"。凡缺席型判据，优先争取 ③，做不到再退到 ②，绝不停在 ①。
+
+## 第7周期（D177–D184：内存/CPU/GPU 全局审查，2026-10-12）
+
+**详版见 `docs/tasks/bug-review-cycle7-report.md`。** 目标：内存占用/内存性能/内存安全（含泄漏）、
+CPU 调度效率与占用、核显与独显渲染。
+
+| ID | 级别 | 位置 | 问题 | 状态 |
+|---|---|---|---|---|
+| D177 | 高（口径污染） | `.bugreview/survival_check.py:52,62-63` | 默认值只取**声明行 ±2 行**里的第一个 `FEATURE_*_BY_DEFAULT`：既不看预处理分支，也不跨续行。后果 ①`kSkiaGraphite`（`#if IS_APPLE ENABLED #else DISABLED`）在 Windows 上被报成 ENABLED，第6周期"三版默认启用、故必须显式禁用"的错误说法由此产生；②`kAsyncDns` 默认值整段在 `#if` 里 ⇒ 报空字符串，而空值被下游静默当成"不是 pin"放过 ⇒ pin 少算一项、净收益数字错 | 已修（分两处）：新增 `guard_audit.py`（读整文件 + 括号配平 + 已生成 buildflags 实际取值）给出**平台有效默认值**，M155/M151 均 52/52 ACTIVE；`flags_lint.py` 默认值取不到即判致命，`--guard` 提供时以其为准（实测 pin=**15**、净新增=**35**）。`survival_check.py` 试过 `-A8` **已撤销**（邻居声明串台，40 条默认值被改错），保持 `-A2` + `default_note` |
+| D178 | 中（事实依据） | `mcloud_flags.txt:168,182`（改动前行号） | 两条 `--disable-features` 指向的 feature 在 Windows 上**上游默认就是 DISABLED**（`D3D12VideoDecoder` media_switches.cc:1704、`SkiaGraphite` `#else` 支），所以两行当前**净操作为零**；而注释把它们写成"唯一且显式的禁用声明""绿屏靠它挡"，会让人误以为缓解手段在清单里 | 已更正注释：明确它们是**防 Finch 远程下发/防上游翻默认的 pin**，不是当前手段；定案（保持禁用）不变。实测本机渲染在独显（0x00002860）+ ANGLE D3D11，核显绿屏路径本机未走到 |
+| D179 | 高（假绿） | `benchmark/tools/leak_probe.py:61-77` | `workset_mb()` 失败返回 `(0.0, 0)`；基线处查了 `nb==0`，**逐轮采样没查** ⇒ `residuals` 混进 0.0 时 `drift = last - first` 变负，泄漏探针在实例死掉/指纹失效时输出 "PASS — 无单调增长"。正是 D89/D138 明令禁止的形态（Python 侧漏网） | 已修：抛 `InstrumentError`，main 捕获后 **rc=2**（与判据不成立的 rc=1 区分）。Red→Green：不存在profile 实测抛出并说明原因 |
+| D180 | 高（空转判据） | 同文件 184-199 | `/json/new` 全失败时 `opened=[]`，峰值≈基线 ⇒ 什么都没做也 PASS；关闭动作没生效也没人查 | 已修：每轮断言 `len(opened)==tabs`，并核对关闭后 page 数回落到基线内，否则 rc=2；日志新增"剩余 page" |
+| D181 | 高（假绿） | `benchmark/tools/r4_memory_stability_check.py:68-91,231` | `private_mb()` 对 `OpenProcess` 失败 `continue`、`GetProcessMemoryInfo` 失败静默计 0，返回单个 int；判据 `last <= first + 120` 在两边都是 0 时**必然成立** ⇒ 内存量具坏了伪装成"没有累积泄漏"（K2 侧 D138 已修，Python 侧漏了） | 已修：返回 `(MB, 实际读到数据的进程数)`，新增 `instrument_valid` 硬判据（任一次采样 procs==0 或 measured==0 即 FAIL）。⚠ 我第一版顺手把访问掩码 0x1010 改 0x0410 并声称"API 要求"——实测**两种掩码都能取到 PrivateUsage**，改动无依据 ⇒ 已撤销并在注释里记录撤销理由 |
+| D182 | 高（归因不成立） | `mcloud_flags.txt:60-65`、`docs/progress.md` 4.6、记忆 [[mcloud-window-freeze-mitigation]] | "窗口拖拽冻结缓解 = 禁用 4 项"的定案里：`ReduceHardwareVideoDecoderBuffers` 声明整体在 `#if BUILDFLAG(IS_CHROMEOS) ‖ IS_LINUX` 内 ⇒ **Windows 没有这个 feature**（D142 同族死声明，只因写在注释/文档里从未被门禁扫到）；其余 3 项在 Windows 上游默认即 DISABLED ⇒ **四项没有一项是"我们关掉的"**，把缓解归因给这组禁用没有证据（当时整组观察、未二分） | 注释与文档已更正；定案维持（不得顺手恢复），但**任务 #27 的人工复现由可选升为必须**（核显/独显各一次） |
+| D183 | 中（假阴性写进 KPI） | `benchmark/bench_{memory,startup,navigation}.ps1` 身份块 | 三处都只问"`chrome.exe` 同目录有没有 `mcloud_flags.txt`"。安装版按 D105/D109 把清单投递到**版本目录**，加载器以 DIR_MODULE 为先 ⇒ 对任何安装版都打印"缺失（内置优化不生效，结果无意义）"，而脚本照样 exit 0 输出 KPI 数字（本轮 K2 日志实证） | 已修：新增共用 `benchmark/tools/mcloud_flags_lookup.ps1`（按加载器口径三级候选：DIR_MODULE → 版本目录 → exe 同目录），三个脚本改为 dot-source；三种布局实测（安装版/开发版/负例）行为正确。`.ps1` 总数 44→45 |
+| D184 | 高（结论超出测量） | `benchmark/tools/gpu_probe.py:49-50,132-133` | "ANGLE=D3D11 / D3D12" 的判据是 GPU 进程命令行里含 `d3d11`/`d3d12` 子串 —— 命中的是**我们自己的 feature 名**（`MediaFoundationD3D11VideoCaptureZeroCopy`、`--disable-features=D3D12VideoDecoder`），实测两者同时 True 而命令行里根本没有 `--use-angle`；末尾"两版走同一 ANGLE 后端"比较的其实是两个 `gpu-process 存在` 布尔值 | 已修：改为 CDP 打开 `chrome://gpu` 解析 `GL_RENDERER`（注意标签是冒号不是等号，首版正则错在这里）与设备号，等正文出现 `GL_RENDERER` 再读（内联 CSS 会先满足 `wait_for_text`），读不到 rc=2；结论句子改成只说实测值。实测：**ANGLE D3D11 + 独显 0x00002860（RTX 4070 Laptop，名称按 D143 不可信）** |
+
+### 第7周期方法论产出
+
+- **"名字在树里"≠"编译得进来"≠"这一行有净效果"**：三层要分别判定。
+  新工具 `guard_audit.py` 补上第二层（预处理守卫 + 已生成 buildflags 的实际取值），
+  `flags_lint --guard` 补上第三层（平台有效默认值 ⇒ pin 还是真优化）。
+- **读声明体只能按括号配平**：放大 `git grep` 上下文（`-A8`）会把邻居声明卷进来，
+  实测制造 40 条错值 —— 比原来的错更多。撤回了。
+- **量具的判据不许命中无关文本**：子串匹配 feature 名当作后端（D184）、
+  把 `0.0` 当测量值（D179/D181）、空集合当通过（D180），四类都是"判据测的不是它声称的东西"。
+- 新增 `release_chain_check.py`：发布链断过 3 次，第 4 次起改为机器判定（本周期自己就触发了它）。
 
 ## 待办（本档案跟踪）
 

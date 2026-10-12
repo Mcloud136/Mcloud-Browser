@@ -13,15 +13,23 @@ MCloud Browser 是基于 Chromium（当前 M155，155.0.8059.40，硬件基线 A
 （`BaseLockTrySpin` 在 `#if BUILDFLAG(IS_POSIX)` 内、`PartitionAllocUsePriorityInheritanceLocks`
 在 `#if PA_BUILDFLAG(ENABLE_PARTITION_LOCK_PRIORITY_INHERITANCE)` 内，而该 buildflag 是
 `is_android && (x64||arm64)`）；r2 时为 63 条 = 60 + 3，差额是 D48 清理掉的 7 条上游不存在的条目。
-⚠ 52 项里有 **14 项**（`SpareRendererForSitePerProcess`、`BackForwardCache`、
+⚠ 52 项里有 **15 项**（`SpareRendererForSitePerProcess`、`BackForwardCache`、
 `CacheControlNoStoreEnterBackForwardCache`、`PreloadTopChromeWebUI`、
 `BookmarkTriggerForPreconnect`、`PartitionAllocMemoryReclaimer`、
 `PruneOldTransferCacheEntries`、`ConsumeCodeCacheOffThread`、
 `RevokeMediaSourceObjectURLOnAttach`、`GpuShaderDiskCache`、
 `HighFramerateRequestFromClient`、`PlatformHEVCDecoderSupport`、
-`DirectOpusAudioDecoding`、`EncryptedMediaOcclusionTracking`）**上游默认就是 ENABLED**
-（第6周期核对，缺陷 D171；此前只标注了其中 2 项）。这些行是显式钉住（pin）而非
-"打开了默认关闭的优化"，不要算作已生效的定制收益——真正生效的启用项只有 **34 项**）
+`DirectOpusAudioDecoding`、`EncryptedMediaOcclusionTracking`、**`AsyncDns`**）
+**在 Windows 上上游默认就是 ENABLED**（第7周期用 `.bugreview/guard_audit.py` 按平台有效
+默认值核定，缺陷 D171→D177；第6周期只数出 14 项，漏掉 AsyncDns 是因为它的默认值写在
+`#if BUILDFLAG(IS_CHROMEOS)||IS_MAC||IS_ANDROID||IS_WIN||IS_LINUX` 里，旧抽取器读不到就
+静默放过）。这些行是显式钉住（pin）而非"打开了默认关闭的优化"，不要算作已生效的定制收益
+——**50 项启用里真正新增的只有 35 项**。
+⚠ 同一把尺子也翻案了两条"禁用"：`D3D12VideoDecoder` 与 `SkiaGraphite` 在 Windows 上
+**上游默认即 DISABLED**（后者声明是 `#if IS_APPLE ENABLED #else DISABLED`），所以这两行
+当前净操作为零，作用是防 Finch 远程下发/防上游翻默认，**不是**"绿屏/冻结靠它们挡住的"
+（缺陷 D178；拖拽冻结那组 4 项的归因另见 D182——其中 `ReduceHardwareVideoDecoderBuffers`
+在 Windows 上是根本不存在的死声明）
 ⚠ `mcloud_flags.txt` **不支持行尾注释**：加载器只跳过整行注释，一行
 `--enable-features=Foo   # note` 会让整串 feature 被拒、全部优化静默失效（**缺陷 D59**，
 不是新缺陷；`flag_stability.py` 的 F 断言专拦此项）。
@@ -413,6 +421,26 @@ autoninja -C out/mcloud chrome mini_installer
   于是把 1300 个字符往 `[int]` 上强转，报 `无法将值"aaaa…"转换为类型 System.Int32`
   （`$ErrorActionPreference='Stop'` 下整个脚本停在第 11 行）。第6周期收口轮的取证脚本实测；
   同族：D83（函数内 `+=` 不写回脚本作用域）。写取证脚本时局部名与参数名不要只差大小写。
+- **判据必须命中它声称的那个东西**（第7周期 D179/D180/D181/D183/D184，五条同族）：
+  ① 子串匹配 feature 名当成 GPU 后端（`gpu_probe` 的 `d3d11 in 命令行` 命中的是
+  `MediaFoundationD3D11VideoCaptureZeroCopy` 和 `--disable-features=D3D12VideoDecoder`，
+  与 ANGLE 后端无关，且两者同时为 True）；② 量具取不到数据时 `return 0`，
+  于是"实例死了/查不到内存"表现为 `0 ≤ 0 + 120` ⇒ 泄漏判据必然成立；
+  ③ 工作负载没跑起来（一个标签都没开成）时峰值≈基线 ⇒ 空转也 PASS；
+  ④ 身份检查按 `exe 同目录` 找清单，而安装版在版本目录 ⇒ KPI 日志里长期写着
+  "内置优化不生效，结果无意义"（实测照样 exit 0）；⑤ 结论句子比较的两个布尔值
+  跟句子说的不是一回事。⇒ 写判据时先问：**它在什么输入下会红？**
+  答不出并给出一次实测的红，就还没有判据。
+- **"名字在树里"≠"编译得进来"≠"这一行有净效果"**（第7周期，缺陷 D177/D178/D182）：
+  三层分别由 `survival_check.py`（存在性）、`guard_audit.py`（预处理守卫 + 已生成
+  buildflags 实际取值 + **平台有效默认值**）、`flags_lint.py --stab --guard`（pin 还是真优化）判定。
+  内核升级后三条都要跑；`guard_audit` 需要源码树与 `out/mcloud`（或 `.gni` 回退路径）。
+  ⚠ 不要用"放大 `git grep` 上下文"来读跨行默认值：`-A8` 实测把邻居声明的
+  `kDefault*Param` 卷进同一个块，制造 40 条错值 —— 只能读整文件按括号配平截取。
+- **发布链一致性现在是机器判定**（第7周期，`python .bugreview/release_chain_check.py`）：
+  仓库 `mcloud_flags.txt` / 打包暂存载荷 / 已安装实例三处指纹任一不一致即 rc=1，
+  并区分"只差注释"与"开关集合不同"。这条链断过 3 次（D102/D175/第6周期 §8.2），
+  第 4 次就是本周期改注释触发的。**修法只有重打包 + 干净安装复验，手工 copy 是 D175 的形态。**
 - **测试不得写入发布产物目录（缺陷 D99 纪律）**：会改写被测文件的测试（`loader_edge_test2/3` 要重写 `mcloud_flags.txt`）必须在**硬链接沙箱**里跑，不能把 `LOADER_TEST_OUT` 指到 `out/mcloud`。`final_gate_matrix.ps1` 会自动建 `out/mcloud_loader_test`（链运行时文件、跳过 args.gn/.ninja_log/build.ninja 与文件数>1000 的构建中间目录）。中断的测试曾在发布目录留下 106 KB/300 KB 的假 flags 文件，让后续门禁拿测试语料当生产配置测量。测试脚本里有「发现构建特征文件即 REFUSED/exit 2」的前门；确需在生产目录上跑，显式设 `MCLOUD_ALLOW_LOADER_TEST_ON_BUILD_DIR=1`。
 - **基准/工具脚本不得写死被测树**：`benchmark/*.ps1` 与 `benchmark/tools/*` 的默认对象改为
   `$env:MCHROME_EXE` / `$env:MCHROME_OUT`（再退回 `D:\wxmuma\chromium-src-155\src\out\mcloud`），
@@ -451,8 +479,10 @@ autoninja -C out/mcloud chrome mini_installer
      环境不对 ⇒ 每个编译命令行都变 ⇒ **全树失效**（实测 `ninja -n` 51,361 步 + libc++
      `'new.h' file not found`）。动手前先 `ninja -n` 数步数（D74）。
   ⑤ **门禁的输入集合必须能从干净检出复现**：`.bugreview/` 下只入库 `*.py`，
-     放一份 `.ps1` 进那里会让 `verify_sources.py` 的 `.ps1` 计数 44→45，
+     放一份 `.ps1` 进那里会让 `verify_sources.py` 的 `.ps1` 计数凭空 +1，
      接手方一条判据都复现不了（同 `a291812`/`bf4e63f` 的"悬空引用"族）。
+     ⚠ 反过来，**入库的**共享脚本让计数变化是正常且必须写进文档的：第7周期新增
+     `benchmark/tools/mcloud_flags_lookup.ps1`（缺陷 D183 的修法），计数 44→45。
      另：判据日志必须自己落盘——我批量跑时那次 rc=1 因为把输出丢进 `/dev/null` 而至今无法归因。
 - **本机硬件身份（第5周期 D143 实测钉死，勿再按名称推断）**：
   | 项目 | 值 |
@@ -479,13 +509,20 @@ autoninja -C out/mcloud chrome mini_installer
   > **MuMu 虚拟显示器**，D139 之前每份 KPI 基线的 GPU 字段都是错的。
 - **补丁位置**：`other/` 目录，命名 `feature-name.patch`。
 - **文档位置**：`docs/architecture/`（架构）、`docs/dev-logs/phase{N}-dev-log.md`（开发日志）、`docs/decisions/ADR-{NNN}-{title}.md`（决策记录）、`docs/tasks/`（任务文档）。
-  缺陷档案：`docs/tasks/bug-review-pak-src-defects.md`（D1–D176 索引）+ 各周期详版
+  缺陷档案：`docs/tasks/bug-review-pak-src-defects.md`（D1–D184 索引）+ 各周期详版
   `bug-review-cycle{3,4,5,6}-report.md`。**第5周期（D121–D155，2026-10-12）详版见
   `docs/tasks/bug-review-cycle5-report.md`**，含硬件取证、chrome://gpu 实测、Red→Green 验证记录
   与 12 条待跟进项；该文件末尾的 **「续：r6 收口轮执行记录」** 登记 D156–D163，
   是对第5周期交接件的复核（哪些成立、哪些要打折）、**重打包后的新发布物哈希**、
   "7 条安装器修复当时一条都没执行过"的处置（`installer_arg_test.py`），以及
   **干净安装复验的实测结果**（D162 卸载必卡、D163 本机 `EnableLUA=0` 的结论边界）。
+  **第7周期（D177–D184，2026-10-12）详版见 `docs/tasks/bug-review-cycle7-report.md`**：
+  内存/CPU/GPU 三个方向的全局审查。要点 —— 52 项 feature 全部编译得进来（0 死声明）、
+  pin 实为 15 项 / 真正新增 35 项（D177 更正 D171 的 14/34）；未发现泄漏
+  （25 标签×4 轮，轮间 +0.7 MB）；50 标签驻留 CPU 0.01 折合核；渲染实测走
+  **ANGLE D3D11 + 独显（设备号 0x00002860）**；修掉 5 个会造成假绿的判据缺陷
+  （D179/D180/D181/D183/D184）；新增 `guard_audit.py`（平台守卫与有效默认值）、
+  `release_chain_check.py`（发布链一致性，当前因只改注释而红，属预期）。
   再往后的 **「续 2：第 6 轮改动的处置与整体回退」** 登记 D164–D169：另一模型的 12 文件改动
   里哪些我核过是对的、哪 3 条是阻断级缺陷（含实测复现）、以及为什么整体回退到 `96267cd`
   与回退后的全套测试结果。

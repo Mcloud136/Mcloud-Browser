@@ -88,14 +88,38 @@ def check_names(entries):
     return errors, warnings
 
 
-def check_against_stab(entries, stab_path):
-    """对照 stab 清单核对 feature 是否在内核中真实声明。调用方已保证文件存在。"""
+def check_against_stab(entries, stab_path, guard_path=None):
+    """对照 stab 清单核对 feature 是否在内核中真实声明。调用方已保证文件存在。
+
+    ⚠ 默认值口径（第7周期，缺陷 D177）：`stab_*.json` 里的 `default` 是
+    "声明里第一个 FEATURE_*_BY_DEFAULT"，**不看预处理分支**。M155 的 kSkiaGraphite 是
+    `#if BUILDFLAG(IS_APPLE) ENABLED #else DISABLED`，Windows 走 #else ⇒ 实际默认是禁用，
+    而 stab 报 ENABLED；kAsyncDns 的默认值整段在 #if 里 ⇒ stab 报空。
+    因此：默认值取不到（''）一律判致命；给了 --guard（guard_audit.py 的平台有效默认）
+    则以它为准，并与 stab 交叉比对，不一致即判致命。
+    """
     msgs = []
     with io.open(stab_path, encoding="utf-8") as fh:
         stab = json.load(fh)
     known = {f["name"] for f in stab.get("features", [])}
     unknown_default = {f["name"]: f.get("default", "")
                        for f in stab.get("features", [])}
+    eff = {}
+    if guard_path:
+        with io.open(guard_path, encoding="utf-8") as fh:
+            for rec in json.load(fh):
+                eff[rec["name"]] = (rec.get("default") or "").split("::")[-1]
+                if rec.get("verdict") != "ACTIVE":
+                    msgs.append(("note", "守卫判定不是 ACTIVE：%s（%s：%s）"
+                         % (rec["name"], rec.get("verdict"), rec.get("note", ""))))
+        for name, d in sorted(eff.items()):
+            sd = unknown_default.get(name, "")
+            if sd and d and sd != d:
+                # 不判致命：stab 只看声明行 ±2 行，读不到 #if 分支里的**平台有效**默认值，
+                # 有 --guard 时以 guard 为准（guard_audit 按括号配平截声明体）。
+                # 不一致只作为提示——它本身就是 D177 的现场证据。
+                msgs.append(("note", "%s 两个量具的默认值不一致：stab=%s guard=%s"
+                             "（stab 不看 #if 分支，以 guard 为准）" % (name, sd, d)))
     for lineno, _raw, switch, value in entries:
         if switch not in ("enable-features", "disable-features"):
             continue
@@ -104,13 +128,19 @@ def check_against_stab(entries, stab_path):
             if not name:
                 continue
             if name not in known:
-                msgs.append("L%d: %s 在 %s 中未声明（会被 Chromium 静默忽略，同 D48）"
-                            % (lineno, name, os.path.basename(stab_path)))
-            elif switch == "enable-features" and \
-                    unknown_default.get(name) == "FEATURE_ENABLED_BY_DEFAULT":
+                msgs.append(("fatal", "L%d: %s 在 %s 中未声明（会被 Chromium 静默忽略，同 D48）"
+                           % (lineno, name, os.path.basename(stab_path))))
+                continue
+            d = eff.get(name) or unknown_default.get(name, "")
+            if not d:
+                msgs.append(("fatal", "L%d: %s 的上游默认值未知（stab 的 default 为空，通常是它写在 "
+                           "#if 里）——无法判断这行是优化还是 pin（D177）"
+                           % (lineno, name)))
+                continue
+            if switch == "enable-features" and d == "FEATURE_ENABLED_BY_DEFAULT":
                 # 非致命：钉住（pin）是有意的，但必须是显式注释说明过的。
-                msgs.append("L%d: note %s 上游默认已启用，本行为 pin（净效果为零，见 D171）"
-                            % (lineno, name))
+                msgs.append(("note", "L%d: %s 上游默认已启用，本行为 pin（净效果为零，见 D171）"
+                         % (lineno, name)))
     return msgs
 
 
@@ -119,6 +149,8 @@ def main():
     ap.add_argument("--file", default=DEFAULT_FILE)
     ap.add_argument("--stab", default=None,
                     help="可选：stab_<ver>.json，追加 feature 存在性核对")
+    ap.add_argument("--guard", default=None,
+                    help="可选：guard_audit.py --json 的输出，用平台有效默认值覆盖 stab")
     args = ap.parse_args()
 
     if not os.path.isfile(args.file):
@@ -154,15 +186,18 @@ def main():
             print("\n  [FAIL] 找不到 stab 文件：%s —— 存在性核对未执行，不得判为通过"
                   % args.stab)
             return 1
-        notes = check_against_stab(entries, args.stab)
-        fatal = [m for m in notes if "未声明" in m]
+        notes = check_against_stab(entries, args.stab, args.guard)
+        fatal = [m for kind, m in notes if kind == "fatal"]
         print("\n  存在性核对（%s）：%s" % (os.path.basename(args.stab),
                                             "全部声明存在" if not fatal else "%d 项未声明" % len(fatal)))
         for m in fatal:
             print("    [FAIL] " + m)
-        pins = [m for m in notes if m.startswith("L") and " note " in m]
+        pins = [m for kind, m in notes if kind == "note" and "pin" in m]
+        others = [m for kind, m in notes if kind == "note" and "pin" not in m]
         if pins:
             print("  pin 项（上游默认已启用，净效果为零）：%d" % len(pins))
+        for m in others:
+            print("  [NOTE] " + m)
         if fatal:
             return 1
 
