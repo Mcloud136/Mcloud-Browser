@@ -2,6 +2,32 @@
 
 ## M155（内核升级 M151 → M155.0.8059.40）— 2026-10-10
 
+### r10（复核另一位 C 工程师的 `pak_src_fixed/`：D190–D196）— 2026-10-12 深夜
+
+- 他做对的保留：严格别名 UB（U1/U2）、`vsnprintf` off-by-one（U3）、`_snprintf`→`snprintf`（P1）、
+  `strcpy`→`snprintf`（O1）、`header_size` 宽度（B1）、`ferror/fclose`（B3）—— 逐项核实成立。
+- 修掉他留下的 4 条真实缺陷：
+  **D190** v5 头部 3 个 padding 取自脏堆 ⇒ 产物不可复现（对他提交的 `pak.exe` 连打三次，
+  偏移 5 为 `01/02/02`）；**D191** 他把 `read_file` 的 `size+1` NUL 当冗余删掉 ⇒ `sscanf`
+  堆越界读（ASan `READ of size 77`）；**D192** 无 BOM UTF-8 + CP936 吞换行 ⇒ 警告行号 4/4 条
+  指错代码，他的处理是 `/wd4819` 闭掉症状，现改 `/utf-8`；**D193** `version=4` 声明 `[Alias]`
+  时静默丢别名表并返回 0（原工具直接 rc=8 拒绝）—— 现与原始工具一致地拒绝。
+- 更正 `REVIEW.md` 的结论性表述：§六 承诺的 `Makefile`/`run_test.sh` 从未入库（已补并实测）、
+  "本机无 C 编译器"与同 commit 提交的 `pak.exe/pak.obj/*.pak/t_out/` 矛盾（已 `git rm` + `.gitignore`）、
+  "cl /W4 零警告"有掩蔽前提、"往返字节级兼容"当时不成立、B2 把承重的 `+1` 说成浪费。
+- **D196（架构事实）**：`pak_src/` 与 `pak_src_fixed/` 的 C 源码**不参与任何构建** —— 全仓唯一
+  复制 pak 的是遗留 `setup.sh:87-88` 与已按 D97 禁用的 `win_scripts/setup.py:144-149`，且复制的是
+  `pak_src/binaries/` 里的**预编译旧版**；`deploy_mcloud.py` 无任何 pak 步骤。已写进 AGENTS.md。
+- 判据入库并接进门禁：`win_scripts/verify_sources.py` 新增
+  `check_pak_fixed_sources` / `check_pak_roundtrip` / `check_pak_asan`；
+  `.bugreview/pak_fixed_verify.py`、`.bugreview/pak_fixed_diff.py`（19 组边界输入新旧差分：
+  修前唯一分歧即 D193，修后 `行为不一致: 无`）、`.bugreview/pak_gate_red_control.py`
+  （在临时副本上删修复证明门禁能红）、`pak_src_fixed/{Makefile,run_test.sh}`。
+- ⚠ 平台边界（实测）：Windows 的 ASan **没有 LeakSanitizer**（`detect_leaks=1` 直接退出）
+  ⇒ 本机 ASan clean 只证明无越界，不证明无泄漏；泄漏判据只在 POSIX/CI 侧成立。
+- ⚠ D195（`snprintf` 截断 / OOM 下写出空索引却报成功）已修**未门禁化**：触发要 max-path 或 OOM，
+  本机造不出真实输入，按纪律标注为"已修未测"。
+
 ### r9（第7周期五轮复审：D132 真正落地 + 两处文档虚指修正）— 2026-10-12 深夜
 
 - **D132 单实例互斥**（第7周期才真正实现；档案里此前一直是「⬜ 待跟进」）：

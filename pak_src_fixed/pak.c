@@ -13,10 +13,15 @@
  *   B1     —— MyPakHeader.header_size 用 uint32_t（原 uint8_t 有潜在截断）。
  *   B3     —— write_file 额外检查 ferror / fclose 返回值。
  *   O1     —— 路径拼接一律 snprintf + 长度边界，不再用 strcpy/strncpy。
+ *   D190   —— 写头部前先 memset，v5 的 3 个 padding 字节不再漏未初始化的堆内容。
+ *   D191   —— 索引缓冲保留 size+1 并写 NUL：sscanf/strstr 需要，删掉即堆越界读（ASan 实测）。
+ *   D192   —— MSVC 必须用 /utf-8 编译本文件（无 BOM 的 UTF-8 中文注释在 CP936 下会
+ *            吞掉换行，警告行号整体错位；实测 4 条 C4996 的行号全部指错代码）。
+ *   D193   —— version=4 时若索引声明了 [Alias]，直接拒绝而不是静默丢弃别名表。
  *
  * 编译（MSVC）：
  *   call "C:\Program Files (x86)\Microsoft Visual Studio\18\BuildTools\VC\Auxiliary\Build\vcvars64.bat"
- *   cl /W4 /O2 pak.c /Fe:pak.exe
+ *   cl /W4 /O2 /utf-8 pak.c /Fe:pak.exe        ← /utf-8 不可省，见 D192
  * 编译（gcc/clang）： cc -std=c11 -Wall -Wextra -Wpedantic -O2 pak.c -o pak
  *
  * 用法： pak -u <file.pak> <out_dir> | pak -p <pak_index.ini> <out.pak>
@@ -43,6 +48,12 @@
 #else
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <limits.h>
+/* glibc 在 `-std=c11` 严格模式下不暴露 PATH_MAX（要 _DEFAULT_SOURCE），
+   少了这层兜底，本文件在 CI 的 gcc 上会直接编译失败（P2 的收尾）。 */
+# ifndef PATH_MAX
+#  define PATH_MAX 4096
+# endif
 #define PAK_PATH_MAX PATH_MAX
 #endif
 
@@ -121,9 +132,13 @@ static PakFile read_file(const char *name) {
     if (fseeko(fp, 0, SEEK_SET) != 0) { fclose(fp); return NULL_FILE; }
 
     f.size = (uint32_t)len;
-    /* 即使 size==0 也分配 >=1 字节，避免 malloc(0) 返回空指针的歧义。 */
-    f.buffer = malloc(f.size ? f.size : 1);
+    /* 多分配 1 字节并显式置 NUL：下面 pack() 用 strstr/sscanf 按 C 字符串扫这个缓冲，
+       没有终止符就会读过分配尾（第7周期 D191，ASan 实测 heap-buffer-overflow
+       READ of size 77，位置正好在 84 字节的 pak_index.ini 之后 0 字节处）。
+       原实现的 size+1 不是浪费，是这些字符串函数的前置条件。 */
+    f.buffer = malloc((size_t)f.size + 1);
     if (!f.buffer) { fclose(fp); return NULL_FILE; }
+    f.buffer[f.size] = '\0';
 
     if (f.size > 0 && fread(f.buffer, 1, f.size, fp) != (size_t)f.size) {
         free(f.buffer); f.buffer = NULL; fclose(fp); return NULL_FILE;
@@ -236,7 +251,13 @@ static PakFile pack_files(const MyPakHeader *h, const PakFile *res,
     uint8_t *buf = malloc((size_t)total);
     if (!buf) return NULL_FILE;
 
-    /* 写头部（小端，无别名 UB）。 */
+    /* 写头部（小端，无别名 UB）。
+       ⚠ 必须先把头部区间清零：v5 的布局是 version(4) + encoding(1) + _padding[3] +
+       resource_count(2) + alias_count(2)，那 3 个 padding 字节原实现只写了 buf[4]，
+       于是把 malloc 出来的脏堆内容留在产物里（第7周期 D190：同一份输入三次打包，
+       偏移 5 分别是 0x00 / 0x01 / 0x02 ⇒ 产物不可复现、与原工具字节不兼容，
+       且泄露进程堆字节）。 */
+    memset(buf, 0, h->header_size);
     wr_u32le(buf, h->version);
     if (h->version == 5) {
         buf[4] = h->encoding;
@@ -359,9 +380,14 @@ static bool unpack(const uint8_t *buf, uint32_t size, const char *outdir) {
     char path[PAK_PATH_MAX];
     for (uint32_t i = 0; i < count; i++) {
         const char *ext = get_file_type(files[i].buffer, files[i].size);
-        /* O1/P1：受控路径拼接，snprintf + 长度边界，绝不 strcpy。 */
+        /* O1/P1：受控路径拼接，snprintf + 长度边界，绝不 strcpy。
+           D195：截断必须报错——否则资源会写到被截断的路径上，而工具仍报成功。 */
         snprintf(fname, sizeof(fname), "%u%s", files[i].id, ext);
-        snprintf(path,  sizeof(path),  "%s/%s", outdir, fname);
+        int pn = snprintf(path, sizeof(path), "%s/%s", outdir, fname);
+        if (pn < 0 || (size_t)pn >= sizeof(path)) {
+            printf("Error: output path too long for resource %u\n", files[i].id);
+            free(index); free(files); return false;
+        }
         if (!write_file(path, files[i].buffer, files[i].size)) {
             free(index); free(files); return false;     /* 逐资源写失败传播（原 D17） */
         }
@@ -380,7 +406,17 @@ static bool unpack(const uint8_t *buf, uint32_t size, const char *outdir) {
     }
 
     char idxpath[PAK_PATH_MAX];
-    snprintf(idxpath, sizeof(idxpath), "%s/pak_index.ini", outdir);
+    int in_ = snprintf(idxpath, sizeof(idxpath), "%s/pak_index.ini", outdir);
+    if (in_ < 0 || (size_t)in_ >= sizeof(idxpath)) {
+        printf("Error: index path too long\n");
+        free(index); free(files); return false;
+    }
+    /* D195：index 为空只可能是 index_append 在内存不足时全部失败。此时继续写文件
+       会产出一个"空的 pak_index.ini + 解包成功"的假象，必须直接报错。 */
+    if (!index || len == 0) {
+        puts("Error: failed to build pak_index.ini (out of memory?)");
+        free(index); free(files); return false;
+    }
     bool ok = write_file(idxpath, (const uint8_t *)index, len);
     free(index);
     free(files);        /* 仅释放数组；元素 buffer 借入自 buf，由调用方释放 */
@@ -426,10 +462,18 @@ static PakFile pack(const uint8_t *idx, uint32_t idxsize, const char *basepath) 
     size_t resRegion = aliasStart ? (size_t)(aliasStart - resStart)
                                   : (idxsize - (size_t)(resStart - base));
     uint32_t resCount = count_char(resStart, resRegion, '=');
-    uint32_t aliasCount = (h.version == 4) ? 0
-                        : (aliasStart ? count_char(aliasStart,
-                                                   idxsize - (size_t)(aliasStart - base), '=')
-                                      : 0);
+    uint32_t aliasDeclared = aliasStart
+            ? count_char(aliasStart, idxsize - (size_t)(aliasStart - base), '=')
+            : 0;
+    /* v4 的头部布局（version(4)+resource_count(4)+encoding(1)）根本没有 alias_count
+       字段，别名表无处登记。原工具对此直接报 broken index（rc=8）；重写版一度改成
+       "照写但静默丢掉别名"，那是把拒绝换成静默数据丢失（第7周期 D193）。
+       差分实测：16 组边界输入里唯一的行为分歧就是这一条。 */
+    if (h.version == 4 && aliasDeclared > 0) {
+        puts("Error: Probably broken pak index file.");
+        return NULL_FILE;
+    }
+    uint32_t aliasCount = aliasDeclared;
     if (resCount > PAK_MAX16 || aliasCount > PAK_MAX16) {
         puts("Error: Packed pak would exceed 4 GB."); return NULL_FILE;     /* 拒绝截断 */
     }
@@ -452,7 +496,11 @@ static PakFile pack(const uint8_t *idx, uint32_t idxsize, const char *basepath) 
         }
         r += c;
         char path[PAK_PATH_MAX];
-        snprintf(path, sizeof(path), "%s/%s", basepath, fname);   /* O1/P1：受控拼接 */
+        int pn = snprintf(path, sizeof(path), "%s/%s", basepath, fname);
+        if (pn < 0 || (size_t)pn >= sizeof(path)) {   /* D195：拼接被截断 */
+            puts("Error: resource path too long.");
+            pak_array_free(res_arr, parsed); return NULL_FILE;
+        }
         PakFile f = read_file(path);
         if (!f.buffer) {
             puts("Error: Probably broken pak index file.");

@@ -61,3 +61,12 @@ mcloud_*_win64_setup.exe.sha256
 # 第7周期一次性取证输出与临时补丁脚本（整目录不入库，同 .cycle4/.cycle5/.cycle6）
 .cycle7/
 .cycle7_*
+
+# pak_src_fixed 的编译产物与测试输出（第7周期 D194：这些曾被误提交）
+pak_src_fixed/pak
+pak_src_fixed/pak.exe
+pak_src_fixed/pak.obj
+pak_src_fixed/*.pdb
+pak_src_fixed/*.pak
+pak_src_fixed/t_out/
+pak_src_fixed/t_out_build/

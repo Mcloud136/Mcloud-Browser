@@ -1560,6 +1560,40 @@ CPU 调度效率与占用、核显与独显渲染。
   第 4 次断裂就此闭合。
 - ⚠ 卸载器再次删掉任务栏固定项（无 API 可恢复），仍需人工重新固定。
 
+## 第7周期·复核另一位 C 工程师的 `pak_src_fixed/`（D190–D196，2026-10-12 深夜）
+
+提交 `0bbabca`（"fix(pak): 消除严格别名UB/跨平台编译错误，提供现代C11修正版"，14 文件 / +780 行，
+新增目录 `pak_src_fixed/`）。以下先记**他做对的**，再记**我实测出的新缺陷**。
+
+### 核实为真、予以保留的部分
+
+- U1/U2（严格别名 UB + 隐式小端）改 `memcpy` + 显式小端编解码 —— 正确且必要。
+- U3 `vsnprintf` 截断判定 off-by-one —— 正确。
+- P1 四处 `_snprintf` → `snprintf`；O1 `strcpy/strncpy` → `snprintf` 受控拼接；
+  B1 `header_size` `uint8_t` → `uint32_t`；B3 补 `ferror`/`fclose` 检查 —— 均成立。
+- D1–D19 的加固语义在新实现里保留了（我用 19 组边界输入做新旧差分，见下）。
+
+### 新登记缺陷
+
+| 编号 | 严重度 | 位置 | 现象 / 根因 | 修复与验证 |
+|------|--------|------|-------------|-----------|
+| D190 | **高（不可复现产物 + 堆信息泄漏）** | `pak_src_fixed/pak.c` `pack_files()` 写头部分支 | v5 头部是 `version(4)+encoding(1)+_padding[3]+count(2)+alias(2)`，而写头部时只写了 `buf[4]` 与两个计数，**3 个 padding 字节取自 `malloc` 的脏堆**。后果三重：① 同一输入两次打包产物不同 ⇒ 发布哈希失去意义；② 与原始工具字节不兼容；③ 进程堆字节被写进分发文件 | 已修：写头部前 `memset(buf, 0, h->header_size)`。**Red 直接来自他 commit 里那个 `pak.exe`**：连打三次头部偏移 5 分别是 `01 / 02 / 02`（`sh run_test.sh` 对它报 `FAIL deterministic-pack`，对修后二进制 7 项全绿）。门禁化：`verify_sources.check_pak_roundtrip()` 同时断言"两次一致"与"v5 padding 必须为 0"，`.bugreview/pak_gate_red_control.py` 用副本删掉 memset 证明该判据能红 |
+| D191 | **高（堆越界读）** | `pak_src_fixed/pak.c` `read_file()` | 他把 `size + 1` 的"多 1 字节"当浪费删掉（REVIEW.md B2），但 `strstr/sscanf` 需要 NUL 结尾 ⇒ 解析 `pak_index.ini` 时越界读。ASan 实测 `heap-buffer-overflow READ of size 77`，命中点正好在 84 字节缓冲之后 0 字节处（`__stdio_common_vsscanf`） | 已修：恢复 `malloc(size+1)` 并显式 `buffer[size] = '\0'`，注释写明该行是**承重结构**不得再当冗余删除。**双向验证**：`.bugreview/pak_fixed_verify.py` 第 [5] 步对 6 组正常用例 + 5 组畸形输入全部 ASan clean；第 [6] 步在**临时副本**里删掉这行重新编译，ASan 立刻复报同一越界 ⇒ 判据能红 |
+| D192 | **中（诊断失真，且他主动压掉了告警）** | `pak_src_fixed/build_and_test.bat`、`pak.c` 文件编码 | 文件是无 BOM 的 UTF-8 中文注释；MSVC 按 CP936 解码时会**吞掉换行**（C4819），物理行数与警告行号整体错位。他的处理是加 `/wd4819` 把告警闭掉。实测：无 `/utf-8` 时 4 条 C4996 的行号是 `[389,394,441,476]`，加 `/utf-8` 后是 `[413,418,467,502]` —— **4/4 条前者指向的不是真正的 CRT 调用行**，按行号去修代码会修错地方 | 已修：编译旗标改 `/W4 /O2 /utf-8 /D_CRT_SECURE_NO_WARNINGS`，去掉 `/wd4819`，并在文件头注释与 `build_and_test.bat` 里写明理由。**判据**：`pak_fixed_verify.py` [1a–1d] —— 发布旗标零警告且 rc=0（rc=0 排除了"没编成功所以没警告"）；去 `/utf-8` 必须出现 C4819（证明这条能红）；`/utf-8` 且不开安全宏时每条 C4996 的行号必须指向真含 CRT 调用的源码行 |
+| D193 | **中（静默丢数据）** | `pak_src_fixed/pak.c` `pack()`：`h.alias_count = 0` / `aliasCount = (version==4)?0` | v4 头部布局（本工具的模型：`version(4)+res_count(4)+encoding(1)`）没有 alias_count 字段。他的实现把声明了 `[Alias]` 的 v4 索引**照常打包、rc=0、别名表整段丢弃**；原始工具对同一输入直接 `Error: Probably broken pak index file.` / rc=8。把"拒绝"换成"静默成功"是倒退：产物里 `[Alias]` 消失，谁都不知道 | 已修：`version==4 && 声明了别名` ⇒ 报错返回，与原始工具一致。**判据可测**：`.bugreview/pak_fixed_diff.py` 把 19 组边界输入同时喂两个工具比 rc/是否产出/产物字节，修前唯一分歧就是这条（`行为不一致: ['v4+alias']`、`新工具在旧工具拒绝时静默成功: ['v4+alias']`），修后 `行为不一致: 无`（9 组成功、10 组按预期被拒）。另在 `pak_fixed_verify.py` [4b] 与 `run_test.sh` 第 4 项固化，`pak_gate_red_control.py` 用副本删掉拒绝块证明能红 |
+| D194 | **中（交付物与仓库不一致）** | `pak_src_fixed/REVIEW.md` §6、目录内容 | ① §6 声称交付 `Makefile` 与 `run_test.sh` —— **两个文件从未入库**；② 正文写"本机无 C 编译器，未能在此运行"，同一个 commit 却提交了编译产物 `pak.exe`(192,512 B)、`pak.obj`、`pak_test.pak`、`pak2.pak` 和测试输出 `t_out/`；③ 声称"cl /W4 零警告"来自 `/wd4819`+`/D_CRT_SECURE_NO_WARNINGS` 组合，不是"代码无警告"；④ 声称"往返字节级兼容"当时并不成立（D190）；⑤ REVIEW.md B2 把 `size+1` 说成纯浪费，正是 D191 的成因；⑥ 新建平行目录 `pak_src_fixed/` 而仓库没有任何门禁检查它 ⇒ 修复对任何构建都不生效 | ①已补 `Makefile`（`make` / `make test`）与 `run_test.sh`（7 项判据，见下）；②产物与测试输出 `git rm`，`.gitignore` 加规则，保留 `t_in/` 样本；③④文档按实测更正；⑤⑥把门禁接进 `win_scripts/verify_sources.py`：`check_pak_fixed_sources()` 清单存在性 + `check_pak_roundtrip()` 真编译真往返 + `check_pak_asan()` POSIX 侧 ASan/LSan。本机实测（MSVC 在 PATH 上）`[PASS] pak_src_fixed compile+round-trip`，无编译器时明确 `[SKIP]` 并给原因，绝不静默通过 |
+| D195 | **低（静默失败路径）** | `pak_src_fixed/pak.c` `unpack()` / `pack()` 路径拼接 | 三处 `snprintf` 未查返回值：`outdir` 接近 `PAK_PATH_MAX` 时被截断，资源写到被截断的路径上而工具仍报成功；`index_append` 全部失败（OOM）时 `index==NULL, len==0`，`write_file(.., NULL, 0)` 照样返回 true ⇒ 生成**空的 `pak_index.ini` + "解包成功"** | 已修：两处路径拼接查 `snprintf` 返回并报错返回；写索引前要求 `index && len>0`。⚠ **未门禁化**：触发需要 max-path 或内存耗尽，本机无法构造真实输入；按本仓纪律标注为"已修未测"，不写成已验证 |
+| D196 | **中（审查发现的架构事实，非新代码缺陷）** | `pak_src/binaries/`、`setup.sh:87-88`、`win_scripts/setup.py:144-149` | **`pak_src/` 的 C 源码在构建链里根本不参与编译**：唯一的复制动作在遗留入口里（`setup.sh` 与已按 D97 拒绝执行的 `win_scripts/setup.py`），而且它们复制的是**预编译二进制** `binaries/pak`、`binaries/pak-win/pak_mingw*.exe`、`binaries/pak_arm64`（上游 myfreeer 发布物 + Thorium 作者自编译）。`win_scripts/deploy_mcloud.py` 里没有任何 pak 相关步骤（grep 命中 0） | 结论：D1–D19 与本轮 D190–D195 修的都是**参考实现**，不改变任何发布产物；真正会被使用的是 `binaries/` 里那几份**未修**的旧二进制。已在 `AGENTS.md` 与本节记录口径，避免以后有人据"pak 已加固"推断安装包里的那个也是加固版。若要真正受益只有一条路：把 `pak_src_fixed/pak.c` 编译进 `binaries/` 并纳入构建脚本，那是独立决定，未擅自执行 |
+
+### 本轮新增/改动的量具与判据（都可从干净检出复现）
+
+- `.bugreview/pak_fixed_verify.py` — 从零编译新旧两个工具（**判据用本轮时间戳，不复用 `.cycle7` 里遗留的二进制**）、编码旗标 [1a–1d]、三组样本（v5+别名 / v4 / 64 KB 含 `0x80 0xFF`）的确定性 + 与原始工具字节一致 + 交叉解包清单与载荷多重集、11 组 ASan 用例、删掉 D191 修复的 Red 对照。实测 `FAILED-CHECKS: none`。
+- `.bugreview/pak_fixed_diff.py` — 19 组边界索引的新旧行为差分（rc / 是否产出 / 产物字节 / 消息）。
+- `.bugreview/pak_gate_red_control.py` — 在**临时副本**上分别删掉 memset 与 v4 别名拒绝，断言 `verify_sources.check_pak_roundtrip()` 必须报 D190 / D193，未变异源码必须绿。实测三行全 `[OK]`。
+- `pak_src_fixed/Makefile`、`pak_src_fixed/run_test.sh` — POSIX 侧入口（ubuntu CI 可跑）；本机用 Windows 二进制实测同一脚本：**修后 7 项全绿，对他提交的 `pak.exe` 报 2 项 FAIL**。
+- `win_scripts/verify_sources.py` — 新增 3 个检查并接入主报告；新代码 ruff（`F,E9,B,SIM`）全绿。
+- ⚠ 平台边界（实测）：Windows 的 ASan **没有 LeakSanitizer** —— `ASAN_OPTIONS=detect_leaks=1` 直接以 `detect_leaks is not supported on this platform` 退出。所以"ASan clean"在本机只证明**无越界**，不证明**无泄漏**；泄漏判据只在 POSIX 侧（`check_pak_asan`）成立。
+
 ## 待办（本档案跟踪）
 
 ### r6 收口轮新增（2026-10-12 凌晨）
@@ -1682,6 +1716,7 @@ CPU 调度效率与占用、核显与独显渲染。
 - [ ] 第3周期遗留：工具侧 SIM115（`open()` 未用 with，79 处）统一收口；
       `win_scripts/setup.py` 删除或加 refusal guard（其 lint 噪声随之消失）
 - [x] D1-D19 修复（pak_src/，2026-10-08）
+- [x] 复核另一位 C 工程师的 `pak_src_fixed/`（D190–D196，第7周期深夜）：4 条真实缺陷（脏堆填充、越界读、警告行号错位、v4 别名静默丢弃）+ 2 条交付/口径问题全部修复或更正，判据入库 `.bugreview/pak_fixed_{verify,diff}.py`、`.bugreview/pak_gate_red_control.py`、`pak_src_fixed/{Makefile,run_test.sh}`，并接入 `win_scripts/verify_sources.py`
 - [x] pak 修复后语料回归：8 组畸形输入优雅报错 + v4/v5 真实往返字节一致（ASan，failures=0）
 - [x] flags 加载器合并顺序缺陷 D21/D22/D23：注入器 v2 + 树内升级（重编译验证进行中）
 - [x] win_scripts/*.py 深审（D28-D31 修复，verify_sources 通过）

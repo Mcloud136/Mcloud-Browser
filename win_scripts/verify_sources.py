@@ -9,7 +9,11 @@ Checks:
   4. Optional: gcc -fsyntax-only on pak_src/*.c when a compiler is available,
      Windows only (reported as SKIPPED on non-Windows platforms, since pak_src
      has an unguarded <windows.h> include, and when no compiler is available).
-  5. PowerShell lint for every tracked .ps1 (Windows only, SKIPPED elsewhere):
+  5. pak_src_fixed/: presence check plus a real compile + round-trip gate
+     (defects D190/D191/D193, 2026-10-12). Runs wherever a C compiler exists:
+     gcc/clang on Linux/macOS, cl on an MSVC-initialized Windows shell. Without
+     it the check reports SKIPPED with the reason — never a silent pass.
+  6. PowerShell lint for every tracked .ps1 (Windows only, SKIPPED elsewhere):
        - files containing non-ASCII text must be UTF-8 *with BOM* (AGENTS.md rule,
          defect D38: PowerShell 5.1 otherwise reads them as GBK and fails to parse);
        - `param(...)` must be the first statement of the script — statements before
@@ -37,6 +41,7 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parent.parent
 WIN_SCRIPTS = REPO_ROOT / "win_scripts"
 PAK_SRC = REPO_ROOT / "pak_src"
+PAK_FIXED = REPO_ROOT / "pak_src_fixed"
 
 # Directories that are vendored/generated and must not be linted as our code.
 PS_SKIP_DIRS = {".git", "depot_tools", "third_party", "node_modules", "__pycache__",
@@ -125,6 +130,170 @@ def check_flags_lint():
             detail = s
             break
     return "failed", detail
+
+
+PAK_FIXED_FILES = [
+    "pak.c", "Makefile", "run_test.sh", "build_and_test.bat",
+    os.path.join("t_in", "pak_index.ini"),
+    os.path.join("t_in", "1.html"),
+    os.path.join("t_in", "2.png"),
+]
+
+
+def check_pak_fixed_sources():
+    """pak_src_fixed/ 必须带齐源码 + 两套构建入口 + 测试样本（缺陷 D194）。"""
+    return [name for name in PAK_FIXED_FILES if not (PAK_FIXED / name).is_file()]
+
+
+def _find_c_compiler():
+    """返回 (编译器路径, 'posix'|'msvc')；找不到返回 (None, None)。"""
+    for name in ("cc", "gcc", "clang"):
+        path = shutil.which(name)
+        if path:
+            return path, "posix"
+    if platform.system() == "Windows":
+        for name in ("cl", "cl.exe"):
+            path = shutil.which(name)
+            if path:
+                return path, "msvc"
+    return None, None
+
+
+def _read(path):
+    with open(path, "rb") as f:
+        return f.read()
+
+
+def check_pak_roundtrip():
+    """编译 pak_src_fixed/pak.c 并跑真往返判据（D190/D191/D193）。
+
+    没有编译器时明确 SKIPPED——绝不把"没测"报成"通过"（本仓假绿族的老毛病）。
+    """
+    cc, kind = _find_c_compiler()
+    if not cc:
+        return "skipped", ("no C compiler on PATH (Linux CI runs this with gcc; on "
+                           "Windows the MSVC environment must be initialised first)")
+    tmpdir = tempfile.mkdtemp(prefix="pak-roundtrip-")
+    try:
+        src = str(PAK_FIXED / "pak.c")
+        exe = os.path.join(tmpdir, "pak.exe" if kind == "msvc" else "pak")
+        if kind == "msvc":
+            flags = ["/nologo", "/W4", "/std:c11", "/utf-8",
+                     "/D_CRT_SECURE_NO_WARNINGS",
+                     "/Fo" + tmpdir + os.sep, "/Fe" + exe]
+        else:
+            flags = ["-std=c11", "-Wall", "-Wextra", "-Wpedantic", "-O2", "-o", exe]
+        proc = subprocess.run([cc] + flags + [src], cwd=tmpdir,
+                              capture_output=True, text=True, timeout=900)
+        if proc.returncode != 0:
+            first = (proc.stderr or proc.stdout or "").strip().splitlines()
+            return "failed", "compile failed: %s" % (first[0] if first else "no output")
+        warn = sum(1 for line in (proc.stdout + proc.stderr).splitlines()
+                   if "warning" in line)
+
+        def run_pak(*args):
+            return subprocess.run([exe] + list(args), cwd=tmpdir,
+                                  capture_output=True, text=True, timeout=300)
+
+        work = os.path.join(tmpdir, "in")
+        shutil.copytree(str(PAK_FIXED / "t_in"), work)
+        ini = os.path.join("in", "pak_index.ini")
+        a, b = os.path.join(tmpdir, "a.pak"), os.path.join(tmpdir, "b.pak")
+        for out in (a, b):
+            if run_pak("-p", ini, out).returncode != 0:
+                return "failed", "-p on the baseline fixture returned non-zero"
+        # D190：同一输入两次打包必须字节一致，且 v5 头部的 3 个 padding 必须为 0
+        if _read(a) != _read(b):
+            return "failed", "D190 regression: packing the same input twice gave different bytes"
+        head = _read(a)[:12]
+        if head[0:4] == b"\x05\x00\x00\x00" and head[5:8] != b"\x00\x00\x00":
+            return "failed", "D190 regression: v5 header padding not zero (%s)" % head[5:8].hex()
+
+        out_dir = os.path.join(tmpdir, "un")
+        if run_pak("-u", "a.pak", "un").returncode != 0:
+            return "failed", "-u returned non-zero"
+        for name in ("1.html", "2.png"):
+            src_f = os.path.join(work, name)
+            out_f = os.path.join(out_dir, name)
+            if not os.path.isfile(out_f):
+                return "failed", "unpacked output missing %s" % name
+            if _read(src_f) != _read(out_f):
+                return "failed", "%s changed across the round trip" % name
+
+        # D193：version=4 + [Alias] 必须被拒绝，而不是静默丢掉别名表
+        v4 = os.path.join(tmpdir, "v4")
+        shutil.copytree(str(PAK_FIXED / "t_in"), v4)
+        with open(os.path.join(v4, "pak_index.ini"), "w", newline="\n") as f:
+            f.write("[Global]\nversion=4\nencoding=0\n\n[Resources]\n"
+                    "1=1.html\n2=2.png\n\n[Alias]\n10=1\n")
+        res = run_pak("-p", os.path.join("v4", "pak_index.ini"), "v4.pak")
+        if res.returncode == 0 or os.path.exists(os.path.join(tmpdir, "v4.pak")):
+            return "failed", "D193 regression: version=4 with [Alias] was silently accepted"
+
+        # 畸形输入必须非 0
+        truncated = _read(os.path.join(tmpdir, "a.pak"))[:8]
+        with open(os.path.join(tmpdir, "trunc.pak"), "wb") as f:
+            f.write(truncated)
+        if run_pak("-u", "trunc.pak", "bad").returncode == 0:
+            return "failed", "truncated .pak was treated as success"
+
+        return "passed", ("%s compile + round-trip + malformed-input checks all passed "
+                          "(%d warning(s) during compile)" % (Path(cc).name, warn))
+    finally:
+        shutil.rmtree(tmpdir, ignore_errors=True)
+
+
+def check_pak_asan():
+    """ASan + LeakSanitizer 跑一遍 pak_src_fixed（仅 POSIX 侧有意义）。
+
+    实测（第7周期，MSVC 14.51 / clang 21）：Windows 上设 ASAN_OPTIONS=detect_leaks=1
+    会直接以 "detect_leaks is not supported on this platform" 退出——本机 ASan 只能证
+    越界，**不能**证无泄漏。因此泄漏判据只在有 gcc/clang 的 POSIX 侧执行；Windows 上
+    一律 SKIPPED 并写明原因，绝不把"平台不具备该能力"报成通过。
+    """
+    cc, kind = _find_c_compiler()
+    if not cc:
+        return "skipped", "no C compiler on PATH"
+    if kind != "posix":
+        return "skipped", ("MSVC ASan has no LeakSanitizer (measured: 'detect_leaks is "
+                           "not supported on this platform'); the overflow checks run "
+                           "on Windows via .bugreview/pak_fixed_verify.py")
+    tmpdir = tempfile.mkdtemp(prefix="pak-asan-")
+    try:
+        exe = os.path.join(tmpdir, "pak")
+        proc = subprocess.run(
+            [cc, "-std=c11", "-g", "-fsanitize=address", "-fno-omit-frame-pointer",
+             "-o", exe, str(PAK_FIXED / "pak.c")],
+            cwd=tmpdir, capture_output=True, text=True, timeout=900)
+        if proc.returncode != 0 or not os.path.exists(exe):
+            first = (proc.stderr or proc.stdout or "").strip().splitlines()
+            return "skipped", ("ASan runtime unavailable, cannot build with "
+                               "-fsanitize=address: %s"
+                               % (first[0] if first else "no output"))
+        work = os.path.join(tmpdir, "in")
+        shutil.copytree(str(PAK_FIXED / "t_in"), work)
+
+        def run_pak(*args):
+            return subprocess.run([exe] + list(args), cwd=tmpdir,
+                                  capture_output=True, text=True, timeout=600)
+
+        combined = ""
+        for args in (("-p", os.path.join("in", "pak_index.ini"), "a.pak"),
+                     ("-u", "a.pak", "un")):
+            res = run_pak(*args)
+            combined += res.stdout + res.stderr
+            if res.returncode != 0 and "AddressSanitizer" not in combined:
+                return "failed", "asan build returned non-zero on a valid case"
+        if "AddressSanitizer" in combined:
+            kind_msg = "leak" if "LeakSanitizer" in combined or "leaked" in combined \
+                else "memory error"
+            for line in combined.splitlines():
+                if "ERROR: AddressSanitizer" in line or "SUMMARY:" in line:
+                    return "failed", "%s reported: %s" % (kind_msg, line.strip()[:200])
+            return "failed", "%s reported (details truncated)" % kind_msg
+        return "passed", "ASan+LSan clean on pack and unpack (no overflow, no leak)"
+    finally:
+        shutil.rmtree(tmpdir, ignore_errors=True)
 
 
 def check_pak_syntax():
@@ -339,6 +508,26 @@ def main():
     status, detail = check_pak_syntax()
     label = {"passed": "PASS", "failed": "FAIL", "skipped": "SKIP"}[status]
     print(f"[{label}] pak_src C syntax: {detail}")
+    if status == "failed":
+        ok = False
+
+    missing = check_pak_fixed_sources()
+    if missing:
+        ok = False
+        print(f"[FAIL] pak_src_fixed files missing: {', '.join(missing)}")
+    else:
+        print(f"[PASS] pak_src_fixed sources: {len(PAK_FIXED_FILES)}"
+              f"/{len(PAK_FIXED_FILES)} present")
+
+    status, detail = check_pak_roundtrip()
+    label = {"passed": "PASS", "failed": "FAIL", "skipped": "SKIP"}[status]
+    print(f"[{label}] pak_src_fixed compile+round-trip: {detail}")
+    if status == "failed":
+        ok = False
+
+    status, detail = check_pak_asan()
+    label = {"passed": "PASS", "failed": "FAIL", "skipped": "SKIP"}[status]
+    print(f"[{label}] pak_src_fixed ASan+LSan: {detail}")
     if status == "failed":
         ok = False
 

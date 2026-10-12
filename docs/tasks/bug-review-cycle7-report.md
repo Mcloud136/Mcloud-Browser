@@ -339,3 +339,54 @@ gpu-process 存在 = True；本实例进程数 = 8；未回退 SwiftShader
 **仍没覆盖**：真实 UAC 提权路径、长时间浸泡与 CPU 争用对照（任务 #50）、
 核显路由下的窗口拖拽复现（任务 #27）、`workset_mb` "实例中途死掉"的实机注入验证（只有单元级 Red）。
 外层 setup 随包装器改动重打为 `1302268f…`；mini_installer 未变（`27c3236b…`）。
+
+## 13. 复核另一位 C 工程师的提交 `0bbabca`（`pak_src_fixed/`，D190–D196）
+
+用户把部分代码委托给另一名 C 工程师，他提交了 `pak_src_fixed/`（14 文件 / +780 行，
+含自认的 `REVIEW.md`）。本节只记**实测**结论；逐条缺陷、证据与修法在
+`docs/tasks/bug-review-pak-src-defects.md` 的「第7周期·复核另一位 C 工程师」一节。
+
+### 13.1 他做对的（保留）
+
+严格别名 UB（U1/U2）改 `memcpy`+显式小端、`vsnprintf` off-by-one（U3）、四处 `_snprintf`（P1）、
+`strcpy/strncpy`（O1）、`header_size` 宽度（B1）、`ferror/fclose`（B3）—— 全部核实成立。
+D1–D19 的加固语义也保住了：19 组边界输入的新旧差分里，除一条外全部一致。
+
+### 13.2 他写的结论里被实测推翻的
+
+| 他的说法 | 实测 |
+|---|---|
+| "REVIEW.md §6 交付 Makefile 与 run_test.sh" | **两个文件从未入库**（我已补，见 13.4） |
+| "本机无 C 编译器，未能在此运行" | 同一个 commit 提交了 `pak.exe`(192,512 B)、`pak.obj`、`pak_test.pak`、`pak2.pak`、`t_out/` —— 编过并且跑过，只是没在这里跑判据 |
+| "cl /W4 零警告" | 零警告来自 `/D_CRT_SECURE_NO_WARNINGS` + `/wd4819`；去掉宏掩蔽后有 4 条 C4996，去掉 `/utf-8` 后还有 C4819 |
+| "与原版往返字节级兼容" | **不成立**（D190）：v5 头部 3 个 padding 取自脏堆，对他提交的 `pak.exe` 连打三次，偏移 5 分别是 `01 / 02 / 02` |
+| B2 "`readFile` 多分配 1 字节纯属浪费" | 那 1 字节是**承重结构**：删掉后 `sscanf` 堆越界读，ASan 报 `READ of size 77`（D191） |
+| "消除全部 UB / 内存安全" | Windows 的 ASan **没有 LeakSanitizer**（实测 `detect_leaks=1` 直接以"not supported on this platform"退出）⇒ 他的 ASan 结果连"无泄漏"都证明不了；本轮新增缺陷 D193/D195 也都不在"越界"范畴内 |
+
+### 13.3 我在他基础上找出的新问题
+
+- **D190 高**：脏堆填充 ⇒ 产物不可复现 + 堆字节进分发文件。修：写头前 `memset`。
+- **D191 高**：他删掉 `size+1` 的 NUL ⇒ 堆越界读。修：恢复并注释说明不得再当冗余删除。
+- **D192 中**：无 BOM UTF-8 + CP936 吞换行 ⇒ 警告行号错位（4/4 条指错代码），他用 `/wd4819` 闭掉。修：`/utf-8`。
+- **D193 中**：`version=4` 声明别名时**静默丢掉别名表还返回 0**，而原工具直接拒绝（rc=8）——
+  把"拒绝"换成"静默成功"是倒退。修：与原始工具一致地拒绝。
+- **D195 低**：`unpack/pack` 三处 `snprintf` 未查返回值，OOM 时会写出**空的 `pak_index.ini` 并报成功**。
+  ⚠ 已修未测（触发要 max-path 或 OOM，本机造不出真实输入），按纪律不写成已验证。
+- **D194/D196（结构性）**：修复放在**平行目录** `pak_src_fixed/`，仓库没有任何门禁看它 ⇒ 对构建零影响；
+  而 `pak_src/` 的源码本身也不参与构建 —— 唯一复制 pak 的是 `setup.sh` 与已禁用的 `win_scripts/setup.py`，
+  且它们复制的是 `pak_src/binaries/` 里的**预编译旧版**。所以"D1–D19 已加固"从来不等于
+  "装进包的那个工具已加固"。这一条已写进 AGENTS.md，避免后人据源码状态推断产物。
+
+### 13.4 判据入库（都能从干净检出复现）
+
+- `win_scripts/verify_sources.py` 新增 `check_pak_fixed_sources` / `check_pak_roundtrip`
+  （真编译 + 两次打包一致 + v5 padding 必须为 0 + 与原始工具字节一致 + 交叉解包清单与载荷多重集
+  + v4 别名必须被拒 + 畸形输入必须非 0）/ `check_pak_asan`（POSIX 侧 ASan+LSan）。
+  本机（MSVC 在 PATH 上）实测 `[PASS]`；无编译器时明确 `[SKIP]` 并给原因。
+- `.bugreview/pak_fixed_verify.py`、`.bugreview/pak_fixed_diff.py`、
+  `.bugreview/pak_gate_red_control.py`，以及 `pak_src_fixed/{Makefile,run_test.sh}`。
+- **Red/Green 都实测过**：`run_test.sh` 对他提交的 `pak.exe` 报 2 项 FAIL、对修后二进制 7 项全绿；
+  `pak_gate_red_control.py` 在临时副本上分别删掉 memset 与别名拒绝，门禁如实报 D190 / D193
+  （未改工作树里被跟踪的源文件，符合 D99 纪律）。
+- 清理：`git rm` 掉 `pak.exe`/`pak.obj`/`pak_test.pak`/`pak2.pak`/`t_out/`，`.gitignore` 补规则，
+  保留 `t_in/` 样本。

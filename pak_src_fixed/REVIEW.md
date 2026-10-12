@@ -76,7 +76,11 @@
 
 ### B2. `readFile` 分配 `size + 1`
 - 位置：`pak_file_io.c:34`。
-- 说明：二进制 buffer 不需要 NUL 结尾，多分配 1 字节纯属浪费（且 `size==UINT32_MAX-1` 时 `+1` 回绕为 `UINT32_MAX`，`calloc` 失败被正确处理，无 UB，但属侥幸）。
+- 原判断（已作废）：曾写成"二进制 buffer 不需要 NUL 结尾，多分配 1 字节纯属浪费"。
+- ⚠ **更正（第7周期复核，缺陷 D191）**：这 1 字节是**承重结构**。`pak_pack.c` 用 `strstr/sscanf`
+  解析这块缓冲，非 NUL 终止就是堆越界读。按旧判断把 `+1` 删掉后，MSVC `/fsanitize=address`
+  实测报 `heap-buffer-overflow READ of size 77`，命中点正好在 84 字节 `pak_index.ini` 之后 0 字节处
+  （`__stdio_common_vsscanf`）。保留 `size+1` 并显式写 `buffer[size]='\0'`，且**不要再当冗余删除**。
 
 ### B3. `writeFile` 不检查 `ferror` / `fclose` 返回值
 - 位置：`pak_file_io.c:58-65`。
@@ -101,3 +105,38 @@
 - `Makefile`：一键 `make` 编译（`-std=c11 -Wall -Wextra -Wpedantic`）。
 - `run_test.sh`：构造样本 → 打包 → 解包 → 比对，验证格式兼容与往返正确。
 - 注：本机无 C 编译器，未能在此运行；请在你本地 `make && ./run_test.sh` 验证。
+
+---
+
+## 七、第7周期复核记录（2026-10-12，另一位工程师逐项实测后的更正）
+
+上面 §一–§五 的技术判断**绝大多数成立**（U1/U2/U3、P1/P2、O1、B1、B3 全部核实并保留）。
+但本文件的若干**结论性表述被实测推翻**，逐条列在此处，避免后来人按原文信错：
+
+1. **"等价于原工具"当时不成立（D190）**：`pack_files()` 写 v5 头部时没清 `_padding[3]`，
+   那 3 个字节取自 `malloc` 的脏堆。对本文件随附的 `pak.exe` 连打三次，偏移 5 分别是
+   `01 / 02 / 02` ⇒ 产物**不可复现**、与原工具**字节不兼容**、并把堆字节写进分发文件。
+   已修（写头前 `memset`），现由 `verify_sources.check_pak_roundtrip()` 双向钉住：
+   两次打包必须一致 **且** padding 必须为 0。
+2. **"消除全部内存问题"过度（D191/D193/D195）**：
+   - `read_file` 丢掉 `size+1` 的 NUL ⇒ `sscanf` 堆越界读（ASan 实测，见 B2 更正）；
+   - `version=4` 且索引声明 `[Alias]` 时**静默丢弃别名表并返回 0**，而原工具直接拒绝（rc=8）；
+   - 三处 `snprintf` 未查返回值，OOM 下会写出空的 `pak_index.ini` 却报"解包成功"。
+3. **"cl /W4 零警告"有前提（D192）**：零警告来自 `/D_CRT_SECURE_NO_WARNINGS`（掩掉 4 条 C4996）
+   **且** 需要 `/utf-8`。不加 `/utf-8` 时 MSVC 按 CP936 读这份无 BOM 的 UTF-8 文件会**吞掉换行**，
+   警告行号整体错位——实测 4/4 条 C4996 的行号指向的都不是真正的 CRT 调用行；
+   原作者的处理是 `/wd4819` 把症状闭掉。**编译本文件必须带 `/utf-8`，不要用 `/wd4819`。**
+4. **"本机无 C 编译器"与仓库内容矛盾**：同一个 commit 提交了 `pak.exe`、`pak.obj`、
+   `pak_test.pak`、`pak2.pak` 和 `t_out/`。产物与测试输出已从版本库移除并加进 `.gitignore`。
+5. **§六 承诺的 `Makefile` / `run_test.sh` 当时并不存在**——本次复核已补写并实测：
+   `run_test.sh` 对修复后的二进制 7 项全绿，对原 commit 里的 `pak.exe` 报
+   `FAIL deterministic-pack` 与 `FAIL v4-alias-rejected`（这就是"判据能红"的证据）。
+6. **ASan 结论的平台边界**：Windows 的 ASan **没有 LeakSanitizer**
+   （实测 `ASAN_OPTIONS=detect_leaks=1` 直接以 `detect_leaks is not supported on this platform` 退出）。
+   所以本目录的 ASan 结果只能证明**无越界**，不能证明**无泄漏**；泄漏判据只在 POSIX 侧
+   （`verify_sources.check_pak_asan()`，ubuntu CI）成立。
+7. **结构性问题（D196）**：`pak_src_fixed/` 是平行目录，修复不改变任何构建产物；而 `pak_src/`
+   的源码本身也不参与构建——全仓唯一复制 pak 的是遗留的 `setup.sh` / `win_scripts/setup.py`，
+   且复制的是 `pak_src/binaries/` 里的**预编译旧版**。因此"D1–D19 已加固"不等于
+   "浏览器包里那个 pak 工具已加固"。
+
