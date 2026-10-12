@@ -140,7 +140,8 @@ print("发布物 -> %s  %d B\nSHA256 = %s" % (RELEASE, os.path.getsize(RELEASE),
 # 内嵌 mini_installer 的包装器：优雅关闭 → 安装 → 复验 → 清理 → 重启。
 SETUP = os.path.join(THOR, "mcloud_%s_win64_setup.exe" % VER)
 _build = os.path.join(THOR, "win_scripts", "build_setup_exe.py")
-_r = subprocess.run([sys.executable, _build, "--embed", RELEASE, "--out", SETUP],
+_r = subprocess.run([sys.executable, _build, "--embed", RELEASE, "--version", VER,
+                     "--out", SETUP],
                     capture_output=True, text=True, errors="replace")
 # 缺陷 D130：旧写法只在失败时打印子进程输出，于是成功路径上"用的是哪个编译器、
 # 产物是否可复现"整段被丢掉，随后照样写 .sha256 与发布说明。现在无条件转印。
@@ -153,13 +154,28 @@ with open(SETUP + ".sha256", "w", newline="\n") as f:
     f.write("%s *%s\n" % (_setup_digest, os.path.basename(SETUP)))
 print("发布物 -> %s  %d B\nSHA256 = %s" % (SETUP, os.path.getsize(SETUP), _setup_digest))
 
+# 文件版本元数据必须实测核对，不能只声称"已带版本号"：第6轮那次试图用 csc /version:
+# 实现，实际是"打印编译器版本并退出"，返回 0 却不产出文件（D164）；回退之后
+# FileVersion/ProductVersion 长期是 0.0.0.0（D187），发布说明里没人发现。
+_ver_ps = ('$v=(Get-Item "%s").VersionInfo; "" + $v.FileVersion + "|" + $v.ProductVersion'
+          % os.path.join(THOR, os.path.basename(SETUP)).replace("\\", "/"))
+_v = subprocess.run(["powershell.exe", "-NoProfile", "-Command", _ver_ps],
+                    capture_output=True, text=True, errors="replace").stdout.strip().splitlines()
+_fields = (_v[-1].split("|") if _v else ["", ""])
+print("版本元数据：FileVersion=%s ProductVersion=%s（期望 %s）"
+      % (_fields[0] or "?", _fields[1] if len(_fields) > 1 else "?", VER))
+if _fields[0] != VER or (len(_fields) < 2 or _fields[1] != VER):
+    print("FAIL 发布物文件版本元数据不是 %s —— build_setup_exe.py --version 没生效" % VER)
+    sys.exit(1)
+
 # 缺陷 D161：端到端验收 setup_wrapper_test.py 的**默认被测对象**是
 # installer/out/MCloud-Setup-embedded.exe，但仓库里没有任何脚本生产它——实测重打包后
 # 它的 mtime 仍停在上一日，于是"跑验收"实际跑的是**内嵌旧载荷**的那份包装器，
 # 结论与被发布的那个不是同一个东西（D86/D72 同族：归属不能靠人记得）。
 # 现在同批产一份，并且直接断言它内嵌的就是刚发布的 RELEASE。
 TESTWRAP = os.path.join(THOR, "installer", "out", "MCloud-Setup-embedded.exe")
-_r2 = subprocess.run([sys.executable, _build, "--console", "--embed", RELEASE, "--out", TESTWRAP],
+_r2 = subprocess.run([sys.executable, _build, "--console", "--embed", RELEASE,
+                      "--version", VER, "--out", TESTWRAP],
                      capture_output=True, text=True, errors="replace")
 print((_r2.stdout or "").rstrip())
 if _r2.returncode != 0 or not os.path.isfile(TESTWRAP):

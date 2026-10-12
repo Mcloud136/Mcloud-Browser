@@ -1484,7 +1484,7 @@ CET 硬件影子栈开（`compiler.gni:230`）、libc++ `_LIBCPP_HARDENING_MODE_
   （本次是加一个 1300 字符的未知开关把修剪后的命令行重新顶过 1024），让它**红一次**，
   这才排除"量具坏了/判据根本没接上"。凡缺席型判据，优先争取 ③，做不到再退到 ②，绝不停在 ①。
 
-## 第7周期（D177–D184：内存/CPU/GPU 全局审查，2026-10-12）
+## 第7周期（D177–D187：内存/CPU/GPU 全局审查 + 收口，2026-10-12）
 
 **详版见 `docs/tasks/bug-review-cycle7-report.md`。** 目标：内存占用/内存性能/内存安全（含泄漏）、
 CPU 调度效率与占用、核显与独显渲染。
@@ -1511,6 +1511,34 @@ CPU 调度效率与占用、核显与独显渲染。
 - **量具的判据不许命中无关文本**：子串匹配 feature 名当作后端（D184）、
   把 `0.0` 当测量值（D179/D181）、空集合当通过（D180），四类都是"判据测的不是它声称的东西"。
 - 新增 `release_chain_check.py`：发布链断过 3 次，第 4 次起改为机器判定（本周期自己就触发了它）。
+
+## 第7周期收口（D185–D187：句柄泄漏、树身份、版本元数据，2026-10-12 晚）
+
+| ID | 级别 | 位置 | 问题 | 状态 |
+|---|---|---|---|---|
+| D185 | 低（句柄卫生） | `installer/mcloud_setup.cs:729,736` + `benchmark/tools/gpu_probe.py:61-75`（**我自己这轮引入的**） | 两处 `Process.Start(...)` 的返回组件从不 Dispose ⇒ 每次启动漏一对进程/线程句柄；而我在修 D184 时新写的 `gpu_identity()` 打开 CDP WebSocket 后没关 ⇒ **审计别人泄漏时自己造了一个泄漏** | 已修：C# 两处 `using (Process.Start(...)) { }`（返回 null 时 using 是空操作）；`gpu_identity()` 用 try/finally + `contextlib.suppress` 关 tab。验证：Roslyn `/deterministic+` 编译通过；`gpu_probe` 修后连跑两次读数一致（D3D11 / 0x00002860） |
+| D186 | 中（静默改错树） | `win_scripts/deploy_mcloud.py:22` 及全部 `apply_*`/`inject_*` 的 `CR_DIR` 默认值 | `CR_DIR` 默认 `D:\wxmuma\chromium-src\src` = **M151 回滚参考树**，而 M151 同样有 `chrome/browser/chrome_browser_main_win.cc`、`chrome_main_delegate.cc` 等注入目标 ⇒ 忘设变量时注入**在旧树上成功**并打印 "already up to date"，编译与发布用的是另一棵树，定制静默丢失。AGENTS.md 只把它写成"要记得"的约定（2026-10-10 真踩过） | 已修（机器化）：新增 `win_scripts/tree_check.py::require_tree()` —— 读 `<CR_DIR>/chrome/VERSION` 与本仓库声明的 `KERNEL_MAJOR=155` 比对，不符即 **exit 114** 并点名"这是 M151 回滚参考树"+ 给修法；`MCLOUD_ALLOW_TREE_MISMATCH=1` 才放行（升级 pre-assessment 用）。已接入 `deploy_mcloud.py`（第一件事）与 `apply_restart_cmdline.py`（单跑也拦）。**Red 实测**：`CR_DIR=D:/wxmuma/chromium-src/src` → rc=114 且给出期望/实测版本；**Green**：指向发布树 → 打印 `源码树：M155（155.0.8059.40）` 后正常执行。内核升级时必须同步改 `KERNEL_MAJOR` |
+| D187 | 低（发布物元数据） | `win_scripts/build_setup_exe.py` + `.bugreview/package_m155.py` | 外层 setup 的 `FileVersion`/`ProductVersion` 实测为 **0.0.0.0**：第6轮想用 `csc /version:155.0.8059.40` 实现，但 `/version` 是"打印编译器版本并退出"，返回 0 却不产出文件（D164），整体回退后该能力没有保留 —— 而发布说明从未声明带版本号，用户在属性对话框里看不到版本，审计工具按文件版本核对也会拿到 0.0.0.0 | 已修：`build_setup_exe.py --version <4段>` 生成**固定路径**的 `installer/out/mcloud_setup_assemblyinfo.cs`（AssemblyVersion/FileVersion/InformationalVersion）与主源码同批编译，`try/finally` 删除；非法形态（如 `155.0`）exit 111。`package_m155.py` 两处调用都传 `--version $VER`，并**实测核对**产出文件的 VersionInfo（不一致即 FAIL，不再只声称）。复现性：同名不同目录两次编译 SHA 相同（`8a2e159d…`）⇒ 版本戳未破坏 D130 的可复现性 |
+
+### 收口轮的实测记录（重打包 + 干净安装复验）
+
+- 部署：`CR_DIR=…-155\src python win_scripts/deploy_mcloud.py` → 身份断言打印 `M155（155.0.8059.40）`，
+  清单已同步到 `out/mcloud`。
+- 增量：**只有 3 步**（`mini_installer_archive` → `packed_files.res` → `LINK mini_installer.exe`），
+  `chrome` 本体无过期 ⇒ 本轮不涉及 crubit/Rust，**不会**撞 D173 那个管道竞态。exit 0。
+- 新发布物：mini_installer `27c3236b82454d6dba4a0df53584d37185b835f8748fe517c86ec6c418faef68`（127,559,168 B）、
+  setup `a61655ddba2cbadd27522cbc970232c3b2997c8112d846a059624e5356b13019`（127,585,792 B），
+  `.sha256` 与发布说明由 `package_m155.py` 一并刷新（`sha256sum -c` 两个文件都 OK）。
+- 干净安装复验（`.cycle7/clean_install_reverify_r8.ps1`，真实改动本机安装实例）：
+  卸载 **rc=19** → 版本目录清空 → 包装器 `--quiet --system-level` **rc=0**；
+  A1 清单落版本目录 ✓；A2 与仓库**逐字节一致**（`a071260c8c2c374f`）✓；
+  A3 根目录无残留 ✓；A4 无 `new_chrome.exe` 暂存件 ✓；
+  A5/A6 安装版 `chrome.dll`(`e7679fb5…`) 与根 `chrome.exe`(`86b588a4…`) **与本轮构建产物同哈希** ✓；
+  A7 版本目录内没有 chrome.exe（印证 `chrome.release` 的 `%(ChromeDir)s` 登记）✓。
+- 运行期回显（安装后的二进制）：`enable 50 / disable 2`，55 条 = 52 feature + 3 普通开关 ✓。
+- `release_chain_check.py` 三处（仓库 / 打包暂存载荷 / 已安装实例）指纹一致 ⇒ **RC=0**，
+  第 4 次断裂就此闭合。
+- ⚠ 卸载器再次删掉任务栏固定项（无 API 可恢复），仍需人工重新固定。
 
 ## 待办（本档案跟踪）
 

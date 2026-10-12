@@ -18,10 +18,19 @@ import os
 import subprocess
 import sys
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from tree_check import require_tree     # noqa: E402  —— 源码树身份断言（D186）
+
 here = os.path.dirname(os.path.abspath(__file__))
 cr_src = os.environ.get('CR_DIR', r'D:\wxmuma\chromium-src\src')
 os.environ['CR_DIR'] = cr_src
 os.environ.setdefault('THOR_DIR', os.path.dirname(here))
+
+# 第一件事：确认我们要改的是哪棵树。CR_DIR 默认值是 M151 回滚参考树，
+# 忘记设变量时过去会"全部成功但改在旧树上"，编译产物不含定制而门禁照样绿。
+_rc = require_tree(cr_src, "deploy_mcloud")
+if _rc:
+    sys.exit(_rc)
 
 STEPS = [
     ("copy_essentials.py", None),

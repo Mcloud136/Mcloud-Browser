@@ -260,3 +260,43 @@ gpu-process 存在 = True；本实例进程数 = 8；未回退 SwiftShader
 7. `python benchmark/tools/leak_probe.py --chrome <安装版>` —— 修后版本要能给出非空 residuals 与
    "剩余 page" 回落证据
 8. 任务 #27：核显路由下的拖拽人工复现（D182 之后这是唯一能确认冻结缓解是否真实的手段）
+
+## 11. 收口轮（应用户要求：已知问题清零后再进五轮）
+
+### 11.1 清零的三项遗留
+
+| 项 | 缺陷号 | 做法 | 验证 |
+|---|---|---|---|
+| `CR_DIR` 默认指向 M151 回滚树，注入会静默改错树 | **D186** | 新增 `win_scripts/tree_check.py::require_tree()`：读 `<CR_DIR>/chrome/VERSION` 比对 `KERNEL_MAJOR`，不符 exit 114；接入 `deploy_mcloud.py`（开工第一件事）与 `apply_restart_cmdline.py`（单跑也拦） | Red：`CR_DIR=D:/wxmuma/chromium-src/src` → **rc=114**，错误信息点名"M151 回滚参考树"并给修法；Green：指向发布树 → 打印 `源码树：M155（155.0.8059.40）` 后照常执行 |
+| setup 的 `FileVersion/ProductVersion` 是 `0.0.0.0` | **D187** | `build_setup_exe.py --version <4段>`：生成固定路径临时 `AssemblyInfo.cs` 同批编译（**不用** `csc /version:`，见 D164）；`package_m155.py` 传 `--version` 并**实测核对 VersionInfo**，不符即 FAIL | 实测 `FileVersion=155.0.8059.40 ProductVersion=155.0.8059.40`；非法形态 `155.0` → exit 111；**同名不同目录两次编译 SHA 相同**（`8a2e159d…`）⇒ 未破坏 D130 的复现性 |
+| 安装器 `Process.Start` 未 Dispose + 我自己 `gpu_identity()` 漏关 WebSocket | **D185** | C# 两处 `using (…)`；`try/finally + contextlib.suppress` 关 tab | Roslyn `/deterministic+` 编译通过；`gpu_probe` 连跑两次读数一致（D3D11 / 0x00002860） |
+
+顺带：清掉 `leak_probe.py` 一条 ruff SIM105，过程中暴露出我改了 `contextlib.suppress`
+却**没加 import**（F821 NameError）——由 lint 抓到，已补。
+这正说明"改完就跑 lint"不是仪式。
+
+### 11.2 重打包与干净安装复验（闭合第 4 次发布链断裂）
+
+- 部署：`CR_DIR=<155树> python win_scripts/deploy_mcloud.py` → 身份断言通过，清单同步 `out/mcloud`。
+- 增量：**3 步**（`mini_installer_archive` → `packed_files.res` → `LINK mini_installer.exe`），
+  `chrome` 未过期 ⇒ 本轮不涉及 crubit/Rust，**不会**触发 D173 的管道竞态；exit 0。
+- 发布物：setup `a61655dd…`（127,585,792 B）、mini_installer `27c3236b…`（127,559,168 B）；
+  `.sha256` 与发布说明由 `package_m155.py` 刷新，`sha256sum -c` 两个都 OK。
+- 干净安装复验（`.cycle7/clean_install_reverify_r8.ps1`，**真实改动本机安装实例**）：
+  卸载 **rc=19** → 安装 **rc=0**；清单落版本目录并与仓库**逐字节一致**（`a071260c8c2c374f`）；
+  根目录无残留、无 `new_chrome.exe` 暂存件；安装版 `chrome.dll`(`e7679fb5…`)、
+  根 `chrome.exe`(`86b588a4…`) **与本轮构建同哈希**；版本目录内没有 chrome.exe
+  （再次印证 `chrome.release` 的 `%(ChromeDir)s` 登记）；
+  对**安装后的二进制**回显 **`enable 50 / disable 2`**。
+- `release_chain_check.py`：仓库 / 打包暂存载荷 / 已安装实例 **三处一致，RC=0**。
+- ⚠ 卸载器又删掉任务栏固定项（无 API 可恢复），仍需人工重钉。
+- 本轮未重编内核代码（改动都在脚本/文档/清单注释），`chrome.dll` 与 r7 同一份
+  ⇒ D172 的"实测消失 + 正向对照"结论继续成立。
+
+### 11.3 一个环境级陷阱（写给自己也写给下一个接手的人）
+
+在本机 Git Bash 里用 `env -u CR_DIR python …` 这种前缀**会静默吞掉子进程的 stdout，
+而 rc 仍是 0**（我用它测"未设 CR_DIR"时表现为"脚本没输出也没报错"，看起来像通过）。
+测默认值路径请改用显式赋值（`CR_DIR=<旧树> python …`），或在脚本内 `os.environ.pop`。
+这是"工具自己谎报成功"的又一族，与 D158（`Start-Process -PassThru` + 重定向取不到 ExitCode）同属
+**采集通道本身不可信**这一类，判据设计时要按通道单独验证。

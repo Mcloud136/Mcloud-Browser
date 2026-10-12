@@ -11,6 +11,7 @@
 依赖：仅标准库 + Windows 的 Get-Process（PowerShell）。
 """
 import argparse
+import contextlib
 import json
 import os
 import shutil
@@ -112,10 +113,8 @@ def stop_instance(udd, proc):
             proc.wait(timeout=30)
         except subprocess.TimeoutExpired:
             proc.kill()
-            try:
+            with contextlib.suppress(subprocess.TimeoutExpired):
                 proc.wait(timeout=30)
-            except subprocess.TimeoutExpired:
-                pass
     left = instance_pids(udd)
     if left:
         # 不许静默：残留进程会锁文件、也会污染下一次测量的指纹

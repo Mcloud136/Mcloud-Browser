@@ -376,6 +376,11 @@ autoninja -C out/mcloud chrome mini_installer
   那会让树内正文永远停在旧版，输出却自称 already up to date。加载器还必须在正文一致时**继续校验调用点**。
 - Python 静态检查已引入 `ruff`（`python -m ruff check --select F,E9,B,SIM win_scripts benchmark .bugreview`）；
   仓库此前没有任何 Python linter 在跑。真阳性（B023/B905 等）逐条判真伪后再修。
+- **源码树身份现在是机器判定**（第7周期收口，缺陷 D186）：`win_scripts/tree_check.py::require_tree()`
+  读 `<CR_DIR>/chrome/VERSION` 与仓库声明的 `KERNEL_MAJOR` 比对，不符即 exit 114 并点名是不是
+  M151 回滚参考树；`deploy_mcloud.py` 开工第一件事就是它，`apply_restart_cmdline.py` 单跑也拦。
+  内核升级 rebase 时**必须同步改 `KERNEL_MAJOR`**（这是新的单点真相）。
+  历史约定仍然有效：
 - **多棵源码树时 `deploy_mcloud.py` 必须显式设 `CR_DIR`**：其默认值是 `D:\wxmuma\chromium-src\src`（M151 树），
   在 155 树下不设变量就会把定制部署到旧树（2026-10-10 实际踩到；因全部步骤幂等未致损）。
 - **GN 里 config 的正文改动 = 全树重编**（缺陷档案 D74 实测）：只换 `config("polly")` 的写法
@@ -509,7 +514,7 @@ autoninja -C out/mcloud chrome mini_installer
   > **MuMu 虚拟显示器**，D139 之前每份 KPI 基线的 GPU 字段都是错的。
 - **补丁位置**：`other/` 目录，命名 `feature-name.patch`。
 - **文档位置**：`docs/architecture/`（架构）、`docs/dev-logs/phase{N}-dev-log.md`（开发日志）、`docs/decisions/ADR-{NNN}-{title}.md`（决策记录）、`docs/tasks/`（任务文档）。
-  缺陷档案：`docs/tasks/bug-review-pak-src-defects.md`（D1–D184 索引）+ 各周期详版
+  缺陷档案：`docs/tasks/bug-review-pak-src-defects.md`（D1–D187 索引）+ 各周期详版
   `bug-review-cycle{3,4,5,6}-report.md`。**第5周期（D121–D155，2026-10-12）详版见
   `docs/tasks/bug-review-cycle5-report.md`**，含硬件取证、chrome://gpu 实测、Red→Green 验证记录
   与 12 条待跟进项；该文件末尾的 **「续：r6 收口轮执行记录」** 登记 D156–D163，

@@ -42,8 +42,13 @@ def fail(msg, code=111):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--embed", default=None, help="要内嵌进 EXE 的 mini_installer 路径（发布用）")
+    ap.add_argument("--embed", default=None,
+                    help="要内嵌进 EXE 的 mini_installer 路径（发布用）")
     ap.add_argument("--console", action="store_true", help="编译成控制台程序（测试用）")
+    ap.add_argument("--version", default=None,
+                    help="写入文件版本元数据的 4 段版本号（如 155.0.8059.40）。"
+                         "不给则 csc 默认 0.0.0.0 —— 用户在属性对话框/审计工具里看不到版本，"
+                         "第6轮曾试图用 /version: 实现，那是错的（见下）")
     ap.add_argument("--allow-nondeterministic", action="store_true",
                     help="明知产物不可复现仍继续（仅供本机排错，发布路径禁止使用）")
     ap.add_argument("--out", default=None)
@@ -91,13 +96,36 @@ def main():
             fail("--embed 指定的安装包不存在：%s" % args.embed)
         # 逻辑名必须与 C# 里的 PackageResName 一致（按后缀匹配）
         cmd.append("/resource:%s,mcloud_mini_installer.exe" % args.embed)
+    extra_src = None
+    if args.version:
+        parts = args.version.split(".")
+        if len(parts) != 4 or not all(p.isdigit() for p in parts):
+            fail("--version 需要 4 段数字版本号（如 155.0.8059.40），收到 %r；"
+                 "AssemblyVersion 不接受其它形式" % args.version)
+        # ⚠ csc **没有**"设置程序集版本"的开关：`/version`（不带冒号）是"打印编译器版本并退出"。
+        # 第6轮曾写成 `/version:155.0.8059.40`，csc 返回 0 却**根本不产出文件**（缺陷 D164），
+        # 而当时的调用方只看 returncode，于是流水线在"没有产物"这一步才以另一种形式暴露。
+        # 正确做法：生成一个 AssemblyInfo 源文件与主源码同批编译。
+        # 放固定路径（installer/out/ 已 gitignore）而不是 mkstemp 的随机名 ——
+        # 排除"源文件路径进元数据"这类可能的不可复现来源。
+        extra_src = os.path.join(OUTDIR, "mcloud_setup_assemblyinfo.cs")
+        with open(extra_src, "w", encoding="utf-8", newline="\r\n") as f:
+            f.write('[assembly: System.Reflection.AssemblyVersion("%s")]\n'
+                    '[assembly: System.Reflection.AssemblyFileVersion("%s")]\n'
+                    '[assembly: System.Reflection.AssemblyInformationalVersion("%s")]\n'
+                    % (args.version, args.version, args.version))
+        cmd.append(extra_src)
     cmd.append(SRC)
 
     print("编译：%s" % (" ".join(cmd[:6]) + " ... " + os.path.basename(SRC)))
     # csc 按系统 ANSI 代码页（本机 cp936）输出中文，用 text=True 的默认编码解码；
     # errors="replace" 保证万一有奇数字节也只是显示乱码，不会像首版那样直接抛
     # UnicodeDecodeError 把编译结果一起吞掉（'stdout' 变 None 后 AttributeError）。
-    r = subprocess.run(cmd, capture_output=True, text=True, errors="replace")
+    try:
+        r = subprocess.run(cmd, capture_output=True, text=True, errors="replace")
+    finally:
+        if extra_src and os.path.isfile(extra_src):
+            os.unlink(extra_src)
     if r.stdout.strip():
         print(r.stdout.strip())
     if r.returncode != 0:

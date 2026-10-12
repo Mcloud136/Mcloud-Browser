@@ -2,6 +2,32 @@
 
 ## M155（内核升级 M151 → M155.0.8059.40）— 2026-10-10
 
+### r8（第7周期收口：遗留清零 + 重打包 + 干净安装复验）— 2026-10-12 深夜
+
+- **D186 源码树身份断言**（新 `win_scripts/tree_check.py`）：`CR_DIR` 默认值历史上指向
+  **M151 回滚参考树**，而两棵树都有同名注入目标 ⇒ 忘设变量时注入在旧树上"成功"、编译用新树，
+  定制静默丢失。现在 `deploy_mcloud.py` 开工第一件事就是比对 `<CR_DIR>/chrome/VERSION` 与
+  `KERNEL_MAJOR`，不符 exit 114 并点名原因与修法。Red：指向 M151 树 → rc=114；
+  Green：指向发布树 → 打印 `源码树：M155（155.0.8059.40）`。
+- **D187 setup 文件版本元数据**：此前实测 `FileVersion/ProductVersion = 0.0.0.0`。
+  用临时 `AssemblyInfo.cs` 同批编译实现（**不是** `csc /version:` —— 那是"打印编译器版本并退出"，
+  返回 0 却不产出文件，见 D164）。`package_m155.py` 现在会**实测核对** VersionInfo，
+  不符即 FAIL；复现性未受影响（同名不同目录两次 SHA 一致）。
+- **D185**：安装器两处 `Process.Start` 未 Dispose；我修 D184 时新写的 `gpu_identity()`
+  漏关 WebSocket（审计别人泄漏时自己造了一个）——均已修。
+- **重打包**：增量只有 3 步（`mini_installer_archive` → `packed_files.res` → `LINK`），
+  `chrome` 本体未过期 ⇒ 本轮不涉及 crubit，不会撞 D173 的管道竞态。
+  新发布物：setup `a61655ddba2cbadd27522cbc970232c3b2997c8112d846a059624e5356b13019`（127,585,792 B）、
+  mini_installer `27c3236b82454d6dba4a0df53584d37185b835f8748fe517c86ec6c418faef68`（127,559,168 B）。
+- **干净安装复验**（真实改动本机安装实例）：卸载 rc=19 → 安装 rc=0；清单落版本目录且与仓库
+  逐字节一致（`a071260c8c2c374f`）；根目录无残留、无 `new_chrome.exe` 暂存件；
+  安装版 `chrome.dll`(`e7679fb5…`) 与根 `chrome.exe`(`86b588a4…`) **与本轮构建同哈希**（判新旧只认哈希，
+  安装目录 mtime 来自 7z 归档）；对安装后的二进制回显 **`enable 50 / disable 2`**。
+  `release_chain_check.py` 三处一致 ⇒ 第 4 次发布链断裂闭合。
+- ⚠ 卸载器再次删掉任务栏固定项，仍需人工重钉（无 API 可恢复）。
+- 本轮**没有重新编译内核代码**（源码侧改动全在脚本/文档/清单注释），
+  所以 `chrome.dll` 与 r7 同一份；D172 的"实测消失 + 正向对照"结论继续有效。
+
 ### 第7周期（源码侧，未重打包）— 2026-10-12 晚
 
 - **内存/CPU/GPU 全局审查**（D177–D184，详版 `docs/tasks/bug-review-cycle7-report.md`）。

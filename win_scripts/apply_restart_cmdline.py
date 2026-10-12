@@ -26,8 +26,17 @@ import io
 import os
 import sys
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from tree_check import require_tree      # noqa: E402
+
 # D27: 与 deploy_mcloud.py 的 CR_DIR 机制保持一致
 SRC = os.environ.get("CR_DIR", r"D:\wxmuma\chromium-src\src")
+# D186：CR_DIR 的默认值就是 M151 回滚参考树，而 M151 里**同样有**
+# chrome/browser/chrome_browser_main_win.cc —— 不设 CR_DIR 时本脚本会在旧树上
+# 成功注入并自称完成，而编译用的是另一棵树。这里先做身份断言，不符即 exit 114。
+_rc = require_tree(SRC, "apply_restart_cmdline")
+if _rc:
+    sys.exit(_rc)
 p = os.path.join(SRC, "chrome", "browser", "chrome_browser_main_win.cc")
 if not os.path.isfile(p):
     print("ERROR: %s not found (CR_DIR 指向的树不对？)" % p)
