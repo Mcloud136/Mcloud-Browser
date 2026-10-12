@@ -1,0 +1,63 @@
+{
+ "source": {
+  "file": "pak_src_fixed/pak.c",
+  "sha256": "6f3fe109e845923c2fc0f573080afdafc9f1ffed5eb81d01943338dad113d4f5"
+ },
+ "reference_source": {
+  "dir": "pak_src/",
+  "sha256_of_build": "1d7b531e2dde068cd8cd793819574c5efe9fbab10b94190fbc4368202a785f15"
+ },
+ "compiler": {
+  "name": "MSVC",
+  "toolset": "14.51.36231",
+  "flags": [
+   "/nologo",
+   "/W4",
+   "/O2",
+   "/MT",
+   "/Brepro",
+   "/utf-8",
+   "/D_CRT_SECURE_NO_WARNINGS"
+  ]
+ },
+ "artifacts": {
+  "pak_msvc64.exe": {
+   "bytes": 193536,
+   "sha256": "7ab0ae23d2958c1332a8a12fb11ba341c0aad7b9c006905d86af0298e0adb920"
+  },
+  "pak_msvc32.exe": {
+   "bytes": 160768,
+   "sha256": "b8007d96a79d5df55d400065e4af1d00be8670b100e3488125f11d447de21cc7"
+  }
+ },
+ "corpus": [
+  {
+   "file": "chrome_100_percent.pak",
+   "bytes": 592217,
+   "sha256": "1f68dc58a39854f13b7d1381a6221cbc361a99e2d5ce9a8f1533ba6f86c737f2"
+  },
+  {
+   "file": "chrome_200_percent.pak",
+   "bytes": 965315,
+   "sha256": "f02181e5dbd5ecf0605c4c8650a20199b86264df285620ae1bb2dbd014bb7859"
+  },
+  {
+   "file": "headless_command_resources.pak",
+   "bytes": 3109,
+   "sha256": "8be045eeba9f670fe9e75682f2246ec5ba4d63eae115681b956000558d45e131"
+  },
+  {
+   "file": "resources.pak",
+   "bytes": 24292471,
+   "sha256": "5cd411d7afc1fef8e2662cd54e29c1b2fb4e1a589544bb6221a3f3d9d2ca60cf"
+  }
+ ],
+ "out_of_scope_per_adr003": {
+  "binaries/pak": "Linux x86-64 ELF：项目不发布 Linux，保持原样不重建",
+  "binaries/pak_arm64": "Linux aarch64 ELF：同上"
+ },
+ "kept_as_fallback_only": {
+  "binaries/pak-win/pak_mingw64.exe": "在库 MinGW 构建物，早于仓库源码（不解 .gz 魔数）；包装器已改为首选 pak_msvc64.exe，它只在缺失时回退",
+  "binaries/pak-win/pak_mingw32.exe": "同上（32 位回退；Windows x64 才是发布目标）"
+ }
+}

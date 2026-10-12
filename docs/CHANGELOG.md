@@ -2,6 +2,30 @@
 
 ## M155（内核升级 M151 → M155.0.8059.40）— 2026-10-10
 
+### r11（D196 处置：用修好的源码重建 Windows 侧 pak 二进制）— 2026-10-12 深夜
+
+用户定案：**本项目只发布 Windows x64（ADR-003），不编译其它平台**，所以只重建 Windows 那两份。
+
+- 新入口：`pak_src/binaries/rebuild_win.bat`（只做转发）→ `.bugreview/pak_rebuild.py`（真正的实现）。
+  **全部判据通过才落盘**，任一条红就保持原样退出 1：
+  `/W4 /utf-8` 零警告 → `/MT` 静态 CRT（实测产物无 `VCRUNTIME140`/`api-ms-win-crt` 导入）→
+  `/Brepro` 连编两次**逐字节相同** → 对 `out/mcloud` 的 4 个真实 v5 `.pak`（含 24 MB `resources.pak`）
+  解包→再打包**与原文件逐字节相同** → 与仓库多文件版 `pak_src/*.c` 编出的参考实现**产物相同** →
+  x86 与 x64 产物相同。
+- 落盘：`pak_msvc64.exe` 193,536 B `sha256 7ab0ae23d2958c13…`；`pak_msvc32.exe` 160,768 B `b8007d96a79d5df5…`。
+  清单 `pak_src/binaries/BUILDINFO.json` 记录源码/编译器/旗标/产物/语料哈希，
+  **故意不写构建时间戳** ⇒ 同输入重建零 diff（与 `/Brepro` 同一理由：哈希要能当真依据）。
+- 包装器改为**首选重建产物**：`pak_src/{pack,unpack}.bat`、`pak_src/binaries/pak-win/{pack,unpack}.bat`；
+  在库的 MinGW 那对只在缺失时回退。实测包装器确实选中了 `pak_msvc64.exe`（解包产出 `39800.gz`/`39801.gz`）。
+- 顺带查清"重建改变了什么"：旧 MinGW 版对真实 pak **再打包同样能逐字节还原原文件**，
+  唯一功能差距是解包时不给 gzip 资源加 `.gz` 后缀（`resources.pak` 里 3,199 个）——它早于仓库
+  `pak_get_file_type.c` 的魔数表。即这次重建换来的是"二进制 == 源码" + 源码侧的安全加固
+  （D1–D19、D190/D191/D193），不是修复一个"还原错文件"的问题。
+- ⚠ 本轮踩到并记入 AGENTS.md 的两条 batch 坑：**`rem` 里写中文会按 OEM 代码页花屏**（.bat 保持 ASCII+CRLF）；
+  **把局部变量命名为 `TMP`** 会覆盖 `%TMP%`，cmd 自身的临时文件逻辑被打乱，表现为 cl 返回 0 却不产出文件。
+- ⛔ `binaries/pak`、`binaries/pak_arm64`（Linux ELF）**不重建**：不在发布范围（ADR-003），
+  且本机没有 POSIX 编译器；`BUILDINFO.json` 里以 `out_of_scope_per_adr003` 明确标注，避免被当成遗漏。
+
 ### r10（复核另一位 C 工程师的 `pak_src_fixed/`：D190–D196）— 2026-10-12 深夜
 
 - 他做对的保留：严格别名 UB（U1/U2）、`vsnprintf` off-by-one（U3）、`_snprintf`→`snprintf`（P1）、

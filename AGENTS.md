@@ -62,7 +62,7 @@ MCloud Browser 是基于 Chromium（当前 M155，155.0.8059.40，硬件基线 A
 |------|------|------|
 | `src/` | C++ | Chromium 覆盖文件：品牌、运行时 flags 加载、媒体/网络/UI 功能修改 |
 | `win_scripts/` | Python | Windows 构建流水线：源码复制、flags 注入、编译、部署 |
-| `pak_src/` + `pak_src_fixed/` | C | Chromium `.pak` 资源包工具源码（**不参与构建**，见下文 D196） |
+| `pak_src/` + `pak_src_fixed/` | C | Chromium `.pak` 资源包工具；构建链只用 `pak_src/binaries/` 里的二进制（Windows 侧已从 `pak_src_fixed/pak.c` 重建，见下文） |
 | `infra/` | C/Python/Shell | 发布打包：AppImage、Flatpak、Portable、DEB、品牌与构建脚本 |
 | `arm/` | GN/Shell | ARM 平台构建支持（树莓派 / Windows on ARM） |
 | `other/` | Patch | Chromium 补丁文件（`feature-name.patch` 命名格式） |
@@ -243,12 +243,27 @@ C 语言编写的 Chromium 资源包工具：
 - `binaries/` — **构建链真正会用的那几份**（上游 myfreeer 发布物 + Thorium 作者自编译的
   Linux/Windows/arm64 二进制）。
 
-⚠ **`pak_src/` 的 C 源码不参与任何构建**（第7周期 D196 实测）：全仓只有两处复制 `pak`
-的地方——`setup.sh:87-88` 与遗留 `win_scripts/setup.py:144-149`（后者按 D97 直接 REFUSED/exit 112），
-且两者复制的都是 `binaries/` 里的**预编译二进制**；`deploy_mcloud.py` 里没有任何 pak 步骤。
-所以"D1–D19 已加固"**不等于**装进包的那个工具已加固——要改的是 `binaries/`，不是源码目录。
-（本机无任何 POSIX C 编译器：gcc/clang/WSL 都不存在，因此 `Makefile`/`run_test.sh` 侧的
-判据只能在 ubuntu CI 上真跑，本机一律报 SKIPPED 而不是假通过。）
+**构建链不编译 `pak_src/` 的 C 源码**（第7周期 D196 实测）：全仓唯一复制 `pak` 的动作在
+`setup.sh:87-88` 与遗留 `win_scripts/setup.py:144-149`（后者按 D97 直接 REFUSED/exit 112），
+两者复制的都是 `binaries/` 里的预编译二进制；`deploy_mcloud.py` 里没有任何 pak 步骤。
+⇒ "源码已加固"只有在**重建过 `binaries/`** 之后才等于"工具已加固"。
+
+- ✅ **Windows 侧已重建并验证**（2026-10-12 r11）：入口 `pak_src/binaries/rebuild_win.bat`
+  只做转发，真正的实现是 `.bugreview/pak_rebuild.py`。它从 `pak_src_fixed/pak.c` 编
+  `pak_msvc64.exe` / `pak_msvc32.exe`，**全部判据通过才落盘**：`/W4` 零警告、`/MT` 静态 CRT
+  （产物不依赖 vcruntime140，实测无该导入）、`/Brepro` 连编两次逐字节相同、对 `out/mcloud`
+  里 4 个真实 `.pak`（含 24 MB 的 `resources.pak`）解包→再打包**与原文件逐字节相同**、
+  与仓库多文件版 `pak_src/*.c` 的参考实现**产物相同**、x86 与 x64 产物相同。
+  清单 `pak_src/binaries/BUILDINFO.json` **故意不含构建时间戳** ⇒ 同输入重建零 diff。
+  包装器 `pak_src/{pack,unpack}.bat` 与 `binaries/pak-win/{pack,unpack}.bat` 已改为
+  **首选 `pak_msvc*.exe`**，在库的 MinGW 那对（早于仓库源码，不解 `.gz` 魔数）只在缺失时回退。
+- ⛔ **Linux/ARM 那两份 ELF 不重建**：本项目只发布 Windows x64（ADR-003），它们属上游遗留材料。
+  本机也确实没有 POSIX 编译器（gcc/clang/WSL 都不存在），所以 `Makefile`/`run_test.sh` 侧判据
+  只能在 ubuntu CI 上真跑，本机一律报 SKIPPED 而不是假通过。
+- ⚠ 写 `.bat` 的两条实测坑：**必须 CRLF + ASCII**（cmd 按 OEM 代码页读，中文 `rem` 会花屏，
+  行尾 LF 会让解析错乱）；**不要把局部变量叫 `TMP`**——覆盖 `%TMP%` 会打乱 cmd 自身的临时文件
+  逻辑，表现为 cl "返回 0 却不产出文件"。另：batch 里 `cmd | findstr` 抓编译输出在本机实测会让
+  整个脚本静默中止（rc=255 且无报错），改成"重定向到文件再读"。
 
 ### pak_src_fixed/ — 现代 C11 单文件重写（另一位 C 工程师 `0bbabca` 引入，第7周期复核）
 

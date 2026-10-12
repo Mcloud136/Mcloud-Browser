@@ -1585,6 +1585,8 @@ CPU 调度效率与占用、核显与独显渲染。
 | D195 | **低（静默失败路径）** | `pak_src_fixed/pak.c` `unpack()` / `pack()` 路径拼接 | 三处 `snprintf` 未查返回值：`outdir` 接近 `PAK_PATH_MAX` 时被截断，资源写到被截断的路径上而工具仍报成功；`index_append` 全部失败（OOM）时 `index==NULL, len==0`，`write_file(.., NULL, 0)` 照样返回 true ⇒ 生成**空的 `pak_index.ini` + "解包成功"** | 已修：两处路径拼接查 `snprintf` 返回并报错返回；写索引前要求 `index && len>0`。⚠ **未门禁化**：触发需要 max-path 或内存耗尽，本机无法构造真实输入；按本仓纪律标注为"已修未测"，不写成已验证 |
 | D196 | **中（审查发现的架构事实，非新代码缺陷）** | `pak_src/binaries/`、`setup.sh:87-88`、`win_scripts/setup.py:144-149` | **`pak_src/` 的 C 源码在构建链里根本不参与编译**：唯一的复制动作在遗留入口里（`setup.sh` 与已按 D97 拒绝执行的 `win_scripts/setup.py`），而且它们复制的是**预编译二进制** `binaries/pak`、`binaries/pak-win/pak_mingw*.exe`、`binaries/pak_arm64`（上游 myfreeer 发布物 + Thorium 作者自编译）。`win_scripts/deploy_mcloud.py` 里没有任何 pak 相关步骤（grep 命中 0） | 结论：D1–D19 与本轮 D190–D195 修的都是**参考实现**，不改变任何发布产物；真正会被使用的是 `binaries/` 里那几份**未修**的旧二进制。已在 `AGENTS.md` 与本节记录口径，避免以后有人据"pak 已加固"推断安装包里的那个也是加固版。若要真正受益只有一条路：把 `pak_src_fixed/pak.c` 编译进 `binaries/` 并纳入构建脚本，那是独立决定，未擅自执行 |
 
+**D196 的处置（r11，用户定案：本项目只发布 Windows x64）**：Windows 侧已用 `pak_src_fixed/pak.c` 重建并落盘 —— 入口 `pak_src/binaries/rebuild_win.bat` → `.bugreview/pak_rebuild.py`，产出 `pak_msvc64.exe`(193,536 B, sha256 `7ab0ae23d2958c13…`) / `pak_msvc32.exe`(160,768 B, `b8007d96a79d5df5…`)，并把 4 个包装器脚本改为首选 msvc。落盘前必须过的判据（全绿）：/W4 零警告、/MT 静态 CRT（实测无 VCRUNTIME140 导入）、/Brepro 连编两次字节相同、对 out/mcloud 的 4 个真实 v5 pak（含 24 MB resources.pak）解包→再打包**与原文件逐字节相同**、与 `pak_src/*.c` 参考实现产物相同、x86==x64 产物。清单 `pak_src/binaries/BUILDINFO.json` 不含时间戳⇒重建零 diff。**Linux/ARM 那两份 ELF 不重建**（ADR-003 只发布 Windows x64）。实测附带查清：在库的 MinGW 版对真实 pak 再打包也能还原出逐字节相同的原文件，它唯一的功能差距是**解包时不给 gzip 资源加 .gz 后缀**（resources.pak 里 3199 个），即早于仓库 `pak_get_file_type.c` 的魔数表。 |
+
 ### 本轮新增/改动的量具与判据（都可从干净检出复现）
 
 - `.bugreview/pak_fixed_verify.py` — 从零编译新旧两个工具（**判据用本轮时间戳，不复用 `.cycle7` 里遗留的二进制**）、编码旗标 [1a–1d]、三组样本（v5+别名 / v4 / 64 KB 含 `0x80 0xFF`）的确定性 + 与原始工具字节一致 + 交叉解包清单与载荷多重集、11 组 ASan 用例、删掉 D191 修复的 Red 对照。实测 `FAILED-CHECKS: none`。
@@ -1717,6 +1719,8 @@ CPU 调度效率与占用、核显与独显渲染。
       `win_scripts/setup.py` 删除或加 refusal guard（其 lint 噪声随之消失）
 - [x] D1-D19 修复（pak_src/，2026-10-08）
 - [x] 复核另一位 C 工程师的 `pak_src_fixed/`（D190–D196，第7周期深夜）：4 条真实缺陷（脏堆填充、越界读、警告行号错位、v4 别名静默丢弃）+ 2 条交付/口径问题全部修复或更正，判据入库 `.bugreview/pak_fixed_{verify,diff}.py`、`.bugreview/pak_gate_red_control.py`、`pak_src_fixed/{Makefile,run_test.sh}`，并接入 `win_scripts/verify_sources.py`
+- [x] D196 处置（r11）：用 `pak_src_fixed/pak.c` 重建 Windows 侧 `binaries/pak-win/pak_msvc{64,32}.exe`，
+      4 个真实 pak 逐字节对拍通过后落盘，包装器首选改为 msvc；Linux/ARM ELF 按 ADR-003 不重建
 - [x] pak 修复后语料回归：8 组畸形输入优雅报错 + v4/v5 真实往返字节一致（ASan，failures=0）
 - [x] flags 加载器合并顺序缺陷 D21/D22/D23：注入器 v2 + 树内升级（重编译验证进行中）
 - [x] win_scripts/*.py 深审（D28-D31 修复，verify_sources 通过）
