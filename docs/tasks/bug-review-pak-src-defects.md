@@ -1725,6 +1725,11 @@ CPU 调度效率与占用、核显与独显渲染。
       4 个真实 pak 逐字节对拍通过后落盘，包装器首选改为 msvc；Linux/ARM ELF 按 ADR-003 不重建
 - [x] D197（r12）：`verify_sources` 在 CI 上把 SKIPPED 当通过 + 非 ASCII 文案让门禁自己崩溃；
       已改为 CI 上 compile+round-trip 跳过即 FAIL、ASan 缺运行时只 WARN，并加 stdout 兜底
+- [ ] D45 仍未修（r13 实测确认）：推 `v155.0.8059.40` tag 触发的 `release.yml` 跑成 success，
+      但**没有上传任何资产**（仓库根无 `mini_installer.exe`，被 .gitignore 排除且超 100 MiB push 上限）；
+      M155 实际靠手工 Release asset 上传发布 ⇒ 这条流水线现在是"绿色但什么也没做"，
+      下一个人照它发布会得到一个空 release。修法：workflow 缺资产即硬失败 + 上传清单改为
+      setup/mini_installer 两套（D119 定案"给用户的那个"是 setup）
 - [x] pak 修复后语料回归：8 组畸形输入优雅报错 + v4/v5 真实往返字节一致（ASan，failures=0）
 - [x] flags 加载器合并顺序缺陷 D21/D22/D23：注入器 v2 + 树内升级（重编译验证进行中）
 - [x] win_scripts/*.py 深审（D28-D31 修复，verify_sources 通过）

@@ -2,6 +2,24 @@
 
 ## M155（内核升级 M151 → M155.0.8059.40）— 2026-10-10
 
+### r13（发布 v155.0.8059.40 到 GitHub Release）— 2026-10-12 深夜
+
+M155 首次真正发布：**https://github.com/Mcloud136/Mcloud-Browser/releases/tag/v155.0.8059.40**
+（tag 指向 `03c35e6`，正文取仓库里的 `2026-10-10-release-notes-m155.md`，非 draft / 非 prerelease）。
+
+- 四个资产全部上传并经**服务端回读核对**：
+  `..._win64_setup.exe` 127,586,304 B（`1302268f…`）、其 `.sha256` 103 B；
+  `..._win64_mini_installer.exe` 127,559,168 B（`27c3236b…`）、其 `.sha256` 112 B。
+  核对项 = 服务器报告字节 == 本地字节、`state=uploaded`、两个 sidecar 从 GitHub 拉回后与本地**逐字节相同**。
+- 匿名（用户视角）验证可下载：releases/download 链接 200（1 次重定向到签名地址），
+  sidecar 匿名取回内容即 `1302268f8a0101f1…`。
+- ⚠ **D45 没有被这次发布解决**：tag 创建确实触发了 `release.yml` 且它跑成 success，
+  但它一个资产都没传（仓库里没有 `mini_installer.exe`，被 `.gitignore` 排除，且 121.6 MiB
+  超 git push 单文件上限）。发布是靠 Release asset 上传手工完成的。
+  我的 release 之所以没被它清空，只因为资产已经先在了 —— 也就是说**这条流水线现在仍是"绿色但什么也没做"**，
+  下一个人若照它发布就会得到一个空 release。D45 保持开放。
+- 凭据：经用户明确授权使用 Git Credential Manager 里已有的 HTTPS 凭据，只在进程内存中使用、
+  未写入任何文件或 git 配置，异常输出统一做 token 遮蔽处理。
 ### r12（D197：CI 绿灯不能代表 gcc 判据跑过）— 2026-10-12 深夜
 
 - 推送 `20ab337` 后 CI 显示 `Source Verification: success`，但日志需要仓库管理员权限才能取
