@@ -16,6 +16,7 @@
     python3 win_scripts/build_setup_exe.py --console        # 产出控制台版（自动化测试可直接读输出）
 """
 import argparse
+import io
 import os
 import subprocess
 import sys
@@ -49,13 +50,18 @@ def main():
                     help="写入文件版本元数据的 4 段版本号（如 155.0.8059.40）。"
                          "不给则 csc 默认 0.0.0.0 —— 用户在属性对话框/审计工具里看不到版本，"
                          "第6轮曾试图用 /version: 实现，那是错的（见下）")
+    ap.add_argument("--source", default=SRC,
+                    help="要编译的 C# 源文件（默认仓库内那份）。判据需要编译"
+                         "「HEAD 版本 vs 工作树版本」这类变体时用它，"
+                         "不要去临时改写被跟踪的源文件再还原（有留下半成品状态的风险）")
     ap.add_argument("--allow-nondeterministic", action="store_true",
                     help="明知产物不可复现仍继续（仅供本机排错，发布路径禁止使用）")
     ap.add_argument("--out", default=None)
     args = ap.parse_args()
 
-    if not os.path.isfile(SRC):
-        fail("找不到源文件 %s" % SRC)
+    src_file = args.source
+    if not os.path.isfile(src_file):
+        fail("找不到源文件 %s" % src_file)
     import glob as _glob
     csc = None
     for pat in ROSLYN_GLOBS:
@@ -115,9 +121,9 @@ def main():
                     '[assembly: System.Reflection.AssemblyInformationalVersion("%s")]\n'
                     % (args.version, args.version, args.version))
         cmd.append(extra_src)
-    cmd.append(SRC)
+    cmd.append(src_file)
 
-    print("编译：%s" % (" ".join(cmd[:6]) + " ... " + os.path.basename(SRC)))
+    print("编译：%s" % (" ".join(cmd[:6]) + " ... " + os.path.basename(src_file)))
     # csc 按系统 ANSI 代码页（本机 cp936）输出中文，用 text=True 的默认编码解码；
     # errors="replace" 保证万一有奇数字节也只是显示乱码，不会像首版那样直接抛
     # UnicodeDecodeError 把编译结果一起吞掉（'stdout' 变 None 后 AttributeError）。
@@ -140,8 +146,11 @@ def main():
         print("   未内嵌安装包：运行时需 --package <mini_installer.exe>")
     # 编译器产物是二进制，不入库；提示一下避免误提交
     gi = os.path.join(THOR, ".gitignore")
-    if os.path.isfile(gi) and "installer/out/" not in open(gi, encoding="utf-8").read():
-        print("NOTE: 记得把 installer/out/ 加进 .gitignore（编译产物不入库）")
+    if os.path.isfile(gi):
+        with io.open(gi, encoding="utf-8") as gf:
+            gi_text = gf.read()
+        if "installer/out/" not in gi_text:
+            print("NOTE: 记得把 installer/out/ 加进 .gitignore（编译产物不入库）")
     return 0
 
 

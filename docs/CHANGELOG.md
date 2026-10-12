@@ -2,6 +2,30 @@
 
 ## M155（内核升级 M151 → M155.0.8059.40）— 2026-10-10
 
+### r9（第7周期五轮复审：D132 真正落地 + 两处文档虚指修正）— 2026-10-12 深夜
+
+- **D132 单实例互斥**（第7周期才真正实现；档案里此前一直是「⬜ 待跟进」）：
+  `Global\MCloudBrowserSetup`，第二个并发实例 `rc=2` 并给出原因。
+  判据 `.bugreview/test_mutex_single_instance.py` 带**真 Red**：编译 HEAD 变体（走新加的
+  `build_setup_exe.py --source`，不改工作树）证明改动前第二个实例不被挡住 ⇒ Green 的通过有意义。
+  实测 Green `rc1=1 / rc2=2`，Red `rc2=1`，四条污染自检全过。
+- **D189（我自己引入的自伤，已修）**：互斥体会把**提权自举的子进程**挡住（父持锁并 WaitForExit
+  ⇒ 系统级安装直接 rc=2）。修法：子进程带 `--elevated-child` 跳过抢锁。
+  实测：父在临界区内时带标记进程照常跑完（rc=1）、不带的被挡（rc=2）。
+  ⚠ 本机 `EnableLUA=0` ⇒ 真实 UAC 分支从不执行，这一条仍需在开 UAC 的机器上复验（同 D158/D123 边界）。
+- **D188**：第7周期报告把 `.bugreview/gpu_degradation_probe.py` 当现成门禁引用，而它当时只在
+  gitignore 的 `.cycle6/cycle6-reverted/` 里。已按本仓纪律重写并入库（不写死端口、临时目录
+  finally 删除、页面判据不依赖外网、chrome://gpu 必须读到 GL_RENDERER），实测三场全绿：
+  禁用 GPU→WARP(`0x0000008C`) 软件渲染、`--use-angle=swiftshader`→SwiftShader/Vulkan、
+  默认对照→合成/Canvas/Video Decode 全硬件加速。首版判据把 WebGL 只认 SwiftShader，
+  把 WARP 这条合法软件路径判成红 —— 已改为与默认场景对照 + 按硬件设备号排除。
+- **门禁回归**：`installer_arg_test.py` 12/12（含此前跳过的系统级分支，互斥体未破坏两分支）；
+  修后量具首次完整跑通：`leak_probe` 4×25 标签漂移 +4.7 MB 且每轮「剩余 page=1」；
+  `r4` `instrument_valid: true` + 6 项全绿；K1 中位数 50 ms（噪声带内）。
+- 发布物：mini_installer 不变（`27c3236b…`），外层 setup 随包装器改动重打为
+  `1302268f8a0101f11e86fda5e98172022a084b67bfba2c69ef2af0d2fa9c7af3`；
+  `release_chain_check.py` 三处一致。
+
 ### r8（第7周期收口：遗留清零 + 重打包 + 干净安装复验）— 2026-10-12 深夜
 
 - **D186 源码树身份断言**（新 `win_scripts/tree_check.py`）：`CR_DIR` 默认值历史上指向

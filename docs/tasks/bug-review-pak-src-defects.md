@@ -1338,7 +1338,7 @@ WebGL 的 `UNMASKED_RENDERER_WEBGL` 都显示 `NVIDIA GeForce GTX 1050 Ti (0x000
 | D129 | Medium | `mcloud_setup.cs:613-624` | 安装器自身退出码不参与判定，而 `Verify` 只查文件存在性 ⇒ 同版本重跑时"安装失败 + 目录残留"被判 rc=0"已确认更新" | ✅ `irect != 0` 直接 `ok=false`（与 D121 同批） |
 | D130 | Medium | `build_setup_exe.py:59-64`、`package_m155.py:143-151` | 找不到 Roslyn 时无声退回旧 csc（**实测旧 csc 两次编译 SHA 不同**，Roslyn `/deterministic+` 一致），且 `package_m155.py` 成功路径把"用了哪个编译器/是否可复现"整段丢弃，随后照样写 `.sha256` 与发布说明 | ⬜ 待跟进 |
 | D131 | Medium | `mcloud_setup.cs:692-705,752` | `BuildUi` 只等 2 s 让句柄建好；没建成时 `_done.WaitOne()` **无超时永久阻塞**。且发布物是 GUI 版而 `setup_wrapper_test.py` 只测 `--console --quiet` ⇒ UI 分支**从未被任何门禁执行过** | ⬜ 待跟进 |
-| D132 | Medium | 全文件无 `Mutex` | 并发双击两个包装器 ⇒ 两边同时关浏览器、同时对同一棵树跑 mini_installer，工作项列表互相踩 | ⬜ 待跟进 |
+| D132 | Medium | 全文件无 `Mutex` | 并发双击两个包装器 ⇒ 两边同时关浏览器、同时对同一棵树跑 mini_installer，工作项列表互相踩 | **已修（第7周期收口，见 D188）**：命名互斥体 `Global\MCloudBrowserSetup`（受限环境退回 `Local\`，建不起则记 WARN 继续，不因护栏阻断安装）；已被持有且 2 秒内拿不到 ⇒ `rc=2` 并说明原因，不排队重跑。判据 `.bugreview/test_mutex_single_instance.py`：Green=工作树（第二个 rc=2 + 互斥提示），**Red=HEAD 变体（第二个不被挡住）**，四条污染自检 + 自己的临时目录必删；实测 `rc1=1 / rc2=2`（Green）与 `rc2=1`（Red） |
 | D133 | Low | `mcloud_setup.cs:76,82,576-582` | 发布形态是 `winexe`，无控制台时 `Console.WriteLine` 落到虚空 ⇒ AGENTS.md 与发布说明都宣传的 `--list-only` **在用户手上是哑的** | ⬜ 待跟进 |
 | D134 | Low | `build_setup_exe.py:69-81` | 不传 `/version` 或 `/win32res`；实测发布物 ProductVersion/FileVersion 均为 `0.0.0.0`，无法从文件属性辨别包装器版本 | ⬜ 待跟进 |
 | D135 | Low | `mcloud_setup.cs:471-476,658-665` | `Verify`（校验函数）里 `File.Delete` 删根目录 flags，校验带副作用且失败时也已删过；残留扫描按机器级进程名匹配会打假 WARN | ⬜ 待跟进 |
@@ -1484,7 +1484,7 @@ CET 硬件影子栈开（`compiler.gni:230`）、libc++ `_LIBCPP_HARDENING_MODE_
   （本次是加一个 1300 字符的未知开关把修剪后的命令行重新顶过 1024），让它**红一次**，
   这才排除"量具坏了/判据根本没接上"。凡缺席型判据，优先争取 ③，做不到再退到 ②，绝不停在 ①。
 
-## 第7周期（D177–D187：内存/CPU/GPU 全局审查 + 收口，2026-10-12）
+## 第7周期（D177–D189：内存/CPU/GPU 全局审查 + 收口 + 五轮复审，2026-10-12）
 
 **详版见 `docs/tasks/bug-review-cycle7-report.md`。** 目标：内存占用/内存性能/内存安全（含泄漏）、
 CPU 调度效率与占用、核显与独显渲染。
@@ -1500,6 +1500,26 @@ CPU 调度效率与占用、核显与独显渲染。
 | D183 | 中（假阴性写进 KPI） | `benchmark/bench_{memory,startup,navigation}.ps1` 身份块 | 三处都只问"`chrome.exe` 同目录有没有 `mcloud_flags.txt`"。安装版按 D105/D109 把清单投递到**版本目录**，加载器以 DIR_MODULE 为先 ⇒ 对任何安装版都打印"缺失（内置优化不生效，结果无意义）"，而脚本照样 exit 0 输出 KPI 数字（本轮 K2 日志实证） | 已修：新增共用 `benchmark/tools/mcloud_flags_lookup.ps1`（按加载器口径三级候选：DIR_MODULE → 版本目录 → exe 同目录），三个脚本改为 dot-source；三种布局实测（安装版/开发版/负例）行为正确。`.ps1` 总数 44→45 |
 | D185 | 低（句柄卫生） | `installer/mcloud_setup.cs:729,736` + `benchmark/tools/gpu_probe.py:61-75`（**我自己这轮引入的**） | 两处 `Process.Start(...)` 的返回组件从不 Dispose ⇒ 每次启动漏一对进程/线程句柄（安装器寿命短，实际影响小，但属本周期要清零的同一类）；而我在修 D184 时新写的 `gpu_identity()` 打开 CDP WebSocket 后没关 ⇒ **审计别人泄漏时自己制造了一个泄漏**，每次探测留一个套接字 | 已修：C# 两处改为 `using (Process.Start(...)) { }`（`Start` 返回 null 时 using 是空操作，安全）；`gpu_identity()` 用 `try/finally + contextlib.suppress` 关闭 tab。验证：`build_setup_exe.py` Roslyn `/deterministic+` 编译通过（26,112 B）；`gpu_probe` 修后连跑两次结果一致（D3D11 / 0x00002860）且 ruff 全绿。⚠ 改了 `mcloud_setup.cs` ⇒ 外层 setup 需在下次重打包时重编译（与 §6 的重打包合并，不单独触发） |
 | D184 | 高（结论超出测量） | `benchmark/tools/gpu_probe.py:49-50,132-133` | "ANGLE=D3D11 / D3D12" 的判据是 GPU 进程命令行里含 `d3d11`/`d3d12` 子串 —— 命中的是**我们自己的 feature 名**（`MediaFoundationD3D11VideoCaptureZeroCopy`、`--disable-features=D3D12VideoDecoder`），实测两者同时 True 而命令行里根本没有 `--use-angle`；末尾"两版走同一 ANGLE 后端"比较的其实是两个 `gpu-process 存在` 布尔值 | 已修：改为 CDP 打开 `chrome://gpu` 解析 `GL_RENDERER`（注意标签是冒号不是等号，首版正则错在这里）与设备号，等正文出现 `GL_RENDERER` 再读（内联 CSS 会先满足 `wait_for_text`），读不到 rc=2；结论句子改成只说实测值。实测：**ANGLE D3D11 + 独显 0x00002860（RTX 4070 Laptop，名称按 D143 不可信）** |
+
+## 第7周期五轮复审（D188–D189：文档声称的门禁与我自己引入的自伤，2026-10-12 深夜）
+
+| ID | 级别 | 位置 | 问题 | 状态 |
+|---|---|---|---|---|
+| D188 | 中（文档声称的门禁不存在 + 功能确实缺失） | `installer/mcloud_setup.cs`、`docs/tasks/bug-review-cycle7-report.md`、`docs/tasks/bug-review-cycle5-report.md:1021,1051` | 三件事叠在一起：① **D132 的单实例互斥从来没实现过**（`git log -S"Mutex" -- installer/mcloud_setup.cs` 零命中，档案里 D132 一直是「⬜ 待跟进」），而被回退的第6轮交来一份自称「D132 的 Red→Green 判据」的脚本 —— 一份验证**不存在功能**的测试，通过与否都不说明任何事；② 我第7周期报告把 `.bugreview/gpu_degradation_probe.py` 当作现成门禁引用，而它当时只存在于被 gitignore 的 `.cycle6/cycle6-reverted/`（第5周期报告对这 4 个文件「未入库」的记录是准确的，错在我这条新引用）；③ 回退轮把测试脚本连同实现一起撤走，但文档语气留了下来 | ①已实现并双向验证（见 D132 行）；②已按本仓纪律**重写并入库** `.bugreview/gpu_degradation_probe.py`：不写死端口（D53）、profile 落临时目录且 finally 删除（D99）、页面判据不依赖外网内容（改用 `chrome://version` + `data:` URL，记忆里就有「example.com 正文改版」那次教训）、`chrome://gpu` 必须读到 `GL_RENDERER` 才算取到正文（D184 同族）。实测三场全绿：`--disable-gpu` → WARP 软件渲染 + 本地页面可读；`--use-angle=swiftshader` → SwiftShader/Vulkan 软件路径；默认对照 → 合成/Canvas/Video Decode 全部硬件加速。③报告引用已改口 |
+| D189 | 高（我自己引入的自伤，已修） | `installer/mcloud_setup.cs` 提权自举 × 新加的互斥体 | 加完互斥体后**系统级安装会被自己挡住**：`RelaunchElevated` 启动提权子进程时，父进程仍持有 `Global\MCloudBrowserSetup` 并 `WaitForExit`，子进程再抢同一把锁 ⇒ 2 秒超时 ⇒ 子进程 `rc=2`，系统级安装直接失败。而 Red/Green 判据只覆盖用户级分支，所以这条路径不在测试范围内 —— 「新增护栏要顺着既有分支想一遍」的失守 | 已修：提权自举带上内部标记 `--elevated-child`，带标记即跳过抢锁（同一次逻辑运行）。**实测**：父进程在临界区内时，带标记的第二进程 rc=1（照常跑完）、不带标记的 rc=2（被挡住）⇒ 机制成立。⚠ 本机 `EnableLUA=0` ⇒ `IsAdmin()` 恒真，真正的 UAC 提权分支在这台机器上从不执行（同 D158/D123 的边界），所以「提权路径整体通过」仍需在开 UAC 的机器上复验一次 |
+
+### 五轮复审的覆盖与未覆盖（诚实口径）
+
+轮 A 安装链（`installer_arg_test.py` 12/12，含此前被跳过的系统级分支；D132 互斥 Red/Green）；
+轮 B 内存（修后 `leak_probe` 4×25 标签：漂移 +4.7 MB，且每轮记录「剩余 page=1」证明不是空转；
+修后 `r4` 的 `instrument_valid: true` + 6 项判据全绿、残留 0）；
+轮 C CPU（K1 中位数 50 ms，原始 61/50/53/50/42，落在本机 ±12 ms 噪声带内）；
+轮 D GPU（`gpu_probe` 两次读数一致：ANGLE D3D11 / 设备号 0x00002860；`gpu_degradation_probe` 三场全绿）；
+轮 E 门禁与文档（423 处路径引用扫描、数字口径逐处对齐、用 `git log -S` 追门禁的真伪）。
+
+**本轮没有覆盖**：提权分支的真实执行（需开 UAC 的机器）、长时间浸泡与 CPU 争用对照（任务 #50）、
+核显路由下的窗口拖拽复现（任务 #27）、D179/D181 修复后「实例中途死掉」的实机注入验证
+（目前只有单元级 Red：拿不存在的 profile 指纹调用 `workset_mb` 确实抛错）。
 
 ### 第7周期方法论产出
 

@@ -300,3 +300,42 @@ gpu-process 存在 = True；本实例进程数 = 8；未回退 SwiftShader
 测默认值路径请改用显式赋值（`CR_DIR=<旧树> python …`），或在脚本内 `os.environ.pop`。
 这是"工具自己谎报成功"的又一族，与 D158（`Start-Process -PassThru` + 重定向取不到 ExitCode）同属
 **采集通道本身不可信**这一类，判据设计时要按通道单独验证。
+
+## 12. 五轮复审（应用户要求：已知问题清零后再做）
+
+清完 §11 的遗留之后，重新按轮次过一遍，每轮换一个视角而不是把同一遍抄五次。
+
+| 轮 | 视角 | 跑了什么 | 结果 |
+|---|---|---|---|
+| A | 安装链端到端 | `installer_arg_test.py`（首次因"安装包装完自动重启浏览器"留下 11 个实例而被判 PARTIAL——把实例收掉后重跑） | **12/12 PASS**：用户级与系统级两条参数分支都真实执行、D129 分支触发、四条污染自检全过 |
+| B | 内存 | 修后 `leak_probe.py`（4×25 标签，带 D179/D180 硬失败）+ 修后 `r4_memory_stability_check.py`（3 轮×15 标签） | leak：**+4.7 MB / 1.6 MB 每轮 → PASS**，且每轮记录「剩余 page=1」证明标签确实关掉（不再是空转判据）；r4：`instrument_valid: true`，6 项判据全绿，残留 0 |
+| C | CPU | `bench_startup.ps1 -Runs 5` | K1 中位数 **50 ms**（61/50/53/50/42），落在本机 ±12 ms 噪声带内；无异常尖峰 |
+| D | GPU / 媒体 | `gpu_probe.py`（复跑两次）+ 新入库的 `gpu_degradation_probe.py` 三场 | 两次读数一致（**ANGLE D3D11 / 0x00002860**）；降级三场全绿：禁用 GPU → WARP(`0x0000008C`) 软件渲染 + 本地页面可读；`--use-angle=swiftshader` → SwiftShader/Vulkan；默认对照 → 合成/Canvas/Video Decode 全硬件加速 |
+| E | 门禁自身与文档 | 路径引用扫描（423 处）、数字口径逐处对齐、`git log -S` 追门禁真伪 | 抓到 §12.1 三件事；AGENTS/发布说明/清单头的 15/35 口径统一；`.ps1` 计数 45 与文档一致 |
+
+### 12.1 五轮里真正挖出来的东西（这才是复审的价值，不是"再看一遍没问题"）
+
+1. **D132 从来没有被实现过**，而档案里躺着一条"D132 的 Red→Green 判据"。
+   `git log -S"Mutex" -- installer/mcloud_setup.cs` **零命中** ⇒ 那份判据验证的是一个不存在的功能。
+   已实现（命名互斥体 + `rc=2`），并补一份**带真 Red** 的判据：编译 HEAD 变体证明改动前
+   第二个实例不被挡住。实测 Green `rc1=1 / rc2=2`、Red `rc2=1`、污染自检全过。
+2. **我自己加的那把锁会锁死系统级安装**（D189）：提权自举时父进程持有互斥体并等待子进程，
+   子进程抢不到锁 ⇒ 直接 `rc=2`。用户级判据覆盖不到这条分支，是"新护栏没顺着既有分支想一遍"。
+   修法：子进程带 `--elevated-child` 跳过抢锁；实测父持锁期间带标记进程照常跑完、不带的被挡。
+   ⚠ 本机 `EnableLUA=0` ⇒ 真实 UAC 分支从不执行，"提权路径整体通过"仍待有 UAC 的机器复验。
+3. **我上一节的引用是虚指**（D188）：报告把 `.bugreview/gpu_degradation_probe.py` 当作现成门禁
+   来对比"它不测什么"，而它当时只在被 gitignore 的 `.cycle6/cycle6-reverted/` 里。
+   已按本仓纪律重写入库；重写过程中还纠正了它首版判据的一个假红：
+   禁用 GPU 后 WebGL 拿到的是 `Microsoft Basic Render Driver`（WARP，也是软件渲染器），
+   只认 SwiftShader 会把好结果判成失败 ⇒ 改成"与默认场景对照 + 按硬件设备号排除"。
+
+### 12.2 本轮收尾后的门禁清单（都实测过）
+
+`verify_sources`(45 `.ps1`) / `flag_stability` A–F / `flags_lint --stab --guard` /
+`guard_audit`(M155、M151 各 52/52) / `release_chain_check` 三处一致 /
+`installer_arg_test` 12/12 / `test_mutex_single_instance` PASS(含 Red) /
+`gpu_probe` / `gpu_degradation_probe` / `leak_probe` / `r4` / `bench_startup`。
+
+**仍没覆盖**：真实 UAC 提权路径、长时间浸泡与 CPU 争用对照（任务 #50）、
+核显路由下的窗口拖拽复现（任务 #27）、`workset_mb` "实例中途死掉"的实机注入验证（只有单元级 Red）。
+外层 setup 随包装器改动重打为 `1302268f…`；mini_installer 未变（`27c3236b…`）。

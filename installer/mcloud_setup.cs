@@ -54,6 +54,9 @@ internal static class MCloudSetup
     private static Button _closeBtn;
     private static ManualResetEvent _done;
     private static bool _quiet;
+    // D132：单实例互斥体（此前全文件没有任何互斥手段——档案里 D132 一直标"待跟进"，
+    // 而被回退的第6轮曾声称有 Red→Green 判据；这次把功能真正补上，见 11.4 节说明）。
+    private static Mutex _singleInstance;
 
     // ------------------------------------------------------------------ Win32
     [StructLayout(LayoutKind.Sequential)]
@@ -574,6 +577,7 @@ internal static class MCloudSetup
     {
         bool systemLevel = false, noLaunch = false, listOnly = false;
         bool explicitLevel = false;
+        bool elevatedChild = false;
         string externalPackage = null;
         for (int i = 0; i < argv.Length; i++)
         {
@@ -583,6 +587,11 @@ internal static class MCloudSetup
             else if (a == "--no-launch") noLaunch = true;
             else if (a == "--list-only") listOnly = true;
             else if (a == "--quiet") _quiet = true;
+            // 提权自举的内部标记：父进程持有互斥体并等待子进程退出，子进程若再去抢同一把锁
+            // 就会被自己父亲的锁挡住 ⇒ 系统级安装直接 rc=2 失败（第7周期自审时发现的自伤，
+            // 单实例判据的 Red/Green 只覆盖了用户级分支，系统级分支由 installer_arg_test.py 的 C 兜）。
+            // 它可以被外部传入用来绕过并发保护——这是便利性的护栏，不是安全边界。
+            else if (a == "--elevated-child") elevatedChild = true;
             else if (a == "--package" && i + 1 < argv.Length) externalPackage = argv[++i];
             else if (a == "--help" || a == "-h")
             {
@@ -591,6 +600,44 @@ internal static class MCloudSetup
                 return 0;
             }
             else { Console.WriteLine("未知参数：" + argv[i]); return 3; }
+        }
+
+        // D132：单实例互斥。并发跑两个包装器时，两边会各自关一遍浏览器、再各自对同一棵
+        // 安装树跑 mini_installer —— 上游的 in-use 暂存（new_chrome.exe + rename-chrome-exe
+        // AppCommand）与工作项列表互相踩，结果是"两个都说自己成功了"。
+        // 语义：拿到锁的继续；已有人持有且 2 秒内不放 ⇒ **本次直接退出 rc=2**（文档里
+        // 2 = 环境不满足），不排队重跑——排队会让第二个实例在第一个装完之后再装一遍，
+        // 那正是要避免的事。
+        // 不显式 ReleaseMutex：进程退出即由内核释放；命名对象在最后一个句柄关闭时销毁，
+        // 因此下一次独立运行仍能拿到 createdNew=true。
+        bool createdNew;
+        if (!elevatedChild)
+        {
+            try
+            {
+                _singleInstance = new Mutex(true, @"Global\MCloudBrowserSetup", out createdNew);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                // 少数受限环境不能创建 Global 命名对象 ⇒ 退回会话内 Local\，至少同会话并发能挡住
+                _singleInstance = new Mutex(true, @"Local\MCloudBrowserSetup", out createdNew);
+            }
+            catch (Exception e)
+            {
+                // 互斥体本身建不起来时**不要因此阻断正常安装**（那是另一种把便利换成功能损失）。
+                _singleInstance = null;
+                createdNew = true;
+                Log("建互斥体失败（继续，但本次没有并发保护）：" + e.Message);
+            }
+            if (!createdNew && !_singleInstance.WaitOne(2000))
+            {
+                Log("另一个 MCloud 安装包装器正在运行（互斥体已被持有），本次不执行，退出码 2。");
+                return 2;
+            }
+        }
+        else
+        {
+            createdNew = true;   // 提权子进程：锁在父亲手里，本次是同一个逻辑运行
         }
 
         // 位置选择：默认**就地更新已存在的那一份**（Google Update 式）。只有显式给
@@ -621,7 +668,7 @@ internal static class MCloudSetup
         if (systemLevel && !IsAdmin())
         {
             string rest = string.Join(" ", RebuildArgs(argv, "--system-level"));
-            int elevatedRc = RelaunchElevated("--system-level " + rest);
+            int elevatedRc = RelaunchElevated("--system-level " + rest + " --elevated-child");
             if (elevatedRc == ELEV_LAUNCH_FAILED)
             {
                 Console.WriteLine("未获得管理员权限，系统级安装取消。");

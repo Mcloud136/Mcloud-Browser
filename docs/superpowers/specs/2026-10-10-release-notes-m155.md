@@ -132,7 +132,7 @@ certutil -hashfile mcloud_155.0.8059.40_win64_setup.exe SHA256
 certutil -hashfile mcloud_155.0.8059.40_win64_mini_installer.exe SHA256
 ```
 
-- setup（推荐）预期值：`a61655ddba2cbadd27522cbc970232c3b2997c8112d846a059624e5356b13019`
+- setup（推荐）预期值：`1302268f8a0101f11e86fda5e98172022a084b67bfba2c69ef2af0d2fa9c7af3`
 - mini_installer 预期值：`27c3236b82454d6dba4a0df53584d37185b835f8748fe517c86ec6c418faef68`
 
 两者都是同一个内核构建（155.0.8059.40）的产物；setup 只是把 mini_installer 内嵌进外层安装程序，

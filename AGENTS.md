@@ -426,6 +426,16 @@ autoninja -C out/mcloud chrome mini_installer
   于是把 1300 个字符往 `[int]` 上强转，报 `无法将值"aaaa…"转换为类型 System.Int32`
   （`$ErrorActionPreference='Stop'` 下整个脚本停在第 11 行）。第6周期收口轮的取证脚本实测；
   同族：D83（函数内 `+=` 不写回脚本作用域）。写取证脚本时局部名与参数名不要只差大小写。
+- **安装包装器现在有单实例互斥**（D132，第7周期收口真正实现；此前档案里一直是「待跟进」，
+  而回退轮交来的"判据"验证的是一个不存在的功能）：命名互斥体
+  `Global\MCloudBrowserSetup`（受限环境退回 `Local\`，建不起只 WARN 不阻断），
+  拿不到即 `rc=2`。**提权自举带 `--elevated-child` 跳过抢锁**，否则父进程持有锁等待子进程时
+  会把系统级安装自己挡死（D189，本机 EnableLUA=0 跑不到真实 UAC 分支，仍待有 UAC 的机器复验）。
+  判据：`.bugreview/test_mutex_single_instance.py`（Green=工作树、Red=HEAD 变体，
+  编译变体走 `build_setup_exe.py --source`，**不改工作树里被跟踪的源文件**）。
+  GPU 降级验证：`.bugreview/gpu_degradation_probe.py`（三场：禁用 GPU→WARP 软件渲染、
+  `--use-angle=swiftshader`→SwiftShader、默认对照→硬件加速；页面判据用 `chrome://version`
+  与 `data:` URL，不依赖外网内容）。
 - **判据必须命中它声称的那个东西**（第7周期 D179/D180/D181/D183/D184，五条同族）：
   ① 子串匹配 feature 名当成 GPU 后端（`gpu_probe` 的 `d3d11 in 命令行` 命中的是
   `MediaFoundationD3D11VideoCaptureZeroCopy` 和 `--disable-features=D3D12VideoDecoder`，
@@ -514,7 +524,7 @@ autoninja -C out/mcloud chrome mini_installer
   > **MuMu 虚拟显示器**，D139 之前每份 KPI 基线的 GPU 字段都是错的。
 - **补丁位置**：`other/` 目录，命名 `feature-name.patch`。
 - **文档位置**：`docs/architecture/`（架构）、`docs/dev-logs/phase{N}-dev-log.md`（开发日志）、`docs/decisions/ADR-{NNN}-{title}.md`（决策记录）、`docs/tasks/`（任务文档）。
-  缺陷档案：`docs/tasks/bug-review-pak-src-defects.md`（D1–D187 索引）+ 各周期详版
+  缺陷档案：`docs/tasks/bug-review-pak-src-defects.md`（D1–D189 索引）+ 各周期详版
   `bug-review-cycle{3,4,5,6}-report.md`。**第5周期（D121–D155，2026-10-12）详版见
   `docs/tasks/bug-review-cycle5-report.md`**，含硬件取证、chrome://gpu 实测、Red→Green 验证记录
   与 12 条待跟进项；该文件末尾的 **「续：r6 收口轮执行记录」** 登记 D156–D163，
