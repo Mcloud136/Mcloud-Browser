@@ -2,6 +2,17 @@
 
 ## M155（内核升级 M151 → M155.0.8059.40）— 2026-10-10
 
+### r15（运行时性能实测 + YouTube 多 CDN 可行性结论）— 2026-10-13
+
+新增 `benchmark/tools/r5_runtime_perf_check.py`：真机运行时探针（不含编译时长），三条本地自给场景 +
+真实网页 + YouTube 观测。安装版实测：本地页面 DCL **8.1 ms** / FCP 28 ms；排序 30 万元素 76.5 ms、
+JSON 830 KB 往返 2.3 ms；VP9 640x360/3 s 解码 **81 帧 0 丢帧**；bing 真实页 TTFB 335 ms / load 424 ms。
+YouTube 页面 HTML 可打开但 `googlevideo.com` 本机不可达（21 s 超时）⇒ 只报环境。
+
+结论（详见 cycle7 报告 §15）：YouTube 的分段并发由站点 JS 调度，M155 树里没有播放侧并行分片实现
+（`buffered_data_source` 已删除、`services/media_player` 不存在），唯一并行分片是文件下载的
+`kParallelDownloading`（桌面默认关）。"多 CDN 并行取同一段"需要改网络栈做多源竞速或做 URL 改写
+（单源切换），收益毫秒级而流量翻倍且有 403/限流与 ToS 风险 ⇒ 不建议在浏览器内核里做。
 ### r14（第9轮 bug-review：性能 / 可靠性全局审查）— 2026-10-13
 
 - **D199（高，已修并实测）**：`build_win.py` 把 `argv[1]` 直接拼进 shell 命令行

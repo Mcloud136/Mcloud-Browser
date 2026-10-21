@@ -406,3 +406,36 @@ Linux/ARM 的 ELF 保持原样并在清单里标为"不在范围"，不让人误
   解包不给 gzip 资源加 `.gz` 后缀（`resources.pak` 中 3,199 个）——早于仓库魔数表。
   所以这次重建换来的是 **二进制与源码对齐 + 源码侧全部安全加固**，不是修复"还原出错"。
 - 包装器首选已翻到 `pak_msvc*.exe`，并用 `unpack.bat` 实跑验证它确实选中了新产物。
+
+## 15. 运行时性能实测（第9轮，2026-10-13；**不含编译时长**）
+
+量具：`benchmark/tools/r5_runtime_perf_check.py`（独立 profile、端口系统分配、按 profile 指纹清理）。
+被测对象：安装版 `C:\Program Files\Chromium\Application\chrome.exe`（155.0.8059.40，加载内置清单）。
+三条场景全部本地自给（不依赖外网），另加一条真实网络页面与一条 YouTube 观测。
+
+| 场景 | 结果 |
+|---|---|
+| S1 本地页面（1 CSS + 2 JS + 30 图，5 次取中位） | DCL **8.1 ms**、load **13.7 ms**、TTFB 1.3 ms、FCP **28 ms**、33 个资源 / 17.6 KB |
+| S2 页内脚本（5 次取中位） | 排序 30 万浮点 **76.5 ms**；JSON 830 KB 往返 **2.3 ms**；100 万次拼接 **37.5 ms**；WebCrypto SHA-256 4 MB **2.3 ms** |
+| S3 视频管线（canvas→MediaRecorder→VP9 640x360/3 s） | 解码 **81 帧**、丢帧 **0**、损坏 **0**；墙钟 3005 ms vs 媒体时长 2968 ms（≈1.01×，未掉速） |
+| S5 真实网页 `https://www.bing.com/` | TTFB **335 ms**、DCL **423 ms**、load **424 ms**、FCP **428 ms**、107 资源 / 1.06 MB |
+| S4 YouTube 观测 | **页面 HTML 能打开**（标题 `Rick Astley … (4K Remaster) - YouTube`），但视频不进入播放：`googlevideo.com` 本机 **21 s 超时不可达**（`curl` 同时验证）⇒ 只报环境，不报结论 |
+
+**可行性结论（覆盖"多线程多并发 + 多 CDN 节点"需求）**：
+
+1. YouTube 走 DASH + MSE，**分段抓取由站点 JS 调度**；浏览器看到的是彼此独立的小 range 请求，
+   不存在"一个视频"这个可被浏览器拆分的对象。NetworkService 本身是独立进程 + 全异步，
+   所以"多线程"在传输层已经具备；真正约束是并发来源（站点）与每主机连接上限。
+2. 上游**没有**播放侧的并行分片取数：M155 树里 `media/base/buffered_data_source.*` 已删除
+   （Glob 核实只剩 data_source / file_data_source / memory_data_source / hls_data_source_provider），
+   `services/media_player` 也不存在。唯一现成的并行分片是 `download::features::kParallelDownloading`
+   （桌面默认 **关**、默认 3 片、**同一 URL 的多个 Range**），属文件下载，与 MSE 播放无关。
+3. 每主机普通连接上限 **6**（`net/socket/client_socket_pool_manager.cc:54-58`），HTTP/2/3 才多路复用；
+   上游唯一的"竞速"是 Happy Eyeballs（`net/socket/tcp_connect_job.cc`，同一主机的多个 IP），
+   **不是**多 CDN 竞速。
+4. 因此"让浏览器从多个 YouTube CDN 节点并行取同一段"需要：改写每个请求的目标主机（单源切换，
+   扩展/代理可做）、或改网络栈做"多源 Range 竞速 + 首包胜出 + 取消其余"（要处理签名是否绑定主机、
+   重复下载导致的双倍流量与 403/限流、以及 ToS）。**判定：技术可行但不划算**——分段通常只有
+   几百 KB，竞速收益是毫秒级，代价是双倍流量与更高的被封风险。
+5. 我们这侧没有可翻的开关：`mcloud_flags.txt` 未禁用 QUIC（默认开启），也没有"并发分段"类 feature。
+   若确实要提视频加载速度，现实路径在浏览器**之外**（代理/DNS 侧选最优节点），而不是改内核网络栈。
