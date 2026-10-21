@@ -184,7 +184,7 @@ def instance_procs(fingerprint):
           "ForEach-Object { if ($_.CommandLine -like '*%s*') "
           "{ \"$($_.ProcessId)`t$($_.CommandLine)\" } }" % fingerprint)
     out = subprocess.run(["powershell.exe", "-NoProfile", "-Command", ps],
-                         capture_output=True, text=True).stdout
+                         capture_output=True, text=True, timeout=120).stdout
     rows = []
     for line in out.splitlines():
         pid, _, cl = line.partition("\t")
@@ -207,7 +207,7 @@ def safe_shot(tab, res, key, path):
 
 
 def kill_pid(pid):
-    subprocess.run(["taskkill", "/PID", str(pid), "/F", "/T"], capture_output=True)
+    subprocess.run(["taskkill", "/PID", str(pid), "/F", "/T"], capture_output=True, timeout=120)
 
 
 # 恢复实验的判据**不能依赖远端内容**。实测教训：example.com 正在改版，不同 CDN 节点
@@ -443,7 +443,7 @@ def main():
         res["leftover_procs"] = left
         subprocess.run(["powershell.exe", "-NoProfile", "-Command",
                         "Remove-Item -Recurse -Force '%s' -ErrorAction SilentlyContinue" % prof],
-                       capture_output=True)
+                       capture_output=True, timeout=180)
         try:
             proc.wait(timeout=20)
         except Exception:                                        # noqa: BLE001

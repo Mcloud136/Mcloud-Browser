@@ -396,13 +396,13 @@ def kill_instance(profile, port=None, rounds=6, wait=1.5):
           "ForEach-Object { if ($_.CommandLine -like '*%s*') { $_.ProcessId } }" % key)
     for _ in range(rounds):
         out = subprocess.run(["powershell.exe", "-NoProfile", "-Command", ps],
-                             capture_output=True, text=True).stdout.split()
+                             capture_output=True, text=True, timeout=120).stdout.split()
         pids = [x for x in out if x.isdigit()]
         if not pids:
             return 0
         subprocess.run(["powershell.exe", "-NoProfile", "-Command",
                         "Get-Process -Id @(%s) -ErrorAction SilentlyContinue | "
-                        "Stop-Process -Force" % ",".join(pids)], capture_output=True)
+                        "Stop-Process -Force" % ",".join(pids)], capture_output=True, timeout=120)
         time.sleep(wait)
     return len(pids)
 

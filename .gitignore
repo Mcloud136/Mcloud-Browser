@@ -70,3 +70,9 @@ pak_src_fixed/*.pdb
 pak_src_fixed/*.pak
 pak_src_fixed/t_out/
 pak_src_fixed/t_out_build/
+
+# 第9周期一次性取证输出（整目录不入库，同 .cycle4-.cycle7）
+.cycle8/
+
+# MSVC 在仓库根编译时落下的调试符号（第9轮实测）
+vc140.pdb

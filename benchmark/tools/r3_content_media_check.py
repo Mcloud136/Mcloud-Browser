@@ -309,7 +309,7 @@ def main():
         res["leftover_procs"] = cdp.kill_instance(prof, port=args.port)
         subprocess.run(["powershell.exe", "-NoProfile", "-Command",
                         "Remove-Item -Recurse -Force '%s' -ErrorAction SilentlyContinue" % prof],
-                       capture_output=True)
+                       capture_output=True, timeout=180)
         try:
             proc.wait(timeout=20)
         except Exception:                                        # noqa: BLE001

@@ -49,7 +49,7 @@ print("autoninja exit=0 已确认")
 
 # --- 2. 复用既有发布门禁（含 dll/flags 一致性/chrome.release/mtime 链） ---
 r = subprocess.run([sys.executable, os.path.join(REPO, ".bugreview", "refresh_release.py")],
-                   capture_output=True, text=True, errors="replace")
+                   capture_output=True, text=True, errors="replace", timeout=600)
 print(r.stdout[-2600:])
 if r.returncode != 0:
     print(r.stderr[-800:])

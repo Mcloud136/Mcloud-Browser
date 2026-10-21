@@ -47,7 +47,7 @@ PS = "powershell.exe"
 
 def ps(cmd):
     p = subprocess.run([PS, "-NoProfile", "-Command", cmd], capture_output=True,
-                       text=True, errors="replace")
+                       text=True, errors="replace", timeout=180)
     return p.stdout or ""
 
 
@@ -270,7 +270,7 @@ def main():
         out = subprocess.run([sys.executable, "-c",
                               "import io,sys;p=%r;t=open(p,encoding='utf-8').read();"
                               "open(p,'w',encoding='utf-8',newline='\\n').write(t.rstrip('\\n')+'\\n--enable-features=%s\\n')"
-                              % (flags_path, bogus)])
+                              % (flags_path, bogus)], timeout=120)
         assert out.returncode == 0
         try:
             en2, _d2, _p2, _l2 = propagate_probe(exe, wait=14)

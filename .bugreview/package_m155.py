@@ -142,7 +142,7 @@ SETUP = os.path.join(THOR, "mcloud_%s_win64_setup.exe" % VER)
 _build = os.path.join(THOR, "win_scripts", "build_setup_exe.py")
 _r = subprocess.run([sys.executable, _build, "--embed", RELEASE, "--version", VER,
                      "--out", SETUP],
-                    capture_output=True, text=True, errors="replace")
+                    capture_output=True, text=True, errors="replace", timeout=600)
 # 缺陷 D130：旧写法只在失败时打印子进程输出，于是成功路径上"用的是哪个编译器、
 # 产物是否可复现"整段被丢掉，随后照样写 .sha256 与发布说明。现在无条件转印。
 print((_r.stdout or "").rstrip())
@@ -160,7 +160,7 @@ print("发布物 -> %s  %d B\nSHA256 = %s" % (SETUP, os.path.getsize(SETUP), _se
 _ver_ps = ('$v=(Get-Item "%s").VersionInfo; "" + $v.FileVersion + "|" + $v.ProductVersion'
           % os.path.join(THOR, os.path.basename(SETUP)).replace("\\", "/"))
 _v = subprocess.run(["powershell.exe", "-NoProfile", "-Command", _ver_ps],
-                    capture_output=True, text=True, errors="replace").stdout.strip().splitlines()
+                    capture_output=True, text=True, errors="replace", timeout=180).stdout.strip().splitlines()
 _fields = (_v[-1].split("|") if _v else ["", ""])
 print("版本元数据：FileVersion=%s ProductVersion=%s（期望 %s）"
       % (_fields[0] or "?", _fields[1] if len(_fields) > 1 else "?", VER))
@@ -176,7 +176,7 @@ if _fields[0] != VER or (len(_fields) < 2 or _fields[1] != VER):
 TESTWRAP = os.path.join(THOR, "installer", "out", "MCloud-Setup-embedded.exe")
 _r2 = subprocess.run([sys.executable, _build, "--console", "--embed", RELEASE,
                       "--version", VER, "--out", TESTWRAP],
-                     capture_output=True, text=True, errors="replace")
+                     capture_output=True, text=True, errors="replace", timeout=600)
 print((_r2.stdout or "").rstrip())
 if _r2.returncode != 0 or not os.path.isfile(TESTWRAP):
     print("FAIL 验收用包装器编译失败：\n" + (_r2.stdout or "") + (_r2.stderr or ""))

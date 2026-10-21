@@ -2,6 +2,24 @@
 
 ## M155（内核升级 M151 → M155.0.8059.40）— 2026-10-10
 
+### r14（第9轮 bug-review：性能 / 可靠性全局审查）— 2026-10-13
+
+- **D199（高，已修并实测）**：`build_win.py` 把 `argv[1]` 直接拼进 shell 命令行
+  （`-j{jobs}` + `shell=True`）⇒ `python build_win.py "4 & <任意命令>"` 会真的执行。改为严格
+  `int()` + `> 0` 校验并提前到 chdir 之前，四向实测（恶意串/0/-3/8）行为正确。
+- **D198（中，已修 36 处）**：AST 统计 113 次子进程调用里 **61 次无 timeout**，覆盖发布链与
+  量具。已给可界定的 36 处补超时（编译 600 s / git+PowerShell 120–180 s / pak 300 s）；
+  刻意不加的三类写在缺陷档案里：autoninja 全量编译、浏览器长生命周期 Popen、legacy 脚本。
+- **D200（低，防御性，未复现触发）**：安装器 `ShortcutLinks()` 的惰性枚举异常会逃出 try；
+  已把遍历移进 try，编译通过，但提权下 deny ACE 与悬空 junction 都没能造出真实触发，
+  按纪律记为"已修未测得触发"。
+- **性能面结论（负结果，但有测量支撑）**：反复跑的门禁实测很快 ——
+  `verify_sources`（含 MSVC 编译+往返）**2.6 s**、`src_inventory` **0.7 s**；
+  注入的 flags 加载器每次启动只做一次 ≤1 MiB 的读 + 单遍行扫描，且只有在前两个候选都缺失时
+  才枚举目录；`bench_startup.ps1` 的计时窗口内没有进程枚举等量具自扰。**自有代码没有可量化的
+  热路径优化项**。真正的性能旋钮在构建/特性面：`download::features::kParallelDownloading`
+  在桌面默认关闭（`download_features.cc:13-18`），是唯一现成的"多连接分片并发"实现，
+  只作用于文件下载、与 YouTube 播放无关（YouTube 的分段并发由站点 JS 调度）。
 ### r13（发布 v155.0.8059.40 到 GitHub Release）— 2026-10-12 深夜
 
 M155 首次真正发布：**https://github.com/Mcloud136/Mcloud-Browser/releases/tag/v155.0.8059.40**

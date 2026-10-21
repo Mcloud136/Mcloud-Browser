@@ -51,7 +51,7 @@ finally:
         os.remove(ROOT_FLAGS)
     subprocess.run(["powershell.exe", "-NoProfile", "-Command",
                     "Remove-Item -Recurse -Force '%s' -ErrorAction SilentlyContinue" % prof],
-                   capture_output=True)
+                   capture_output=True, timeout=180)
 
 shadowed = MARKER in txt
 loaded_real = "enable-gpu-rasterization" in txt

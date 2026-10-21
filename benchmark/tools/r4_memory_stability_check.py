@@ -42,7 +42,7 @@ def proc_stats(fingerprint):
           "{ \"$($_.ProcessId)`t$($_.ParentProcessId)`t$($_.HandleCount)"
           "`t$($_.ThreadCount)`t$($_.CommandLine)\" } }" % fingerprint)
     out = subprocess.run(["powershell.exe", "-NoProfile", "-Command", ps],
-                         capture_output=True, text=True).stdout
+                         capture_output=True, text=True, timeout=120).stdout
     rows = []
     for line in out.splitlines():
         parts = line.split("\t")
@@ -216,7 +216,7 @@ def main():
         res["leftover_procs"] = cdp.kill_instance(prof, port=args.port)
         subprocess.run(["powershell.exe", "-NoProfile", "-Command",
                         "Remove-Item -Recurse -Force '%s' -ErrorAction SilentlyContinue" % prof],
-                       capture_output=True)
+                       capture_output=True, timeout=180)
         try:
             proc.wait(timeout=20)
         except Exception:                                        # noqa: BLE001

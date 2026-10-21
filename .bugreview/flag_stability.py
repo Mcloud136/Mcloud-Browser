@@ -101,7 +101,7 @@ def entries(text):
 def run_check(rev, json_out):
     subprocess.run([PY, REPO + r"\.bugreview\survival_check.py", rev,
                     "--json", json_out], capture_output=True, text=True,
-                   errors="replace")
+                   errors="replace", timeout=300)
     d = json.load(open(json_out, encoding="utf-8"))
     return {f["name"]: f for f in d["features"]}, d
 

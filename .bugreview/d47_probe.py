@@ -47,7 +47,7 @@ def fake_tree(name, content):
 def run_inject(cr_dir):
     env = dict(os.environ, CR_DIR=cr_dir)
     p = subprocess.run([PY, INJ], capture_output=True, text=True, env=env,
-                       errors="replace")
+                       errors="replace", timeout=300)
     return p.returncode, (p.stdout + p.stderr).strip()
 
 

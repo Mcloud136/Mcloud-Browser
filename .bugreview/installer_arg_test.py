@@ -93,7 +93,7 @@ def compile_cs(csc, cs_path, out_path):
     cmd = [csc, "/nologo", "/optimize+", "/warnaserror-", "/target:exe", "/out:" + out_path]
     cmd += ["/reference:" + r for r in BSE.REFS]
     cmd.append(cs_path)
-    r = subprocess.run(cmd, capture_output=True)
+    r = subprocess.run(cmd, capture_output=True, timeout=600)
     if r.returncode != 0 or not os.path.isfile(out_path):
         raise SystemExit("编译失败：%s\n%s" % (cs_path, show(r.stdout) + show(r.stderr)))
 
@@ -128,7 +128,7 @@ def listing(root):
 def running_counts(cwd, ps_path):
     env = dict(os.environ, T_SYS=SYSTEM_APPDIR, T_USER=USER_APPDIR)
     r = subprocess.run(["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass",
-                        "-File", ps_path], capture_output=True, env=env)
+                        "-File", ps_path], capture_output=True, env=env, timeout=300)
     if r.returncode != 0:
         # 取不到数据一律非 0 退出，不得当成「0 个实例，安全」
         raise SystemExit("实例计数失败：" + show(r.stderr))
@@ -204,14 +204,14 @@ def main():
         # HEAD：走真实打包脚本编译（顺带证明发布管线能编译当前源码）
         head = os.path.join(tmp, "MCloud-Setup-head.exe")
         r = subprocess.run([sys.executable, os.path.join(THOR, "win_scripts", "build_setup_exe.py"),
-                            "--console", "--out", head], capture_output=True)
+                            "--console", "--out", head], capture_output=True, timeout=600)
         if r.returncode != 0 or not os.path.isfile(head):
             print(show(r.stdout), show(r.stderr))
             raise SystemExit("build_setup_exe.py 编译 HEAD 失败")
 
         # Red 参照：逐字从 git 取修复前的源码，不改动任何已跟踪文件
         old = subprocess.run(["git", "-C", THOR, "show", "%s:installer/mcloud_setup.cs" % PREFIX_REV],
-                             capture_output=True)
+                             capture_output=True, timeout=120)
         if old.returncode != 0:
             raise SystemExit("git show %s 失败，无法构造 Red 参照：%s" % (PREFIX_REV, show(old.stderr)))
         pre_cs = os.path.join(tmp, "mcloud_setup_pre.cs")

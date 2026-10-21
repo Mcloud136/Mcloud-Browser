@@ -34,7 +34,7 @@ PY_DECL = re.compile("(" + KINDS + r")\s*\(\s*(k[A-Za-z0-9_]+)"
 
 rev = sys.argv[1]
 inv = json.loads(subprocess.check_output(
-    [sys.executable, INVENTORY], text=True, errors="replace"))
+    [sys.executable, INVENTORY], text=True, errors="replace", timeout=180))
 features = list(dict.fromkeys(inv["features_enable"] + inv["features_disable"]))
 switches = [s.lstrip("-") for s in inv["plain_switches"] if s.lstrip("-") != "js-flags"]
 v8flags = [f.lstrip("-") for f in inv["v8_inner_flags"]]
@@ -45,7 +45,7 @@ def gg(args, pathspec=None):
     if pathspec:
         cmd += ["--"] + pathspec
     return subprocess.run(cmd, capture_output=True, text=True,
-                          errors="replace").stdout
+                          errors="replace", timeout=180).stdout
 
 
 # ---- A: declaration sites (both legacy string-name and modern form) -----

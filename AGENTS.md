@@ -438,6 +438,12 @@ autoninja -C out/mcloud chrome mini_installer
 - **GN 里 config 的正文改动 = 全树重编**（缺陷档案 D74 实测）：只换 `config("polly")` 的写法
   （`use_polly=false` 下展开为空）也让 `gn gen` 后 ninja 给出 51,296 步计划（约 3 小时）。
   因此"把注释/写法改正确"这类零收益改动必须与真实改动同批落地，不要为它单开一次全树重编。
+- **外部调用一律给 timeout，但三类例外**（D198，2026-10-13 第9轮）：Git 操作、PowerShell/CIM 查询、
+  编译器、打包脚本、pak 工具都必须带 `timeout=`——否则一次 WMI 卡死或 git 等锁会让门禁/发布
+  **永久挂住**，而现场无法区分"还在跑"与"死了"。三类**不要**加：① `autoninja` 全量编译
+  （以小时计，超时会误杀正常构建）；② 浏览器 `Popen`（长生命周期，靠显式 kill 收尾）；
+  ③ legacy `win_scripts/setup.py` / `infra/portable`。当前统计：113 次子进程调用中 25 次无超时，
+  全部属于这三类。
 - **跑基准/探针前先清残留实例**：孤儿 chrome 会锁住 `out/mcloud` 里的 DLL，
   实测让链接以 `lld-link: failed to write ./dxcompiler.dll: permission denied` 失败（D71）。
 - CI：`.github/workflows/release.yml`（发布，push `v*` tag 触发）+ `.github/workflows/verify.yml`（源码验证，push/PR 触发）。

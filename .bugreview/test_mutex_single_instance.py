@@ -122,7 +122,7 @@ def build_variant(content, out_path, tmp):
     with io.open(cs, "w", encoding="utf-8", newline="\r\n") as f:
         f.write(content)
     r = subprocess.run([sys.executable, os.path.join(REPO, "win_scripts", "build_setup_exe.py"),
-                        "--console", "--source", cs, "--out", out_path], capture_output=True)
+                        "--console", "--source", cs, "--out", out_path], capture_output=True, timeout=600)
     if r.returncode != 0 or not os.path.isfile(out_path):
         raise SystemExit("编译变体失败：%s%s" % (show(r.stdout), show(r.stderr)))
     return out_path
@@ -176,7 +176,7 @@ def main():
             return 2
         stub = os.path.join(tmp, "sleep_stub.exe")
         r = subprocess.run([csc, "/nologo", "/deterministic+", "/target:exe",
-                            "/out:" + stub, stub_cs], capture_output=True)
+                            "/out:" + stub, stub_cs], capture_output=True, timeout=300)
         if r.returncode != 0 or not os.path.isfile(stub):
             print("REFUSED: 假安装包编译失败：%s" % show(r.stderr))
             return 2
@@ -197,7 +197,7 @@ def main():
 
         # Red：HEAD（改动前，无互斥）—— 必须**不被挡住**，否则 Green 的证明力为零
         head_src = subprocess.run(["git", "-C", REPO, "show", "HEAD:%s" % SRC_REL],
-                                  capture_output=True).stdout.decode("utf-8", "replace")
+                                  capture_output=True, timeout=120).stdout.decode("utf-8", "replace")
         if "_singleInstance" in head_src:
             print("NOTE: HEAD 已包含互斥实现（本判据的 Red 分支在互斥落地后自动失效，"
                   "改判为跳过；此时 A' 的证明力由 installer_arg_test.py 的分支承担）")

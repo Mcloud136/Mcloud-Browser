@@ -30,6 +30,19 @@ if '--help' in sys.argv:
     display_help()
     sys.exit(0)
 
+# Determine the number of threads to use.
+# D199：jobs 会拼进 shell 命令行，必须严格转成正整数。原写法直接把 argv[1] 插进
+# f-string，`python build_win.py "4 & some.exe"` 会在 cmd 里执行任意命令；即便不是
+# 恶意输入，传个拼错的值也只会得到 autoninja 的晦涩报错。
+raw_jobs = sys.argv[1] if len(sys.argv) > 1 else str(os.cpu_count() or 1)
+try:
+    jobs = int(raw_jobs)
+except (TypeError, ValueError):
+    fail(f"jobs 必须是正整数，收到 {raw_jobs!r}")
+if jobs <= 0:
+    fail(f"jobs 必须大于 0，收到 {jobs}")
+
+
 
 # Set chromium/src dir from Windows environment variable
 cr_src_dir = os.getenv('CR_DIR', r'C:/src/chromium/src')
@@ -114,11 +127,9 @@ def preflight_args(out_dir, template=None):
 # Change directory and run build commands
 os.chdir(cr_src_dir)
 preflight_args(os.path.join(cr_src_dir, 'out', 'mcloud'))
-# Determine the number of threads to use
-jobs = sys.argv[1] if len(sys.argv) > 1 else str(os.cpu_count())
-
 # D29（2026-10-08 修复）：原脚本引用本项目不存在的 mcloud_all / setup 目标
 # （上游 Thorium 专有），永远构建失败。改为与 AGENTS.md 一致的目标集。
+# 注意：这里刻意不加 timeout —— 全量编译以小时计，超时会把正常构建误杀。
 try_run(f'autoninja -C out/mcloud chrome -j{jobs}')
 
 try_run(f'autoninja -C out/mcloud mini_installer -j{jobs}')

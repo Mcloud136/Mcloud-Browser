@@ -70,7 +70,7 @@ def grep_defs(root, ident, name):
     for p in ([ident] if ident else []) + ['"%s"' % name]:
         r = subprocess.run(["git", "-C", root, "grep", "-n", "-F", p, "--",
                             "*.cc", "*.h", "*.mm"],
-                           capture_output=True, text=True, errors="replace")
+                           capture_output=True, text=True, errors="replace", timeout=120)
         for line in (r.stdout or "").splitlines():
             fp, _, rest = line.partition(":")
             ln, _, text = rest.partition(":")
@@ -246,7 +246,7 @@ def _resolve_buildflag_gni(root, token):
     for cand in (token, token.lower()):
         r = subprocess.run(["git", "-C", root, "grep", "-n", "-E",
                             r"(^|[^A-Za-z0-9_])%s *=" % cand, "--", "*.gni"],
-                           capture_output=True, text=True, errors="replace")
+                           capture_output=True, text=True, errors="replace", timeout=120)
         out = (r.stdout or "").splitlines()
         for _k, line in enumerate(out):
             fp, _, rest = line.partition(":")

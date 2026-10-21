@@ -128,7 +128,7 @@ def main():
     # errors="replace" 保证万一有奇数字节也只是显示乱码，不会像首版那样直接抛
     # UnicodeDecodeError 把编译结果一起吞掉（'stdout' 变 None 后 AttributeError）。
     try:
-        r = subprocess.run(cmd, capture_output=True, text=True, errors="replace")
+        r = subprocess.run(cmd, capture_output=True, text=True, errors="replace", timeout=600)
     finally:
         if extra_src and os.path.isfile(extra_src):
             os.unlink(extra_src)

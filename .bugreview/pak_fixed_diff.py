@@ -67,7 +67,7 @@ def attempt(exe, d, tag):
     if os.path.exists(pak):
         os.remove(pak)
     p = subprocess.run([exe, "-p", os.path.join(d, "pak_index.ini"), pak],
-                       stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                       stdout=subprocess.PIPE, stderr=subprocess.STDOUT, timeout=300)
     txt = p.stdout.decode("gbk", "replace")
     made = os.path.isfile(pak)
     blob = read_bytes(pak) if made else b""

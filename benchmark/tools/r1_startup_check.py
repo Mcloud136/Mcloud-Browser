@@ -165,7 +165,7 @@ def kill_profile(profile):
         print("WARN: profile %s 仍有 %d 个进程残留" % (profile, left))
     subprocess.run(["powershell.exe", "-NoProfile", "-Command",
                     "Remove-Item -Recurse -Force '%s' -ErrorAction SilentlyContinue" % profile],
-                   capture_output=True)
+                   capture_output=True, timeout=180)
 
 
 if __name__ == "__main__":

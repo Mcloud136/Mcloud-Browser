@@ -50,7 +50,7 @@ def env():
 
 def run(argv, cwd=None):
     p = subprocess.run(argv, cwd=cwd, env=env(), stdout=subprocess.PIPE,
-                       stderr=subprocess.STDOUT)
+                       stderr=subprocess.STDOUT, timeout=300)
     return p.returncode, p.stdout.decode("gbk", "replace")
 
 

@@ -155,7 +155,7 @@ def main():
         res["setup_procs_left"] = int(ps("@(Get-Process setup,mini_installer -ErrorAction SilentlyContinue).Count") or 0)
         for d in (prof, prof + "2"):
             subprocess.run(PS + ["Remove-Item -Recurse -Force '%s' -ErrorAction SilentlyContinue" % d],
-                           capture_output=True)
+                           capture_output=True, timeout=180)
 
     print(json.dumps(res, ensure_ascii=False, indent=1))
     hard = []

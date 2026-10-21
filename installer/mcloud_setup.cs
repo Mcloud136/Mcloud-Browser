@@ -234,16 +234,21 @@ internal static class MCloudSetup
         foreach (string d in dirs)
         {
             if (string.IsNullOrEmpty(d) || !Directory.Exists(d)) continue;
-            IEnumerable<string> files;
-            try { files = Directory.EnumerateFiles(d, "*.lnk", SearchOption.AllDirectories); }
-            catch { continue; }
-            foreach (string lnk in files)
+            // D200：EnumerateFiles 是**惰性**的——把 try 套在"取枚举器"那一步只能接住
+            // 参数/路径错误；遍历途中某个子目录拒绝访问时抛出的 UnauthorizedAccessException
+            // 会直接从 foreach 里冒出去，把整个安装流程（此时浏览器已被关闭）打断。
+            // 必须把遍历本身放进 try。
+            try
             {
-                string target = LnkTarget(shell, lnk);
-                if (target == null) continue;
-                if (!target.Contains(CompanyDir + "\\" + AppDirName)) continue;
-                list.Add(new[] { lnk, target, File.Exists(target) ? "ok" : "BROKEN" });
+                foreach (string lnk in Directory.EnumerateFiles(d, "*.lnk", SearchOption.AllDirectories))
+                {
+                    string target = LnkTarget(shell, lnk);
+                    if (target == null) continue;
+                    if (!target.Contains(CompanyDir + "\\" + AppDirName)) continue;
+                    list.Add(new[] { lnk, target, File.Exists(target) ? "ok" : "BROKEN" });
+                }
             }
+            catch { continue; }
         }
         return list;
     }

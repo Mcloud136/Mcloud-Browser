@@ -69,7 +69,7 @@ def cl(arch):
 
 def sh(cmd, cwd=None, arch="x64"):
     p = subprocess.run(cmd, cwd=cwd, env=env_for(arch),
-                       stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                       stdout=subprocess.PIPE, stderr=subprocess.STDOUT, timeout=600)
     return p.returncode, p.stdout.decode("gbk", "replace")
 
 
@@ -133,7 +133,7 @@ def listing(d):
 
 def run_pak(exe, args, cwd):
     p = subprocess.run([str(exe)] + list(args), cwd=str(cwd),
-                       stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                       stdout=subprocess.PIPE, stderr=subprocess.STDOUT, timeout=300)
     return p.returncode, p.stdout.decode("gbk", "replace")
 
 

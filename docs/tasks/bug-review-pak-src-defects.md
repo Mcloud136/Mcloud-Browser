@@ -1598,6 +1598,19 @@ CPU 调度效率与占用、核显与独显渲染。
 - `win_scripts/verify_sources.py` — 新增 3 个检查并接入主报告；新代码 ruff（`F,E9,B,SIM`）全绿。
 - ⚠ 平台边界（实测）：Windows 的 ASan **没有 LeakSanitizer** —— `ASAN_OPTIONS=detect_leaks=1` 直接以 `detect_leaks is not supported on this platform` 退出。所以"ASan clean"在本机只证明**无越界**，不证明**无泄漏**；泄漏判据只在 POSIX 侧（`check_pak_asan`）成立。
 
+
+## 第9轮（D198–D200：性能 / 可靠性全局审查，2026-10-13）
+
+靶面：自有代码 **≈21.5k 行**（win_scripts 20 文件 2,591 行、.bugreview 58 文件 8,606 行、
+benchmark 19 文件 3,819 行、installer 907 行、pak_src* C 2,143 行、infra 3,457 行）；
+`src/` 591 个文件里只有 **2** 个真正参与构建（`src/INVENTORY.md`），其余是惰性副本，不作为性能靶面。
+
+| 编号 | 严重度 | 位置 | 现象 / 根因 | 修复与验证 |
+|------|--------|------|-------------|-----------|
+| D198 | **中（工具链挂起）** | 全仓 Python：`win_scripts/`、`.bugreview/`、`benchmark/tools/` | 用 AST 遍历统计：**113 次 `subprocess.run/call/check_output/Popen`，61 次没有 `timeout`**。发布链（package_m155 / build_setup_exe / installer_arg_test / test_mutex）、量具（flag_runtime_state 的 CIM 查询、survival_check/guard_audit 的 git grep）都在其中 ⇒ 一次 WMI 卡死或 git 等锁就能让门禁/打包**永久挂住**，而没人能区分"还在跑"与"死了" | 已给 **36 个**可界定的调用补上超时（编译/csc 600 s、git 与 PowerShell 120–180 s、pak 运行 300 s、清理 180 s）。**刻意不加**：`build_win.py` 的 autoninja（全量编译以小时计，加超时会误杀正常构建）、浏览器 `Popen`（长生命周期，已有显式 kill 逻辑）、legacy `win_scripts/setup.py` 与 `infra/portable`。剩余 25 处全部属于这三类。验证：`py_compile` 18 文件通过、ruff(F,E9,B) 全绿、`verify_sources` 复跑 PASS |
+| D199 | **高（命令注入 + 输入未校验）** | `win_scripts/build_win.py`（`jobs = sys.argv[1]` → `f'...-j{jobs}'` → `subprocess.call(shell=True)`） | `argv[1]` 未经校验直接拼进 cmd 命令行。`python win_scripts/build_win.py "4 & echo PWNED_BY_JOBS_ARG"` 会真的执行后半段（**实测 Red**：复刻旧写法后 `PWNED_BY_JOBS_ARG` 出现在输出里）；即便不是恶意输入，拼错的值也只得到 autoninja 的晦涩报错 | 已修：`int()` 严格解析 + `> 0` 校验，且**提前到 `chdir`/预检之前**（fail-fast，不依赖源码树存在）。四向实测：恶意串 → rc=111 且**没有** PWNED；`0`/`-3` → 拒绝；`8` → 通过校验后在 autoninja 处失败（证明合法值未被误拒）。build 命令本身保留 `shell=True` 与无 timeout（理由同 D198） |
+| D200 | **低（防御性收紧；触发未复现）** | `installer/mcloud_setup.cs` `ShortcutLinks()` | `Directory.EnumerateFiles(..., AllDirectories)` 是**惰性**的：`try` 只包住"取枚举器"，遍历途中抛出的 `UnauthorizedAccessException` 会从 `foreach` 直接冒出，打断整个安装流程（此时浏览器已被关闭）。**但我没能实测触发**：提权下 deny ACE 被绕过、悬空 junction 被运行时静默跳过 ⇒ 按纪律记为"已修未测得触发"，不计入已验证收益 | 已把遍历本身移进 `try`；Roslyn `/deterministic+` 编译通过（27,136 B）。若将来在低权限机器上复现，可直接用这条 |
+
 ## 待办（本档案跟踪）
 
 ### r6 收口轮新增（2026-10-12 凌晨）

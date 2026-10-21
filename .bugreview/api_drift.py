@@ -98,7 +98,7 @@ def show(rev, path):
 def grep_count(rev, pattern, pathspec):
     cmd = ["git", "-C", SRC, "grep", "-I", "-h", "-E", pattern, rev, "--"] + pathspec
     out = subprocess.run(cmd, capture_output=True, text=True,
-                         errors="replace").stdout
+                         errors="replace", timeout=120).stdout
     return out
 
 
