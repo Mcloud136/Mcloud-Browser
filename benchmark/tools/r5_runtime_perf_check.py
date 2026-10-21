@@ -205,11 +205,21 @@ YT_STATS_JS = r"""
   let cur = 0, mx = 0;
   for (const [, v] of ev) { cur += v; if (cur > mx) mx = cur; }
   const durs = segs.map(x => x.d).sort((a, b) => a - b);
+  const hosts = {};
+  for (const e of es) {
+    try { const h = new URL(e.name).host; hosts[h] = (hosts[h] || 0) + 1; } catch (_) {}
+  }
+  const topHosts = Object.entries(hosts).sort((a, b) => b[1] - a[1]).slice(0, 6);
+  // HTTP/2 vs HTTP/3 实测（跨域条目的 nextHopProtocol 受 Timing-Allow-Origin 限制，
+  // 取不到就明确返回空表，不猜）
+  const protos = {};
+  for (const e of es) { const p = e.nextHopProtocol || '(unavailable)'; protos[p] = (protos[p] || 0) + 1; }
   const v = document.querySelector('video');
   const q = v && v.getVideoPlaybackQuality ? v.getVideoPlaybackQuality() : {};
   return {segments: segs.length, maxConcurrent: mx,
           medianSegMs: durs.length ? Math.round(durs[(durs.length / 2) | 0]) : 0,
           bytes: es.reduce((a, e) => a + (e.encodedBodySize || 0), 0),
+          distinctHosts: Object.keys(hosts).length, topHosts, protocols: protos,
           video: v ? {t: Math.round(v.currentTime * 100) / 100, w: v.videoWidth, h: v.videoHeight,
                       readyState: v.readyState, paused: v.paused,
                       frames: q.totalVideoFrames, dropped: q.droppedVideoFrames} : null};
@@ -246,7 +256,11 @@ def main():
     env_fail = None
     try:
         cdp.launch(INSTALLED, prof, port,
-                          extra=["--mute-audio", "--disable-features=Translate"])
+                          extra=["--mute-audio", "--disable-features=Translate",
+                                 # 探针要观测播放器行为，不能卡在自动播放策略上
+                                 "--autoplay-policy=no-user-gesture-required",
+                                 # 1080p 视口能让播放器选更高的码率，从而暴露更多并发分段
+                                 "--window-size=1920,1080"])
         if not cdp.wait_for_port(port, timeout=40):
             print(json.dumps({"env_fail": "调试端口未起来", "port": port}, ensure_ascii=False))
             return 2
@@ -326,7 +340,7 @@ def main():
                 st = tab.evaluate(
                     "(function(){var v=document.querySelector('video');"
                     "return v?{t:v.currentTime,r:v.readyState}:null})()")
-                if st and st.get("t", 0) > 0.5:
+                if st and st.get("t", 0) > 1.0 and (st.get("r") or 0) >= 2:
                     playing = True
                     break
                 # 有些环境需要显式 play()
@@ -338,7 +352,17 @@ def main():
                                      "url": tab.url(), "title": (tab.title() or "")[:80]}
                 env_fail = "YouTube 未进入播放，S4 只报环境不报结论"
             else:
-                time.sleep(8.0)
+                # 观测窗口可调：480p 十秒内可能只有 1-2 段，样本太小；默认等 8 s，
+                # 要测稳态并发用 R5_YT_SECONDS=30。
+                secs = float(os.environ.get("R5_YT_SECONDS", "8"))
+                t_start = time.time()
+                res["S4_playback_rate"] = {"window_s": secs,
+                                           "t0": tab.evaluate("(function(){var v=document.querySelector('video');"
+                                                              "return v?Math.round(v.currentTime*100)/100:null})()")}
+                time.sleep(secs)
+                res["S4_playback_rate"]["t1"] = tab.evaluate("(function(){var v=document.querySelector('video');"
+                                                            "return v?Math.round(v.currentTime*100)/100:null})()")
+                res["S4_playback_rate"]["wall_s"] = round(time.time() - t_start, 2)
                 res["S4_youtube"] = tab.evaluate(YT_STATS_JS, timeout=60)
         except Exception as e:                       # noqa: BLE001
             res["S4_youtube"] = {"env_fail": "%s: %s" % (type(e).__name__, e)}

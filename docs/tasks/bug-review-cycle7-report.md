@@ -419,7 +419,17 @@ Linux/ARM 的 ELF 保持原样并在清单里标为"不在范围"，不让人误
 | S2 页内脚本（5 次取中位） | 排序 30 万浮点 **76.5 ms**；JSON 830 KB 往返 **2.3 ms**；100 万次拼接 **37.5 ms**；WebCrypto SHA-256 4 MB **2.3 ms** |
 | S3 视频管线（canvas→MediaRecorder→VP9 640x360/3 s） | 解码 **81 帧**、丢帧 **0**、损坏 **0**；墙钟 3005 ms vs 媒体时长 2968 ms（≈1.01×，未掉速） |
 | S5 真实网页 `https://www.bing.com/` | TTFB **335 ms**、DCL **423 ms**、load **424 ms**、FCP **428 ms**、107 资源 / 1.06 MB |
-| S4 YouTube 观测 | **页面 HTML 能打开**（标题 `Rick Astley … (4K Remaster) - YouTube`），但视频不进入播放：`googlevideo.com` 本机 **21 s 超时不可达**（`curl` 同时验证）⇒ 只报环境，不报结论 |
+| S4 YouTube（代理可用后） | 720p 播放 30 s：**23 段 / 峰值并发 5 / 5 个不同 CDN 主机**、每段中位 1251 ms、共 6.88 MB；播放推进 **1.000×**（1.34→31.34 s，墙钟 30.0 s）、**787 帧 0 丢帧** |
+
+**实测补充（代理恢复后，第9轮第二次测量）**：YouTube **已经**在做多 CDN 并发取数 ——
+30 s 内 23 个 `googlevideo.com` 分段、峰值 **5 个并发**、落在 **5 个不同主机**
+（`rr1---sn-4g5lznes` / `rr5---sn-q4fzen7s` / `rr2---sn-oji3b5-5n` / `rr4---sn-oji3bc-5n` /
+`r1---sn-2x3elnes`）；第二次复跑为 20 段 / 4 并发 / 4 主机，分布随网络波动。
+用 CDP `Network.responseReceived` 读 Chromium 自报的协议：**`youtube.com` 导航 = h2**，
+但 **5/5 个媒体分段 = http/1.1**。这解释了为什么播放器要拆到多台主机：HTTP/1.1 下每主机
+普通连接上限 6（`client_socket_pool_manager.cc:54-58`），单主机并发不够，只能横向铺开到多个 CDN。
+⇒ 当前链路的真正瓶颈在**代理/路由把媒体降级成 HTTP/1.1**（每个新主机都要重做 TCP+TLS 握手），
+不在浏览器内核。若要让媒体走 h2/h3 多路复用，改的是代理的 ALPN 透传，不是 Chromium 的开关。
 
 **可行性结论（覆盖"多线程多并发 + 多 CDN 节点"需求）**：
 
