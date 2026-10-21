@@ -28,6 +28,8 @@ import sys
 import tempfile
 import time
 
+sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 import cdp  # noqa: E402
@@ -37,6 +39,34 @@ INSTALLED = os.environ.get("MCHROME_INSTALLED_EXE") or \
 URL = os.environ.get("R6_URL", "https://www.youtube.com/watch?v=dQw4w9WgXcQ")
 PHASE1 = float(os.environ.get("R6_PHASE1", "15"))
 PHASE2 = float(os.environ.get("R6_PHASE2", "45"))
+
+
+DISMISS_JS = r"""
+(() => {
+  const wanted = ['accept all', 'accept the use of cookies', 'i agree', 'agree',
+                  '全部接受', '接受全部', '我同意', '同意', '接受所有', '同意并继续'];
+  const hit = (e) => {
+    const t = ((e.innerText || e.textContent || '') + '').trim().toLowerCase();
+    return t && wanted.some(w => t.includes(w)) ? t : null;
+  };
+  const clickAll = (root) => {
+    for (const e of root.querySelectorAll('button, tp-yt-paper-button, yt-button-shape button, a[role=button]')) {
+      const t = hit(e);
+      if (t) { e.click(); return 'clicked:' + t.slice(0, 40); }
+    }
+    return null;
+  };
+  let r = clickAll(document);
+  if (r) return r;
+  for (const host of document.querySelectorAll('*')) {
+    if (host.shadowRoot) {
+      r = clickAll(host.shadowRoot);
+      if (r) return r;
+    }
+  }
+  return null;
+})()
+"""
 
 INJECT = r"""
 (() => {
@@ -71,6 +101,33 @@ SAMPLE = r"""
 """
 
 
+
+HOST_STATS_JS = r"""
+(() => {
+  const es = performance.getEntriesByType('resource').filter(e => /googlevideo\.com/.test(e.name));
+  const byHost = {};
+  for (const e of es) {
+    let h = '?';
+    try { h = new URL(e.name).host; } catch (_) {}
+    const o = byHost[h] || (byHost[h] = {n: 0, ms: [], bytes: 0});
+    o.n++; o.ms.push(e.duration); o.bytes += (e.encodedBodySize || 0);
+  }
+  const perHost = {};
+  for (const [h, o] of Object.entries(byHost)) {
+    const s2 = [...o.ms].sort((a, b) => a - b);
+    perHost[h] = {n: o.n, median_ms: Math.round(s2[(s2.length / 2) | 0]),
+                  max_ms: Math.round(s2[s2.length - 1]), bytes: o.bytes};
+  }
+  const segs = es.map(e => ({s: e.startTime, d: e.duration}));
+  const ev = [];
+  for (const x of segs) { ev.push([x.s, 1]); ev.push([x.s + x.d, -1]); }
+  ev.sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+  let cur = 0, mx = 0;
+  for (const [, v] of ev) { cur += v; if (cur > mx) mx = cur; }
+  return {segments: segs.length, maxConcurrent: mx, perHost};
+})()
+"""
+
 def main():
     if not os.path.isfile(INSTALLED):
         print(json.dumps({"env_fail": "找不到浏览器 %s" % INSTALLED}, ensure_ascii=False))
@@ -87,7 +144,9 @@ def main():
         cdp.launch(INSTALLED, prof, port,
                    extra=["--mute-audio",
                           "--autoplay-policy=no-user-gesture-required",
-                          "--window-size=1920,1080"])
+                          "--window-size=1920,1080"]
+                         + ([] if os.environ.get("R6_QUIC", "1") != "0"
+                            else ["--disable-quic"]))
         if not cdp.wait_for_port(port, timeout=40):
             print(json.dumps({"env_fail": "调试端口未起来"}, ensure_ascii=False))
             return 2
@@ -98,7 +157,11 @@ def main():
 
         # 进入播放（最多 30 s）
         playing = False
+        consents = []
         for _ in range(30):
+            c = tab.evaluate(DISMISS_JS)
+            if c:
+                consents.append(c)
             st = tab.evaluate(INJECT)
             tab.evaluate("(function(){var v=document.querySelector('video');"
                          "if(v){v.muted=true;v.play&&v.play().catch(function(){});}})()")
@@ -144,6 +207,7 @@ def main():
                     hdrs = {str(k).lower(): v for k, v in (r.get("headers") or {}).items()}
                     with contextlib.suppress(TypeError, ValueError):
                         bytes_by_proto[pr] += int(hdrs.get("content-length") or 0)
+        out["consent_clicks"] = consents
         out["decoders"] = decoders
         out["media_properties"] = {"%s=%s" % k: n for k, n in media_props.items()}
         out["media_protocols"] = dict(protos)
@@ -193,6 +257,7 @@ def main():
             # 用 GPU 能力清单（chrome://gpu 的 Decode vp9/av1）另行核对，不猜。
             out["decoder_note"] = ("Media 域未返回 kVideoDecoderName；解码器身份不可得"
                                    "（不计失败，但也不得据此声称硬解/软解）")
+        out["cdn_segments"] = tab.evaluate(HOST_STATS_JS, timeout=60)
         tab.close()
     finally:
         left = cdp.kill_instance(prof, port=port)
