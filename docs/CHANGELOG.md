@@ -2,6 +2,16 @@
 
 ## M155（内核升级 M151 → M155.0.8059.40）— 2026-10-10
 
+### r16（视频流畅度/稳定性探针 r6 + 结论）— 2026-10-13
+
+新增 `benchmark/tools/r6_video_stability_check.py`：安装版 720p 播放 40 s，**0 次 rebuffer / 0 stalled /
+0 error**，缓冲余量最小 27.6 s、中位 50.2 s，播放推进 0.975，rVFC 1344 帧（≈34 fps）；
+媒体协议 **h3×6 + http/1.1×4**（部分 QUIC 回退）。
+
+量具修正（写进注释）：YouTube 的 `getVideoPlaybackQuality()` 返回空对象，帧数只能用 rVFC 数；
+`Media` 域与 media-internals 都读不到解码器身份 ⇒ 记为环境说明，不声称硬解/软解。
+结论：播放侧已达标，唯一可优化项是降低 h3→h1.1 回退比例（代理/路由侧），内核无对应开关。
+
 ### r15（运行时性能实测 + YouTube 多 CDN 可行性结论）— 2026-10-13
 
 新增 `benchmark/tools/r5_runtime_perf_check.py`：真机运行时探针（不含编译时长），三条本地自给场景 +
