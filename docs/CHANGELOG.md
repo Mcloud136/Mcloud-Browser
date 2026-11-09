@@ -1,5 +1,76 @@
 # MCloud Browser Changelog
 
+## M158（内核升级 M155 → M158.0.8127.30）— 2026-11-09
+
+本版把内核从 **155.0.8059.40** 推到 **158.0.8127.30**（官方 tag，commit `cb5de443`），
+跨 Chrome 156 / 157 / 158 三个里程碑。M158 目前仍是 Beta（上游计划 2026-11-17 转 Stable），
+这次按既定决策抢先升级；下一次升级锚定 M159 / M160 GA。
+
+### 内核带来的变化
+
+- **安全**：一次性带入 Chrome 156 stable 的 354 项安全修复（6 项 Critical）与 157 stable 的
+  213 项（7 项 Critical）。本产品没有自动更新，**存量用户需要手动重装**才能拿到这些修复。
+- **平台能力**：IndexedDB 后端改为 SQLite（156）；HTML-in-Canvas 转正、Background Fetch
+  强制 CORS（157）；Web Install API 与 `<install>` 元素、媒体状态伪类、
+  OfflineAudioContext 增量渲染、WebTransport 增强（158）。
+- **兼容性回退（需要注意）**：自 Chrome 158 Stable 起 **XSLT 停止工作**（安全原因移除 libxslt），
+  依赖 XSLT 的老 RSS / XML sitemap 页面会显示裸 XML；Origin Trials 与企业策略有例外，
+  窗口到 Chrome 176（2027-08-17）。
+
+### 本版定制变化
+
+- **安全 DNS 默认开启且走国内节点**：默认模式由「自动」改为 **secure**，模板固定
+  `https://doh.pub/dns-query`（DNSPod）。实测依据：`自动` 模式下即使预置模板也**不会**启用
+  DoH（自动升级只匹配系统 53 端口 DNS 的 IP），而 secure 模式从第一次查询起就走 DoH。
+  代价是**没有明文回退**：若所在网络封阻到 `doh.pub` 的 443，域名解析会失败，
+  此时到「设置 → 隐私和安全 → 安全 DNS」改回「自动」即可恢复。
+  设置页的原生解析器下拉里另提供 **DNSPod（腾讯）** 与 **Aliyun（阿里云）** 两个条目。
+- **品牌文案**：关于页产品名显示 **Mcloud**；中文版权「版权所有 2026 狗木马」，
+  英文版权「Copyright 2026 Mcloud. All rights reserved.」。
+- **快捷方式与安装身份保持不变**：桌面 / 开始菜单 / 快速启动仍是 **Chromium**。
+  快捷方式名与产品名已解耦，卸载项显示名、防火墙规则名、应用注册名同样保持 Chromium，
+  只有关于页使用新的产品名。
+- **安装器**：装完后若仍有旧版本目录残留（旧版本文件被占用导致上游删除失败），
+  会**明确列出目录路径与体积**并提示后台仍在清理，不再静默放过；
+  该提示不影响安装成败判定。
+- **构建链**：PGO profdata 改为按 LLVM magic 校验后回填（防止把 gzip 压缩对象误当 profdata），
+  目标内核版本与工具链校验同步到 158。
+
+### 安装
+
+| 文件 | 用途 |
+|---|---|
+| `mcloud_158.0.8127.30_win64_setup.exe` | **推荐**。外层包装器：关闭正在运行的实例 → 安装 → 复验根 `chrome.exe` 确实升到本版本 → 清理临时文件 → 重启浏览器。默认就地更新已有安装；两处都没装过时默认装到用户级，显式 `--system-level` 走系统级并自举提权。 |
+| `mcloud_158.0.8127.30_win64_mini_installer.exe` | 上游原生安装器本体。浏览器未完全退出时更新会静默不生效（缺陷 D119），仅在已退出时使用。 |
+
+包装器支持 `--list-only`（只报告会关闭哪些实例）与 `--no-launch`（装完不启动浏览器）；
+退出码 `0` = 成功且复验通过、`1` = 复验未通过、`2` = 环境不满足。
+
+### 校验
+
+```
+certutil -hashfile mcloud_158.0.8127.30_win64_setup.exe SHA256
+certutil -hashfile mcloud_158.0.8127.30_win64_mini_installer.exe SHA256
+```
+
+- setup（推荐）：`84a10de7c770b7cf98ea9dc7ec458e8c4fcbcb05d03eb480ac9a6ac4a38ef4a7`
+- mini_installer：`f5f2191159203071f98f2a2fe48b558c1037a1cd3724d648018fb380f77da6a3`
+
+### 已验证（Windows 11 26200 / x64）
+
+- 正式安装包在系统级安装下完成，`Application\158.0.8127.30\Installer\` 生成
+  `setup.exe` / `chrmstp.exe`，卸载项 `DisplayName=Chromium`、`DisplayVersion=158.0.8127.30`
+- 安装后 `chrome.dll` 与构建产物 **SHA256 一致**
+- 全新配置下 DoH 为 `secure` + `doh.pub`；页面正常加载（163.com 实测）
+- 关于页产品名、中英文版权、快捷方式名三项文案按预期落地
+
+### 已知限制
+
+- **未做代码签名**：首次运行会有 SmartScreen 警告，属预期。
+- **推送 tag 不会自动带出安装包**：`release.yml` 不在 runner 上编译内核，安装包需通过
+  GitHub Release 资产上传（缺陷档案 D45）。
+- **M158 为 Beta 抢跑**：11-17 GA 后上游仍会出补丁 tag，本包会随之落后。
+
 ## M155（内核升级 M151 → M155.0.8059.40）— 2026-10-10
 
 ### r16（视频流畅度/稳定性探针 r6 + 结论）— 2026-10-13
