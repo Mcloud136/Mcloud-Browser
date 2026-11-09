@@ -696,3 +696,24 @@ locale pak + Dictionaries 等），此前把「252 个文件」当作「半卸�
 **遗留清理项**：`C://ProgramData//Microsoft//Windows//Start Menu\Programs\Mcloud.lnk` 是
 05:46 那次「IDS_PRODUCT_NAME=Mcloud」构建留下的旧快捷方式，本次安装只新建了 Chromium.lnk，
 未删除它，需要单独清理。
+
+---
+
+## 17. 发布：GitHub Release v158.0.8127.30（2026-11-09 15:50）
+
+- Release: <https://github.com/Mcloud136/Mcloud-Browser/releases/tag/v158.0.8127.30>
+- 标记 **prerelease**（M158 上游仍为 Beta，2026-11-17 转 Stable），非 draft。
+- 说明正文取自 `docs/CHANGELOG.md` 的 M158 段落（用户视角）；仓库内另有技术版
+  `docs/superpowers/specs/2026-11-08-release-notes-m158.md`。
+
+| 资产 | 大小 | SHA256 |
+|---|---|---|
+| `mcloud_158.0.8127.30_win64_setup.exe` | 134,309,376 | `84a10de7c770b7cf98ea9dc7ec458e8c4fcbcb05d03eb480ac9a6ac4a38ef4a7` |
+| `mcloud_158.0.8127.30_win64_mini_installer.exe` | 134,281,728 | `f5f2191159203071f98f2a2fe48b558c1037a1cd3724d648018fb380f77da6a3` |
+| 两个 `.sha256` sidecar | 103 / 112 B | — |
+
+资产可下载性已抽查：`releases/download/.../setup.exe` 返回 200，实测字节数 134,309,376 与本地一致。
+
+**推送通道备注**：本机 HTTPS 直连 github.com 不可达；经 Clash Verge 的 `127.0.0.1:7897`
+代理可用。为避免以后关掉代理导致 git 失败，代理是以 `git -c http.proxy=...` 与
+`git -c http.sslBackend=openssl` **单次传入**的，未写入仓库或全局配置。
