@@ -19,6 +19,10 @@
 
 MCloud Browser 是基于 [Chromium M158 (158.0.8127.30)](https://www.chromium.org/) 的高性能浏览器，通过 **AVX2 原生编译**、**-O3 + ThinLTO + PGO 三重编译器优化** 和 **56 条运行时优化开关（53 项 feature + 3 项普通开关）**（见 [mcloud_flags.txt](mcloud_flags.txt)，浏览器启动时由内置加载器自动注入），为用户提供极致流畅的浏览体验。
 
+**MCloud Browser** is a Chromium-based (M158, Chrome-compatible rendering engine) high-performance web browser for Windows x64, built with AVX2 native compilation and an -O3 / ThinLTO / PGO toolchain.
+
+> 说明：本项目与 Google 无隶属关系，不代表 `Chrome` 官方；文中 `Chrome` / `Chromium` 仅用于说明技术血统与网页兼容性。
+
 > 仅发布 **Windows x64** 平台（见 [ADR-003](docs/decisions/ADR-003-windows-only-release.md)）。
 
 ### 🎯 核心特性
