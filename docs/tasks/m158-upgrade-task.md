@@ -668,3 +668,31 @@ local_state->SetDefaultPrefValue(prefs::kDnsOverHttpsTemplates,
    定位是谁在解压后删除中间归档（路径 A 的核心疑点）。
 3. 并行方案：排查 create_installer_archive.py 的 GetLZMAExec 产物与 setup 内置
    seven_zip 读取器的兼容性；必要时改为 BN（未压缩二进制）资源形态规避解压环节。
+
+### 16.1 结论修正：安装可由资源管理器正常完成（2026-11-09 15:24）
+
+用户在资源管理器**双击** `mcloud_158.0.8127.30_win64_setup.exe`，安装成功。落盘证据：
+
+| 项 | 实测 |
+|---|---|
+| 安装器私有产物 | `Application\158.0.8127.30\Installer\{setup.exe, chrmstp.exe}`，时间 15:24 |
+| 静默日志 | `C://Windows//SystemTemp//chromium_installer.log` 15:24:28 记录 `Install Chrome`，并创建 all-users Desktop / per-user Quick Launch / all-users Start menu 快捷方式，名称均为 **Chromium** |
+| 卸载项 | DisplayName=`Chromium`、DisplayVersion=`158.0.8127.30`、InstallLocation 正确 |
+| 快捷方式 | `%PUBLIC%\Desktop\Chromium.lnk` 15:24；无新增 Mcloud.lnk |
+| 载荷一致性 | 安装后 `chrome.dll` 与 `out/mcloud/chrome.dll` **SHA256 前 16 位一致**（`88f5900d57f556a1`） |
+| 运行时 | 全新 profile：`mode=2`（secure）+ `servers=[{template:'https://doh.pub/dns-query'}]`；163 页面 363 KB 正常 |
+
+**结论修正**：§16 记录的退出码 57 **不是安装包缺陷**，而是**执行环境相关**。全部失败尝试都由
+agent 的 shell 发起，继承了 `PYTHONPATH=...\cli\vendor\shim`、`CODEBUDDY_SAFE_DELETE_ENABLED=1`、
+PATH 含 shim；由资源管理器（普通用户环境）启动即成功。旁证：155 旧包在同样的 shell 环境下同样 57，
+而它此前在本机可正常安装。
+
+**未完全闭环的部分**：没有做「同一 shell、清空注入变量」的对照实验，因此不能指认具体是哪一个变量
+导致。若后续再遇 57，**优先用干净环境复测**，而不是先怀疑归档。
+
+**另更正一处早先误判**：本载荷的完整安装就是**约 250 个文件**（版本目录 24 个条目 + 220 个
+locale pak + Dictionaries 等），此前把「252 个文件」当作「半卸载残留」是错的。
+
+**遗留清理项**：`C://ProgramData//Microsoft//Windows//Start Menu\Programs\Mcloud.lnk` 是
+05:46 那次「IDS_PRODUCT_NAME=Mcloud」构建留下的旧快捷方式，本次安装只新建了 Chromium.lnk，
+未删除它，需要单独清理。
