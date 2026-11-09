@@ -395,6 +395,20 @@ K3-K6（页面加载/JS/滚动/视频解码）为手工流程，见 `benchmark/R
 
 ---
 
+## 👤 项目维护者
+
+| 项 | 信息 |
+|---|---|
+| 维护者 | 狗木马 |
+| 组织 | 微笑木马 |
+| 品牌 | Mcloud |
+| 邮箱 | wxmuma@qq.com |
+| 网站 | [www.wxmuma.cn](https://www.wxmuma.cn) |
+| 仓库 | [Mcloud136/Mcloud-Browser](https://github.com/Mcloud136/Mcloud-Browser) |
+| 版权 | © 2026 狗木马 / 微笑木马（MIT 许可） |
+
+> 上游血缘与致谢保留在下方「致谢」一节；本项目的身份元数据与上游作者信息分开列示。
+
 ## 🙏 致谢
 
 - [Thorium](https://github.com/Alex313031/thorium) — 原始项目基础
@@ -404,5 +418,5 @@ K3-K6（页面加载/JS/滚动/视频解码）为手工流程，见 `benchmark/R
 ---
 
 <p align="center">
-  Made with ❤️ by MCloud
+  Made with ❤️ by 狗木马 · 微笑木马
 </p>

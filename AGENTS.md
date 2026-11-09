@@ -1,7 +1,17 @@
 # AGENTS.md — MCloud Browser 仓库导航
 
+维护者：狗木马（微笑木马）· wxmuma@qq.com · www.wxmuma.cn · https://github.com/Mcloud136/Mcloud-Browser
+
 本文件为 AI Agent 提供仓库导航：源码根职责、核心修改文件定位、构建流程和编码约定。
 修改任何代码前先阅读本文件，避免无效探索。
+
+> ⚠ **M158 升级进行中（2026-11-08）**：`win_scripts/tree_check.py` 的 `KERNEL_MAJOR` 已切到 158，
+> `win_args_mcloud.gn` 的 `pgo_data_path` 已改为待解析占位符 `__M158_PROFDATA_REQUIRED__`。
+> 因此**在 M155 树上跑 deploy/inject 会被 exit 114 拒绝**（这是预期的升级阻断，不是故障）。
+> 本文件与 README 里的版本号、flags 条数、pin 数、`enable 50 / disable 2` 回显期望值、
+> 8059 profdata、基准数据**仍是 M155 实测口径**，在 M158 产物出来前不得当作 M158 数据引用。
+> 完整执行清单、硬单点与待回填项见 `docs/tasks/m158-upgrade-task.md`；新性能 flag 候选见
+> `docs/tasks/m158-perf-features-candidates.md`。下一次升级按技术规范 §9.1 锚定 M159/M160 GA。
 
 ## 项目简介
 

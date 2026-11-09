@@ -1,6 +1,6 @@
 MIT License
 
-Copyright (c) 2026 MCloud Browser
+Copyright (c) 2026 狗木马 / 微笑木马
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
