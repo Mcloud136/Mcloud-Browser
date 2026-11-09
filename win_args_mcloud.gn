@@ -62,7 +62,17 @@ chrome_pgo_phase = 2
 #   但第 156 行 `inputs += [ pgo_data_path ]` 会让 ninja 立刻报
 #   "missing and no known rule to make it" —— 换机/重配即构建失败，且失败信息不指向根因。
 #   现已指回 155 树，并由 win_scripts/build_win.py 的预检在编译前校验该文件确实存在。
-pgo_data_path = "D:/wxmuma/chromium-src-155/src/chrome/build/pgo_profiles/chrome-win64-8059-1790681878-a5a326a93a5b6da6820b51c3dd27c598393c85c9-bafd721ba752e4b3753f103970251e378ca171d6.profdata"
+# ⚠ M158 升级（2026-11-08）：本模板**故意不写死 profdata 文件名**。
+#   GN 只断言 pgo_data_path 非空、不校验文件真的存在
+#   （build/config/compiler/pgo/BUILD.gn:149），凭空编造 8127 系列文件名会让
+#   `gn gen --check` 照常通过、ninja 才在 inputs += [pgo_data_path] 报一句
+#   完全不指向根因的 "missing and no known rule to make it"（缺陷 D144）。
+#   占位符会让 build_win.py::preflight_args 在编译前硬失败并点名根因，属预期阻断。
+# 首次配置请用真实源码树解析（会写入存在且非空的那个文件）：
+#   python win_scripts/resolve_pgo_profiles.py --src <CR_DIR> --build 8127 \
+#       --write <CR_DIR>/out/mcloud/args.gn
+# 若上游尚无 8127 profdata，先跑 tools/update_pgo_profiles.py --target=win64 update。
+pgo_data_path = "__M158_PROFDATA_REQUIRED__"
 
 # --- V8 JavaScript Engine Optimizations ---
 v8_enable_fast_torque = true

@@ -17,8 +17,17 @@ import os
 import re
 import sys
 
-KERNEL_MAJOR = 155          # 本仓库当前定制所依附的上游内核主版本
-KERNEL_VERSION = "155.0.8059.40"
+# ⚠ M158 升级进行中（2026-11-08，用户显式指定取 M158 Beta，下一次升级锚定 159/160 GA）。
+#   158.0.8127.30 是 Chromium **官方 tag 列表**里 158.0.8127.* 系列的最新补丁 tag
+#   （用户 2026-11-08 指定；`git ls-remote --tags .../chromium/src.git 'refs/tags/158.0.8127.*'`
+#   实测 .4 … .30，最大为 .30）。⚠ ChromiumDash 的 `channel=Beta` release 只到 .18，那是
+#   **频道推送版本**而不是源码 tag，两者口径不同，不要拿 .18 当目标。
+#   首次拿到 M158 源码树后仍须用 `git describe --tags` 复核，不符就改 KERNEL_VERSION。
+# ⚠ 把 MAJOR 改成 158 会让 deploy/inject 脚本在 M155 树上直接 exit 114，这是**预期的
+#   升级阻断**——旧树不再允许注入，避免 D186 那种"改了旧树却编译另一棵树"的静默丢失。
+#   确需在旧树上做升级前取证时，显式设 MCLOUD_ALLOW_TREE_MISMATCH=1（结果需自行记录）。
+KERNEL_MAJOR = 158          # 本仓库当前定制所依附的上游内核主版本
+KERNEL_VERSION = "158.0.8127.30"
 
 # 默认树历史上写死的是 M151 回滚参考树；这里保留同样的默认，但**不再让它悄悄通过**。
 M151_MARKERS = (r"D:\wxmuma\chromium-src\src", "D:/wxmuma/chromium-src/src")
@@ -63,7 +72,7 @@ def require_tree(src, script_name=""):
             print("       这正是 **M151 回滚参考树**。定制必须落在当前发布树上，否则编译产物"
                   "不含改动而脚本照样自称成功（第7周期 D186）。", file=sys.stderr)
         print("   修法：设 CR_DIR 指向当前发布树后重跑，例如 "
-              "set CR_DIR=D:\\wxmuma\\chromium-src-155\\src", file=sys.stderr)
+              "set CR_DIR=D:\\wxmuma\\chromium-src-158\\src", file=sys.stderr)
         if not allowed:
             print("   确需在别的树上运行（例如升级 pre-assessment）："
                   "set MCLOUD_ALLOW_TREE_MISMATCH=1", file=sys.stderr)
