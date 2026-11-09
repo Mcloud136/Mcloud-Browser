@@ -536,6 +536,48 @@ internal static class MCloudSetup
         return ok;
     }
 
+    // ------------------------------------- 旧版本目录可见性（B+A 里的 A 部分）
+    // 上游 install.cc:517 装完会调 DeleteOldVersions()，失败则起后台
+    // setup.exe --delete-old-versions 重试：先等 15 秒，之后每次失败隔 5 分钟，
+    // 最多 3 次（setup_main.cc:461 RepeatDeleteOldVersions）。
+    // 所以「装完立刻看旧目录还在」是正常时序，不是失败。
+    // 这里只做可见化：把仍存在的、与目标版本不一致的四段版本目录逐个列出（含体积），
+    // 并说明后台会继续清理。**绝不因此判失败**——与 D109 同一条取舍：
+    // 不能让无关残留卡住升级。
+    private static int ReportStaleVersionDirs(string appDir, string wantVersion)
+    {
+        int count = 0;
+        try
+        {
+            foreach (string d in Directory.GetDirectories(appDir))
+            {
+                string name = Path.GetFileName(d);
+                Version v;
+                if (!Version.TryParse(name, out v)) continue;
+                if (v.Revision < 0) continue;          // 只要 4 段的版本号目录
+                if (string.Equals(name, wantVersion, StringComparison.OrdinalIgnoreCase)) continue;
+                if (!File.Exists(Path.Combine(d, "chrome.dll"))) continue;   // 只认本产品目录
+                long bytes = 0;
+                try
+                {
+                    foreach (string f in Directory.GetFiles(d, "*", SearchOption.AllDirectories))
+                    {
+                        try { bytes += new FileInfo(f).Length; } catch (Exception) { }
+                    }
+                }
+                catch (Exception) { }
+                Log(string.Format("  ! 旧版本目录仍在：{0}\\{1}（约 {2} MB）",
+                                  appDir.TrimEnd('\\'), name, bytes / 1048576));
+                count++;
+            }
+        }
+        catch (Exception e)
+        {
+            Log("扫描旧版本目录失败（不影响安装结果）：" + e.Message);
+        }
+        return count;
+    }
+
     // ------------------------------------------------------- 提权自举
     // 提权子进程的退出码语义（缺陷 D122）：旧实现 Process.Start 之后不等待、调用方直接
     // return 0，把子进程的 rc=1（复验未通过）/ rc=2（异常）全部丢掉。后果是任何脚本、CI
@@ -761,8 +803,22 @@ internal static class MCloudSetup
             if (!CheckAssociations(assocBefore, linksBefore, notes)) ok = false;
             foreach (string n in notes) Log("  · " + n);
 
+            // B+A：B（安装前关闭本目录实例）已由上面的 CloseInstances 完成，让上游第一次
+            // 删除就能成功；这里补 A —— 把仍残留的旧版本目录显式说出来，且不判失败。
+            int staleDirs = ReportStaleVersionDirs(appDir, wantVersion);
+            if (staleDirs > 0)
+            {
+                Log(string.Format(
+                    "提示：仍有 {0} 个旧版本目录未被清理。上游清理进程会在浏览器完全退出后重试" +
+                    "（最多 3 次，间隔 5 分钟）；若 10 分钟后仍在，重新运行本安装器即可。",
+                    staleDirs));
+            }
+
             rc = ok ? 0 : 1;
-            SetStage(ok ? "完成：已确认更新到 " + wantVersion : "复验未通过（见上方明细）");
+            if (ok && staleDirs > 0)
+                SetStage("完成：已更新到 " + wantVersion + "（旧版本目录后台清理中）");
+            else
+                SetStage(ok ? "完成：已确认更新到 " + wantVersion : "复验未通过（见上方明细）");
             if (ok && !noLaunch && File.Exists(Path.Combine(appDir, "chrome.exe")))
             {
                 SetStage("重启浏览器");

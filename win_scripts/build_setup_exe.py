@@ -92,7 +92,13 @@ def main():
 
     cmd = [csc, "/nologo", "/optimize+", "/warnaserror-",
            "/target:" + ("exe" if args.console else "winexe"),
-           "/out:" + out]
+           "/out:" + out,
+           # installer/mcloud_setup.cs 是 UTF-8 无 BOM，且含大量中文界面文案与日志。
+           # 不显式声明代码页时，源文件编码取决于编译器实现（Roslyn 会先试 UTF-8，
+           # 旧 Framework csc 直接按 ANSI/GBK 读）——后者会把中文读成乱码，而乱码
+           # 只体现在安装器界面上，构建与哈希全部"正常"，属于最容易被漏掉的一类回归。
+           # 显式锁定 65001：正常时产物不变，万一源码不是合法 UTF-8 则直接编译失败。
+           "/codepage:65001"]
     if deterministic:
         cmd.insert(1, "/deterministic+")
     for r in REFS:
