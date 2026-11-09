@@ -42,6 +42,12 @@ STEPS = [
     ("apply_installer_payload.py", None),
     # D172：重启命令行瘦身（RegisterApplicationRestart 1024 字符预算）
     ("apply_restart_cmdline.py", None),
+    # 「层一」品牌文案：只改关于页的显示字符串（产品名 / 版权），
+    # **不碰** chrome/app/theme/chromium/BRANDING。后者属「层二」，会改变
+    # 安装子目录与注册表键，使新包与已装版本变成两个产品并存，须另立迁移方案。
+    # 2026-11-09 之前这一步不存在，导致仓库里的 infra/BRANDING 与
+    # infra/mcloud_strings.grd 只是死素材，关于页永远是 Chromium / The Chromium Authors。
+    ("apply_branding_strings.py", None),
 ]
 
 print("=== MCloud deploy: %s -> %s ===" % (os.environ['THOR_DIR'], cr_src))
