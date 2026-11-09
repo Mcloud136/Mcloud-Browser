@@ -5,7 +5,7 @@
 <h1 align="center">MCloud Browser</h1>
 
 <p align="center">
-  基于 Chromium M155 的高性能浏览器，AVX2 原生编译，56 条运行时优化开关
+  基于 Chromium M158 的高性能浏览器，AVX2 原生编译，56 条运行时优化开关
 </p>
 
 <p align="center">
@@ -17,7 +17,7 @@
 
 ## 📖 简介
 
-MCloud Browser 是基于 [Chromium M155 (155.0.8059.40)](https://www.chromium.org/) 的高性能浏览器，通过 **AVX2 原生编译**、**-O3 + ThinLTO + PGO 三重编译器优化** 和 **56 条运行时优化开关（53 项 feature + 3 项普通开关）**（见 [mcloud_flags.txt](mcloud_flags.txt)，浏览器启动时由内置加载器自动注入），为用户提供极致流畅的浏览体验。
+MCloud Browser 是基于 [Chromium M158 (158.0.8127.30)](https://www.chromium.org/) 的高性能浏览器，通过 **AVX2 原生编译**、**-O3 + ThinLTO + PGO 三重编译器优化** 和 **56 条运行时优化开关（53 项 feature + 3 项普通开关）**（见 [mcloud_flags.txt](mcloud_flags.txt)，浏览器启动时由内置加载器自动注入），为用户提供极致流畅的浏览体验。
 
 > 仅发布 **Windows x64** 平台（见 [ADR-003](docs/decisions/ADR-003-windows-only-release.md)）。
 
@@ -35,11 +35,14 @@ MCloud Browser 是基于 [Chromium M155 (155.0.8059.40)](https://www.chromium.or
 
 ## 🚀 下载
 
-从 [GitHub Releases](https://github.com/Mcloud136/Mcloud-Browser/releases) 下载最新版本（产物命名：`mcloud_{版本}_win64_mini_installer.exe`，附 `.sha256` 校验文件）。
+从 [GitHub Releases](https://github.com/Mcloud136/Mcloud-Browser/releases) 下载最新版本。每个版本提供两个产物（均附 `.sha256` 校验文件）：
+
+- `mcloud_{版本}_win64_setup.exe` —— **推荐**。外层安装包装器：先优雅关闭正在运行的本产品实例，安装后复验根 `chrome.exe` 确实升到目标版本，再清理临时文件并重启浏览器。默认就地更新已装副本。
+- `mcloud_{版本}_win64_mini_installer.exe` —— 上游原生安装器本体。浏览器未完全退出时更新会静默不生效（缺陷 D119），仅在已退出时使用。
 
 ```powershell
 # 安装前验证完整性（可选）
-(Get-FileHash .\mcloud_155.0.8059.40_win64_mini_installer.exe -Algorithm SHA256).Hash
+(Get-FileHash .\mcloud_158.0.8127.30_win64_setup.exe -Algorithm SHA256).Hash
 ```
 
 ### 系统要求
@@ -222,15 +225,15 @@ cd Mcloud-Browser
 git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git
 export PATH="$PWD/depot_tools:$PATH"
 
-# 3. 拉取 Chromium M155 源码（定向浅拉取目标 tag，避免全量枚举）
+# 3. 拉取 Chromium M158 源码（定向浅拉取目标 tag，避免全量枚举）
 mkdir -p ~/chromium && cd ~/chromium
 git init src && cd src
 git remote add origin https://chromium.googlesource.com/chromium/src.git
-git fetch --depth 1 origin tag 155.0.8059.40
-git checkout 155.0.8059.40
+git fetch --depth 1 origin tag 158.0.8127.30
+git checkout 158.0.8127.30
 cd ..
 # .gclient 放 chromium 根目录（勿放 src 内），然后同步依赖：
-gclient sync --nohooks --jobs 8 --revision src@155.0.8059.40
+gclient sync --nohooks --jobs 8 --revision src@158.0.8127.30
 gclient runhooks
 # ⚠ 禁用 --force --reset --delete_unversioned_trees（会清除定制与 CIPD 二进制）
 
@@ -242,7 +245,7 @@ python3 $THOR_DIR/win_scripts/deploy_mcloud.py
 # 内部按序：compiler_opt.gni 复制 → Polly 接线/定义 → AVX2 基线 →
 # D3D12/后台模式默认值 → flags 加载器注入 → mcloud_flags.txt 复制到 out/mcloud
 
-# 5. 下载 PGO profdata（版本必须与内核匹配：M155=8059 系列）
+# 5. 下载 PGO profdata（版本必须与内核匹配：M158=8127 系列）
 #    另需拉 V8 builtins profile：python v8/tools/builtins-pgo/download_profiles.py download
 python3 tools/update_pgo_profiles.py --target=win64 update \
   --gs-url-base=chromium-optimization-profiles/pgo_profiles
@@ -252,7 +255,9 @@ python3 v8/tools/builtins-pgo/download_profiles.py --depot-tools=third_party/dep
 # 6. 配置构建参数
 mkdir -p out/mcloud
 cp $THOR_DIR/win_args_mcloud.gn out/mcloud/args.gn
-# 注意核对 args.gn 中 pgo_data_path 指向已下载的 7922 系列 profdata 文件名
+# 注意核对 args.gn 中 pgo_data_path 指向已下载的 8127 系列 profdata 文件名；
+# 也可用 win_scripts/resolve_pgo_profiles.py 扫描并回填（会校验 LLVM magic，防止把
+# gzip 压缩对象误当 profdata）
 
 # 7. 生成构建文件并校验
 gn gen out/mcloud --check
@@ -274,7 +279,7 @@ pwsh $THOR_DIR/benchmark/tools/verify_builtin_flags.ps1
 
 ### 发布流程（实际执行方式）
 
-安装包约 118MB，超过 GitHub 单文件 100MB 限制且被 .gitignore 排除，因此产物不入 git，直接上传到 Release：
+安装包约 128MB，超过 GitHub 单文件 100MB 限制且被 .gitignore 排除，因此产物不入 git，直接上传到 Release：
 
 ```bash
 # 1. 本地编译 + 打包 + 验证
@@ -283,19 +288,22 @@ pwsh benchmark/tools/verify_builtin_flags.ps1
 
 # 2. 提交代码变更并打 tag
 git add -A
-git commit -m "M155: Chromium 155.0.8059.40"
-git tag -a v155.0.8059.40 -m "MCloud Browser M155 (155.0.8059.40)"
-git push origin main && git push origin v155.0.8059.40
+git commit -m "M158: Chromium 158.0.8127.30"
+git tag -a v158.0.8127.30 -m "MCloud Browser M158 (158.0.8127.30)"
+git push origin main && git push origin v158.0.8127.30
 
 # 3. 生成校验和并以 ADR-003 命名上传到 Release
 # （注意：gh 的 file#newname 重命名语法不可靠，先本地重命名再上传）
-cp mini_installer.exe mcloud_155.0.8059.40_win64_mini_installer.exe
-sha256sum mcloud_155.0.8059.40_win64_mini_installer.exe > mcloud_155.0.8059.40_win64_mini_installer.exe.sha256
-gh release create v155.0.8059.40 \
-  mcloud_155.0.8059.40_win64_mini_installer.exe \
-  mcloud_155.0.8059.40_win64_mini_installer.exe.sha256 \
-  --title "MCloud Browser v155.0.8059.40" \
-  --notes-file docs/superpowers/specs/2026-08-06-release-notes-m151.md
+cp mini_installer.exe mcloud_158.0.8127.30_win64_mini_installer.exe
+sha256sum mcloud_158.0.8127.30_win64_mini_installer.exe > mcloud_158.0.8127.30_win64_mini_installer.exe.sha256
+sha256sum mcloud_158.0.8127.30_win64_setup.exe > mcloud_158.0.8127.30_win64_setup.exe.sha256
+gh release create v158.0.8127.30 \
+  mcloud_158.0.8127.30_win64_setup.exe \
+  mcloud_158.0.8127.30_win64_setup.exe.sha256 \
+  mcloud_158.0.8127.30_win64_mini_installer.exe \
+  mcloud_158.0.8127.30_win64_mini_installer.exe.sha256 \
+  --title "MCloud Browser v158.0.8127.30" \
+  --notes-file docs/superpowers/specs/2026-11-08-release-notes-m158.md
 ```
 
 ---

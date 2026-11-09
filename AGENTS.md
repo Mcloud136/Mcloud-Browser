@@ -5,17 +5,24 @@
 本文件为 AI Agent 提供仓库导航：源码根职责、核心修改文件定位、构建流程和编码约定。
 修改任何代码前先阅读本文件，避免无效探索。
 
-> ⚠ **M158 升级进行中（2026-11-08）**：`win_scripts/tree_check.py` 的 `KERNEL_MAJOR` 已切到 158，
-> `win_args_mcloud.gn` 的 `pgo_data_path` 已改为待解析占位符 `__M158_PROFDATA_REQUIRED__`。
-> 因此**在 M155 树上跑 deploy/inject 会被 exit 114 拒绝**（这是预期的升级阻断，不是故障）。
-> 本文件与 README 里的版本号、flags 条数、pin 数、`enable 50 / disable 2` 回显期望值、
-> 8059 profdata、基准数据**仍是 M155 实测口径**，在 M158 产物出来前不得当作 M158 数据引用。
-> 完整执行清单、硬单点与待回填项见 `docs/tasks/m158-upgrade-task.md`；新性能 flag 候选见
+> ✅ **M158 升级已完成（2026-11-09）**：当前内核 **158.0.8127.30**（官方 tag，commit `cb5de443`）。
+> `win_scripts/tree_check.py` 的 `KERNEL_MAJOR=158`；`win_args_mcloud.gn` 的 `pgo_data_path`
+> 是占位符 `__M158_PROFDATA_REQUIRED__`，由 `win_scripts/resolve_pgo_profiles.py` 扫描真实树后
+> 回填（校验 LLVM magic，防止把 gzip 压缩对象误当 profdata）。因此在 **M155 及更早的树**上跑
+> deploy/inject 会被 **exit 114** 拒绝——这是预期的版本阻断，不是故障。
+>
+> **已在本版实测并回填的口径**：DoH 默认 `secure` + `doh.pub`（含 automatic 不生效的源码级
+> 归因）、关于页 `Mcloud` / 中英文版权、快捷方式名与产品名解耦（仍为 Chromium）、
+> 安装器旧版本目录残留可见化、系统级安装与卸载项字段。
+>
+> ⚠ **仍未在 M158 重测，引用时按 M155 口径谨慎对待**：`mcloud_flags.txt` 的运行时回显期望值
+> （原 `enable 50 / disable 2`）、pin 集合的平台有效默认值、各类基准数据。
+> 升级全过程、缺陷与修法见 `docs/tasks/m158-upgrade-task.md`；新性能 flag 候选（未启用）见
 > `docs/tasks/m158-perf-features-candidates.md`。下一次升级按技术规范 §9.1 锚定 M159/M160 GA。
 
 ## 项目简介
 
-MCloud Browser 是基于 Chromium（当前 M155，155.0.8059.40，硬件基线 AVX2+FMA3）的高性能 Windows 浏览器分支，
+MCloud Browser 是基于 Chromium（当前 M158，158.0.8127.30，硬件基线 AVX2+FMA3）的高性能 Windows 浏览器分支，
 通过 AVX2 原生编译 + 运行时优化标志（`mcloud_flags.txt`，启动时内置加载；
 2026-10-12 (第6周期) 实测 55 条开关行 = 52 项 feature + 3 项普通开关（第6周期新增
 `UserBlockingAboveNormalPriority`，缺陷 D170；2026-10-12 (第5周期) 时为 54 条 = 51 + 3）；
